@@ -24,8 +24,8 @@ import com.jsoniter.spi.JsoniterSpi;
 import com.wurrly.controllers.Users;
 import com.wurrly.models.User;
 import com.wurrly.modules.DIModule;
+import com.wurrly.server.ServerRequest;
 import com.wurrly.utilities.HandleGenerator;
-import com.wurrly.utilities.ServerRequest;
 
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
@@ -206,7 +206,7 @@ server.start();
 			        .setSocketOption(org.xnio.Options.BACKLOG, 10000)
 			        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
 
-					.setWorkerThreads(Runtime.getRuntime().availableProcessors() * 2)
+					.setWorkerThreads(Runtime.getRuntime().availableProcessors() * 8)
 					.setHandler(new HttpHandler()
 			{
 				@Override

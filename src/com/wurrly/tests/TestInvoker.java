@@ -18,7 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.wurrly.controllers.Users;
-import com.wurrly.utilities.ServerRequest;
+import com.wurrly.server.ServerRequest;
+
 import static java.lang.invoke.MethodHandles.lookup;
 
 import java.lang.invoke.CallSite;

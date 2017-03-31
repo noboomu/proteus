@@ -30,8 +30,8 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.wurrly.controllers.Users;
+import com.wurrly.server.ServerRequest;
 import com.wurrly.utilities.HandleGenerator;
-import com.wurrly.utilities.ServerRequest;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HttpString;

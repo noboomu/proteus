@@ -30,13 +30,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
+import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
 import com.jsoniter.output.JsonStream;
 import com.wurrly.controllers.Users;
 import com.wurrly.models.User;
+import com.wurrly.server.Extractors;
+import com.wurrly.server.ServerRequest;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.form.FormData;
+import io.undertow.server.handlers.form.FormDataParser;
+import io.undertow.server.handlers.form.FormData.FormValue;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
@@ -165,56 +171,58 @@ public class HandleGenerator
 		    
 		    final String[] parameterNames = new String[targetMethod.getParameterCount()];
 		    final Type[] types = new Type[targetMethod.getParameterCount()];
-		    final BiFunction<ServerRequest,String,?>[] biFunctions = new BiFunction[targetMethod.getParameterCount()];
-		    
-		    
-
-		    for( int i = 1; i < targetMethod.getParameterCount(); i++ )
-		    {
-		    	final Parameter p = targetMethod.getParameters()[i];
-		    	parameterNames[i] = p.getName();
-		    	types[i] = p.getParameterizedType();
-		    	
-		    	Logger.debug("Type: " + types[i]);
-		    	
-		    	if( types[i].equals(Long.class) )
-		    	{
-		    		Logger.debug("Long type");
-
-		    		biFunctions[i] = extractLong;
-		    	}
-		    	else if( types[i].equals(String.class) )
-		    	{
-		    		Logger.debug("String type");
-
-		    		biFunctions[i] = extractString;
-		    	}
-		    	else if( types[i].equals(java.nio.file.Path.class) )
-		    	{
-		    		Logger.debug("Path type");
-		    		biFunctions[i] = extractFilePath;
-		    	}
-		    	else if( types[i].equals(Any.class) )
-		    	{
-		    		Logger.debug("Any type");
-		    		biFunctions[i] = extractAny;
-		    	}
-		    	else if( types[i].getTypeName().startsWith("java.util.Optional") )
-		    	{
-		    		Type rawType = ((ParameterizedType) types[i] );
-		    		
-		    		Logger.debug("Raw type: " + rawType);
-		    		
-		    		if( types[i].getTypeName().contains("java.lang.String") )
-		    		{
-		    			biFunctions[i] = extractOptionalString;
-		    		}
-		    		
-		    	}
-		    	
-		    } 
+//		    final BiFunction<ServerRequest,String,?>[] biFunctions = new BiFunction[targetMethod.getParameterCount()];
+//		    
+//		    
+//
+//		    for( int i = 1; i < targetMethod.getParameterCount(); i++ )
+//		    {
+//		    	final Parameter p = targetMethod.getParameters()[i];
+//		    	parameterNames[i] = p.getName();
+//		    	types[i] = p.getParameterizedType();
+//		    	
+//		    	Logger.debug("Type: " + types[i]);
+//		    	
+//		    	if( types[i].equals(Long.class) )
+//		    	{
+//		    		Logger.debug("Long type");
+//
+//		    		biFunctions[i] = extractLong;
+//		    	}
+//		    	else if( types[i].equals(String.class) )
+//		    	{
+//		    		Logger.debug("String type");
+//
+//		    		biFunctions[i] = extractString;
+//		    	}
+//		    	else if( types[i].equals(java.nio.file.Path.class) )
+//		    	{
+//		    		Logger.debug("Path type");
+//		    		biFunctions[i] = extractFilePath;
+//		    	}
+//		    	else if( types[i].equals(Any.class) )
+//		    	{
+//		    		Logger.debug("Any type");
+//		    		biFunctions[i] = extractAny;
+//		    	}
+//		    	else if( types[i].getTypeName().startsWith("java.util.Optional") )
+//		    	{
+//		    		Type rawType = ((ParameterizedType) types[i] );
+//		    		
+//		    		Logger.debug("Raw type: " + rawType);
+//		    		
+//		    		if( types[i].getTypeName().contains("java.lang.String") )
+//		    		{
+//		    			biFunctions[i] = extractOptionalString;
+//		    		}
+//		    		
+//		    	}
+//		    	
+//		    } 
 		    
 //		    final Object[] args = new Object[targetMethod.getParameterCount()];
+		    
+		    final User tmpUser = new User();
 		    
 		    final HttpHandler mapper = new HttpHandler()
 		    {
@@ -241,12 +249,16 @@ public class HandleGenerator
 	    			 
 		    		final ServerRequest request = new ServerRequest(exchange);
 		    		 
-//		    		final Long any =  Long.parseLong(request.exchange.getQueryParameters().get("userId").getFirst());
+		    		//final Long id =  extractLong(exchange,"userId");
 
-		    		final Optional<String> context = Optional.ofNullable(request.exchange.getQueryParameters().get("context")).map(Deque::getFirst);
+		    		final Optional<String> context = extractOptional(exchange,"context");
+		    		//final User.UserType userType = extractEnum(exchange,"type",User.UserType.class);
 
-		    		final User json = target.createUser(request,context,request.exchange.getAttachment(ServerRequest.REQUEST_JSON_BODY).read(User.class));
-			    	 
+		    	//	final User user = extractJsonIterator(exchange,"user").read(User.class);
+
+		    		//final Any json = target.userForm(request, id, context,  userType, Extractors.fileBytes(exchange, "testFile"));
+		    		final Any json = target.createUser(request,  context,  Extractors.jsonIterator(exchange).read(User.class));
+
 //		    		json.whenComplete( ( u, e ) -> {
 //		    			
 //		    			if(e != null)
@@ -258,7 +270,9 @@ public class HandleGenerator
 //		    			else
 //		    			{
 		    			 exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "application/json"); 
-				    	  exchange.getResponseSender().send(JsonStream.serialize(json));
+				    	 exchange.getResponseSender().send(JsonStream.serialize(json));
+				    	  
+				    	 
 //		    			}
 //
 //		    			
@@ -280,78 +294,117 @@ public class HandleGenerator
 			return null;
 		}
 	}
+ 
+//	
+//	public final static BiFunction<ServerRequest,String,Any> extractAny = (request,name) -> {
+//		
+//		try
+//		{
+//			return  request.exchange.getAttachment(ServerRequest.JSON_DATA).readAny();
+//		} catch (IOException e)
+//		{
+//			// TODO Auto-generated catch block
+//			return Any.wrap(false);
+//		}
+//		
+//	};
+//	
+//	public static JsonIterator extractJsonIterator(final HttpServerExchange exchange, final String name)
+//	{
+//		return exchange.getAttachment(ServerRequest.JSON_DATA);
+//	}
+//	
+//	public static Any extractAny(final HttpServerExchange exchange, final String name)
+//	{
+//		try
+//		{
+//			return  exchange.getAttachment(ServerRequest.JSON_DATA).readAny();
+//		} catch (IOException e)
+//		{ 
+//			return Any.wrap(false);
+//		}
+//	}
 	
-	public final static BiFunction<ServerRequest,String,Long> extractLong = (request,name) -> {
-		
-		return Long.parseLong(request.exchange.getQueryParameters().get(name).getFirst());
-		
-	};
-	
-	public final static BiFunction<ServerRequest,String,Any> extractAny = (request,name) -> {
-		
-		try
-		{
-			return  request.exchange.getAttachment(ServerRequest.REQUEST_JSON_BODY).readAny();
-		} catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			return Any.wrap(false);
-		}
-		
-	};
-	
-	public final static BiFunction<ServerRequest,String,Path> extractFilePath = (request,name) -> {
-		
-		return request.files(name).getFirst().getPath();
-		
-	};
-	
-	public final static BiFunction<ServerRequest,String,Optional<String>> extractOptionalString = (request,name) -> {
-		
-		return Optional.ofNullable(request.exchange.getQueryParameters().get(name)).map(Deque::getFirst);
-		
-	};
-	
-	public final static BiFunction<ServerRequest,String,String> extractString = (request,name) -> {
-		
-		return request.exchange.getQueryParameters().get(name).getFirst();
-		
-	};
-	
-	   static Optional<Long> pathParamAsLong(HttpServerExchange exchange, String name) {
-	        return baseParameter(exchange, name).map(Long::parseLong);
-	    }
-
-	    static Optional<Integer> pathParamAsInteger(HttpServerExchange exchange, String name) {
-	        return baseParameter(exchange, name).map(Integer::parseInt);
-	    } 
-	    
-	    
-	static Optional<String> baseParameter(HttpServerExchange exchange, String name) {
-        
-        return Optional.ofNullable(exchange.getQueryParameters().get(name))
-                       .map(Deque::getFirst);
-    }
-	
-	private static interface RequestMapper<T> extends Function<HttpServerExchange,T>
+	public static String extractString(final HttpServerExchange exchange, final String name)
 	{
-		T apply(HttpServerExchange exchange,String name);
+		return exchange.getQueryParameters().get(name).getFirst();
 	}
 	
-	public static BiFunction<HttpServerExchange,String, String> stringParameterMapper = (HttpServerExchange exchange, String name) ->
-	{  
-		return baseParameter(exchange,name).get(); 
-	};
+	public static Path extractFilePath(final HttpServerExchange exchange, final String name)
+	{
+		return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getPath();
+	}
 	
-	public static BiFunction<HttpServerExchange,String, Optional<Long>> longParameterMapper = (HttpServerExchange exchange, String name) ->
-	{  
-		return baseParameter(exchange,name).map(Long::parseLong); 
-	};
+	public static Long extractLong(final HttpServerExchange exchange, final String name)
+	{
+		return Long.parseLong(extractString(exchange,name));
+	}
 	
-	public static BiFunction<HttpServerExchange, String, Optional<String>> optionalStringParameterMapper = (HttpServerExchange exchange, String name) ->
-	{  
-			return baseParameter(exchange,name); 
-	};
+	public static Integer extractInteger(final HttpServerExchange exchange, final String name)
+	{
+		return Integer.parseInt(extractString(exchange,name));
+	}
+	
+	public static Boolean extractBoolean(final HttpServerExchange exchange, final String name)
+	{
+		return Boolean.parseBoolean(extractString(exchange,name));
+	}
+	
+	public static <E extends Enum<E>> E extractEnum(final HttpServerExchange exchange, final String name, Class<E> clazz)
+	{
+		return Enum.valueOf(clazz, extractString(exchange,name));
+	}
+ 
+	public static Optional<String> extractOptional(final HttpServerExchange exchange, final String name)
+	{
+		return Optional.ofNullable(exchange.getQueryParameters().get(name)).map(Deque::getFirst);
+	}
+	
+	public static Optional<Path> extractOptionalFilePath(final HttpServerExchange exchange, final String name)
+	{
+		return Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map(FormValue::getPath);
+	}
+	
+	public static Optional<Integer> extractOptionalInteger(final HttpServerExchange exchange, final String name)
+	{
+		return extractOptional(exchange,name).map(Integer::parseInt);
+	}
+	
+	public static Optional<Long> extractOptionalLong(final HttpServerExchange exchange, final String name)
+	{
+		return extractOptional(exchange,name).map(Long::parseLong);
+	}
+	
+	public static Optional<Boolean> extractOptionalBoolean(final HttpServerExchange exchange, final String name)
+	{
+		return extractOptional(exchange,name).map(Boolean::parseBoolean);
+	}
+	
+	public static <E extends Enum<E>> Optional<E> extractOptionalEnum(final HttpServerExchange exchange, final String name, Class<E> clazz)
+	{
+		return extractOptional(exchange,name).map( e -> Enum.valueOf(clazz, name));
+	}
+	 
+	
+//	private static interface RequestMapper<T> extends Function<HttpServerExchange,T>
+//	{
+//		T apply(HttpServerExchange exchange,String name);
+//	}
+	
+//	public static BiFunction<HttpServerExchange,String, String> stringParameterMapper = (HttpServerExchange exchange, String name) ->
+//	{  
+//		return baseParameter(exchange,name).get(); 
+//	};
+//	
+//	public static BiFunction<HttpServerExchange,String, Optional<Long>> longParameterMapper = (HttpServerExchange exchange, String name) ->
+//	{  
+//		return baseParameter(exchange,name).map(Long::parseLong); 
+//	};
+//	
+//	public static BiFunction<HttpServerExchange, String, Optional<String>> optionalStringParameterMapper = (HttpServerExchange exchange, String name) ->
+//	{  
+//			return baseParameter(exchange,name); 
+//	};
 	
 //	public static RequestMapper<Long> generateLongParameterMapper(String name)
 //	{ 

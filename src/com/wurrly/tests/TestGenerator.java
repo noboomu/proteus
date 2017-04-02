@@ -6,11 +6,13 @@ package com.wurrly.tests;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,7 +31,7 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
-import com.wurrly.controllers.Users;
+import com.wurrly.server.Extractors;
 import com.wurrly.server.ServerRequest;
 import com.wurrly.utilities.HandleGenerator;
 
@@ -50,27 +52,43 @@ public class TestGenerator
 		STRING,LITERAL,TYPE
 	}
 	
+	public static void generateTypeLiteral( MethodSpec.Builder  builder, Type type, String name, String reference )
+	{
+	 
+		builder.addCode(CodeBlock.of("\n\ncom.jsoniter.spi.TypeLiteral<$T> $LType = com.jsoniter.spi.TypeLiteral.create($L);\n\n",type,name,reference));
+ 
+	}
+	
+
+	public static void generateParameterReference( MethodSpec.Builder  builder, Class<?> clazz  )
+	{
+		 
+	 	builder.addCode(CodeBlock.of("\n\nType $LType = $T.",clazz,clazz));
+ 
+	}
+	
 	public static enum TypeHandler
 	{
  		
-		LongType("Long $L = Long.parseInt(request.exchange.getQueryParameters().get($S).getFirst())",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		IntegerType("Integer $L = Integer.parseInt(request.exchange.getQueryParameters().get($S).getFirst())",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		StringType("String $L = exchange.getQueryParameters().get($S).getFirst()",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		BooleanType("Boolean $L = Boolean.parseBoolean(exchange.getQueryParameters().get($S).getFirst())",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		FilePathType("Path $L = request.files($S).getFirst().getPath()",true,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		AnyType("Any $L = exchange.getAttachment(ServerRequest.REQUEST_JSON_BODY).readAny()",true,StatementParameterType.LITERAL),
-		JsonIteratorType("JsonIterator $L = exchange.getAttachment(ServerRequest.REQUEST_JSON_BODY)",true,StatementParameterType.LITERAL),
-		ModelType("$T $L = exchange.getAttachment(ServerRequest.REQUEST_JSON_BODY).read($T.class)",true,StatementParameterType.TYPE,StatementParameterType.LITERAL,StatementParameterType.TYPE),
+		LongType("Long $L = Extractors.longValue(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		IntegerType("Integer $L = Extractors.integerValue(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		StringType("String $L =  Extractors.string(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		BooleanType("Boolean $L =  Extractors.booleanValue(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		FilePathType("Path $L = Extractors.filePath(exchange,$S)",true,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		AnyType("Any $L = Extractors.any(exchange)",true,StatementParameterType.LITERAL),
+		JsonIteratorType("JsonIterator $L = Extractors.jsonIterator(exchange)",true,StatementParameterType.LITERAL),
+		ModelType("$T $L = Extractors.typed(exchange,$L)",true,StatementParameterType.TYPE,StatementParameterType.LITERAL,StatementParameterType.LITERAL),
+		EnumType("$T $L = Extractors.extractEnum(exchange,$L.class,$S)",true,StatementParameterType.TYPE,StatementParameterType.LITERAL,StatementParameterType.LITERAL,StatementParameterType.STRING),
 
-		OptionalJsonIteratorType("Optional<JsonIterator> $L = Optional.ofNullable(exchange.getAttachment(ServerRequest.REQUEST_JSON_BODY))",true,StatementParameterType.LITERAL),
-		OptionalAnyType("Optional<Any> $L = Optional.ofNullable(exchange.getAttachment(ServerRequest.REQUEST_JSON_BODY)).map(JsonIterator::readAny())",true,StatementParameterType.LITERAL),
-		OptionalStringType("Optional<String> $L = Optional.ofNullable(exchange.getQueryParameters().get($S)).map(Deque::getFirst)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		OptionalLongType("Optional<Long> $L = Optional.ofNullable(exchange.getQueryParameters().get($S)).map(Deque::getFirst).map(Long::parseLong)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		OptionalIntegerType("Optional<Integer> $L = Optional.ofNullable(exchange.getQueryParameters().get($S)).map(Deque::getFirst).map(Integer::parseInt)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		OptionalBooleanType("Optional<Boolean> $L = Optional.ofNullable(exchange.getQueryParameters().get($S)).map(Deque::getFirst).map(Boolean::parseBoolean)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
-		OptionalPathType("Optional<Path> $L = Optional.ofNullable(serverRequest.files($S)).map(Deque::getFirst).map(io.undertow.server.form.FormData.FormValue::getPath)",true,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		OptionalJsonIteratorType("Optional<JsonIterator> $L = Extractors.Optional.jsonIterator(exchange)",true,StatementParameterType.LITERAL),
+		OptionalAnyType("Optional<Any> $L = Extractors.Optional.any(exchange)",true,StatementParameterType.LITERAL),
+		OptionalStringType("Optional<String> $L = Extractors.Optional.string(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		OptionalLongType("Optional<Long> $L = Extractors.Optional.longValue(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		OptionalIntegerType("Optional<Integer> $L = Extractors.Optional.integerValue(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		OptionalBooleanType("Optional<Boolean> $L = Extractors.Optional.booleanValue(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		OptionalPathType("Optional<Path> $L = Extractors.Optional.filePath(exchange,$S)",true,StatementParameterType.LITERAL,StatementParameterType.STRING),
  
-		;
+ 		;
 		
 		public boolean isBlocking()
 		{
@@ -99,6 +117,8 @@ public class TestGenerator
 		{
 			TypeHandler handler = forType(parameter.getParameterizedType());
 			
+		 
+			
 			Object[] args = new Object[handler.parameterTypes.length];
 			
 			for( int i = 0; i < handler.parameterTypes.length; i++ )
@@ -119,13 +139,25 @@ public class TestGenerator
 				
 				}
 			}
-			
+ 
 			builder.addStatement( handler.statement, args);
 		}
 		
 		public static TypeHandler  forType( Type type ) throws Exception
 		{
-			log.debug(type.getTypeName() + " " + type.toString());
+			boolean isEnum = false;
+			
+			try
+			{
+				Class<?> clazz = Class.forName(type.getTypeName());
+				isEnum =  clazz.isEnum();
+
+			} catch (Exception e)
+			{
+				// TODO: handle exception
+			}
+ 			
+			log.debug(type.getTypeName() + " " + type.toString() + " is enum " +  isEnum);
 
 			if( type.equals( Long.class ) )
 			{
@@ -182,7 +214,11 @@ public class TestGenerator
 					throw new Exception("No type handler found!");
 				}
 			}
-			else
+			else if( isEnum )
+			{
+				return EnumType;
+			}
+			else  
 			{
 				return ModelType;
 			}
@@ -213,6 +249,8 @@ public class TestGenerator
 			 ClassName formParserDefinitionClass = ClassName.get("io.undertow.server.form", "MultiPartParserDefinition" );
 
 			 ClassName.get("io.undertow","Undertow");
+			 ClassName extractors = ClassName.get("com.wurrly.server","Extractors");
+
 			 ClassName.get("io.undertow","UndertowOptions");
  			 ClassName exchangeClass = ClassName.get("io.undertow.server","HttpServerExchange");
 			 ClassName.get("io.undertow.server","RoutingHandler");
@@ -256,7 +294,6 @@ public class TestGenerator
 		 ClassName exchangeClass = ClassName.get("io.undertow.server","HttpServerExchange");
 		 
 		 
-		 
 
 		 String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
 		 
@@ -272,7 +309,7 @@ public class TestGenerator
 		 MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("addRouteHandlers").addModifiers(Modifier.PUBLIC)
 				 .addParameter(ParameterSpec.builder( io.undertow.server.RoutingHandler.class, "router", Modifier.FINAL).build());
 
-		for( Method m : Users.class.getDeclaredMethods() )
+		for( Method m : com.wurrly.controllers.Users.class.getDeclaredMethods() )
 		{
 			String methodPath = HandleGenerator.extractPathTemplate.apply(m);
 			
@@ -295,9 +332,17 @@ public class TestGenerator
 		 			.addException(ClassName.get("java.lang","Exception"))
 		 			.addAnnotation(Override.class)
 		 			.addParameter(ParameterSpec.builder(HttpServerExchange.class, "exchange", Modifier.FINAL).build());
-
+		 	
+ 		  
+			
+ 		 	
+		 
+		 	    System.out.println(" " + (new LinkedList<String>()).getClass());
+		 	    
 			for( Parameter p : m.getParameters() )
 			{
+				System.out.println(" p type: " + p.getParameterizedType());
+				
 						if(p.getParameterizedType().equals(ServerRequest.class))
 						{
 							continue;
@@ -307,6 +352,19 @@ public class TestGenerator
 						{
 							TypeHandler t = TypeHandler.forType(p.getParameterizedType());
 							
+							if( t.equals(TypeHandler.ModelType) )
+							{
+								generateTypeLiteral(initBuilder,(Type)p.getParameterizedType(),p.getName(),"");
+								
+								 
+							}
+							
+							
+							Method m2 = Extractors.class.getMethod("string", HttpServerExchange.class, String.class);
+							
+							log.debug(m2.getName());
+							log.debug(m2.toString());
+
 							log.debug("t handler: " + t.name());
 							if(t.isBlocking())
 							{

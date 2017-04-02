@@ -5,6 +5,7 @@ package com.wurrly.controllers;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -114,7 +115,7 @@ public class Users
 	@Path("/")
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
 	@ApiOperation(value = "Find users by id", nickname = "user", httpMethod = "POST", response = JsonNode.class)
-	public Any createUser(final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
+	public Any createUser(final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final List<User> user  )
 	{
 //		
  

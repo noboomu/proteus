@@ -6,13 +6,11 @@ package com.wurrly.utilities;
 import static java.lang.invoke.MethodHandles.lookup;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
@@ -22,17 +20,15 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
-import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
 import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.TypeLiteral;
 import com.wurrly.controllers.Users;
 import com.wurrly.models.User;
 import com.wurrly.server.Extractors;
@@ -40,9 +36,8 @@ import com.wurrly.server.ServerRequest;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.server.handlers.form.FormData;
-import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormData.FormValue;
+import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
@@ -175,30 +170,30 @@ public class HandleGenerator
 //		    
 //		    
 //
-//		    for( int i = 1; i < targetMethod.getParameterCount(); i++ )
-//		    {
-//		    	final Parameter p = targetMethod.getParameters()[i];
-//		    	parameterNames[i] = p.getName();
-//		    	types[i] = p.getParameterizedType();
-//		    	
+		    for( int i = 1; i < targetMethod.getParameterCount(); i++ )
+		    {
+		    	final Parameter p = targetMethod.getParameters()[i];
+		    	parameterNames[i] = p.getName();
+		    	types[i] = p.getParameterizedType();
+		    	
 //		    	Logger.debug("Type: " + types[i]);
 //		    	
 //		    	if( types[i].equals(Long.class) )
 //		    	{
 //		    		Logger.debug("Long type");
 //
-//		    		biFunctions[i] = extractLong;
+//		    		//biFunctions[i] = extractLong;
 //		    	}
 //		    	else if( types[i].equals(String.class) )
 //		    	{
 //		    		Logger.debug("String type");
 //
-//		    		biFunctions[i] = extractString;
+//		    		//biFunctions[i] = extractString;
 //		    	}
 //		    	else if( types[i].equals(java.nio.file.Path.class) )
 //		    	{
 //		    		Logger.debug("Path type");
-//		    		biFunctions[i] = extractFilePath;
+//		    		//biFunctions[i] = extractFilePath;
 //		    	}
 //		    	else if( types[i].equals(Any.class) )
 //		    	{
@@ -217,8 +212,8 @@ public class HandleGenerator
 //		    		}
 //		    		
 //		    	}
-//		    	
-//		    } 
+		    	
+		    } 
 		    
 //		    final Object[] args = new Object[targetMethod.getParameterCount()];
 		    
@@ -251,13 +246,19 @@ public class HandleGenerator
 		    		 
 		    		//final Long id =  extractLong(exchange,"userId");
 
+		    		java.util.List<com.wurrly.models.User> t;
+		    		
+		    		
 		    		final Optional<String> context = extractOptional(exchange,"context");
 		    		//final User.UserType userType = extractEnum(exchange,"type",User.UserType.class);
 
 		    	//	final User user = extractJsonIterator(exchange,"user").read(User.class);
 
 		    		//final Any json = target.userForm(request, id, context,  userType, Extractors.fileBytes(exchange, "testFile"));
-		    		final Any json = target.createUser(request,  context,  Extractors.jsonIterator(exchange).read(User.class));
+		    		
+		    		TypeLiteral<List<User>> typeLiteral = TypeLiteral.create(types[2]);
+		    		
+		    		final Any json = target.createUser(request,  context,  Extractors.typed(exchange,  typeLiteral));
 
 //		    		json.whenComplete( ( u, e ) -> {
 //		    			

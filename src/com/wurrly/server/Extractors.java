@@ -45,7 +45,7 @@ public class Extractors
 			});
 		}
 
-		public static final java.util.Optional<Any> any(final HttpServerExchange exchange, final String name)
+		public static final java.util.Optional<Any> any(final HttpServerExchange exchange )
 		{
 			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.JSON_DATA)).map(t -> {
 				 
@@ -58,6 +58,17 @@ public class Extractors
 		{
 			return string(exchange, name).map(Integer::parseInt);
 		}
+		
+		public static final java.util.Optional<Float> floatValue(final HttpServerExchange exchange, final String name)
+		{
+			return string(exchange, name).map(Float::parseFloat);
+		}
+		
+		public static final java.util.Optional<Double> doubleValue(final HttpServerExchange exchange, final String name)
+		{
+			return string(exchange, name).map(Double::parseDouble);
+		}
+		 
 
 		public static final java.util.Optional<Long> longValue(final HttpServerExchange exchange, final String name)
 		{
@@ -90,7 +101,7 @@ public class Extractors
 		return jsonIterator(exchange).read(type);
 	}
 
-	public static final Any any(final HttpServerExchange exchange, final String name)
+	public static final Any any(final HttpServerExchange exchange )
 	{
 		try
 		{
@@ -128,6 +139,16 @@ public class Extractors
 		 
 	}
 
+	public static final Float floatValue(final HttpServerExchange exchange, final String name)
+	{
+		return Float.parseFloat(string(exchange, name));
+	}
+	
+	public static final Double doubleValue(final HttpServerExchange exchange, final String name)
+	{
+		return Double.parseDouble(string(exchange, name));
+	}
+	
 	public static final String string(final HttpServerExchange exchange, final String name)
 	{
 		return exchange.getQueryParameters().get(name).getFirst();

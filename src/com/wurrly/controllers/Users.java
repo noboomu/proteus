@@ -4,21 +4,21 @@
 package com.wurrly.controllers;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.UUID;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.FormParam; 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.jsoniter.any.Any;
-import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 import com.wurrly.models.User;
 import com.wurrly.server.ServerRequest;
@@ -41,6 +40,7 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags="users",produces="application/json", consumes="application/json")
 @Path("/api/users")
 @Produces(("application/json")) 
+@Consumes(("application/json")) 
 @Singleton
 public class Users  
 {
@@ -64,10 +64,10 @@ public class Users
 	@GET
 	@Path("/{userId}/type")
 	@ApiOperation(value = "Find users by id with type", nickname = "user", httpMethod = "GET", response = User.class)
-	public Any userType(final ServerRequest serverRequest, @PathParam("userId") final Long userId, @QueryParam("context") Optional<String> context, @QueryParam("type") User.UserType type)
+	public Any userType(final ServerRequest serverRequest, @PathParam("userId") final Long userId, @QueryParam("context") Optional<String> context, @QueryParam("type") User.UserType type, @QueryParam("uuid") UUID uuid)
 	{
 //		
-// 	log.debug("esIndexName: " + esIndexName);
+ 	log.debug("uuid: " + uuid);
 // 	log.debug("configuration: " + configuration);
 
 //		log.debug("context: " + context);

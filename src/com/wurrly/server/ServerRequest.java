@@ -72,8 +72,8 @@ public class ServerRequest
 		this.exchange = exchange;
 		this.contentType = exchange.getRequestHeaders().getFirst("Content-Type");
 
-		//Logger.debug("content tyoe: " + contentType);
-		if (this.contentType != null)
+		
+		if (this.contentType != null )
 		{
 			if (this.contentType.contains(FormEncodedDataDefinition.APPLICATION_X_WWW_FORM_URLENCODED) )
 			{
@@ -149,10 +149,11 @@ public class ServerRequest
 	
 	private void parseJson() throws IOException
 	{ 
-		this.exchange.startBlocking();
 		
 		if(this.exchange.getRequestContentLength() != -1)
 		{
+			this.exchange.startBlocking();
+
 //			ByteBuffer buffer = ByteBuffer.allocate((int) this.exchange.getRequestContentLength());
 //			this.exchange.getRequestChannel().read(buffer); 
 //			JsonIterator iterator = JsonIterator.parse(buffer.array());
@@ -228,6 +229,8 @@ public class ServerRequest
  		}
 		else
 		{
+			this.exchange.startBlocking();
+
             InputStream is = exchange.getInputStream();
             if (is != null) {
             	

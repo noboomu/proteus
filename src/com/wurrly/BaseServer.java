@@ -16,16 +16,14 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.jsoniter.DecodingMode;
 import com.jsoniter.JsonIterator;
-import com.jsoniter.ReflectionDecoderFactory;
 import com.jsoniter.annotation.JsoniterAnnotationSupport;
 import com.jsoniter.output.EncodingMode;
 import com.jsoniter.output.JsonStream;
-import com.jsoniter.spi.JsoniterSpi;
-import com.wurrly.controllers.Users;
 import com.wurrly.models.User;
 import com.wurrly.modules.DIModule;
+import com.wurrly.server.GeneratedRouteHandler;
 import com.wurrly.server.ServerRequest;
-import com.wurrly.utilities.HandleGenerator;
+import com.wurrly.tests.RestRouteGenerator;
 
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
@@ -33,7 +31,6 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 
 /**
@@ -125,7 +122,7 @@ server.start();
 		    Injector injector = Guice.createInjector(new DIModule());
 
  			
-			Users usersController = injector.getInstance(Users.class);
+		//	 Users usersController = injector.getInstance(Users.class);
 			
 		 //   injector.injectMembers(usersController);
 
@@ -136,32 +133,42 @@ server.start();
 
 			RoutingHandler router = new RoutingHandler().setFallbackHandler(BaseHandlers::notFoundHandler);
 			
+			RestRouteGenerator generator = new RestRouteGenerator("com.wurrly.controllers.handlers","RouteHandlers");
+			generator.generateRoutes();
+			
+			Class<? extends GeneratedRouteHandler> handlerClass = generator.compileRoutes();
+			
+			Logger.debug("New class: " + handlerClass);
+			
+			GeneratedRouteHandler routeHandler = injector.getInstance(handlerClass);
+			
+			routeHandler.addRouteHandlers(router);
+			
 //			HttpHandler getUserHandler = null;
 //			GetUsersHandler getUserHandler = new GetUsersHandler(usersController);
 			
-			for( Method m : Users.class.getDeclaredMethods() )
-			{
-				System.out.println("method: " + m);
-				
-				if( m.isSynthetic() || !m.getDeclaringClass().equals(Users.class))
-				{
-					System.out.println("m " + m + " is shady");
-					continue;
-				}
-				
- 				HttpString httpMethod = HandleGenerator.extractHttpMethod.apply(m);
-				String pathTemplate = HandleGenerator.extractPathTemplate.apply(m);
-				HttpHandler handler = HandleGenerator.generateHandler(usersController, m, httpMethod.equals(Methods.POST));
-
-				Logger.info("\nFUNCTION: " + m + "\n\tMETHOD: " + httpMethod + "\n\tPATH: " + pathTemplate);
- 	 			
-				
-	 			router.add(httpMethod, pathTemplate,  handler );
-
-	 		//	router.addAll(Handlers.path().addPrefixPath(pathTemplate, handler));
-				System.out.println("handler: " + handler);
-				 
-			}
+//			for( Method m : Users.class.getDeclaredMethods() )
+//			{
+//				System.out.println("method: " + m);
+//				
+//				if( m.isSynthetic() || !m.getDeclaringClass().equals(Users.class))
+//				{
+//					System.out.println("m " + m + " is shady");
+//					continue;
+//				}
+//				
+// 				HttpString httpMethod = HandleGenerator.extractHttpMethod.apply(m);
+//				String pathTemplate = HandleGenerator.extractPathTemplate.apply(m);
+//				HttpHandler handler = HandleGenerator.generateHandler(usersController, m, httpMethod.equals(Methods.POST));
+//
+//				Logger.info("\nFUNCTION: " + m + "\n\tMETHOD: " + httpMethod + "\n\tPATH: " + pathTemplate);
+// 	 			
+//				
+//	 			router.add(httpMethod, pathTemplate,  handler );
+//
+// 				System.out.println("handler: " + handler);
+//				 
+//			}
 			
 //			 final HttpHandler createUserPostHandler = new HttpHandler() {
 //				    @Override

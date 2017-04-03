@@ -226,17 +226,17 @@ public class HandleGenerator
 				{
 			    	try
 					{
-		    	 
-		    		if(exchange.isInIoThread())
-					{
-		    		//	Logger.debug("in io thread");
-						exchange.dispatch(this);
-						return;
-					}
-		    		else
-		    		{
-		    		//	Logger.debug("not in io thread");
-		    		}
+//		    	 
+//		    		if(exchange.isInIoThread())
+//					{
+//		    		//	Logger.debug("in io thread");
+//						exchange.dispatch(this);
+//						return;
+//					}
+//		    		else
+//		    		{
+//		    		//	Logger.debug("not in io thread");
+//		    		}
 		    		
 	    			//Logger.debug("is dispatched: " + exchange.isDispatched());
 	    			//Logger.debug("exchange.getConnection().getWorker(): " + exchange.getConnection().getWorker());
@@ -244,7 +244,7 @@ public class HandleGenerator
 	    			 
 		    		final ServerRequest request = new ServerRequest(exchange);
 		    		 
-		    		//final Long id =  extractLong(exchange,"userId");
+		    		final Long id =  extractLong(exchange,"userId");
 
 		    		java.util.List<com.wurrly.models.User> t;
 		    		
@@ -256,9 +256,9 @@ public class HandleGenerator
 
 		    		//final Any json = target.userForm(request, id, context,  userType, Extractors.fileBytes(exchange, "testFile"));
 		    		
-		    		TypeLiteral<List<User>> typeLiteral = TypeLiteral.create(types[2]);
+		    		//TypeLiteral<List<User>> typeLiteral = TypeLiteral.create(types[2]);
 		    		
-		    		final Any json = target.createUser(request,  context,  Extractors.typed(exchange,  typeLiteral));
+		    		final Any json = target.user(request,  id, context );
 
 //		    		json.whenComplete( ( u, e ) -> {
 //		    			

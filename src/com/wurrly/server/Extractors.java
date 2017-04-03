@@ -8,8 +8,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Deque;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.Deque; 
 
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
@@ -44,6 +46,20 @@ public class Extractors
 				}
 			});
 		}
+		
+		public static final <T> java.util.Optional<T> typed(final HttpServerExchange exchange, final Class<T> type )
+		{
+			return jsonIterator(exchange).map(i -> {
+				try
+				{
+					return i.read(type);
+				} catch (Exception e)
+				{
+					return null;
+				}
+			});
+		}
+
 
 		public static final java.util.Optional<Any> any(final HttpServerExchange exchange )
 		{
@@ -89,14 +105,30 @@ public class Extractors
 		{
 			return java.util.Optional.ofNullable(exchange.getQueryParameters().get(name)).map(Deque::getFirst);
 		}
+		
+		public static final java.util.Optional<String> header(final HttpServerExchange exchange, final String name)
+		{
+			return java.util.Optional.ofNullable(exchange.getRequestHeaders().get(name)).map(Deque::getFirst);
+		}
 
 		public static final java.util.Optional<Path> filePath(final HttpServerExchange exchange, final String name)
 		{
 			return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map(FormValue::getPath);
 		}
 	}
+	
+	public static Date date(final HttpServerExchange exchange,final String name) throws Throwable {
+		  
+		 return Date.from( ZonedDateTime.parse( string(exchange,name) ).toInstant() );
+		    
+	}
 
 	public static final <T> T typed(final HttpServerExchange exchange, final TypeLiteral<T> type ) throws Exception
+	{
+		return jsonIterator(exchange).read(type);
+	}
+	
+	public static final <T> T typed(final HttpServerExchange exchange, final Class<T> type ) throws Exception
 	{
 		return jsonIterator(exchange).read(type);
 	}
@@ -153,6 +185,11 @@ public class Extractors
 	{
 		return exchange.getQueryParameters().get(name).getFirst();
 	}
+	
+	public static final String header(final HttpServerExchange exchange, final String name)
+	{
+		return exchange.getRequestHeaders().get(name).getFirst();
+	}
 
 	public static final Long longValue(final HttpServerExchange exchange, final String name)
 	{
@@ -169,7 +206,7 @@ public class Extractors
 		return Boolean.parseBoolean(string(exchange, name));
 	}
 
-	public static final <E extends Enum<E>> E enumValue(final HttpServerExchange exchange, final String name, Class<E> clazz)
+	public static final <E extends Enum<E>> E enumValue(final HttpServerExchange exchange, Class<E> clazz,final String name)
 	{
 		return Enum.valueOf(clazz, string(exchange, name));
 	}

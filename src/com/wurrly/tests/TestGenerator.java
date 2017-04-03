@@ -3,10 +3,13 @@
  */
 package com.wurrly.tests;
 
+import io.undertow.server.HttpServerExchange;
+import io.undertow.util.HttpString;
+import io.undertow.util.MimeMappings;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
@@ -14,7 +17,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.lang.model.element.Modifier;
@@ -35,10 +41,6 @@ import com.wurrly.server.Extractors;
 import com.wurrly.server.ServerRequest;
 import com.wurrly.utilities.HandleGenerator;
 
-import io.undertow.server.HttpServerExchange;
-import io.undertow.util.HttpString;
-import io.undertow.util.MimeMappings;
-
 /**
  * @author jbauer
  *
@@ -47,15 +49,17 @@ public class TestGenerator
 {
 	private static Logger log = LoggerFactory.getLogger(TestGenerator.class.getCanonicalName());
 
+	private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)",Pattern.DOTALL | Pattern.UNIX_LINES);
+
 	public static enum StatementParameterType
 	{
 		STRING,LITERAL,TYPE
 	}
 	
-	public static void generateTypeLiteral( MethodSpec.Builder  builder, Type type, String name, String reference )
+	public static void generateTypeLiteral( MethodSpec.Builder  builder, Type type, String name)
 	{
 	 
-		builder.addCode(CodeBlock.of("\n\ncom.jsoniter.spi.TypeLiteral<$T> $LType = com.jsoniter.spi.TypeLiteral.create($L);\n\n",type,name,reference));
+		builder.addCode(CodeBlock.of("\n\ncom.jsoniter.spi.TypeLiteral<$T> $L = new com.jsoniter.spi.TypeLiteral<$L>(){};\n\n",type,name,type));
  
 	}
 	
@@ -79,6 +83,7 @@ public class TestGenerator
 		JsonIteratorType("JsonIterator $L = Extractors.jsonIterator(exchange)",true,StatementParameterType.LITERAL),
 		ModelType("$T $L = Extractors.typed(exchange,$L)",true,StatementParameterType.TYPE,StatementParameterType.LITERAL,StatementParameterType.LITERAL),
 		EnumType("$T $L = Extractors.extractEnum(exchange,$L.class,$S)",true,StatementParameterType.TYPE,StatementParameterType.LITERAL,StatementParameterType.LITERAL,StatementParameterType.STRING),
+		ByteBufferType("ByteBuffer $L =  Extractors.fileBytes(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
 
 		OptionalJsonIteratorType("Optional<JsonIterator> $L = Extractors.Optional.jsonIterator(exchange)",true,StatementParameterType.LITERAL),
 		OptionalAnyType("Optional<Any> $L = Extractors.Optional.any(exchange)",true,StatementParameterType.LITERAL),
@@ -87,7 +92,8 @@ public class TestGenerator
 		OptionalIntegerType("Optional<Integer> $L = Extractors.Optional.integerValue(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
 		OptionalBooleanType("Optional<Boolean> $L = Extractors.Optional.booleanValue(exchange,$S)",false,StatementParameterType.LITERAL,StatementParameterType.STRING),
 		OptionalPathType("Optional<Path> $L = Extractors.Optional.filePath(exchange,$S)",true,StatementParameterType.LITERAL,StatementParameterType.STRING),
- 
+		OptionalModelType("Optional<Model> $L = Extractors.Optional.typed(exchange,$L)",true,StatementParameterType.LITERAL,StatementParameterType.LITERAL),
+
  		;
 		
 		public boolean isBlocking()
@@ -143,7 +149,7 @@ public class TestGenerator
 			builder.addStatement( handler.statement, args);
 		}
 		
-		public static TypeHandler  forType( Type type ) throws Exception
+		public static TypeHandler  forType( Type type )  
 		{
 			boolean isEnum = false;
 			
@@ -157,7 +163,7 @@ public class TestGenerator
 				// TODO: handle exception
 			}
  			
-			log.debug(type.getTypeName() + " " + type.toString() + " is enum " +  isEnum);
+	//		log.debug(type.getTypeName() + " " + type.toString() + " is enum " +  isEnum);
 
 			if( type.equals( Long.class ) )
 			{
@@ -166,6 +172,10 @@ public class TestGenerator
 			else if( type.equals( Integer.class ) )
 			{
 				return IntegerType;
+			}
+			else if( type.equals( java.nio.ByteBuffer.class ) )
+			{
+				return ByteBufferType;
 			}
 			else if( type.equals( Boolean.class ) )
 			{
@@ -211,7 +221,8 @@ public class TestGenerator
 				}
 				else
 				{
-					throw new Exception("No type handler found!");
+					return StringType;
+					//throw new Exception("No type handler found!");
 				}
 			}
 			else if( isEnum )
@@ -223,6 +234,44 @@ public class TestGenerator
 				return ModelType;
 			}
 		}
+	}
+	
+	public static String typeLiteralNameForType( Type type )
+	{
+		String typeName = type.getTypeName();
+		
+		Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
+		
+        if (matcher.find()) {
+       
+            int matches = matcher.groupCount();
+            
+            if( matches == 2 )
+            {
+            	String genericInterface = matcher.group(1);
+            	String erasedType = matcher.group(2).replaceAll("\\$", ".");
+            	
+            	String[] genericParts = genericInterface.split("\\.");
+            	String[] erasedParts = erasedType.split("\\.");
+            	
+            	String genericTypeName = genericParts[genericParts.length-1];
+            	String erasedTypeName = null;
+            	
+            	if(erasedParts.length > 1)
+            	{
+            		erasedTypeName = erasedParts[erasedParts.length-2] + erasedParts[erasedParts.length-1];
+            	}
+            	else
+            	{
+            		erasedTypeName = erasedParts[0];
+            	}
+            	
+            	return String.format("%s%s%s",Character.toLowerCase(erasedTypeName.charAt(0)),erasedTypeName.substring(1,erasedTypeName.length()),genericTypeName);
+            }
+            
+        }
+         
+        return typeName; 
 	}
 	
 	public static void main(String[] args)
@@ -294,7 +343,6 @@ public class TestGenerator
 		 ClassName exchangeClass = ClassName.get("io.undertow.server","HttpServerExchange");
 		 
 		 
-
 		 String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
 		 
 		 FieldSpec.Builder fieldBuilder = FieldSpec.builder(clazz, controllerName, Modifier.PROTECTED);
@@ -306,9 +354,37 @@ public class TestGenerator
 		 typeBuilder.addField(fieldBuilder.build());
 		 
 		 
+		 
 		 MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("addRouteHandlers").addModifiers(Modifier.PUBLIC)
 				 .addParameter(ParameterSpec.builder( io.undertow.server.RoutingHandler.class, "router", Modifier.FINAL).build());
 
+		final Map<Type,String> allParameterTypeMap = Arrays.stream(clazz.getDeclaredMethods())
+				 .flatMap( m -> { 
+			 return Arrays.stream(m.getParameters())
+					 .map( Parameter::getParameterizedType )
+					 .filter( t -> t.getTypeName().contains("<")); 
+		 })
+		 .distinct()
+		 .filter( t -> {
+			 TypeHandler handler = TypeHandler.forType(t);
+			 return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType)); 
+		 } )
+		 .collect(Collectors.toMap(java.util.function.Function.identity(), TestGenerator::typeLiteralNameForType));
+		 
+ 		 
+		 initBuilder.addCode("$L","\n");
+
+		 
+		 allParameterTypeMap.forEach( (t,n) -> {
+			 
+			 initBuilder.addStatement("final TypeLiteral<$L> $LType = new TypeLiteral<$L>(){}",t,n,t);
+			 
+		 });
+		 
+		 initBuilder.addCode("$L","\n");
+
+
+		 
 		for( Method m : com.wurrly.controllers.Users.class.getDeclaredMethods() )
 		{
 			String methodPath = HandleGenerator.extractPathTemplate.apply(m);
@@ -337,11 +413,9 @@ public class TestGenerator
 			
  		 	
 		 
-		 	    System.out.println(" " + (new LinkedList<String>()).getClass());
 		 	    
 			for( Parameter p : m.getParameters() )
 			{
-				System.out.println(" p type: " + p.getParameterizedType());
 				
 						if(p.getParameterizedType().equals(ServerRequest.class))
 						{
@@ -351,23 +425,12 @@ public class TestGenerator
 						try
 						{
 							TypeHandler t = TypeHandler.forType(p.getParameterizedType());
-							
-							if( t.equals(TypeHandler.ModelType) )
-							{
-								generateTypeLiteral(initBuilder,(Type)p.getParameterizedType(),p.getName(),"");
-								
-								 
-							}
-							
-							
-							Method m2 = Extractors.class.getMethod("string", HttpServerExchange.class, String.class);
-							
-							log.debug(m2.getName());
-							log.debug(m2.toString());
 
-							log.debug("t handler: " + t.name());
+
 							if(t.isBlocking())
 							{
+								methodBuilder.addCode("$L","\n");
+
 								methodBuilder.beginControlFlow("if(exchange.isInIoThread())");
 								methodBuilder.addStatement("exchange.dispatch(this)");
 								methodBuilder.endControlFlow();
@@ -381,38 +444,37 @@ public class TestGenerator
 						}
 			};
 			
-		 
+			methodBuilder.addCode("$L","\n");
+
 		 	
 			Arrays.stream(m.getParameters()).forEachOrdered( p -> {
+				
+				Type type = p.getParameterizedType();
 				
 				try
 				{
 					
-			 
-				 
-				
+			  
 				if(p.getType().equals(ServerRequest.class))
 				{
 					methodBuilder.addCode(CodeBlock.of("ServerRequest serverRequest = new ServerRequest(exchange);\n"));
+					methodBuilder.addCode("$L","\n");
+
 				}
 				else
 				{
-					TypeHandler.addStatement(methodBuilder,p);
+					TypeHandler t = TypeHandler.forType(type);
+
+					if(t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType))
+					{
+						methodBuilder.addStatement(t.statement,type,allParameterTypeMap.get(type),type);
+					}
+					else
+					{
+						TypeHandler.addStatement(methodBuilder,p);
+					}
 				}
-//				else if(p.getType().equals(Long.class))
-//				{
-//					methodBuilder.addStatement("\nLong $L = extractLong.apply(exchange, $S)", p.getName(), p.getName());
-//					}
-//				else if(p.getType().equals(File.class))
-//				{
-//					methodBuilder.addStatement("\nFile $L = extractFile.apply(exchange, $S)", p.getName(), p.getName());
-//					}
-//				else if(p.getParameterizedType().equals(Optional.class))
-//				{
-//				 
-//					methodBuilder.addStatement("\n$T $L = extractOptionalString.apply(exchange, $S)",p.getParameterizedType(),  p.getName(), p.getName()); 
-//					}
-				
+
 				} catch (Exception e)
 				{
 					log.error(e.getMessage(),e);
@@ -420,6 +482,8 @@ public class TestGenerator
 					
 			});
 			
+			methodBuilder.addCode("$L","\n");
+
 			CodeBlock.Builder functionBlockBuilder = CodeBlock.builder();
 			 
 			String controllerMethodArgs  = Arrays.stream(m.getParameters()).map( p -> p.getName() ).collect(Collectors.joining(","));
@@ -427,13 +491,14 @@ public class TestGenerator
 			if( !m.getReturnType().equals(Void.class))
 			{
 				log.debug("return : " + m.getReturnType());
-				functionBlockBuilder.add("$T $L = $L.$L($L);\n", m.getReturnType(), "response", controllerName, m.getName(), controllerMethodArgs );
+				functionBlockBuilder.add("$T $L = $L.$L($L);", m.getReturnType(), "response", controllerName, m.getName(), controllerMethodArgs );
 
 			}
    
 			methodBuilder.addCode(functionBlockBuilder.build());
 			
-			
+			methodBuilder.addCode("$L","\n");
+
 			String returnContentType = MimeMappings.DEFAULT.getMimeType("json");
 			
 			Optional<javax.ws.rs.Produces> producesAnnotation =  Optional.ofNullable(m.getAnnotation(javax.ws.rs.Produces.class));
@@ -452,8 +517,10 @@ public class TestGenerator
 				returnContentType = producesAnnotation.get().value()[0]; 
 			}
 			
-			methodBuilder.addStatement("exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, $S)",returnContentType); 
+			methodBuilder.addCode("$L","\n");
 
+			methodBuilder.addStatement("exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, $S)",returnContentType); 
+ 
 			if( m.getReturnType().equals(String.class))
 			{
 				methodBuilder.addStatement("exchange.getResponseHeaders().send($L)","response");  
@@ -478,6 +545,8 @@ public class TestGenerator
 			initBuilder.addCode("$L\n",handlerField.toString());
 			
 			initBuilder.addStatement("$L.add(io.undertow.util.Methods.$L,$S,$L)", "router", httpMethod,methodPath, methodName);
+			
+			initBuilder.addCode("$L","\n");
 		}
 		
 		typeBuilder.addMethod(initBuilder.build());

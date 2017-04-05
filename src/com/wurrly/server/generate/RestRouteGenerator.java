@@ -1,16 +1,9 @@
 /**
  * 
  */
-package com.wurrly.tests;
-
-import io.undertow.server.HttpServerExchange;
-import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
-import io.undertow.util.MimeMappings;
-import net.openhft.compiler.CompilerUtils;
+package com.wurrly.server.generate;
 
 import java.io.File;
-import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
@@ -18,27 +11,26 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.lang.model.element.Modifier;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.Path;
 
 import org.apache.commons.lang3.StringUtils;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import com.jsoniter.spi.TypeLiteral;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -46,11 +38,16 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
-import com.wurrly.server.Extractors;
 import com.wurrly.server.GeneratedRouteHandler;
 import com.wurrly.server.RestRoute;
 import com.wurrly.server.ServerRequest;
 import com.wurrly.utilities.HandleGenerator;
+
+import io.swagger.annotations.Api;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.util.Headers;
+import io.undertow.util.HttpString;
+import net.openhft.compiler.CompilerUtils;
 
 /**
  * @author jbauer
@@ -117,6 +114,10 @@ public class RestRouteGenerator
 		OptionalPathType("$T<$T> $L = com.wurrly.server.Extractors.Optional.filePath(exchange,$S)", true,Optional.class,java.nio.file.Path.class, StatementParameterType.LITERAL, StatementParameterType.STRING),
 		OptionalModelType("$T<$L> $L = com.wurrly.server.Extractors.Optional.typed(exchange,$L)", true, Optional.class,StatementParameterType.LITERAL,StatementParameterType.LITERAL, StatementParameterType.LITERAL),
 
+		OptionalValueOfType("java.util.Optional<$L> $L = com.wurrly.server.Extractors.Optional.string(exchange,$S).map($L::valueOf)",false,StatementParameterType.LITERAL,StatementParameterType.LITERAL,StatementParameterType.STRING, StatementParameterType.LITERAL),
+		OptionalFromStringType("java.util.Optional<$T> $L = com.wurrly.server.Extractors.Optional.string(exchange,$S).map($T::fromString)",false, StatementParameterType.TYPE,StatementParameterType.LITERAL,StatementParameterType.STRING,StatementParameterType.TYPE),
+
+		
 		;
 
 		public boolean isBlocking()
@@ -276,10 +277,46 @@ public class RestRouteGenerator
 				{
 					return OptionalPathType;
 				}
-				else
+				else if (type.getTypeName().contains("java.lang.String"))
 				{
 					return StringType;
-					// throw new Exception("No type handler found!");
+				}
+				else
+				{
+					try
+					{
+						Class<?> erasedType = extractErasedType(type);
+						
+						log.debug("Found erased type: " + erasedType); 
+
+						try
+						{
+							erasedType.getMethod("valueOf", java.lang.String.class);
+							return OptionalValueOfType; 
+							
+						} catch (Exception e)
+						{
+							// TODO: handle exception
+						}
+						
+						try
+						{
+							erasedType.getMethod("fromString", java.lang.String.class);
+							
+							return OptionalFromStringType;
+							
+						} catch (Exception e)
+						{
+							// TODO: handle exception
+						}
+						
+					} catch (Exception e)
+					{
+						log.error(e.getMessage(),e);
+					}
+					
+					return StringType;
+					 
 				}
 			}
 			else if (isEnum)
@@ -309,15 +346,27 @@ public class RestRouteGenerator
 
 	public static void main(String[] args)
 	{
-		RestRouteGenerator generator = new RestRouteGenerator("com.wurrly.controllers.handlers","RouteHandlers");
-		
-		generator.generateRoutes(); 
-		
-		StringBuilder sb = new StringBuilder();
-		
-		generator.getRestRoutes().stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
-		
-		System.out.println(sb.toString());
+		try
+		{
+			RestRouteGenerator generator = new RestRouteGenerator("com.wurrly.controllers.handlers","RouteHandlers");
+			
+			Set<Class<?>> classes = getApiClasses("com.wurrly.controllers",null);
+			
+			generator.generateRoutes(classes); 
+			
+			StringBuilder sb = new StringBuilder();
+			
+			generator.getRestRoutes().stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
+			
+			System.out.println(sb.toString());
+			
+			System.out.println("\n" + generator.sourceString);
+			
+		} catch (Exception e)
+		{
+			log.error(e.getMessage(),e);
+		}
+		 
 	}
 	
 	public Class<? extends GeneratedRouteHandler> compileRoutes()
@@ -343,10 +392,12 @@ public class RestRouteGenerator
 		
 	}
 	
-	public void generateRoutes()
+	public void generateRoutes(Set<Class<?>> classes)
 	{
 		try
 		{
+			String prefix = "com.wurrly.controllers";
+//			List<String> classNames = getClassNamesFromPackage(prefix);
 			
 			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className)
 			.addModifiers(Modifier.PUBLIC)
@@ -356,8 +407,7 @@ public class RestRouteGenerator
 			  
 			ClassName injectClass = ClassName.get("com.google.inject", "Inject");
  
-			String prefix = "com.wurrly.controllers";
-			List<String> classNames = getClassNamesFromPackage(prefix);
+			 
 			
 			MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
 					.addModifiers(Modifier.PUBLIC)
@@ -365,11 +415,9 @@ public class RestRouteGenerator
 					
 
 
-			for (String classNameSuffix : classNames)
+			for (Class<?> clazz : classes)
 			{
-				String controllerClassName = prefix + "." + classNameSuffix;
-
-				Class<?> clazz = Class.forName(controllerClassName);
+			 
 				
 				String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
 
@@ -556,6 +604,12 @@ public class RestRouteGenerator
 	
 								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 							}
+							else if (t.equals(TypeHandler.OptionalFromStringType) || t.equals(TypeHandler.OptionalValueOfType))
+							{
+								Class<?> erasedType = extractErasedType(p.getParameterizedType());  
+	
+								methodBuilder.addStatement(t.statement, erasedType, p.getName(), p.getName(), erasedType);
+							}
 							else
 							{
 								TypeHandler.addStatement(methodBuilder, p);
@@ -737,6 +791,60 @@ public class RestRouteGenerator
 		}
 
 		return names;
+	}
+	
+	public static Set<Class<?>> getApiClasses(String basePath, Predicate<String> pathPredicate) throws Exception
+	{
+  
+
+		 Reflections ref = new Reflections(basePath);
+		 Stream<Class<?>> stream = ref.getTypesAnnotatedWith(Api.class).stream();
+		 
+		 if(pathPredicate != null)
+		 {
+		     stream = stream.filter( clazz -> {
+		    	 
+		    	 Path annotation = clazz.getDeclaredAnnotation(Path.class);
+		    	 
+		    	 if(annotation != null)
+		    	 {
+		    		 return pathPredicate.test(annotation.value());
+		    	 }
+		    	 else
+		    	 {
+		    		 return false;
+		    	 }
+		    	 
+		     });
+		 } 
+		 
+		 return stream.collect(Collectors.toSet());
+	         
+ 
+	}
+	
+	public static Class<?> extractErasedType(Type type) throws Exception
+	{
+		String typeName = type.getTypeName();
+
+		Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
+
+		if (matcher.find())
+		{
+
+			int matches = matcher.groupCount();
+
+			if (matches == 2)
+			{
+
+				String erasedType = matcher.group(2).replaceAll("\\$", ".");
+
+				return Class.forName(erasedType);
+			}
+
+		}
+
+		return null;
 	}
 
 	public static String typeLiteralNameForType(Type type)

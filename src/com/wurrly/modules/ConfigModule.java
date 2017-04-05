@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Key;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Types;
@@ -25,30 +26,56 @@ import com.typesafe.config.ConfigValue;
 /**
  * @author jbauer
  */
-public class DIModule extends AbstractModule
+
+@Singleton
+public class ConfigModule extends AbstractModule
 {
-	private static Logger log = LoggerFactory.getLogger(DIModule.class.getCanonicalName());
+	private static Logger log = LoggerFactory.getLogger(ConfigModule.class.getCanonicalName());
 
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.google.inject.AbstractModule#configure()
+	/**
+	 * @param configFileName
 	 */
+	
+	protected String configFile = "application.conf";
+ 
+	
+	public ConfigModule()
+	{
+		
+	}
+	
+	public ConfigModule(String configFile)
+	{
+		this.configFile = configFile;
+	}
+
+	
 	@Override
 	protected void configure()
 	{
-		
-		log.debug("configuring...");
-		
-		 this.bindConfig(this.binder(), fileConfig("application.conf"));
+		log.debug("Configuring : " + this.getClass().getSimpleName());
 
+		if(this.configFile != null )
+		{
+			 this.bindConfig(fileConfig(configFile));
+		}
+		
 	}
 
+ 
+	public void bindFileConfig(String fileName)
+	{
+		 this.bindConfig(fileConfig(configFile));
+	}
+	
 	@SuppressWarnings("unchecked")
-	private void bindConfig(final Binder binder, final Config config)
+	public void bindConfig(final Config config)
 	{
 		// root nodes
-		traverse(binder, "", config.root());
+		
+ 		
+ 
+		traverse(this.binder(), "", config.root());
  
 		
 		// terminal nodes
@@ -62,19 +89,23 @@ public class DIModule extends AbstractModule
 				List<Object> values = (List<Object>) value;
 				Type listType = values.size() == 0 ? String.class : Types.listOf(values.iterator().next().getClass());
 				Key<Object> key = (Key<Object>) Key.get(listType, Names.named(name));
-				binder.bind(key).toInstance(values);
+				this.binder().bind(key).toInstance(values);
 			}
 			else
 			{
-				binder.bindConstant().annotatedWith(named).to(value.toString());
+				this.binder().bindConstant().annotatedWith(named).to(value.toString());
 			}
 		}
 		// bind config
-		binder.bind(Config.class).toInstance(config);
-	}
+		this.binder().bind(Config.class).toInstance( ConfigFactory.load(config));
+		
+		log.info("Config:\n" + config);
+
+		
+ 	}
 
 
-	private static void traverse(final Binder binder, final String p, final ConfigObject root)
+	public static void traverse(final Binder binder, final String p, final ConfigObject root)
 	{
 		root.forEach((n, v) -> {
 			if (v instanceof ConfigObject)
@@ -89,20 +120,20 @@ public class DIModule extends AbstractModule
 	}
 	
 	
-	static Config fileConfig(final String fname)
+	public static Config fileConfig(final String fname)
 	{
 		File dir = new File(System.getProperty("user.dir"));
 		File froot = new File(dir, fname);
 		if (froot.exists())
 		{
-			return ConfigFactory.parseFile(froot);
+			return ConfigFactory.load(ConfigFactory.parseFile(froot));
 		}
 		else
 		{
 			File fconfig = new File(new File(dir, "conf"), fname);
 			if (fconfig.exists())
 			{
-				return ConfigFactory.parseFile(fconfig);
+				return ConfigFactory.load(ConfigFactory.parseFile(fconfig));
 			}
 		}
 		return ConfigFactory.empty();

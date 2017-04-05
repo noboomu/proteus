@@ -32,7 +32,7 @@
   		<artifactId>jackson-annotations</artifactId>
   		<version>2.8.7</version>
   	</dependency>
-
+ 
   	<dependency>
   		<groupId>com.fasterxml.jackson.core</groupId>
   		<artifactId>jackson-core</artifactId>
@@ -149,6 +149,31 @@
     	<groupId>net.openhft</groupId>
     	<artifactId>compiler</artifactId>
     	<version>2.3.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>io.swagger</groupId>
+    	<artifactId>swagger-parser</artifactId>
+    	<version>1.0.28</version>
+    </dependency>
+    <dependency>
+    	<groupId>io.swagger</groupId>
+    	<artifactId>swagger-jaxrs</artifactId>
+    	<version>1.5.12</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.httpcomponents</groupId>
+    	<artifactId>httpcore</artifactId>
+    	<version>4.4.6</version>
+    </dependency>
+    <dependency>
+    	<groupId>com.mitchellbosecke</groupId>
+    	<artifactId>pebble</artifactId>
+    	<version>2.3.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.webjars</groupId>
+    	<artifactId>swagger-ui</artifactId>
+    	<version>3.0.4</version>
     </dependency>
   </dependencies>
 </project>

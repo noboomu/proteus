@@ -8,6 +8,7 @@ import java.lang.reflect.Parameter;
 import java.nio.ByteBuffer;
 import java.util.Deque;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,21 +17,29 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.jsoniter.DecodingMode;
 import com.jsoniter.JsonIterator;
+import com.jsoniter.annotation.JacksonAnnotationSupport;
 import com.jsoniter.annotation.JsoniterAnnotationSupport;
+import com.jsoniter.any.Any;
 import com.jsoniter.output.EncodingMode;
 import com.jsoniter.output.JsonStream;
+import com.typesafe.config.Config;
 import com.wurrly.models.User;
-import com.wurrly.modules.DIModule;
+import com.wurrly.modules.ConfigModule;
+import com.wurrly.modules.RoutingModule;
+import com.wurrly.modules.SwaggerModule;
 import com.wurrly.server.GeneratedRouteHandler;
 import com.wurrly.server.ServerRequest;
-import com.wurrly.tests.RestRouteGenerator;
+import com.wurrly.server.generate.RestRouteGenerator;
+import com.wurrly.utilities.JsonMapper;
 
+import io.swagger.models.Swagger;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.util.Headers;
+import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 
 /**
@@ -119,7 +128,7 @@ server.start();
 		try
 		{
 			
-		    Injector injector = Guice.createInjector(new DIModule());
+		    Injector injector = Guice.createInjector(new ConfigModule(),new RoutingModule());
 
  			
 		//	 Users usersController = injector.getInstance(Users.class);
@@ -129,20 +138,41 @@ server.start();
 			
 			JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
 			JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
-			JsoniterAnnotationSupport.enable();
+			JacksonAnnotationSupport.enable();
+ 
+			 
+			Set<Class<?>> classes = RestRouteGenerator.getApiClasses("com.wurrly.controllers",null);
 
-			RoutingHandler router = new RoutingHandler().setFallbackHandler(BaseHandlers::notFoundHandler);
-			
 			RestRouteGenerator generator = new RestRouteGenerator("com.wurrly.controllers.handlers","RouteHandlers");
-			generator.generateRoutes();
+			generator.generateRoutes(classes);
+			
+			StringBuilder sb = new StringBuilder();
+			
+			generator.getRestRoutes().stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
+			
+			Logger.info("\n\nRegistered the following endpoints: \n\n" + sb.toString());
 			
 			Class<? extends GeneratedRouteHandler> handlerClass = generator.compileRoutes();
+			
+			RoutingHandler router = injector.getInstance(RoutingHandler.class);
 			
 			Logger.debug("New class: " + handlerClass);
 			
 			GeneratedRouteHandler routeHandler = injector.getInstance(handlerClass);
 			
 			routeHandler.addRouteHandlers(router);
+			
+			SwaggerModule swaggerModule = injector.getInstance(SwaggerModule.class);
+			
+			swaggerModule.generateSwaggerSpec(classes);
+			
+			Logger.debug("swagger spec\n");
+			
+			Swagger swagger = swaggerModule.getSwagger();
+			
+			Logger.debug("swagger spec: " + JsonMapper.toPrettyJSON(swagger));
+			
+			swaggerModule.addRouteHandlers();
 			
 //			HttpHandler getUserHandler = null;
 //			GetUsersHandler getUserHandler = new GetUsersHandler(usersController);
@@ -185,6 +215,7 @@ server.start();
 //				    }
 //				  };
 			
+			
 			router.add(Methods.GET, "/", new HttpHandler(){
 
 				/* (non-Javadoc)
@@ -203,9 +234,10 @@ server.start();
 				
 			} );
 			
+			Config rootConfig = injector.getInstance(Config.class);
  		 
 			Undertow server = Undertow.builder()
-					.addHttpListener(8090, "localhost")
+					.addHttpListener(rootConfig.getInt("application.port"), "localhost")
 					.setBufferSize(1024 * 16)
 					.setIoThreads(Runtime.getRuntime().availableProcessors())
 					.setServerOption(UndertowOptions.ENABLE_HTTP2, true)
@@ -227,7 +259,9 @@ server.start();
 //							return;
 //						}
 						 
-						
+						exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Origin"), "*");
+						exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Methods"), "GET, POST, DELETE, PUT, PATCH, OPTIONS");
+						exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Headers"), "Content-Type, api_key, Authorization");
 						router.handleRequest(exchange);
 						
 					} catch (Exception e)

@@ -13,11 +13,13 @@ import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -95,7 +97,8 @@ public class JsonMapper
 			DEFAULT_MAPPER.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
 			DEFAULT_MAPPER.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
 			DEFAULT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-			
+			DEFAULT_MAPPER.setSerializationInclusion(Include.NON_NULL);
+
 			DEFAULT_MAPPER.registerModule(new AfterburnerModule());
 			DEFAULT_MAPPER.registerModule(new Jdk8Module());
 			
@@ -114,6 +117,7 @@ public class JsonMapper
 		if( writer == null )
 		{
 			writer = getInstance().writerWithDefaultPrettyPrinter();
+			writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
 			WRITER_CACHE.put("pretty", writer);
 		}
 		return writer;

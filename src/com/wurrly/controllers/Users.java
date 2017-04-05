@@ -33,11 +33,12 @@ import com.wurrly.server.ServerRequest;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 
 /**
  * User API
  */
-@Api(tags="users",produces="application/json", consumes="application/json")
+@Api(tags="users")
 @Path("/api/users")
 @Produces(("application/json")) 
 @Consumes(("application/json")) 
@@ -63,8 +64,8 @@ public class Users
 
 	@GET
 	@Path("/{userId}/type")
-	@ApiOperation(value = "Find users by id with type", nickname = "user", httpMethod = "GET", response = User.class)
-	public Any userType(final ServerRequest serverRequest, @PathParam("userId") final Long userId, @QueryParam("context") Optional<String> context, @QueryParam("type") User.UserType type, @QueryParam("uuid") UUID uuid)
+	@ApiOperation(value = "Find users by id with type", httpMethod = "GET", response = User.class)
+	public Any userType(@ApiParam(hidden=true)final ServerRequest serverRequest, @PathParam("userId") final Long userId, @QueryParam("context") Optional<String> context, @QueryParam("type") User.UserType type, @QueryParam("uuid") Optional<UUID> uuid)
 	{
 //		
  	log.debug("uuid: " + uuid);
@@ -78,9 +79,15 @@ public class Users
 	}
 	
 	@POST
-	@Path("/form")
-	@ApiOperation(value = "Find users by id with type", nickname = "user", httpMethod = "GET", response = User.class)
-	public Any userForm(final ServerRequest serverRequest, @PathParam("userId") final Long userId, @QueryParam("context") Optional<String> context, @FormParam("type") User.UserType type, ByteBuffer testFile)
+	@Path("/form/{userId}")
+ 	@Consumes("*/*")
+	@ApiOperation(value = "Post a complex form",   httpMethod = "POST", response = User.class)
+	public Any userForm(@ApiParam(hidden=true) final ServerRequest serverRequest, 
+	                    @ApiParam(name="userId",required=true) @PathParam("userId") final Long userId,
+	                    @ApiParam(name="context",required=false) @QueryParam("context") Optional<String> context, 
+	                    @ApiParam(name="type",required=true) @QueryParam("type") User.UserType type, 
+	                 ByteBuffer testFile
+	                    )
 	{
 //		
 // 	log.debug("esIndexName: " + esIndexName);
@@ -96,8 +103,11 @@ public class Users
 	 
 	@GET
 	@Path("/{userId}")
-	@ApiOperation(value = "Find users by id", nickname = "user", httpMethod = "GET", response = JsonNode.class)
-	public Any user(final ServerRequest serverRequest, @PathParam("userId") final Long userId, @QueryParam("context") Optional<String> context)
+	@ApiOperation(value = "Find users by id",   httpMethod = "GET", response = User.class)
+	public Any user(@ApiParam(hidden=true)final ServerRequest serverRequest, 
+	                @ApiParam(name="userId", required=true) @PathParam("userId") final Long userId, 
+	                @ApiParam(name="context", required=false) @QueryParam("context") Optional<String> context
+	                )
 	{
 //		
 // 	log.debug("esIndexName: " + esIndexName);
@@ -113,9 +123,10 @@ public class Users
 	 
 	@POST
 	@Path("/")
+	@Consumes("multipart/form-data")
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
-	@ApiOperation(value = "Find users by id", nickname = "user", httpMethod = "POST", response = JsonNode.class)
-	public Any createUser(final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final List<User> user  )
+	@ApiOperation(value = "Create a user",   httpMethod = "POST", response = User.class)
+	public Any createUser(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final java.nio.file.Path filePath  )
 	{
 //		
  
@@ -123,17 +134,18 @@ public class Users
 //	log.debug("request: " + serverRequest); 
 //	log.debug("file: " + user); 
 		
-		 return Any.wrap(user);
+		 return Any.wrap(new User(34l));
  
 		 
 
 	}
 	
 	@PUT
-	@Path("/{userId}/username")
+	@Path("/username")
+	@Consumes(("application/json")) 
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
-	@ApiOperation(value = "Update a user's name", nickname = "updateUsername", httpMethod = "PUT", response = JsonNode.class)
-	public Any updateUsername(final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
+	@ApiOperation(value = "Update a user's name",   httpMethod = "PUT", response = User.class)
+	public Any updateUsername(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
 	{
 //		
 	log.debug("esIndexName: " + esIndexName); 

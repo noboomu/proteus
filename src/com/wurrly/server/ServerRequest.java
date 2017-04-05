@@ -43,8 +43,8 @@ public class ServerRequest
     public static final AttachmentKey<ByteBuffer> JSON_DATA = AttachmentKey.create(ByteBuffer.class);
  
  
-	private static final String OCTET_STREAM_TYPE = "octet-stream";
-	private static final String APPLICATION_JSON = "application/json"; 
+	private static final String OCTET_STREAM_TYPE = org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM.getMimeType();
+	private static final String APPLICATION_JSON = org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType();
 	private static final String CHARSET = "UTF-8";
 	
 	public final HttpServerExchange exchange;
@@ -278,13 +278,17 @@ public class ServerRequest
 				.setDefaultEncoding(CHARSET)
 				.create(this.exchange);
 
-		log.debug(this.exchange+"");
+		log.debug(this.exchange+"\nmime: " + this.contentType);
 		
 		log.debug("boundary: " +    Headers.extractQuotedValueFromHeader(this.contentType, "boundary"));
+		
 		
 		if(formDataParser != null)
 		{ 
 			final FormData formData = formDataParser.parseBlocking();  
+			
+			log.debug("formData: " +    formData);
+
 			this.exchange.putAttachment(FormDataParser.FORM_DATA, formData);    
 			extractFormParameters(formData);
 		} 

@@ -71,10 +71,7 @@ public class ConfigModule extends AbstractModule
 	@SuppressWarnings("unchecked")
 	public void bindConfig(final Config config)
 	{
-		// root nodes
-		
- 		
- 
+	 
 		traverse(this.binder(), "", config.root());
  
 		
@@ -97,7 +94,7 @@ public class ConfigModule extends AbstractModule
 			}
 		}
 		// bind config
-		this.binder().bind(Config.class).toInstance( ConfigFactory.load(config));
+		this.binder().bind(Config.class).toInstance( ConfigFactory.load(config) );
 		
 		log.info("Config:\n" + config);
 

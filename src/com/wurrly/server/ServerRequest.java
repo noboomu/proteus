@@ -83,7 +83,7 @@ public class ServerRequest
 			{
 				this.parseMultipartForm();
 			}
-			else if (this.contentType.contains(APPLICATION_JSON))
+			else if (this.contentType.contains(APPLICATION_JSON)  && this.exchange.getRequestContentLength() != -1)
 			{
 				this.parseJson();
 			}

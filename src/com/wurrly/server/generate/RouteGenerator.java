@@ -11,7 +11,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +30,8 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.jsoniter.spi.TypeLiteral;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -39,7 +41,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.wurrly.server.GeneratedRouteHandler;
-import com.wurrly.server.RestRoute;
+import com.wurrly.server.RouteRecord;
 import com.wurrly.server.ServerRequest;
 import com.wurrly.utilities.HandleGenerator;
 
@@ -52,11 +54,11 @@ import net.openhft.compiler.CompilerUtils;
 /**
  * @author jbauer
  */
-public class RestRouteGenerator
+public class RouteGenerator
 {
 
 	
-	private static Logger log = LoggerFactory.getLogger(RestRouteGenerator.class.getCanonicalName());
+	private static Logger log = LoggerFactory.getLogger(RouteGenerator.class.getCanonicalName());
 	
 //	@Inject
 //	@Named("date.format")
@@ -338,36 +340,42 @@ public class RestRouteGenerator
 		}
 	}
  
+	@Inject
+	@Named("routeRecords")
+	protected Set<RouteRecord> routeRecords;
 	
-	private List<RestRoute> restRoutes = new ArrayList<>();
-	private String packageName;
-	private String className;
-	private String sourceString;
+	@Inject
+	@Named("application.path")
+	protected String applicationPath;
+	
+	protected String packageName;
+	protected String className;
+	protected String sourceString;
 
-	public static void main(String[] args)
-	{
-		try
-		{
-			RestRouteGenerator generator = new RestRouteGenerator("com.wurrly.controllers.handlers","RouteHandlers");
-			
-			Set<Class<?>> classes = getApiClasses("com.wurrly.controllers",null);
-			
-			generator.generateRoutes(classes); 
-			
-			StringBuilder sb = new StringBuilder();
-			
-			generator.getRestRoutes().stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
-			
-			System.out.println(sb.toString());
-			
-			System.out.println("\n" + generator.sourceString);
-			
-		} catch (Exception e)
-		{
-			log.error(e.getMessage(),e);
-		}
-		 
-	}
+//	public static void main(String[] args)
+//	{
+//		try
+//		{
+//			RouteGenerator generator = new RouteGenerator("com.wurrly.controllers.handlers","RouteHandlers");
+//			
+//			Set<Class<?>> classes = getApiClasses("com.wurrly.controllers",null);
+//			
+//			generator.generateRoutes(); 
+//			
+//			StringBuilder sb = new StringBuilder();
+//			
+//			//generator.getRestRoutes().stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
+//			
+//			System.out.println(sb.toString());
+//			
+//			System.out.println("\n" + generator.sourceString);
+//			
+//		} catch (Exception e)
+//		{
+//			log.error(e.getMessage(),e);
+//		}
+//		 
+//	}
 	
 	public Class<? extends GeneratedRouteHandler> compileRoutes()
 	{
@@ -385,7 +393,7 @@ public class RestRouteGenerator
 		}
 	}
 	
-	public RestRouteGenerator(String packageName, String className)
+	public RouteGenerator(String packageName, String className)
 	{
 		this.packageName = packageName;
 		this.className = className;
@@ -396,9 +404,10 @@ public class RestRouteGenerator
 	{
 		try
 		{
-			String prefix = "com.wurrly.controllers";
-//			List<String> classNames = getClassNamesFromPackage(prefix);
 			
+//			Set<Class<?>> classes = getApiClasses("com.wurrly.controllers",null);
+
+ 			
 			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className)
 			.addModifiers(Modifier.PUBLIC)
 			.addSuperinterface(ClassName.get(com.wurrly.server.GeneratedRouteHandler.class));
@@ -406,9 +415,7 @@ public class RestRouteGenerator
 			ClassName handleGeneratorClass = ClassName.get("com.wurrly.utilities", "HandleGenerator");
 			  
 			ClassName injectClass = ClassName.get("com.google.inject", "Inject");
- 
-			 
-			
+  
 			MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
 					.addModifiers(Modifier.PUBLIC)
 					.addAnnotation(injectClass);
@@ -456,14 +463,17 @@ public class RestRouteGenerator
 
 		String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
   
-		MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("addRouteHandlers").addModifiers(Modifier.PUBLIC).addParameter(ParameterSpec.builder(io.undertow.server.RoutingHandler.class, "router", Modifier.FINAL).build());
+		MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("addRouteHandlers")
+				.addModifiers(Modifier.PUBLIC)
+				.addParameter(ParameterSpec.builder(io.undertow.server.RoutingHandler.class, "router", Modifier.FINAL)
+				              .build());
 
 		final Map<Type, String> typeLiteralsMap = Arrays.stream(clazz.getDeclaredMethods()).flatMap(m -> {
 			return Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType).filter(t -> t.getTypeName().contains("<"));
 		}).distinct().filter(t -> {
 			TypeHandler handler = TypeHandler.forType(t);
 			return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
-		}).collect(Collectors.toMap(java.util.function.Function.identity(), RestRouteGenerator::typeLiteralNameForType));
+		}).collect(Collectors.toMap(java.util.function.Function.identity(), RouteGenerator::typeLiteralNameForType));
 
 		initBuilder.addCode("$L", "\n");
 
@@ -477,11 +487,13 @@ public class RestRouteGenerator
 
 		for (Method m : clazz.getDeclaredMethods())
 		{
-			RestRoute route = new RestRoute();
+			RouteRecord route = new RouteRecord();
 			
 			route.setControllerName(clazz.getSimpleName());
 			
-			String methodPath = HandleGenerator.extractPathTemplate.apply(m);
+			String methodPath = HandleGenerator.extractPathTemplate.apply(m).replaceAll("\\/\\/", "\\/");
+			
+			methodPath = applicationPath + methodPath;
 
 			log.debug("method path: " + methodPath);
 
@@ -704,7 +716,7 @@ public class RestRouteGenerator
 
 			initBuilder.addCode("$L", "\n");
 			
-			this.restRoutes.add(route);
+			this.routeRecords.add(route);
 		}
 
 		typeBuilder.addMethod(initBuilder.build());
@@ -712,21 +724,9 @@ public class RestRouteGenerator
 	}
  
 
-	/**
-	 * @return the restRoutes
-	 */
-	public List<RestRoute> getRestRoutes()
-	{
-		return restRoutes;
-	}
 
-	/**
-	 * @param restRoutes the restRoutes to set
-	 */
-	public void setRestRoutes(List<RestRoute> restRoutes)
-	{
-		this.restRoutes = restRoutes;
-	}
+
+ 
 
 	/**
 	 * @return the packageName

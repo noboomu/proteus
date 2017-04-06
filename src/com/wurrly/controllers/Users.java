@@ -123,10 +123,10 @@ public class Users
 	 
 	@POST
 	@Path("/")
-	@Consumes("multipart/form-data")
+	//@Consumes("multipart/form-data")
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
 	@ApiOperation(value = "Create a user",   httpMethod = "POST", response = User.class)
-	public Any createUser(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final java.nio.file.Path filePath  )
+	public Any createUser(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
 	{
 //		
  

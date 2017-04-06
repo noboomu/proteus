@@ -23,6 +23,8 @@ import com.google.inject.name.Named;
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import com.typesafe.config.Config;
+import com.wurrly.server.RouteRecord;
+import com.wurrly.server.generate.RouteGenerator;
 import com.wurrly.server.swagger.ServerParameterExtension;
 import com.wurrly.utilities.JsonMapper;
 
@@ -38,7 +40,9 @@ import io.undertow.server.handlers.resource.Resource;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
+import io.undertow.util.Methods;
 
+import static org.apache.http.entity.ContentType.*;
 /**
  * @author jbauer
  *
@@ -53,11 +57,12 @@ public class SwaggerModule   extends AbstractServerModule
 	
 	protected final String swaggerThemesPath = "resources/swagger/themes";
 
-	protected Swagger swagger;
+	protected Swagger swagger = null;
 	
 	private String swaggerSpec = null;
 	
 	private String swaggerIndexHTML = null;
+	
 	
 	@Inject
 	@Named("swagger.basePath")
@@ -66,6 +71,15 @@ public class SwaggerModule   extends AbstractServerModule
 	@Inject
 	@Named("swagger.theme")
 	protected String swaggerTheme;
+	
+	@Inject
+	@Named("swagger.specFilename")
+	protected String specFilename;
+	
+	@Inject
+	@Named("swagger.info")
+	protected Config swaggerInfo;
+	
 	
 	@Inject
 	@Named("application.host")
@@ -80,27 +94,25 @@ public class SwaggerModule   extends AbstractServerModule
 	protected Integer port;
 	
 	@Inject
-	@Named("swagger.specFilename")
-	protected String specFilename;
+	@Named("application.path")
+	protected String applicationPath;
 	
 	@Inject
-	@Named("swagger.info")
-	protected Config swaggerInfo;
+	@Named("routeRecords")
+	private Set<RouteRecord> routeRecords;
 	
 	@Inject
 	RoutingHandler routingHandler;
+	 
 	
 	public SwaggerModule()
 	{ 
-		 
+		 this.configFile = "swagger.conf";
  	}
 	
 	public void generateSwaggerSpec(Set<Class<?>> classes)
 	{
 		
-		log.debug("ConfigModule: " + this.configModule + " handler: " + routingHandler + " info: " + swaggerInfo);
-
- 
 		List<SwaggerExtension> extensions = new ArrayList<>();
 		
 		extensions.add(new ServerParameterExtension());
@@ -111,6 +123,8 @@ public class SwaggerModule   extends AbstractServerModule
 		
 		
 		Swagger swagger = new Swagger();
+		
+		swagger.setBasePath(applicationPath);
 		
 		swagger.setHost(host+((port != 80 && port != 443) ? ":" + port : ""));
 		
@@ -179,8 +193,7 @@ public class SwaggerModule   extends AbstractServerModule
 	public void generateSwaggerHTML()
 	{
 		try
-		{ 
-				
+		{  
 			PebbleEngine engine = new PebbleEngine.Builder().build();
 	
 			PebbleTemplate compiledTemplate = engine.getTemplate("resources/swagger/swagger.html");
@@ -227,7 +240,7 @@ public class SwaggerModule   extends AbstractServerModule
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType());
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, APPLICATION_JSON.getMimeType());
  
 
 				exchange.getResponseSender().send(swaggerSpec);
@@ -236,26 +249,45 @@ public class SwaggerModule   extends AbstractServerModule
 			
 		});
 		
-		  
+		RouteRecord record = new RouteRecord();
+		record.setConsumes("*/*");
+		record.setProduces(APPLICATION_JSON.getMimeType());
+		record.setPathTemplate(pathTemplate);
+		record.setMethod(Methods.GET);
+		record.setControllerName("Swagger");
+
+		routeRecords.add(record);
+		 
+		pathTemplate =  this.swaggerBasePath;
 		
-		this.routingHandler.add(HttpMethod.GET, this.swaggerBasePath , new HttpHandler(){
+		this.routingHandler.add(HttpMethod.GET, pathTemplate , new HttpHandler(){
 
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
 				 
 				
- 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, org.apache.http.entity.ContentType.TEXT_HTML.getMimeType());
+ 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_HTML.getMimeType());
  				exchange.getResponseSender().send(swaggerIndexHTML);
 				
 			}
 			
 		});
 		
+		record = new RouteRecord();
+		record.setConsumes("*/*");
+		record.setProduces("text/html");
+		record.setPathTemplate(pathTemplate);
+		record.setMethod(Methods.GET);
+		record.setControllerName("Swagger");
+
+		routeRecords.add(record);
+		
 		ClassPathResourceManager resourceManager = new ClassPathResourceManager(this.getClass().getClassLoader());
 
+		pathTemplate = this.swaggerBasePath + "/themes/*";
 		
-		this.routingHandler.add(HttpMethod.GET, this.swaggerBasePath + "/themes/*", new ResourceHandler(resourceManager){
+		this.routingHandler.add(HttpMethod.GET, pathTemplate, new ResourceHandler(resourceManager){
 
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
@@ -272,25 +304,22 @@ public class SwaggerModule   extends AbstractServerModule
 			
 		});
 		
+		record = new RouteRecord();
+		record.setConsumes("*/*");
+		record.setProduces("text/css");
+		record.setPathTemplate(pathTemplate);
+		record.setMethod(Methods.GET);
+		record.setControllerName("Swagger");
+		routeRecords.add(record);
+		
  		
 		try
 		{
-			Resource swaggerUIResource = resourceManager.getResource(webJarPath);
+			//Resource swaggerUIResource = resourceManager.getResource(webJarPath);
 			
-			log.debug("swaggerUIResource: " + swaggerUIResource.getPath());
-			log.debug("swaggerUIResource: " + swaggerUIResource.list());
-
-			Path swaggerParentPath = swaggerUIResource.getFilePath();
-			
-			log.debug("swaggerParentPath: " + swaggerParentPath);
-
-			
-			//if(subDirectories.length > 0)
-			{
-				
-//				webJarPath = webJarPath + "/" + subDirectories[0].getName() + "/dist";
-				
-				this.routingHandler.add(HttpMethod.GET, this.swaggerBasePath + "/*", new ResourceHandler(resourceManager){
+			 pathTemplate =  this.swaggerBasePath + "/*";
+			 
+				this.routingHandler.add(HttpMethod.GET, pathTemplate, new ResourceHandler(resourceManager){
 
 					@Override
 					public void handleRequest(HttpServerExchange exchange) throws Exception
@@ -306,8 +335,16 @@ public class SwaggerModule   extends AbstractServerModule
 					}
 					
 				});
-			}
 			
+
+				record = new RouteRecord();
+				record.setConsumes("*/*");
+				record.setProduces("*/*");
+				record.setPathTemplate(pathTemplate);
+				record.setMethod(Methods.GET);
+				record.setControllerName("Swagger");
+
+				routeRecords.add(record);
 
 		} catch (Exception e)
 		{
@@ -321,6 +358,39 @@ public class SwaggerModule   extends AbstractServerModule
  
 		 
 
+	}
+
+	 
+
+	/* (non-Javadoc)
+	 * @see com.google.common.util.concurrent.AbstractIdleService#startUp()
+	 */
+	@Override
+	protected void startUp() throws Exception
+	{
+		// TODO Auto-generated method stub
+		
+		Set<Class<?>> classes = RouteGenerator.getApiClasses("com.wurrly.controllers",null);
+		
+		this.generateSwaggerSpec(classes);
+		
+ 		
+		Swagger swagger = this.getSwagger();
+		
+		log.info("swagger spec: " + JsonMapper.toPrettyJSON(swagger));
+		
+		this.addRouteHandlers();
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.common.util.concurrent.AbstractIdleService#shutDown()
+	 */
+	@Override
+	protected void shutDown() throws Exception
+	{
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

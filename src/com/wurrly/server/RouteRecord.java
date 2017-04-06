@@ -12,17 +12,17 @@ import io.undertow.util.HttpString;
  * @author jbauer
  *
  */
-public class RestRoute implements Comparable<RestRoute>
+public class RouteRecord implements Comparable<RouteRecord>
 {
 	private HttpString method;
 	private String pathTemplate;
-	private String consumes;
-	private String produces;
-	private String controllerMethod;
-	private String controllerName;
+	private String consumes = "*/*";
+	private String produces = "*/*";
+	private String controllerMethod = "*";
+	private String controllerName = "anonymous";
 	
 	
-	public RestRoute()
+	public RouteRecord()
 	{
 		
 	}
@@ -136,19 +136,21 @@ public class RestRoute implements Comparable<RestRoute>
 	    	       toHashCode();
 	}
 	
-  public int compareTo(RestRoute o) {
-	     RestRoute myClass = (RestRoute) o;
+  public int compareTo(RouteRecord o) {
+	     RouteRecord other = (RouteRecord) o;
 	     return new CompareToBuilder()
-	       .append(this.controllerName, myClass.controllerName)
-	       .append(this.method, myClass.method)
-	       .append(this.controllerMethod, myClass.controllerMethod)
+	       .append(this.controllerName, other.controllerName)
+	       .append(this.method, other.method)
+	       .append(this.controllerMethod, other.controllerMethod)
+	       .append(this.pathTemplate, other.pathTemplate)
+
 	       .toComparison();
 	   }
 
 	@Override
 	public String toString()
 	{
-		return String.format("%-8s %-60s %-18s %-18s %s", this.method, this.pathTemplate, "[" + this.consumes + "]", "[" + this.produces+ "]", "("+this.controllerMethod+ ")");
+		return String.format("%-8s %-30s %-26s %-26s %s", this.method, this.pathTemplate, "[" + this.consumes + "]", "[" + this.produces+ "]", "("+this.controllerMethod+ ")");
 	}
 
 	 

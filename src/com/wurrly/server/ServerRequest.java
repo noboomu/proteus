@@ -89,9 +89,13 @@ public class ServerRequest
 			}
 		}
 		
-		this.exchange.getResponseHeaders().put(Headers.SERVER, "Bowser"); 
 
 
+	}
+	
+	public void respond(ServerResponse response)
+	{
+		
 	}
 
 	public Deque<FormData.FormValue> files(final String name)

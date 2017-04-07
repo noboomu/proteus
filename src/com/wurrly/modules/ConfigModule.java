@@ -53,8 +53,7 @@ public class ConfigModule extends AbstractModule
 	@Override
 	protected void configure()
 	{
-		log.debug("Configuring : " + this.getClass().getSimpleName());
-
+ 
 		if(this.configFile != null )
 		{
 			 this.bindConfig(fileConfig(configFile));

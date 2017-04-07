@@ -3,16 +3,11 @@
  */
 package com.wurrly;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -24,35 +19,25 @@ import com.google.common.util.concurrent.ServiceManager;
 import com.google.common.util.concurrent.ServiceManager.Listener;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
-import com.google.inject.name.Names;
-import com.jsoniter.DecodingMode;
-import com.jsoniter.JsonIterator;
-import com.jsoniter.annotation.JacksonAnnotationSupport;
-import com.jsoniter.annotation.JsoniterAnnotationSupport;
-import com.jsoniter.output.EncodingMode;
-import com.jsoniter.output.JsonStream;
+import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 import com.wurrly.controllers.Users;
-import com.wurrly.models.User;
 import com.wurrly.modules.ConfigModule;
 import com.wurrly.modules.RoutingModule;
-import com.wurrly.modules.SwaggerModule;
-import com.wurrly.server.GeneratedRouteHandler;
-import com.wurrly.server.RouteRecord;
-import com.wurrly.server.ServerRequest;
-import com.wurrly.server.generate.RouteGenerator;
+import com.wurrly.server.handlers.HandlerGenerator;
+import com.wurrly.server.handlers.benchmark.BenchmarkHandlers;
+import com.wurrly.server.route.RouteInfo;
+import com.wurrly.services.SwaggerService;
 
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.protocol.http2.Http2UpgradeHandler;
 import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
-import io.undertow.util.Methods;
-
+import static org.fusesource.jansi.Ansi.*;
+import static org.fusesource.jansi.Ansi.Color.*;
 /**
  * @author jbauer
  */
@@ -60,7 +45,7 @@ public class Application
 {
 	
  
-	private static Logger log = LoggerFactory.getLogger(Application.class.getCanonicalName());
+	private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Application.class.getCanonicalName());
 
  
 	static final String CHARSET = "UTF-8";
@@ -78,24 +63,23 @@ public class Application
 	}
  
  
-	    
 	protected Injector injector = null;
 	protected ServiceManager serviceManager = null;
 	protected Undertow webServer = null;
 	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
-	protected Set<Class<?>> registeredControllers = new HashSet<>();
-	
+ 	protected RoutingModule routingModule = null;
+ 	
 	public Application()
 	{
-		injector = Guice.createInjector(new ConfigModule(),new RoutingModule());
-		
- 
-		 
+		this.routingModule = new RoutingModule();
+		injector = Guice.createInjector(new ConfigModule(),this.routingModule); 
 	}
 	
 	public void start()
 	{
 		log.info("Starting services...");
+		
+
 		
 		Set<Service> services = registeredServices.stream().map( sc -> {
 			
@@ -136,44 +120,40 @@ public class Application
 	{
 		Config rootConfig = injector.getInstance(Config.class);
 		RoutingHandler router = injector.getInstance(RoutingHandler.class);
+		RoutingModule routingModule = injector.getInstance(RoutingModule.class);
 
-	
-		 log.debug(injector.getAllBindings()+"");
-		RouteGenerator generator = new RouteGenerator("com.wurrly.controllers.handlers","RouteHandlers");
+		HandlerGenerator generator = new HandlerGenerator("com.wurrly.controllers.handlers","RouteHandlers",routingModule.getRegisteredControllers());
 		
 		injector.injectMembers(generator);
+	
+		Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(generator.compileClass());
 		
-		generator.generateRoutes(this.registeredControllers);
-		 
-		Class<? extends GeneratedRouteHandler> handlerClass = generator.compileRoutes();
+		router.addAll(generatedRouteSupplier.get());
 		
-		log.debug("New class: " + handlerClass);
-  
-		GeneratedRouteHandler routeHandler = injector.getInstance(handlerClass);
+		Supplier<RoutingHandler> benchmarkRouteSupplier = new BenchmarkHandlers();
 		
-		routeHandler.addRouteHandlers(router);
-		
-		addBenchmarkHandler(router);
+		router.addAll(benchmarkRouteSupplier.get());
 		
 		StringBuilder sb = new StringBuilder();
 		
-		Set<RouteRecord> routeRecords = injector.getInstance(Key.get(new TypeLiteral<Set<RouteRecord>>() {},Names.named("routeRecords")));
+		Set<RouteInfo> routingInfo = routingModule.getRegisteredRoutes(); //injector.getInstance(Key.get(new TypeLiteral<Set<RouteInfo>>() {},Names.named("routeInfo")));
 		
-		routeRecords.stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
+		routingInfo.stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
 		
 		log.info("\n\nRegistered the following endpoints: \n\n" + sb.toString());
 		
 		webServer = Undertow.builder()
 				.addHttpListener(rootConfig.getInt("application.port"), "localhost")
-				.setBufferSize(1024 * 16)
+				.setBufferSize(1024 * 16 * 10)
 				.setIoThreads(Runtime.getRuntime().availableProcessors())
 				.setServerOption(UndertowOptions.ENABLE_HTTP2, true)
 		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
-		        .setSocketOption(org.xnio.Options.BACKLOG, 10000)
+ 
+ 		        .setSocketOption(org.xnio.Options.BACKLOG, 10000)
 		        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
-
+		        .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, 1000000l * 200 )
 				.setWorkerThreads(Runtime.getRuntime().availableProcessors() * 8)
-				.setHandler(new HttpHandler()
+				.setHandler( new HttpHandler()
 		{
 			@Override
 			public void handleRequest(final HttpServerExchange exchange) throws Exception
@@ -189,6 +169,8 @@ public class Application
 //					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Origin"), "*");
 //					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Methods"), "GET, POST, DELETE, PUT, PATCH, OPTIONS");
 //					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Headers"), "Content-Type, api_key, Authorization");
+					exchange.getResponseHeaders().put(Headers.SERVER, "Bowser"); 
+
 					router.handleRequest(exchange);
 					
 				} catch (Exception e)
@@ -211,7 +193,7 @@ public class Application
 	
 	public void useController(Class<?> controllerClass)
 	{
-		this.registeredControllers.add(controllerClass);
+		this.routingModule.getRegisteredControllers().add(controllerClass);
 	}
   	
 	public static void main(String[] args)
@@ -219,12 +201,11 @@ public class Application
 
 		try
 		{
-			
-		  //  Injector injector = Guice.createInjector(new ConfigModule(),new RoutingModule());
+  
 
  			Application app = new Application();
  			
- 			 app.useService(SwaggerModule.class);
+ 			 app.useService(SwaggerService.class);
  			 
  			 app.useController(Users.class);
  			 
@@ -232,207 +213,12 @@ public class Application
  			 
 		} catch (Exception e)
 		{
-			e.printStackTrace();
+			log.error(e.getMessage(),e);
 		}
-		//	 Users usersController = injector.getInstance(Users.class);
-			
-		 //   injector.injectMembers(usersController);
 
-			
-		 
- 
-			 
-			//Set<Class<?>> classes = RouteGenerator.getApiClasses("com.wurrly.controllers",null);
-
-//			RouteGenerator generator = new RouteGenerator("com.wurrly.controllers.handlers","RouteHandlers");
-//			generator.generateRoutes();
-//			
-//		 
-			
-			 
-			
-			//	generator.getRestRoutes().stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
-
-//			SwaggerModule swaggerModule = injector.getInstance(SwaggerModule.class);
-//			
-//			
-//			 Set<Service> services = Collections.singleton(swaggerModule);
-//			
-//		     ServiceManager manager = new ServiceManager(Collections.singleton(swaggerModule));
-//		     
-//		     manager.addListener(new Listener() {
-//		         public void stopped() {}
-//		         public void healthy() {
-//		           // Services have been initialized and are healthy, start accepting requests...
-//		        	 Logger.info("Services are healthy...");
-//		         }
-//		         public void failure(Service service) {
-//		           // Something failed, at this point we could log it, notify a load balancer, or take
-//		           // some other action.  For now we will just exit.
-//		           System.exit(1);
-//		         }
-//		       },
-//		       MoreExecutors.directExecutor());
-//
-//		     Runtime.getRuntime().addShutdownHook(new Thread() {
-//		       public void run() {
-//		         // Give the services 5 seconds to stop to ensure that we are responsive to shutdown
-//		         // requests.
-//		         try {
-//		           manager.stopAsync().awaitStopped(5, TimeUnit.SECONDS);
-//		         } catch (TimeoutException timeout) {
-//		           // stopping timed out
-//		         }
-//		       }
-//		     });
-//		     manager.startAsync();  // start all the services asynchronously
-
-//			swaggerModule.generateSwaggerSpec(classes);
-//			
-//			Logger.debug("swagger spec\n");
-//			
-//			Swagger swagger = swaggerModule.getSwagger();
-//			
-//			Logger.debug("swagger spec: " + JsonMapper.toPrettyJSON(swagger));
-//			
-//			swaggerModule.addRouteHandlers();
-			
-//			HttpHandler getUserHandler = null;
-//			GetUsersHandler getUserHandler = new GetUsersHandler(usersController);
-			
-//			for( Method m : Users.class.getDeclaredMethods() )
-//			{
-//				System.out.println("method: " + m);
-//				
-//				if( m.isSynthetic() || !m.getDeclaringClass().equals(Users.class))
-//				{
-//					System.out.println("m " + m + " is shady");
-//					continue;
-//				}
-//				
-// 				HttpString httpMethod = HandleGenerator.extractHttpMethod.apply(m);
-//				String pathTemplate = HandleGenerator.extractPathTemplate.apply(m);
-//				HttpHandler handler = HandleGenerator.generateHandler(usersController, m, httpMethod.equals(Methods.POST));
-//
-//				Logger.info("\nFUNCTION: " + m + "\n\tMETHOD: " + httpMethod + "\n\tPATH: " + pathTemplate);
-// 	 			
-//				
-//	 			router.add(httpMethod, pathTemplate,  handler );
-//
-// 				System.out.println("handler: " + handler);
-//				 
-//			}
-			
-//			 final HttpHandler createUserPostHandler = new HttpHandler() {
-//				    @Override
-//				    public void handleRequest(final HttpServerExchange exchange) throws Exception {
-//				      if(exchange.isInIoThread()) {
-//				        exchange.dispatch(this);
-//				      }
-//				      ServerRequest serverRequest = new ServerRequest(exchange);
-//				      Optional<String> context = Optional.ofNullable(exchange.getQueryParameters().get("context")).map(Deque::getFirst);
-//				      Any user = exchange.getAttachment(ServerRequest.REQUEST_JSON_BODY).readAny();
-//				      Any response = usersController.createUser(serverRequest,context,user);
-//				      exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "application/json");
-//				      exchange.getResponseSender().send(com.jsoniter.output.JsonStream.serialize(response));
-//				    }
-//				  };
-			
-			
-		 
-			
-//			Config rootConfig = injector.getInstance(Config.class);
-// 		 
-//			Undertow server = Undertow.builder()
-//					.addHttpListener(rootConfig.getInt("application.port"), "localhost")
-//					.setBufferSize(1024 * 16)
-//					.setIoThreads(Runtime.getRuntime().availableProcessors())
-//					.setServerOption(UndertowOptions.ENABLE_HTTP2, true)
-//			        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
-//			        .setSocketOption(org.xnio.Options.BACKLOG, 10000)
-//			        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
-//
-//					.setWorkerThreads(Runtime.getRuntime().availableProcessors() * 8)
-//					.setHandler(new HttpHandler()
-//			{
-//				@Override
-//				public void handleRequest(final HttpServerExchange exchange) throws Exception
-//				{
-//					try
-//					{
-////						if(exchange.isInIoThread())
-////						{
-////							exchange.dispatch(this);
-////							return;
-////						}
-//						 
-////						exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Origin"), "*");
-////						exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Methods"), "GET, POST, DELETE, PUT, PATCH, OPTIONS");
-////						exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Headers"), "Content-Type, api_key, Authorization");
-//						router.handleRequest(exchange);
-//						
-//					} catch (Exception e)
-//					{
-//						if (exchange.isResponseChannelAvailable())
-//						{
-//							e.printStackTrace();
-//						}
-//					}
-//				}
-//			}).build();
-//			server.start();
-			
-//			Runtime.getRuntime().addShutdownHook( new Thread(){
-//			 
-//				@Override
-//				public void run()
-//				{
-//					 
-//				}
-//			});
-//
-//
-//		} catch (Exception e)
-//		{
-//			e.printStackTrace();
-//		}
 
 	}
 	
-	private final static class BenchmarkMessage
-	{
-		public String message = "hello world";
-	}
-	
-	public static void addBenchmarkHandler(RoutingHandler routeHandler)
-	{
-	    final ByteBuffer msgBuffer  = ByteBuffer.wrap("hello world".getBytes());
-	    
-	    
-
-		routeHandler.add(Methods.GET, "/string", new HttpHandler(){
  
-			@Override
-			public void handleRequest(HttpServerExchange exchange) throws Exception
-			{
-				// TODO Auto-generated method stub
-				
-				exchange.getResponseSender().send(msgBuffer);  
-				
-			} 
-		} );
-		
-		routeHandler.add(Methods.GET, "/json", new HttpHandler(){
-			 
-			@Override
-			public void handleRequest(HttpServerExchange exchange) throws Exception
-			{
-				// TODO Auto-generated method stub
-				
-				exchange.getResponseSender().send(JsonStream.serialize(new BenchmarkMessage()));  
-				
-			} 
-		} );
-	} 
 
 }

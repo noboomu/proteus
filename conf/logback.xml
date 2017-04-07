@@ -1,17 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true" scanPeriod="15 seconds" debug="false">
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-     
-    <withJansi>true</withJansi>
-  
-    <encoder>
-      <!--   <pattern>[%d{ISO8601}]-[%thread] %-5level %logger - %msg%n</pattern>  -->
-      			<pattern>[%d{ISO8601}]-[%thread] %highlight(%-5level) [%boldCyan(%logger)] - %boldWhite(%message) %n
-      			</pattern>
-      
-    </encoder>
-  </appender>
+<configuration packagingData="true">
 
+	<turboFilter class="ch.qos.logback.classic.turbo.DuplicateMessageFilter" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<withJansi>true</withJansi>
+		<encoder>
+			<pattern>%date{ISO8601} %highlight(%-5level) [%boldCyan(%logger)] [%boldYellow(%method %F) ] - %boldWhite(%message) %n %red(%ex)
+			</pattern>
+		</encoder>
+	</appender>
 
 	<logger name="org.apache.http" level="ERROR" />
 
@@ -22,7 +19,8 @@
  
 	<logger name="io.netty" level="ERROR" />
 	<logger name="io.netty.handler" level="ERROR" />
-	
+	 
+	<logger name="com.wurrly.server.swagger" level="ERROR" />
 	
 	<logger name="com.relayrides" level="ERROR" />
 	<logger name="org.apache.activemq" level="ERROR" />
@@ -75,8 +73,9 @@
 	<logger name="com.squareup.okhttp" level="WARN" />
 
 	<logger name="org.hibernate.validator" level="ERROR" />
+	<logger name="org.xnio.nio" level="ERROR" />
 
-  
+   
 	<logger name="org.apache.camel" level="ERROR" />
 	<logger name="org.apache.activemq" level="ERROR" />
 	<logger name="sun.net" level="ERROR" />

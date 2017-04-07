@@ -67,6 +67,12 @@ public class Extractors
 			});
 		}
 
+		public static java.util.Optional<Date> date(final HttpServerExchange exchange,final String name)  {
+			  
+			  
+			 return string(exchange, name).map( ZonedDateTime::parse ).map(ZonedDateTime::toInstant).map(Date::from);
+			    
+		}
 
 		public static java.util.Optional<Any> any(final HttpServerExchange exchange )
 		{

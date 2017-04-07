@@ -110,7 +110,8 @@ public class HandlerGenerator
 		OptionalFloatType("$T<Long> $L = $T.floatValue(exchange,$S)", false,   Optional.class, StatementParameterType.LITERAL, com.wurrly.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalDoubleType("$T<Integer> $L = $T.doubleValue(exchange,$S)", false,  Optional.class,  StatementParameterType.LITERAL, com.wurrly.server.Extractors.Optional.class, StatementParameterType.STRING),
 		
-		
+		OptionalDateType("$T<$T> $L = $T.date(exchange,$S)", false,  Optional.class, java.util.Date.class,  StatementParameterType.LITERAL, com.wurrly.server.Extractors.Optional.class, StatementParameterType.STRING),
+
 		OptionalModelType("java.util.Optional<$L> $L = $T.typed(exchange,$L)", true,   StatementParameterType.LITERAL, StatementParameterType.LITERAL, com.wurrly.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
 		OptionalValueOfType("$T<$T> $L = $T.string(exchange,$S).map($T::valueOf)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL,com.wurrly.server.Extractors.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
@@ -182,7 +183,7 @@ public class HandlerGenerator
  				}  
 			}
 
-			log.debug("type: " + parameter.getParameterizedType().getTypeName() + " : " + handler);
+			log.info("type: " + parameter.getParameterizedType().getTypeName() + " : " + handler);
 			builder.addStatement(handler.statement, args);
 		}
 		
@@ -280,6 +281,10 @@ public class HandlerGenerator
 				else if (type.getTypeName().contains("java.lang.String"))
 				{
 					return OptionalStringType;
+				}
+				else if (type.getTypeName().contains("java.util.Date"))
+				{
+					return OptionalDateType;
 				}
 				else if (type.getTypeName().contains("java.lang.Boolean"))
 				{

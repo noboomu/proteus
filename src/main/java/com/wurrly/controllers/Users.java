@@ -72,7 +72,7 @@ public class Users
 	                    @QueryParam("optionalQueryString")  Optional<String> optionalQueryString, 
 	                    @QueryParam("optionalLong")  Optional<Long> optionalLong, 
 	                    @QueryParam("longValue")   Long  longValue, 
-	                    @QueryParam("date") @ApiParam(format="date")  Date  dateValue, 
+	                    @QueryParam("dateValue") @ApiParam(format="date")  Optional<Date>  dateValue, 
 	                    @QueryParam("numbers")    List<Integer>  numbers, 
 
 	                      @QueryParam("queryFromString") UUID queryFromString, 
@@ -95,6 +95,7 @@ public class Users
  log.debug("queryEnum: " + queryEnum);
  log.debug("optionalQueryEnum: " + optionalQueryEnum);
  log.debug("userId: " + userId);
+ log.debug("numbers: " + numbers);
 
 
 //				

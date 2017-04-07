@@ -13,10 +13,11 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
@@ -33,6 +34,8 @@ import io.undertow.util.Methods;
  */
 public class Extractors
 {
+	private static Logger log = LoggerFactory.getLogger(Extractors.class.getCanonicalName());
+
 	public static class Optional
 	{
 
@@ -68,7 +71,7 @@ public class Extractors
 		}
 
 		public static java.util.Optional<Date> date(final HttpServerExchange exchange,final String name)  {
-			  
+			   
 			  
 			 return string(exchange, name).map( ZonedDateTime::parse ).map(ZonedDateTime::toInstant).map(Date::from);
 			    

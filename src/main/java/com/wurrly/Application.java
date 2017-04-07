@@ -19,6 +19,9 @@ import com.google.common.util.concurrent.ServiceManager;
 import com.google.common.util.concurrent.ServiceManager.Listener;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.j256.simplemagic.ContentType;
+import com.jsoniter.any.Any;
+import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 import com.wurrly.controllers.Users;
 import com.wurrly.modules.ConfigModule;
@@ -35,6 +38,7 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
+import io.undertow.util.StatusCodes;
 /**
  * @author jbauer
  */
@@ -166,7 +170,20 @@ public class Application
 
 					router.handleRequest(exchange);
 					
-				} catch (Exception e)
+				} 
+				 catch (IllegalArgumentException e)
+				{
+					if (exchange.isResponseChannelAvailable())
+					{
+						log.error(e.getMessage(),e);
+						
+						exchange.setStatusCode(StatusCodes.BAD_REQUEST);
+						exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, ContentType.JSON.getMimeType());
+						exchange.getResponseSender().send(JsonStream.serialize(Any.wrap(e)));
+
+					}
+				}
+				catch (Exception e)
 				{
 					if (exchange.isResponseChannelAvailable())
 					{

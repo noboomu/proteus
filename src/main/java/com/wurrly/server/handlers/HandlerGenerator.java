@@ -22,8 +22,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.lang.model.element.Modifier;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
@@ -151,6 +155,35 @@ public class HandlerGenerator
 			{
 				if (handler.parameterTypes[i] instanceof StatementParameterType)
 				{
+					String pName = parameter.getName();
+					
+					if( parameter.isAnnotationPresent(QueryParam.class))
+					{
+						QueryParam qp = parameter.getAnnotation(QueryParam.class);
+						pName = qp.value();
+					}
+					else if( parameter.isAnnotationPresent(HeaderParam.class))
+					{
+						HeaderParam hp = parameter.getAnnotation(HeaderParam.class);
+						pName = hp.value();
+					}
+					else if( parameter.isAnnotationPresent(PathParam.class))
+					{
+						PathParam pp = parameter.getAnnotation(PathParam.class);
+						pName = pp.value();
+					}
+					else if( parameter.isAnnotationPresent(CookieParam.class))
+					{
+						CookieParam cp = parameter.getAnnotation(CookieParam.class);
+						pName = cp.value();
+					}
+					else if( parameter.isAnnotationPresent(FormParam.class))
+					{
+						FormParam fp = parameter.getAnnotation(FormParam.class);
+						pName = fp.value();
+					}
+					
+					
 					StatementParameterType pType = (StatementParameterType) handler.parameterTypes[i];
 					switch (pType)
 					{
@@ -158,7 +191,7 @@ public class HandlerGenerator
 						args[i] = parameter.getName();
 						break;
 					case STRING:
-						args[i] = parameter.getName();
+						args[i] = pName;
 						break;
 					case TYPE:
 						args[i] = parameter.getParameterizedType();
@@ -183,8 +216,7 @@ public class HandlerGenerator
  				}  
 			}
 
-			log.info("type: " + parameter.getParameterizedType().getTypeName() + " : " + handler);
-			builder.addStatement(handler.statement, args);
+ 			builder.addStatement(handler.statement, args);
 		}
 		
 		public static void addStatement(MethodSpec.Builder builder, Parameter parameter) throws Exception
@@ -407,7 +439,7 @@ public class HandlerGenerator
 		{
 			this.generateRoutes();
 
-			log.debug("CLASS:\n" + this.sourceString);
+			log.info("CLASS:\n" + this.sourceString);
 			return CompilerUtils.CACHED_COMPILER.loadFromJava(packageName + "." + className, this.sourceString);
 
 		} catch (Exception e)

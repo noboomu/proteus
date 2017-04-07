@@ -72,33 +72,33 @@ public class Users
 	                    @QueryParam("optionalQueryString")  Optional<String> optionalQueryString, 
 	                    @QueryParam("optionalLong")  Optional<Long> optionalLong, 
 	                    @QueryParam("longValue")   Long  longValue, 
-	                    @QueryParam("dateValue") @ApiParam(format="date")  Optional<Date>  dateValue, 
+	                    @QueryParam("dateValue") @ApiParam(defaultValue="2014-04-23T04:30:45.123+01:00", format="date")  Optional<Date>  optionalDate, 
 	                    @QueryParam("numbers")    List<Integer>  numbers, 
 
-	                      @QueryParam("queryFromString") UUID queryFromString, 
+	                    @ApiParam(defaultValue="01234567-9ABC-DEF0-1234-56789ABCDEF0", format="uuid")  @QueryParam("queryFromString") UUID queryFromString, 
 	                    @ApiParam(defaultValue="01234567-9ABC-DEF0-1234-56789ABCDEF0", format="uuid") @QueryParam("optionalQueryFromString") Optional<UUID> optionalQueryFromString, 
 	                    @ApiParam(defaultValue="01234567-9ABC-DEF0-1234-56789ABCDEF0") @HeaderParam("headerFromString") Optional<UUID> headerFromString,
-	                    @HeaderParam("headerString") String headerString,
+	                    @ApiParam(defaultValue="123") @HeaderParam("headerString") String headerString,
 	                    @HeaderParam("optionalHeaderString") Optional<String> optionalHeaderString,
 	                    @QueryParam("queryEnum") User.UserType queryEnum, 
 	                    @QueryParam("optionalQueryEnum") Optional<User.UserType> optionalQueryEnum
 	                    
 	                    )
 	{
-//		
- log.debug("optionalQueryFromString: " + optionalQueryFromString);
- log.debug("queryFromString: " + queryFromString);
- log.debug("optionalQueryString: " + optionalQueryString);
- log.debug("headerFromString: " + headerFromString);
- log.debug("headerString: " + headerString);
- log.debug("optionalHeaderString: " + optionalHeaderString);
- log.debug("queryEnum: " + queryEnum);
- log.debug("optionalQueryEnum: " + optionalQueryEnum);
- log.debug("userId: " + userId);
- log.debug("numbers: " + numbers);
+ 		
+				 log.debug("optionalQueryFromString: " + optionalQueryFromString);
+				 log.debug("queryFromString: " + queryFromString);
+				 log.debug("optionalQueryString: " + optionalQueryString);
+				 log.debug("headerFromString: " + headerFromString);
+				 log.debug("headerString: " + headerString);
+				 log.debug("optionalHeaderString: " + optionalHeaderString);
+				 log.debug("queryEnum: " + queryEnum);
+				 log.debug("optionalQueryEnum: " + optionalQueryEnum);
+				 log.debug("userId: " + userId);
+				 log.debug("numbers: " + numbers);
+				 log.debug("optionalDate: " + optionalDate);
 
-
-//				
+ 		
 				return Any.wrap(new User(232343L));
 
 	}

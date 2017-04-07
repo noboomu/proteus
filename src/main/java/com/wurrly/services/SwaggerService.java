@@ -284,8 +284,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 				canonicalPath = swaggerThemesPath + canonicalPath.split(swaggerBasePath+"/themes")[1]; 
 				
 				exchange.setRelativePath(canonicalPath);
-				log.info("path: " + canonicalPath);
-
+ 
 				super.handleRequest(exchange);
 				
 			}
@@ -298,11 +297,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
  		
 		try
 		{
-			Resource swaggerUIResource = resourceManager.getResource("./swagger/index.html");
-			
-			log.info("swaggerUIResource: " + swaggerUIResource);
-			log.info("swaggerUIResource: " + swaggerUIResource.getPath());
-			log.info("swaggerUIResource: " + swaggerUIResource.getFilePath());
+	 
 
 			 pathTemplate =  this.swaggerBasePath + "/*";
 			 
@@ -315,8 +310,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 						String canonicalPath = CanonicalPathUtils.canonicalize((exchange.getRelativePath()));
 								
 						canonicalPath = swaggerResourcePath + canonicalPath.split(swaggerBasePath)[1]; 
-						
-						log.info("path: " + canonicalPath);
+						 
 						exchange.setRelativePath(canonicalPath);
 
 						super.handleRequest(exchange);

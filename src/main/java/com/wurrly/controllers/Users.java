@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -24,19 +22,21 @@ import javax.ws.rs.QueryParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.jsoniter.any.Any;
+import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 import com.wurrly.models.User;
 import com.wurrly.server.ServerRequest;
+import com.wurrly.server.ServerResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-
+import io.undertow.util.HttpString;
+import io.undertow.util.StatusCodes;
 /**
  * User API
  */
@@ -67,7 +67,7 @@ public class Users
 	@GET
 	@Path("/{userId}/type")
 	@ApiOperation(value = "Find users by id with type", httpMethod = "GET", response = User.class)
-	public Any userType(
+	public ServerResponse userType(
 	                    @ApiParam(hidden=true)final ServerRequest serverRequest, @PathParam("userId") final Long userId, 
 	                    @QueryParam("optionalQueryString")  Optional<String> optionalQueryString, 
 	                    @QueryParam("optionalLong")  Optional<Long> optionalLong, 
@@ -99,7 +99,11 @@ public class Users
 				 log.debug("optionalDate: " + optionalDate);
 
  		
-				return Any.wrap(new User(232343L));
+				return ServerResponse.builder()
+						.ok()
+						.withEntity(new User(232343L))
+						.withHeader(HttpString.tryFromString("TestHeader"), "57475475")
+						.build();
 
 	}
 	
@@ -129,7 +133,7 @@ public class Users
 	@GET
 	@Path("/{userId}")
 	@ApiOperation(value = "Find users by id",   httpMethod = "GET", response = User.class)
-	public Any user(@ApiParam(hidden=true)final ServerRequest serverRequest, 
+	public ServerResponse user(@ApiParam(hidden=true)final ServerRequest serverRequest, 
 	                @ApiParam(name="userId", required=true) @PathParam("userId") final Long userId, 
 	                @ApiParam(name="context", required=false) @QueryParam("context") Optional<String> context
 	                )
@@ -141,7 +145,12 @@ public class Users
 //		log.debug("context: " + context);
 //
 //				
-				return Any.wrap(new User(userId));
+		return ServerResponse.builder()
+				.ok()
+				.jsonType()
+				.withBody(JsonStream.serialize(new User(userId)))
+				.build();
+				 
 
 	}
  

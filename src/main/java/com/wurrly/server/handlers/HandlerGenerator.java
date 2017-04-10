@@ -48,6 +48,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.wurrly.modules.RoutingModule;
 import com.wurrly.server.Extractors;
 import com.wurrly.server.ServerRequest;
+import com.wurrly.server.ServerResponse;
 import com.wurrly.server.endpoints.EndpointInfo;
 
 import io.swagger.annotations.Api;
@@ -702,7 +703,7 @@ public class HandlerGenerator
 				functionBlockBuilder.add("$T $L = $L.$L($L);", m.getReturnType(), "response", controllerName, m.getName(), controllerMethodArgs);
 
 			}
-
+	
 			methodBuilder.addCode(functionBlockBuilder.build());
 
 			methodBuilder.addCode("$L", "\n");
@@ -748,19 +749,32 @@ public class HandlerGenerator
 			route.setConsumes(consumesContentType);
 
 			methodBuilder.addCode("$L", "\n");
-
-			methodBuilder.addStatement("exchange.getResponseHeaders().put($T.CONTENT_TYPE, $S)", Headers.class, producesContentType);
-
-			if (m.getReturnType().equals(String.class))
+			
+			if( m.getReturnType().equals(ServerResponse.class))
 			{
-				methodBuilder.addStatement("exchange.getResponseHeaders().send($L)", "response");
+				methodBuilder.addStatement("$L.send(this,$L)","response","exchange");
+
 			}
 			else
 			{
-				methodBuilder.addStatement("exchange.getResponseSender().send(com.jsoniter.output.JsonStream.serialize($L))", "response");
-			}
 
+
+				methodBuilder.addStatement("exchange.getResponseHeaders().put($T.CONTENT_TYPE, $S)", Headers.class, producesContentType);
+	
+				if (m.getReturnType().equals(String.class))
+				{
+					methodBuilder.addStatement("exchange.getResponseHeaders().send($L)", "response");
+				}
+				else
+				{
+					methodBuilder.addStatement("exchange.getResponseSender().send(com.jsoniter.output.JsonStream.serialize($L))", "response");
+				}
+	
+ 			
+			}
+			
 			handlerClassBuilder.addMethod(methodBuilder.build());
+
 
 			FieldSpec handlerField = FieldSpec.builder(httpHandlerClass, methodName, Modifier.FINAL).initializer("$L", handlerClassBuilder.build()).build();
 

@@ -3,9 +3,15 @@
  */
 package com.wurrly.server;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.jsoniter.output.JsonStream;
 
 import io.undertow.io.IoCallback;
 import io.undertow.server.HttpHandler;
@@ -23,12 +29,15 @@ import io.undertow.util.StatusCodes;
  */
 public class ServerResponse
 {
+	private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
+
 	private ByteBuffer body;
 	
-	private int status = -1;
+	private int status = StatusCodes.ACCEPTED;
 	private final HeaderMap headers = new HeaderMap();
 	private final Map<String,Cookie> cookies = new HashMap<>(); 
-	private String contentType;
+	private String contentType = org.apache.http.entity.ContentType.TEXT_PLAIN.getMimeType();
+	private Object entity;
 	private IoCallback callback;
   	
 	public ServerResponse()
@@ -104,7 +113,7 @@ public class ServerResponse
 		this.contentType = contentType;
 	}
 
-	public void send( final HttpHandler currentHandler, final HttpServerExchange exchange )
+	public void send( final HttpHandler handler, final HttpServerExchange exchange )
 	{
 		long itr = this.headers.fastIterateNonEmpty();
 		
@@ -114,22 +123,61 @@ public class ServerResponse
 			
 			exchange.getResponseHeaders().putAll(values.getHeaderName(), values);
 			
-			this.headers.fiNextNonEmpty(itr); 
+			itr = this.headers.fiNextNonEmpty(itr); 
 		}
 		
 		exchange.getResponseCookies().putAll(this.cookies);
 		
-		exchange.setStatusCode( this.status != -1 ? this.status : StatusCodes.ACCEPTED);
+		exchange.setStatusCode( this.status );
 		
 		exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
 		
-		if( this.callback != null )
-		{
-			exchange.getResponseSender().send(this.body,this.callback);
+		if( this.body == null && this.entity == null )
+		{ 
+			exchange.endExchange();
 		}
-		else
+		else if( this.body != null)
 		{
-			exchange.getResponseSender().send(this.body);
+			if( this.callback != null )
+			{
+				exchange.getResponseSender().send(this.body,this.callback);
+			}
+			else
+			{ 
+				exchange.getResponseSender().send(this.body); 
+			}
+		}
+		else if( this.entity != null)
+		{
+	        if(exchange.isInIoThread()) {
+	            exchange.dispatch(handler);
+	            return;
+	          }
+	        
+			
+	        exchange.startBlocking();
+
+	        final int bufferSize = exchange.getConnection().getBufferSize();
+			
+			final JsonStream stream = new JsonStream(exchange.getOutputStream(), bufferSize);
+			
+			try
+			{
+				stream.writeVal(this.entity);
+				stream.close();
+				
+			} catch (IOException e)
+			{
+				  
+				log.error(e.getMessage(),e); 
+			     exchange.setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR); 
+				 exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+			     exchange.getResponseSender().send(e.getMessage()); 
+			}
+			
+			 
+			
+			exchange.endExchange();
 		}
 		
 	}
@@ -157,6 +205,13 @@ public class ServerResponse
 		public Builder withBody(ByteBuffer body)
 		{
 			this.response.body = body;
+			return this;
+		}
+		
+		public Builder withEntity(Object entity)
+		{
+			this.response.entity = entity;
+			jsonType();
 			return this;
 		}
 		
@@ -194,6 +249,73 @@ public class ServerResponse
 		public Builder withCallback(IoCallback callback)
 		{
 			this.response.callback = callback;
+			return this;
+		}
+		
+		public Builder jsonType()
+		{
+			this.response.contentType = org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType();
+			return this;
+		}
+		
+		public Builder htmlType()
+		{
+			this.response.contentType = org.apache.http.entity.ContentType.TEXT_HTML.getMimeType();
+			return this;
+		}
+		
+		public Builder plainType()
+		{
+			this.response.contentType = org.apache.http.entity.ContentType.TEXT_PLAIN.getMimeType();
+			return this;
+		}
+		
+		public Builder ok()
+		{
+			this.response.status = StatusCodes.ACCEPTED;
+			return this;
+		}
+		
+		public Builder badRequest()
+		{
+			this.response.status = StatusCodes.BAD_REQUEST;
+			return this;
+		}
+		
+		public Builder internalServerError()
+		{
+			this.response.status = StatusCodes.INTERNAL_SERVER_ERROR;
+			return this;
+		}
+		
+		public Builder created()
+		{
+			this.response.status = StatusCodes.CREATED;
+			return this;
+		}
+		
+		public Builder notFound()
+		{
+			this.response.status = StatusCodes.NOT_FOUND;
+			return this;
+		}
+		
+		public Builder forbidden()
+		{
+			this.response.status = StatusCodes.FORBIDDEN;
+			return this;
+		}
+		
+		
+		public Builder found()
+		{
+			this.response.status = StatusCodes.FOUND;
+			return this;
+		}
+		
+		public Builder noContent()
+		{
+			this.response.status = StatusCodes.NO_CONTENT;
 			return this;
 		}
 

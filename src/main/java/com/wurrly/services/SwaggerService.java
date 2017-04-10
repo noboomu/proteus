@@ -24,8 +24,8 @@ import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import com.typesafe.config.Config;
 import com.wurrly.modules.RoutingModule;
+import com.wurrly.server.endpoints.EndpointInfo;
 import com.wurrly.server.handlers.HandlerGenerator;
-import com.wurrly.server.route.RouteInfo;
 import com.wurrly.server.swagger.ServerParameterExtension;
 import com.wurrly.utilities.JsonMapper;
 
@@ -248,7 +248,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 		});
 		
    
-		routingModule.getRegisteredRoutes().add(RouteInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(ContentType.JSON.getMimeType()).build());
+		routingModule.getRegisteredEndpoints().add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(ContentType.JSON.getMimeType()).build());
 		 
 		pathTemplate =  this.swaggerBasePath;
 		
@@ -267,7 +267,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 			
 		});
  
-		routingModule.getRegisteredRoutes().add(RouteInfo.builder().withConsumes("*/*").withProduces("text/html").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+		routingModule.getRegisteredEndpoints().add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/html").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
  
 		ClassPathResourceManager resourceManager = new ClassPathResourceManager(this.getClass().getClassLoader());
 
@@ -292,7 +292,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 		});
 		 
 		
-		routingModule.getRegisteredRoutes().add(RouteInfo.builder().withConsumes("*/*").withProduces("text/css").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+		routingModule.getRegisteredEndpoints().add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/css").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
 
  		
 		try
@@ -321,7 +321,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 			
 
 				
-			routingModule.getRegisteredRoutes().add(RouteInfo.builder().withConsumes("*/*").withProduces("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+			routingModule.getRegisteredEndpoints().add(EndpointInfo.builder().withConsumes("*/*").withProduces("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
 
  
 

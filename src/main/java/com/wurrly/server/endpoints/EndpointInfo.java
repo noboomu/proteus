@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.wurrly.server.route;
+package com.wurrly.server.endpoints;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -12,7 +12,7 @@ import javax.annotation.Generated;
  * @author jbauer
  *
  */
-public class RouteInfo implements Comparable<RouteInfo>
+public class EndpointInfo implements Comparable<EndpointInfo>
 {
 	private HttpString method;
 	private String pathTemplate;
@@ -22,7 +22,7 @@ public class RouteInfo implements Comparable<RouteInfo>
 	private String controllerName = "anonymous";
 
 	
-	private RouteInfo(Builder builder)
+	private EndpointInfo(Builder builder)
 	{
 		this.method = builder.method;
 		this.pathTemplate = builder.pathTemplate;
@@ -32,7 +32,7 @@ public class RouteInfo implements Comparable<RouteInfo>
 		this.controllerName = builder.controllerName;
 	}
 	 
-	public RouteInfo()
+	public EndpointInfo()
 	{
 		
 	}
@@ -146,7 +146,7 @@ public class RouteInfo implements Comparable<RouteInfo>
 	    	       toHashCode();
 	}
 	
-	public int compareTo(RouteInfo other) {
+	public int compareTo(EndpointInfo other) {
 
 	     return new CompareToBuilder()
 	       .append(this.controllerName, other.controllerName)
@@ -166,7 +166,7 @@ public class RouteInfo implements Comparable<RouteInfo>
 	}
 
 	/**
-	 * Creates builder to build {@link RouteInfo}.
+	 * Creates builder to build {@link EndpointInfo}.
 	 * @return created builder
 	 */
 	
@@ -177,7 +177,7 @@ public class RouteInfo implements Comparable<RouteInfo>
 
  
 	/**
-	 * Builder to build {@link RouteInfo}.
+	 * Builder to build {@link EndpointInfo}.
 	 */
 	
 	public static final class Builder
@@ -229,9 +229,9 @@ public class RouteInfo implements Comparable<RouteInfo>
 			return this;
 		}
 
-		public RouteInfo build()
+		public EndpointInfo build()
 		{
-			return new RouteInfo(this);
+			return new EndpointInfo(this);
 		}
 	}
 

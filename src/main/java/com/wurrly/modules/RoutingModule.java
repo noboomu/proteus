@@ -17,7 +17,7 @@ import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.wurrly.Application.BaseHandlers;
-import com.wurrly.server.route.RouteInfo;
+import com.wurrly.server.endpoints.EndpointInfo;
 
 import io.undertow.server.RoutingHandler;
 
@@ -30,7 +30,7 @@ public class RoutingModule extends AbstractModule
 {
 	private static Logger log = LoggerFactory.getLogger(RoutingModule.class.getCanonicalName());
 
-	protected Set<RouteInfo> registeredRoutes = new TreeSet<>();
+	protected Set<EndpointInfo> registeredEndpoints = new TreeSet<>();
 	protected Set<Class<?>> registeredControllers = new HashSet<>();
 
 	@Override
@@ -47,11 +47,11 @@ public class RoutingModule extends AbstractModule
 	}
 
 	/**
-	 * @return the registeredRoutes
+	 * @return the registeredEndpoints
 	 */
-	public Set<RouteInfo> getRegisteredRoutes()
+	public Set<EndpointInfo> getRegisteredEndpoints()
 	{
-		return registeredRoutes;
+		return registeredEndpoints;
 	}
 
 	/**

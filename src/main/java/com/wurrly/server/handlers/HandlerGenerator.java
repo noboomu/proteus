@@ -48,7 +48,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.wurrly.modules.RoutingModule;
 import com.wurrly.server.Extractors;
 import com.wurrly.server.ServerRequest;
-import com.wurrly.server.route.RouteInfo;
+import com.wurrly.server.endpoints.EndpointInfo;
 
 import io.swagger.annotations.Api;
 import io.undertow.server.HttpServerExchange;
@@ -515,7 +515,7 @@ public class HandlerGenerator
 
 		for (Method m : clazz.getDeclaredMethods())
 		{
-			RouteInfo route = new RouteInfo();
+			EndpointInfo route = new EndpointInfo();
 
 			route.setControllerName(clazz.getSimpleName());
 
@@ -770,7 +770,7 @@ public class HandlerGenerator
 
 			initBuilder.addCode("$L", "\n");
 
-			this.routingModule.getRegisteredRoutes().add(route);
+			this.routingModule.getRegisteredEndpoints().add(route);
 
 		}
 

@@ -26,9 +26,9 @@ import com.typesafe.config.Config;
 import com.wurrly.controllers.Users;
 import com.wurrly.modules.ConfigModule;
 import com.wurrly.modules.RoutingModule;
+import com.wurrly.server.endpoints.EndpointInfo;
 import com.wurrly.server.handlers.HandlerGenerator;
 import com.wurrly.server.handlers.benchmark.BenchmarkHandlers;
-import com.wurrly.server.route.RouteInfo;
 import com.wurrly.services.SwaggerService;
 
 import io.undertow.Undertow;
@@ -133,7 +133,7 @@ public class Application
 		
 		StringBuilder sb = new StringBuilder();
 		
-		Set<RouteInfo> routingInfo = routingModule.getRegisteredRoutes(); //injector.getInstance(Key.get(new TypeLiteral<Set<RouteInfo>>() {},Names.named("routeInfo")));
+		Set<EndpointInfo> routingInfo = routingModule.getRegisteredEndpoints(); //injector.getInstance(Key.get(new TypeLiteral<Set<RouteInfo>>() {},Names.named("routeInfo")));
 		
 		routingInfo.stream().forEachOrdered( r -> sb.append(r.toString()).append("\n"));
 		

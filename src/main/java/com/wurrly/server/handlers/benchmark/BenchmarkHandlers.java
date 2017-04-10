@@ -4,13 +4,16 @@
 package com.wurrly.server.handlers.benchmark;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.Files;
 import com.j256.simplemagic.ContentType;
 import com.jsoniter.output.JsonStream;
 
@@ -66,7 +69,6 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 			} 
 		} );
 	    
-	    
 	    handler.add(Methods.GET, "/video.mp4", new HttpHandler(){
 			 
 			@Override
@@ -89,6 +91,33 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
  			 	ResourceHandler hdlr = new ResourceHandler(mgr);
  			 	
  			 	hdlr.handleRequest(exchange);
+ 			 		
+ 			  
+			} 
+		} );
+	    
+	    handler.add(Methods.GET, "/bytes.mp4", new HttpHandler(){
+			 
+			@Override
+			public void handleRequest(HttpServerExchange exchange) throws Exception
+			{
+				// TODO Auto-generated method stub
+				
+//				if (exchange.isInIoThread()) {
+//				      exchange.dispatch(this);
+//				      return;
+//				    }
+//				
+				Path filePath = Paths.get("./assets/video.mp4");
+				
+			 
+				byte[] bytes = Files.toByteArray(filePath.toFile());
+				
+				exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, bytes.length);
+ 			 	exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, ContentType.MP4A.getMimeType());
+
+ 			 	exchange.getResponseSender().send(ByteBuffer.wrap(bytes));
+			 
  			 		
  			 
  			 	

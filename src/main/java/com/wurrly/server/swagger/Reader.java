@@ -1095,8 +1095,6 @@ public class Reader {
 
                 if (ParameterProcessor.applyAnnotations(swagger, parameter, type, annotations) != null) {
                 	
-                    LOGGER.info(parameter.getDescription() + " -> " + type);
-
                     processed.add(parameter);
                 }
             }

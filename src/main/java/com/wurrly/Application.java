@@ -18,10 +18,9 @@ import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.common.util.concurrent.ServiceManager.Listener;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.j256.simplemagic.ContentType;
-import com.jsoniter.any.Any;
-import com.jsoniter.output.JsonStream;
+import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 import com.wurrly.controllers.Users;
 import com.wurrly.modules.ConfigModule;
@@ -33,12 +32,12 @@ import com.wurrly.services.SwaggerService;
 
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
+import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
-import io.undertow.util.StatusCodes;
 /**
  * @author jbauer
  */
@@ -67,13 +66,25 @@ public class Application
 	protected Injector injector = null;
 	protected ServiceManager serviceManager = null;
 	protected Undertow webServer = null;
+
 	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
+	
+	@Inject
+	@Named("registeredControllers")
+	protected Set<Class<?>> registeredControllers;
+
+	@Inject
+	@Named("registeredEndpoints")
+	protected Set<EndpointInfo> registeredEndpoints;
+	
  	protected RoutingModule routingModule = null;
  	
 	public Application()
 	{
-		this.routingModule = new RoutingModule();
-		injector = Guice.createInjector(new ConfigModule(),this.routingModule); 
+		
+		injector = Guice.createInjector(new ConfigModule());  
+		injector.injectMembers(this);
+		
 	}
 	
 	public void start()
@@ -115,33 +126,33 @@ public class Application
 	
 	public Undertow buildServer()
 	{
-		Config rootConfig = injector.getInstance(Config.class);
-		RoutingHandler router = injector.getInstance(RoutingHandler.class);
-		RoutingModule routingModule = injector.getInstance(RoutingModule.class);
+		
+		final Config rootConfig = injector.getInstance(Config.class);
+		
+		final RoutingHandler router = injector.getInstance(RoutingHandler.class);
 
-		HandlerGenerator generator = new HandlerGenerator("com.wurrly.controllers.handlers","RouteHandlers",routingModule.getRegisteredControllers());
+		final DefaultResponseListener defaultResponseListener = injector.getInstance(DefaultResponseListener.class); 
+		 
+		HandlerGenerator generator = new HandlerGenerator("com.wurrly.controllers.handlers","RouteHandlers",this.registeredControllers);
 		
 		injector.injectMembers(generator);
 	
 		Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(generator.compileClass());
 		
 		router.addAll(generatedRouteSupplier.get());
-		
-		Supplier<RoutingHandler> benchmarkRouteSupplier = new BenchmarkHandlers();
-		
-		router.addAll(benchmarkRouteSupplier.get());
+				 
+		router.addAll(new BenchmarkHandlers().get());
 		
 		StringBuilder sb = new StringBuilder();
 		
-		Set<EndpointInfo> routingInfo = routingModule.getRegisteredEndpoints(); //injector.getInstance(Key.get(new TypeLiteral<Set<RouteInfo>>() {},Names.named("routeInfo")));
-		
-		routingInfo.stream().forEachOrdered( r -> sb.append(r.toString()).append("\n"));
+ 		
+		this.registeredEndpoints.stream().forEachOrdered( r -> sb.append(r.toString()).append("\n"));
 		
 		log.info("\n\nRegistered the following endpoints: \n\n" + sb.toString());
 		
 		webServer = Undertow.builder()
 				.addHttpListener(rootConfig.getInt("application.port"), "localhost")
-				.setBufferSize(1024 * 16 * 10)
+				.setBufferSize(1024 * 16)
 				.setIoThreads(Runtime.getRuntime().availableProcessors())
 				.setServerOption(UndertowOptions.ENABLE_HTTP2, true)
 		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
@@ -155,56 +166,42 @@ public class Application
 			@Override
 			public void handleRequest(final HttpServerExchange exchange) throws Exception
 			{
-				try
-				{
-//					if(exchange.isInIoThread())
-//					{
-//						exchange.dispatch(this);
-//						return;
-//					}
+  
+					exchange.addDefaultResponseListener(defaultResponseListener);
 					 
-					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Origin"), "*");
-					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Methods"), "*");
-					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Headers"), "*");
+//					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Origin"), "*");
+//					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Methods"), "*");
+//					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Headers"), "*");
 					exchange.getResponseHeaders().put(Headers.SERVER, "Bowser"); 
 
-					router.handleRequest(exchange);
-					
-				} 
-				 catch (IllegalArgumentException e)
-				{
-					if (exchange.isResponseChannelAvailable())
+					 try {
+						   router.handleRequest(exchange);
+					 }   catch (Exception e)
 					{
-						log.error(e.getMessage(),e);
-						
-						exchange.setStatusCode(StatusCodes.BAD_REQUEST);
-						exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, ContentType.JSON.getMimeType());
-						exchange.getResponseSender().send(JsonStream.serialize(Any.wrap(e)));
-
+						 if(exchange.isResponseChannelAvailable()) {
+				               log.error(e.getMessage());
+				               exchange.endExchange();
+				           }
 					}
-				}
-				catch (Exception e)
-				{
-					if (exchange.isResponseChannelAvailable())
-					{
-						log.error(e.getMessage(),e);
-					}
-				}
+				 
 			}
 		}).build();
 		
 		return webServer;
 	}
 	
-	public void useService(Class<? extends Service> serviceClass)
+	public Application useService(Class<? extends Service> serviceClass)
 	{
 		this.registeredServices.add(serviceClass);
+		return this;
 	}
 	
-	public void useController(Class<?> controllerClass)
+	public Application useController(Class<?> controllerClass)
 	{
-		this.routingModule.getRegisteredControllers().add(controllerClass);
+		this.registeredControllers.add(controllerClass);
+		return this;
 	}
+	
   	
 	public static void main(String[] args)
 	{

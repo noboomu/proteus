@@ -31,12 +31,12 @@ import com.typesafe.config.Config;
 import com.wurrly.models.User;
 import com.wurrly.server.ServerRequest;
 import com.wurrly.server.ServerResponse;
+import static com.wurrly.server.ServerResponse.response;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import io.undertow.util.HttpString;
-import io.undertow.util.StatusCodes;
+import io.undertow.util.HttpString; 
 /**
  * User API
  */
@@ -99,10 +99,10 @@ public class Users
 				 log.debug("optionalDate: " + optionalDate);
 
  		
-				return ServerResponse.builder()
+				return response()
 						.ok()
-						.withEntity(new User(232343L))
-						.withHeader(HttpString.tryFromString("TestHeader"), "57475475")
+						.entity(new User(232343L))
+						.header(HttpString.tryFromString("TestHeader"), "57475475")
 						.build();
 
 	}
@@ -111,7 +111,7 @@ public class Users
 	@Path("/form/{userId}")
  	@Consumes("*/*")
 	@ApiOperation(value = "Post a complex form",   httpMethod = "POST", response = User.class)
-	public Any userForm(@ApiParam(hidden=true) final ServerRequest serverRequest, 
+	public ServerResponse userForm(@ApiParam(hidden=true) final ServerRequest serverRequest, 
 	                    @ApiParam(name="userId",required=true) @PathParam("userId") final Long userId,
 	                    @ApiParam(name="context",required=false) @QueryParam("context") Optional<String> context, 
 	                    @ApiParam(name="type",required=true) @QueryParam("type") User.UserType type, 
@@ -125,7 +125,7 @@ public class Users
  	log.debug("testFile: " + testFile);
 //
 //				
-				return Any.wrap(new User(userId,type));
+				return response().ok().entity(Any.wrap(new User(userId,type))).build();
 
 	}
 	 
@@ -145,10 +145,10 @@ public class Users
 //		log.debug("context: " + context);
 //
 //				
-		return ServerResponse.builder()
+		return response()
 				.ok()
-				.jsonType()
-				.withBody(JsonStream.serialize(new User(userId)))
+				.applicationJson()
+				.body(JsonStream.serialize(new User(userId)))
 				.build();
 				 
 
@@ -160,7 +160,7 @@ public class Users
 	//@Consumes("multipart/form-data")
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
 	@ApiOperation(value = "Create a user",   httpMethod = "POST", response = User.class)
-	public Any createUser(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
+	public ServerResponse createUser(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
 	{
 //		
  
@@ -168,7 +168,15 @@ public class Users
 //	log.debug("request: " + serverRequest); 
 //	log.debug("file: " + user); 
 		
-		 return Any.wrap(new User(34L));
+		
+		if( user != null )
+		{
+			return response().ok().entity(user).build(); 
+		}
+		else
+		{
+			return response().exception(new Exception("No user found")).build();
+		}
  
 		 
 
@@ -179,7 +187,7 @@ public class Users
 	@Consumes(("application/json")) 
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
 	@ApiOperation(value = "Update a user's name",   httpMethod = "PUT", response = User.class)
-	public Any updateUsername(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
+	public ServerResponse updateUsername(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
 	{
 //		
 	log.debug("esIndexName: " + esIndexName); 
@@ -188,7 +196,7 @@ public class Users
 	log.debug("file: " + user); 
 
  
-				return  Any.wrap(user);
+				return response().entity(Any.wrap(user)).build();
 
 	}
 

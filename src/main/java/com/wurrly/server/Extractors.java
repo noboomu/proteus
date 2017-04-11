@@ -150,7 +150,7 @@ public class Extractors
 		    
 	}
 
-	public static  <T> T typed(final HttpServerExchange exchange, final TypeLiteral<T> type )  
+	public static  <T> T typed(final HttpServerExchange exchange, final TypeLiteral<T> type ) throws Exception
 	{
 		try
 		{
@@ -158,11 +158,11 @@ public class Extractors
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new IllegalArgumentException("Invalid JSON");
 		}
 	}
 	
-	public static  <T> T typed(final HttpServerExchange exchange, final Class<T> type )  
+	public static  <T> T typed(final HttpServerExchange exchange, final Class<T> type )   throws Exception
 	{
 		try
 		{
@@ -170,7 +170,8 @@ public class Extractors
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new IllegalArgumentException("Invalid JSON");
+
 		}
 	}
 

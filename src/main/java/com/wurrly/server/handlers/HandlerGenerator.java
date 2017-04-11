@@ -230,7 +230,6 @@ public class HandlerGenerator
 
 		public static TypeHandler forType(Type type)
 		{
-			boolean isEnum = false;
 			boolean hasValueOf = false;
 			boolean hasFromString = false;
 			boolean isOptional = type.getTypeName().contains("java.util.Optional");
@@ -240,9 +239,7 @@ public class HandlerGenerator
 			{
 				try
 				{
-					Class<?> clazz = Class.forName(type.getTypeName());
-	
-					isEnum = clazz.isEnum();
+					Class<?> clazz = Class.forName(type.getTypeName()); 
 	 
 					hasValueOf = hasValueOfMethod(clazz);
 					  
@@ -369,10 +366,7 @@ public class HandlerGenerator
 					return OptionalStringType; 
 				}
 			}
-			else if (isEnum)
-			{
-				return EnumType;
-			}
+
 			else if (hasValueOf)
 			{
 				return ValueOfType;
@@ -390,6 +384,8 @@ public class HandlerGenerator
 
 	@Inject
 	protected RoutingModule routingModule;
+	
+	
 
 	@Inject
 	@Named("application.path")

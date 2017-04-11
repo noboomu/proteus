@@ -11,6 +11,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jsoniter.any.Any;
 import com.jsoniter.output.JsonStream;
 
 import io.undertow.io.IoCallback;
@@ -30,15 +31,23 @@ import io.undertow.util.StatusCodes;
 public class ServerResponse
 {
 	private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
+	private static String APPLICATION_JSON_CONTENT_TYPE = org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType();
+	private static String TEXT_PLAIN_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_PLAIN.getMimeType();
+	private static String TEXT_XML_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_XML.getMimeType();
+	private static String TEXT_HTML_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_HTML.getMimeType();
 
+	
 	private ByteBuffer body;
 	
-	private int status = StatusCodes.ACCEPTED;
+	private int status = StatusCodes.OK;
 	private final HeaderMap headers = new HeaderMap();
 	private final Map<String,Cookie> cookies = new HashMap<>(); 
-	private String contentType = org.apache.http.entity.ContentType.TEXT_PLAIN.getMimeType();
+	private String contentType = null;
 	private Object entity;
-	private IoCallback callback;
+	private IoCallback ioCallback;
+	private boolean hasCookies = false;
+	private boolean hasHeaders = false;
+	private boolean hasIoCallback = false;
   	
 	public ServerResponse()
 	{
@@ -76,17 +85,17 @@ public class ServerResponse
 	/**
 	 * @return the callback
 	 */
-	public IoCallback getCallback()
+	public IoCallback getIoCallback()
 	{
-		return callback;
+		return ioCallback;
 	}
 
 	/**
 	 * @param callback the callback to set
 	 */
-	public void setCallback(IoCallback callback)
+	public void setIoCallback(IoCallback ioCallback)
 	{
-		this.callback = callback;
+		this.ioCallback = ioCallback;
 	}
 
 	/**
@@ -115,36 +124,44 @@ public class ServerResponse
 
 	public void send( final HttpHandler handler, final HttpServerExchange exchange )
 	{
-		long itr = this.headers.fastIterateNonEmpty();
-		
-		while( itr != -1L )
+		if( this.hasHeaders )
 		{
-			final HeaderValues values = this.headers.fiCurrent(itr);
+			long itr = this.headers.fastIterateNonEmpty();
 			
-			exchange.getResponseHeaders().putAll(values.getHeaderName(), values);
-			
-			itr = this.headers.fiNextNonEmpty(itr); 
+			while( itr != -1L )
+			{
+				final HeaderValues values = this.headers.fiCurrent(itr);
+				
+				exchange.getResponseHeaders().putAll(values.getHeaderName(), values);
+				
+				itr = this.headers.fiNextNonEmpty(itr); 
+			}
 		}
 		
-		exchange.getResponseCookies().putAll(this.cookies);
+		if( this.hasCookies )
+		{
+			exchange.getResponseCookies().putAll(this.cookies);
+		}
 		
 		exchange.setStatusCode( this.status );
 		
-		exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
-		
-		if( this.body == null && this.entity == null )
-		{ 
-			exchange.endExchange();
-		}
-		else if( this.body != null)
+		if( this.contentType != null )
 		{
-			if( this.callback != null )
+			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
+		}
+	 
+		
+		
+		if( this.body != null)
+		{
+			if( !this.hasIoCallback )
 			{
-				exchange.getResponseSender().send(this.body,this.callback);
+				exchange.getResponseSender().send(this.body); 
 			}
 			else
 			{ 
-				exchange.getResponseSender().send(this.body); 
+				exchange.getResponseSender().send(this.body,this.ioCallback);
+
 			}
 		}
 		else if( this.entity != null)
@@ -174,9 +191,12 @@ public class ServerResponse
 				 exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
 			     exchange.getResponseSender().send(e.getMessage()); 
 			}
-			
 			 
 			
+			exchange.endExchange();
+		}
+		else
+		{
 			exchange.endExchange();
 		}
 		
@@ -186,7 +206,7 @@ public class ServerResponse
 	 * Creates builder to build {@link ServerResponse}.
 	 * @return created builder
 	 */ 
-	public static Builder builder()
+	public static Builder response()
 	{
 		return new Builder();
 	}
@@ -196,81 +216,97 @@ public class ServerResponse
 	 */ 
 	public static final class Builder
 	{
-		private ServerResponse response = new ServerResponse();
+		private final ServerResponse response;
 
 		private Builder()
 		{
+			this.response = new ServerResponse();
 		}
 
-		public Builder withBody(ByteBuffer body)
+		public Builder body(ByteBuffer body)
 		{
 			this.response.body = body;
 			return this;
 		}
 		
-		public Builder withEntity(Object entity)
+		public Builder entity(Object entity)
 		{
 			this.response.entity = entity;
-			jsonType();
+			applicationJson();
 			return this;
 		}
 		
-		public Builder withBody(String body)
+		public Builder body(String body)
 		{
 			this.response.body = ByteBuffer.wrap(body.getBytes());
 			return this;
 		}
 		
 	
-		public Builder withStatus(int status)
+		public Builder status(int status)
 		{
 			this.response.status = status; 
 			return this;
 		}
 
-		public Builder withHeader(HttpString headerName, String value)
+		public Builder header(HttpString headerName, String value)
 		{
 			this.response.headers.put(headerName, value);
+			this.response.hasHeaders = true;
 			return this;
 		}
 
-		public Builder withCookie(String cookieName, Cookie cookie)
+		public Builder cookie(String cookieName, Cookie cookie)
 		{
-			this.response.getCookies().put(cookieName, cookie);
+			this.response.cookies.put(cookieName, cookie);
+			this.response.hasCookies = true;
+
 			return this;
 		}
 
-		public Builder withContentType(String contentType)
+		public Builder contentType(String contentType)
 		{
 			this.response.contentType = contentType;
 			return this;
 		}
 
-		public Builder withCallback(IoCallback callback)
+		public Builder ioCallback(IoCallback ioCallback)
 		{
-			this.response.callback = callback;
+			this.response.ioCallback = ioCallback;
 			return this;
 		}
 		
-		public Builder jsonType()
+		public Builder applicationJson()
 		{
-			this.response.contentType = org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType();
+			this.response.contentType = APPLICATION_JSON_CONTENT_TYPE;
 			return this;
 		}
 		
-		public Builder htmlType()
+		public Builder textHtml()
 		{
-			this.response.contentType = org.apache.http.entity.ContentType.TEXT_HTML.getMimeType();
+			this.response.contentType = TEXT_HTML_CONTENT_TYPE;
 			return this;
 		}
 		
-		public Builder plainType()
+		public Builder textXml()
 		{
-			this.response.contentType = org.apache.http.entity.ContentType.TEXT_PLAIN.getMimeType();
+			this.response.contentType = TEXT_XML_CONTENT_TYPE;
+			return this;
+		}
+		
+		public Builder textPlain()
+		{
+			this.response.contentType = TEXT_PLAIN_CONTENT_TYPE;
 			return this;
 		}
 		
 		public Builder ok()
+		{
+			this.response.status = StatusCodes.OK;
+			return this;
+		}
+		
+		public Builder accepted()
 		{
 			this.response.status = StatusCodes.ACCEPTED;
 			return this;
@@ -317,6 +353,22 @@ public class ServerResponse
 		{
 			this.response.status = StatusCodes.NO_CONTENT;
 			return this;
+		}
+		
+		public Builder withIoCallback(IoCallback ioCallback)
+		{
+			this.response.ioCallback = ioCallback;
+			this.response.hasIoCallback = ioCallback == null;
+			return this;
+		}
+		
+		public Builder exception(Throwable t)
+		{
+			if(this.response.status == StatusCodes.ACCEPTED)
+			{
+				badRequest();
+			}
+			return this.entity(Any.wrap(t));
 		}
 
 		public ServerResponse build()

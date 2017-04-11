@@ -101,8 +101,12 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 	protected RoutingHandler rootHandler;
 	
 	@Inject
-	protected RoutingModule routingModule;
-	
+	@Named("registeredEndpoints")
+	protected Set<EndpointInfo> registeredEndpoints;
+	 
+	@Inject
+	@Named("registeredControllers")
+	protected Set<Class<?>> registeredControllers;
  
 	public SwaggerService()
 	{ 
@@ -112,7 +116,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 	public void generateSwaggerSpec()
 	{
 		
-		Set<Class<?>> classes = this.routingModule.getRegisteredControllers();
+		Set<Class<?>> classes = this.registeredControllers;
 		
 		List<SwaggerExtension> extensions = new ArrayList<>();
 		
@@ -248,7 +252,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 		});
 		
    
-		routingModule.getRegisteredEndpoints().add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(ContentType.JSON.getMimeType()).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(ContentType.JSON.getMimeType()).build());
 		 
 		pathTemplate =  this.swaggerBasePath;
 		
@@ -267,7 +271,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 			
 		});
  
-		routingModule.getRegisteredEndpoints().add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/html").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/html").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
  
 		ClassPathResourceManager resourceManager = new ClassPathResourceManager(this.getClass().getClassLoader());
 
@@ -292,7 +296,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 		});
 		 
 		
-		routingModule.getRegisteredEndpoints().add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/css").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/css").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
 
  		
 		try
@@ -321,7 +325,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 			
 
 				
-			routingModule.getRegisteredEndpoints().add(EndpointInfo.builder().withConsumes("*/*").withProduces("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+			 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
 
  
 

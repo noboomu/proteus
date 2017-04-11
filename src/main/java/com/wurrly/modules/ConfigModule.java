@@ -18,6 +18,11 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Types;
+import com.jsoniter.DecodingMode;
+import com.jsoniter.JsonIterator;
+import com.jsoniter.annotation.JsoniterAnnotationSupport;
+import com.jsoniter.output.EncodingMode;
+import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigObject;
@@ -37,7 +42,7 @@ public class ConfigModule extends AbstractModule
 	 */
 	
 	protected String configFile = "application.conf";
- 
+	protected Config config = null;
 	
 	public ConfigModule()
 	{
@@ -58,6 +63,25 @@ public class ConfigModule extends AbstractModule
 		{
 			 this.bindConfig(fileConfig(configFile));
 		}
+		
+		JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
+		JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
+		JsoniterAnnotationSupport.enable();
+		
+        install(new RoutingModule(this.config));
+
+		
+
+//		try
+//		{
+//			Class<? extends DefaultResponseListener> defaultResponseListener = (Class<? extends DefaultResponseListener>) Class.forName(config.getString("application.defaultResponseListener"));
+//					
+//			this.bind(DefaultResponseListener.class).to(defaultResponseListener).in(Singleton.class);
+//			
+//		} catch (Exception e)
+//		{
+//			log.error(e.getMessage(),e);
+//		}
 		
 	}
 
@@ -93,7 +117,10 @@ public class ConfigModule extends AbstractModule
 			}
 		}
 		// bind config
-		this.binder().bind(Config.class).toInstance( ConfigFactory.load(config) );
+		
+		this.config = ConfigFactory.load(config);
+		
+		this.binder().bind(Config.class).toInstance( config );
 		
 		log.info("Config:\n" + config);
 

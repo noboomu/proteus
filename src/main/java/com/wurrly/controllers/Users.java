@@ -102,8 +102,7 @@ public class Users
 				return response()
 						.ok()
 						.entity(new User(232343L))
-						.header(HttpString.tryFromString("TestHeader"), "57475475")
-						.build();
+						.header(HttpString.tryFromString("TestHeader"), "57475475");
 
 	}
 	
@@ -125,7 +124,7 @@ public class Users
  	log.debug("testFile: " + testFile);
 //
 //				
-				return response().ok().entity(Any.wrap(new User(userId,type))).build();
+				return response().ok().entity(Any.wrap(new User(userId,type)));
 
 	}
 	 
@@ -148,8 +147,7 @@ public class Users
 		return response()
 				.ok()
 				.applicationJson()
-				.body(JsonStream.serialize(new User(userId)))
-				.build();
+				.body(JsonStream.serialize(new User(userId)));
 				 
 
 	}
@@ -171,11 +169,11 @@ public class Users
 		
 		if( user != null )
 		{
-			return response().ok().entity(user).build(); 
+			return response().ok().entity(user);
 		}
 		else
 		{
-			return response().exception(new Exception("No user found")).build();
+			return response().exception(new Exception("No user found"));
 		}
  
 		 
@@ -196,7 +194,7 @@ public class Users
 	log.debug("file: " + user); 
 
  
-				return response().entity(Any.wrap(user)).build();
+				return response().entity(Any.wrap(user));
 
 	}
 

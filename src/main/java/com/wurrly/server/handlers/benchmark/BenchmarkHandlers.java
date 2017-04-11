@@ -111,7 +111,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 	    				{
 	    					// TODO Auto-generated method stub
 	    					
-	    					final ServerResponse resp = ServerResponse.response().body(msgBuffer).build();
+	    					final ServerResponse resp = ServerResponse.response().body(msgBuffer);
 	    	 				
 	    					resp.send(this, exchange); 
  	    					
@@ -127,7 +127,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 				{
 					// TODO Auto-generated method stub
 					
-					ServerResponse resp = ServerResponse.response().body(JsonStream.serialize(new BenchmarkMessage())).build();
+					final ServerResponse resp = ServerResponse.response().body(JsonStream.serialize(new BenchmarkMessage()));
 	 				
 					resp.send(this, exchange); 
 					

@@ -31,23 +31,23 @@ import io.undertow.util.StatusCodes;
 public class ServerResponse
 {
 	private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
-	private static String APPLICATION_JSON_CONTENT_TYPE = org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType();
-	private static String TEXT_PLAIN_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_PLAIN.getMimeType();
-	private static String TEXT_XML_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_XML.getMimeType();
-	private static String TEXT_HTML_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_HTML.getMimeType();
-
 	
-	private ByteBuffer body;
+	private static final String APPLICATION_JSON_CONTENT_TYPE = org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType();
+	private static final String TEXT_PLAIN_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_PLAIN.getMimeType();
+	private static final String TEXT_XML_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_XML.getMimeType();
+	private static final String TEXT_HTML_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_HTML.getMimeType();
+ 
+	protected ByteBuffer body;
 	
-	private int status = StatusCodes.OK;
-	private final HeaderMap headers = new HeaderMap();
-	private final Map<String,Cookie> cookies = new HashMap<>(); 
-	private String contentType = null;
-	private Object entity;
-	private IoCallback ioCallback;
-	private boolean hasCookies = false;
-	private boolean hasHeaders = false;
-	private boolean hasIoCallback = false;
+	protected int status = StatusCodes.OK;
+	protected final HeaderMap headers = new HeaderMap();
+	protected final Map<String,Cookie> cookies = new HashMap<>(); 
+	protected String contentType = null;
+	protected Object entity;
+	protected IoCallback ioCallback;
+	protected boolean hasCookies = false;
+	protected boolean hasHeaders = false;
+	protected boolean hasIoCallback = false;
   	
 	public ServerResponse()
 	{
@@ -120,6 +120,149 @@ public class ServerResponse
 	public void setContentType(String contentType)
 	{
 		this.contentType = contentType;
+	}
+	
+	public ServerResponse body(ByteBuffer body)
+	{
+		this.body = body;
+		return this;
+	}
+	
+	public ServerResponse entity(Object entity)
+	{
+		this.entity = entity;
+		applicationJson();
+		return this;
+	}
+	
+	public ServerResponse body(String body)
+	{
+		this.body = ByteBuffer.wrap(body.getBytes());
+		return this;
+	}
+	
+
+	public ServerResponse status(int status)
+	{
+		this.status = status; 
+		return this;
+	}
+
+	public ServerResponse header(HttpString headerName, String value)
+	{
+		this.headers.put(headerName, value);
+		this.hasHeaders = true;
+		return this;
+	}
+
+	public ServerResponse cookie(String cookieName, Cookie cookie)
+	{
+		this.cookies.put(cookieName, cookie);
+		this.hasCookies = true;
+
+		return this;
+	}
+
+	public ServerResponse contentType(String contentType)
+	{
+		this.contentType = contentType;
+		return this;
+	}
+ 
+	
+	public ServerResponse applicationJson()
+	{
+		this.contentType = APPLICATION_JSON_CONTENT_TYPE;
+		return this;
+	}
+	
+	public ServerResponse textHtml()
+	{
+		this.contentType = TEXT_HTML_CONTENT_TYPE;
+		return this;
+	}
+	
+	public ServerResponse textXml()
+	{
+		this.contentType = TEXT_XML_CONTENT_TYPE;
+		return this;
+	}
+	
+	public ServerResponse textPlain()
+	{
+		this.contentType = TEXT_PLAIN_CONTENT_TYPE;
+		return this;
+	}
+	
+	public ServerResponse ok()
+	{
+		this.status = StatusCodes.OK;
+		return this;
+	}
+	
+	public ServerResponse accepted()
+	{
+		this.status = StatusCodes.ACCEPTED;
+		return this;
+	}
+	
+	public ServerResponse badRequest()
+	{
+		this.status = StatusCodes.BAD_REQUEST;
+		return this;
+	}
+	
+	public ServerResponse internalServerError()
+	{
+		this.status = StatusCodes.INTERNAL_SERVER_ERROR;
+		return this;
+	}
+	
+	public ServerResponse created()
+	{
+		this.status = StatusCodes.CREATED;
+		return this;
+	}
+	
+	public ServerResponse notFound()
+	{
+		this.status = StatusCodes.NOT_FOUND;
+		return this;
+	}
+	
+	public ServerResponse forbidden()
+	{
+		this.status = StatusCodes.FORBIDDEN;
+		return this;
+	}
+	
+	
+	public ServerResponse found()
+	{
+		this.status = StatusCodes.FOUND;
+		return this;
+	}
+	
+	public ServerResponse noContent()
+	{
+		this.status = StatusCodes.NO_CONTENT;
+		return this;
+	}
+	
+	public ServerResponse withIoCallback(IoCallback ioCallback)
+	{
+		this.ioCallback = ioCallback;
+		this.hasIoCallback = ioCallback == null;
+		return this;
+	}
+	
+	public ServerResponse exception(Throwable t)
+	{
+		if(this.status == StatusCodes.ACCEPTED)
+		{
+			badRequest();
+		}
+		return this.entity(Any.wrap(t));
 	}
 
 	public void send( final HttpHandler handler, final HttpServerExchange exchange )
@@ -206,177 +349,12 @@ public class ServerResponse
 	 * Creates builder to build {@link ServerResponse}.
 	 * @return created builder
 	 */ 
-	public static Builder response()
+	public static ServerResponse response()
 	{
-		return new Builder();
+		return new ServerResponse();
 	}
 
-	/**
-	 * Builder to build {@link ServerResponse}.
-	 */ 
-	public static final class Builder
-	{
-		private final ServerResponse response;
-
-		private Builder()
-		{
-			this.response = new ServerResponse();
-		}
-
-		public Builder body(ByteBuffer body)
-		{
-			this.response.body = body;
-			return this;
-		}
-		
-		public Builder entity(Object entity)
-		{
-			this.response.entity = entity;
-			applicationJson();
-			return this;
-		}
-		
-		public Builder body(String body)
-		{
-			this.response.body = ByteBuffer.wrap(body.getBytes());
-			return this;
-		}
-		
-	
-		public Builder status(int status)
-		{
-			this.response.status = status; 
-			return this;
-		}
-
-		public Builder header(HttpString headerName, String value)
-		{
-			this.response.headers.put(headerName, value);
-			this.response.hasHeaders = true;
-			return this;
-		}
-
-		public Builder cookie(String cookieName, Cookie cookie)
-		{
-			this.response.cookies.put(cookieName, cookie);
-			this.response.hasCookies = true;
-
-			return this;
-		}
-
-		public Builder contentType(String contentType)
-		{
-			this.response.contentType = contentType;
-			return this;
-		}
-
-		public Builder ioCallback(IoCallback ioCallback)
-		{
-			this.response.ioCallback = ioCallback;
-			return this;
-		}
-		
-		public Builder applicationJson()
-		{
-			this.response.contentType = APPLICATION_JSON_CONTENT_TYPE;
-			return this;
-		}
-		
-		public Builder textHtml()
-		{
-			this.response.contentType = TEXT_HTML_CONTENT_TYPE;
-			return this;
-		}
-		
-		public Builder textXml()
-		{
-			this.response.contentType = TEXT_XML_CONTENT_TYPE;
-			return this;
-		}
-		
-		public Builder textPlain()
-		{
-			this.response.contentType = TEXT_PLAIN_CONTENT_TYPE;
-			return this;
-		}
-		
-		public Builder ok()
-		{
-			this.response.status = StatusCodes.OK;
-			return this;
-		}
-		
-		public Builder accepted()
-		{
-			this.response.status = StatusCodes.ACCEPTED;
-			return this;
-		}
-		
-		public Builder badRequest()
-		{
-			this.response.status = StatusCodes.BAD_REQUEST;
-			return this;
-		}
-		
-		public Builder internalServerError()
-		{
-			this.response.status = StatusCodes.INTERNAL_SERVER_ERROR;
-			return this;
-		}
-		
-		public Builder created()
-		{
-			this.response.status = StatusCodes.CREATED;
-			return this;
-		}
-		
-		public Builder notFound()
-		{
-			this.response.status = StatusCodes.NOT_FOUND;
-			return this;
-		}
-		
-		public Builder forbidden()
-		{
-			this.response.status = StatusCodes.FORBIDDEN;
-			return this;
-		}
-		
-		
-		public Builder found()
-		{
-			this.response.status = StatusCodes.FOUND;
-			return this;
-		}
-		
-		public Builder noContent()
-		{
-			this.response.status = StatusCodes.NO_CONTENT;
-			return this;
-		}
-		
-		public Builder withIoCallback(IoCallback ioCallback)
-		{
-			this.response.ioCallback = ioCallback;
-			this.response.hasIoCallback = ioCallback == null;
-			return this;
-		}
-		
-		public Builder exception(Throwable t)
-		{
-			if(this.response.status == StatusCodes.ACCEPTED)
-			{
-				badRequest();
-			}
-			return this.entity(Any.wrap(t));
-		}
-
-		public ServerResponse build()
-		{
-			return this.response;
-		}
-	}
-	
+	 
 	
 	
 	 

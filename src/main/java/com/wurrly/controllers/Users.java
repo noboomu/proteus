@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -179,10 +181,11 @@ public class Users
 	
 	@PUT
 	@Path("/username")
-	@Consumes(("application/json")) 
+	@Consumes("application/json,application/xml") 
+	@Produces("application/json,application/xml") 
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
 	@ApiOperation(value = "Update a user's name",   httpMethod = "PUT", response = User.class)
-	public ServerResponse updateUsername(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
+	public CompletableFuture<ServerResponse> updateUsername(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
 	{
 //		
 	log.debug("esIndexName: " + esIndexName); 
@@ -191,7 +194,7 @@ public class Users
 	log.debug("file: " + user); 
 
  
-				return response().entity(Any.wrap(user));
+		return CompletableFuture.completedFuture(response().entity(user));
 
 	}
 

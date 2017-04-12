@@ -37,8 +37,7 @@ public class ServerParameterExtension extends DefaultParameterExtension
 	@Override
 	public List<Parameter> extractParameters(List<Annotation> annotations, Type type, Set<Type> typesToSkip, Iterator<SwaggerExtension> chain)
 	{
-		log.debug("extractParameters: " + type);
-
+ 
 		if(type.getTypeName().contains("java.nio.ByteBuffer") || type.getTypeName().contains("java.nio.file.Path"))
 	      {
 	      	type = java.io.File.class;
@@ -53,8 +52,8 @@ public class ServerParameterExtension extends DefaultParameterExtension
 	@Override
 	protected boolean shouldIgnoreType(Type type, Set<Type> typesToSkip)
 	{ 
-	
-		if( type.getTypeName().contains("com.wurrly.server.ServerRequest"))
+ 
+		if( type.getTypeName().contains("ServerRequest"))
 		{
 			return true;
 		}

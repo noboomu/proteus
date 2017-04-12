@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
@@ -21,7 +22,7 @@ import com.wurrly.server.endpoints.EndpointInfo;
 
 import io.undertow.predicate.TruePredicate;
 import io.undertow.server.DefaultResponseListener;
-import io.undertow.server.HttpServerExchange;
+import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
@@ -57,24 +58,15 @@ public class RoutingModule extends AbstractModule
 		
 		RoutingHandler router = new RoutingHandler()
 				.setFallbackHandler(BaseHandlers::notFoundHandler);
-		
-		final String assetsPath = config.getString("assets.path");
-		final String assetsDirectoryName = config.getString("assets.dir") ;
-		final Integer assetsCacheTime = config.getInt("assets.cache.time");
-		
-		final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile());
+	 
+		this.bind(XmlMapper.class).toInstance(new XmlMapper()); 
 
-
-		router.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex['" + assetsPath  +  "/(.*)']", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
-		.setCachable(TruePredicate.instance())
-		.setCacheTime(assetsCacheTime)
-		));
-		
 		 		
 		this.bind(RoutingHandler.class).toInstance(router); 
 		
 		this.bind(RoutingModule.class).toInstance(this);
 		  
+		
 		try
 		{
 			String defaultResponseListenerClassName = config.getString("application.defaultResponseListener");
@@ -84,6 +76,8 @@ public class RoutingModule extends AbstractModule
 		{
 			log.error(e.getMessage(),e);
 		}
+		
+	 
  
 		this.bind(new TypeLiteral<Set<Class<?>>>() {}).annotatedWith(Names.named("registeredControllers")).toInstance(registeredControllers);
 		this.bind(new TypeLiteral<Set<EndpointInfo>>() {}).annotatedWith(Names.named("registeredEndpoints")).toInstance(registeredEndpoints);

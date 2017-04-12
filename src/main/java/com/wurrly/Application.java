@@ -28,6 +28,7 @@ import com.wurrly.modules.RoutingModule;
 import com.wurrly.server.endpoints.EndpointInfo;
 import com.wurrly.server.handlers.HandlerGenerator;
 import com.wurrly.server.handlers.benchmark.BenchmarkHandlers;
+import com.wurrly.services.AssetsService;
 import com.wurrly.services.SwaggerService;
 
 import io.undertow.Undertow;
@@ -93,7 +94,9 @@ public class Application
 		
 
 		
-		Set<Service> services = registeredServices.stream().map( sc -> injector.getInstance(sc)).collect(Collectors.toSet());
+		Set<Service> services = registeredServices.stream()
+				.map( sc -> injector.getInstance(sc))
+				.collect(Collectors.toSet());
 		
 		this.serviceManager = new ServiceManager(services);
 		
@@ -214,6 +217,8 @@ public class Application
  			
  			 app.useService(SwaggerService.class);
  			 
+ 			 app.useService(AssetsService.class);
+
  			 app.useController(Users.class);
  			 
  			 app.start();

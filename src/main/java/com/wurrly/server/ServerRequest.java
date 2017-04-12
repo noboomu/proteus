@@ -5,24 +5,17 @@ package com.wurrly.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xnio.channels.StreamSourceChannel;
 
-import com.jsoniter.JsonIterator;
-
-import io.undertow.UndertowMessages;
 import io.undertow.connector.PooledByteBuffer;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -34,17 +27,13 @@ import io.undertow.util.FastConcurrentDirectDeque;
 import io.undertow.util.Headers;
 import io.undertow.util.MalformedMessageException;
 
-import java.util.stream.Collectors;
-
 public class ServerRequest
 {
 	private static Logger log = LoggerFactory.getLogger(ServerRequest.class.getCanonicalName());
-
-    public static final AttachmentKey<ByteBuffer> JSON_DATA = AttachmentKey.create(ByteBuffer.class);
- 
- 
-	private static final String OCTET_STREAM_TYPE = org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM.getMimeType();
-	private static final String APPLICATION_JSON = org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType();
+  
+    
+    public static final AttachmentKey<ByteBuffer> BYTE_BUFFER_KEY = AttachmentKey.create(ByteBuffer.class);
+  
 	private static final String CHARSET = "UTF-8";
 	
 	public final HttpServerExchange exchange;
@@ -52,7 +41,8 @@ public class ServerRequest
 	private final String path;
 	private FormData form; 
 	private final String contentType;
-	private final String method;
+	private final String method;  
+	
 
 	private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
  	
@@ -62,7 +52,7 @@ public class ServerRequest
 		this.path = null;
 		this.exchange = null;
 		this.contentType = null;
-
+ 
 	}
 	
 	public ServerRequest(HttpServerExchange exchange) throws IOException
@@ -70,23 +60,22 @@ public class ServerRequest
 		this.method = exchange.getRequestMethod().toString();
 		this.path = URLDecoder.decode(exchange.getRequestPath(), CHARSET);
 		this.exchange = exchange;
-		this.contentType = exchange.getRequestHeaders().getFirst("Content-Type");
-
-		
+		this.contentType = exchange.getRequestHeaders().getFirst(Headers.CONTENT_TYPE);
+ 
 		if (this.contentType != null )
 		{
-			if (this.contentType.contains(FormEncodedDataDefinition.APPLICATION_X_WWW_FORM_URLENCODED) )
+			if ( ServerPredicates.URL_ENCODED_FORM_PREDICATE.resolve(exchange) )
 			{
  				this.parseEncodedForm();
 			}
-			else if (this.contentType.contains(MultiPartParserDefinition.MULTIPART_FORM_DATA) || this.contentType.contains(OCTET_STREAM_TYPE))
+			else if ( ServerPredicates.MULTIPART_PREDICATE.resolve(exchange) )
 			{
 				this.parseMultipartForm();
 			}
-			else if (this.contentType.contains(APPLICATION_JSON)  && this.exchange.getRequestContentLength() != -1)
-			{
-				this.parseJson();
-			}
+			else if ( ServerPredicates.STRING_BODY_PREDICATE.resolve(exchange) )
+			{ 
+				this.extractBytes();
+			}   
 		}
 		
 
@@ -151,18 +140,11 @@ public class ServerRequest
 
  
 	
-	private void parseJson() throws IOException
-	{ 
-		
-		if(this.exchange.getRequestContentLength() != -1)
-		{
+	private void extractBytes() throws IOException
+	{  
+		 
 			this.exchange.startBlocking();
-
-//			ByteBuffer buffer = ByteBuffer.allocate((int) this.exchange.getRequestContentLength());
-//			this.exchange.getRequestChannel().read(buffer); 
-//			JsonIterator iterator = JsonIterator.parse(buffer.array());
-//            this.exchange.putAttachment(JSON_DATA, iterator);
-			
+ 
 			 try (PooledByteBuffer pooled = exchange.getConnection().getByteBufferPool().getArrayBackedPool().allocate()){
 	                ByteBuffer buf = pooled.getBuffer();
 	                 
@@ -173,20 +155,17 @@ public class ServerRequest
 	                    buf.clear();
 	                    
  	                    int c = channel.read(buf); 
- 	                     
- 	                    
- 
+ 	                      
 	                    if (c == -1) {
-	                     
-//	                    	JsonIterator iterator = JsonIterator.parse(buf.array());
- 
+	                      
 	                    	int pos = buf.limit();
 	                    	
 	 	                    ByteBuffer buffer = ByteBuffer.allocate(pos);
 
 	                    	System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
 	                    	
-	    	                exchange.putAttachment(JSON_DATA, buffer);
+	    	                exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
+	    	                
 	    	                break;
 	    	                
 	                    } else if (c != 0) {
@@ -195,71 +174,34 @@ public class ServerRequest
 	                }
  	            } catch (MalformedMessageException e) {
 	                throw new IOException(e);
-	            }
-//			try(PooledByteBuffer resource = this.exchange.getConnection().getByteBufferPool().allocate())
-//			{
-//			 final ByteBuffer buffer = resource.getBuffer();
-			 
-//			 final UTF8Output string = new UTF8Output();
+	            } 
+ 		
+//		else
+//		{
+//			this.exchange.startBlocking();
 //
-//			 final StreamSourceChannel channel = this.exchange.getRequestChannel();
-// 			 
-//			 try {
-//		            int r = 0;
-//		            do {
-//		                r = channel.read(buffer);
-//		                if (r == 0) {
-//		                    //channel.getReadSetter().set(this);
-//		                    channel.resumeReads();
-//		                } else if (r == -1) {
-// 		                	JsonIterator iterator = JsonIterator.parse(string.extract());
-//		                    this.exchange.putAttachment(REQUEST_JSON_BODY, iterator);
-//		                    IoUtils.safeClose(channel);
-//		                } else {
-//		                    buffer.flip();
-//		                    string.write(buffer);
-//		                }
-//		            } while (r > 0);
-		    
-			 
-		 
-
-//		     } catch (IOException e) {
-//		           throw e;
-//		        }  
-//			}
-//			Logger.debug("iterator " + iterator);
-
- 		}
-		else
-		{
-			this.exchange.startBlocking();
-
-            InputStream is = exchange.getInputStream();
-            if (is != null) {
-            	
-            	try
-				{
-            		 if (is.available() != -1) {
-            			 
-            			 try(Scanner scanner = new Scanner(is, "UTF-8"))
-            			 {
-            				 String s = scanner.useDelimiter("\\A").next();
-                             s = s.trim();
-                 			// JsonIterator iterator = JsonIterator.parse(s); 
-                 			// log.debug("iterator " + iterator);
-
-                             this.exchange.putAttachment(JSON_DATA, ByteBuffer.wrap(s.getBytes()));
-            			 } 
-                         
-                     }
-            		 
-				 } catch (IOException e) {
-					 log.error("IOException: ", e);
-	             }
-            	
-            }
-		}
+//            InputStream is = exchange.getInputStream();
+//            if (is != null) {
+//            	
+//            	try
+//				{
+//            		 if (is.available() != -1) {
+//            			 
+//            			 try(Scanner scanner = new Scanner(is, "UTF-8"))
+//            			 {
+//            				 String s = scanner.useDelimiter("\\A").next();
+//                             s = s.trim(); 
+//                             this.exchange.putAttachment(BYTE_BUFFER_KEY, ByteBuffer.wrap(s.getBytes()));
+//            			 } 
+//                         
+//                     }
+//            		 
+//				 } catch (IOException e) {
+//					 log.error("IOException: ", e);
+//	             }
+//            	
+//            }
+//		}
 		
 	}
 
@@ -272,28 +214,22 @@ public class ServerRequest
 				.setDefaultEncoding(CHARSET)
 				.create(this.exchange);
 
-		log.debug(this.exchange+"\nmime: " + this.contentType);
-		
-		log.debug("boundary: " +    Headers.extractQuotedValueFromHeader(this.contentType, "boundary"));
-		
-		
+		 
 		if(formDataParser != null)
 		{ 
-			final FormData formData = formDataParser.parseBlocking();  
-			
-			log.debug("formData: " +    formData);
-
+			final FormData formData = formDataParser.parseBlocking();   
 			this.exchange.putAttachment(FormDataParser.FORM_DATA, formData);    
 			extractFormParameters(formData);
 		} 
 	}
 	
 	private void parseEncodedForm() throws IOException
-	{
-		
+	{ 
 		this.exchange.startBlocking();
 	  
-		final FormData formData = new FormEncodedDataDefinition().setDefaultEncoding(this.exchange.getRequestCharset()).create(exchange).parseBlocking();
+		final FormData formData = new FormEncodedDataDefinition()
+				.setDefaultEncoding(this.exchange.getRequestCharset())
+				.create(exchange).parseBlocking();
 		  
 		this.exchange.putAttachment(FormDataParser.FORM_DATA, formData); 
 		  
@@ -305,8 +241,11 @@ public class ServerRequest
 		  if (formData != null) {
 		        for (String key : formData) 
 		        {
-		          Deque<FormData.FormValue> formValues = formData.get(key);
-		          Deque<String> values = formValues.stream().filter(fv -> !fv.isFile()).map(FormData.FormValue::getValue).collect(java.util.stream.Collectors.toCollection(FastConcurrentDirectDeque::new));
+		          final Deque<FormData.FormValue> formValues = formData.get(key);
+		          final Deque<String> values = formValues.stream()
+		        		  .filter(fv -> !fv.isFile())
+		        		  .map(FormData.FormValue::getValue)
+		        		  .collect(java.util.stream.Collectors.toCollection(FastConcurrentDirectDeque::new));
 		          exchange.getQueryParameters().put(key, values);
 		      }
 		  }
@@ -332,6 +271,7 @@ public class ServerRequest
 		return exchange.getRequestURI();
 	}
 
+	 
 	public void startAsync(final Executor executor, final Runnable runnable)
 	{
 		exchange.dispatch(executor, runnable);

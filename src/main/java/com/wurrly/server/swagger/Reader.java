@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
+import com.fasterxml.jackson.databind.type.SimpleType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.wurrly.server.ServerRequest;
 
@@ -1062,9 +1063,13 @@ public class Reader {
         
         LOGGER.debug("getParameters for {}", type);
         Set<Type> typesToSkip = new HashSet<>();
-       // typesToSkip.add(ServerRequest.class);
+        typesToSkip.add(TypeFactory.defaultInstance().constructType(ServerRequest.class));
         final SwaggerExtension extension = chain.next();
       
+        if (typesToSkip.contains(type)) {
+            return Collections.emptyList();
+        }
+ 
 
         annotations = new ArrayList<>(annotations);
          

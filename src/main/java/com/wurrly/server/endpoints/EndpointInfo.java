@@ -131,6 +131,10 @@ public class EndpointInfo implements Comparable<EndpointInfo>
 	public void setControllerName(String controllerName)
 	{
 		this.controllerName = controllerName;
+		if(this.controllerName == null)
+		{
+			this.controllerName = "";
+		}
 	}
 	
 	
@@ -162,7 +166,7 @@ public class EndpointInfo implements Comparable<EndpointInfo>
 	@Override
 	public String toString()
 	{
-		return String.format("%-8s %-30s %-26s %-26s %s", this.method, this.pathTemplate, "[" + this.consumes + "]", "[" + this.produces+ "]", "("+this.controllerMethod+ ")");
+		return String.format("%-8s %-30s %-26s %-26s %s", this.method, this.pathTemplate, "[" + this.consumes + "]", "[" + this.produces+ "]", "("+this.controllerName+"."+this.controllerMethod+ ")");
 	}
 
 	/**

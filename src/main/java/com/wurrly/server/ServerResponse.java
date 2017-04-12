@@ -3,7 +3,6 @@
  */
 package com.wurrly.server;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,10 +10,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.jsoniter.any.Any;
 import com.jsoniter.output.JsonStream;
 
+import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.io.IoCallback;
+import io.undertow.predicate.Predicate;
+import io.undertow.predicate.Predicates;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
@@ -29,14 +32,11 @@ import io.undertow.util.StatusCodes;
  *
  */
 public class ServerResponse
-{
+{ 
 	private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
-	
-	private static final String APPLICATION_JSON_CONTENT_TYPE = org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType();
-	private static final String TEXT_PLAIN_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_PLAIN.getMimeType();
-	private static final String TEXT_XML_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_XML.getMimeType();
-	private static final String TEXT_HTML_CONTENT_TYPE = org.apache.http.entity.ContentType.TEXT_HTML.getMimeType();
- 
+	 
+	protected static final XmlMapper XML_MAPPER = new XmlMapper();
+
 	protected ByteBuffer body;
 	
 	protected int status = StatusCodes.OK;
@@ -48,7 +48,9 @@ public class ServerResponse
 	protected boolean hasCookies = false;
 	protected boolean hasHeaders = false;
 	protected boolean hasIoCallback = false;
-  	
+	protected boolean isXml = false;
+	protected boolean isJson = false;
+
 	public ServerResponse()
 	{
 		
@@ -120,6 +122,15 @@ public class ServerResponse
 	public void setContentType(String contentType)
 	{
 		this.contentType = contentType;
+		
+		if(this.contentType.equals(MimeTypes.APPLICATION_JSON_TYPE))
+		{
+			this.isJson = true;
+		}
+		else if(this.contentType.equals(MimeTypes.APPLICATION_XML_TYPE))
+		{
+			this.isXml = true;
+		}
 	}
 	
 	public ServerResponse body(ByteBuffer body)
@@ -130,8 +141,7 @@ public class ServerResponse
 	
 	public ServerResponse entity(Object entity)
 	{
-		this.entity = entity;
-		applicationJson();
+		this.entity = entity; 
 		return this;
 	}
 	
@@ -165,32 +175,35 @@ public class ServerResponse
 
 	public ServerResponse contentType(String contentType)
 	{
-		this.contentType = contentType;
+		this.setContentType(contentType);
 		return this;
 	}
  
 	
 	public ServerResponse applicationJson()
 	{
-		this.contentType = APPLICATION_JSON_CONTENT_TYPE;
+		this.contentType = MimeTypes.APPLICATION_JSON_TYPE;
+		this.isJson = true;
+
 		return this;
 	}
 	
 	public ServerResponse textHtml()
 	{
-		this.contentType = TEXT_HTML_CONTENT_TYPE;
+		this.contentType =  MimeTypes.TEXT_HTML_TYPE;
 		return this;
 	}
 	
-	public ServerResponse textXml()
+	public ServerResponse applicationXml()
 	{
-		this.contentType = TEXT_XML_CONTENT_TYPE;
+		this.contentType =  MimeTypes.APPLICATION_XML_TYPE;
+		this.isXml = true;
 		return this;
 	}
 	
 	public ServerResponse textPlain()
 	{
-		this.contentType = TEXT_PLAIN_CONTENT_TYPE;
+		this.contentType =  MimeTypes.TEXT_PLAIN_TYPE;
 		return this;
 	}
 	
@@ -265,8 +278,9 @@ public class ServerResponse
 		return this.entity(Any.wrap(t));
 	}
 
-	public void send( final HttpHandler handler, final HttpServerExchange exchange )
+	public void send( final HttpHandler handler, final HttpServerExchange exchange )  throws RuntimeException
 	{
+		
 		if( this.hasHeaders )
 		{
 			long itr = this.headers.fastIterateNonEmpty();
@@ -292,8 +306,19 @@ public class ServerResponse
 		{
 			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
 		}
-	 
-		
+		else if( !this.isJson && !this.isXml )
+		{
+			if( ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange) )
+			{ 
+				this.applicationJson(); 
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType); 
+			}
+			else if( ServerPredicates.ACCEPT_XML_PREDICATE.resolve(exchange) )
+			{ 
+				this.applicationXml(); 
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType); 
+			}
+		}
 		
 		if( this.body != null)
 		{
@@ -303,41 +328,49 @@ public class ServerResponse
 			}
 			else
 			{ 
-				exchange.getResponseSender().send(this.body,this.ioCallback);
-
+				exchange.getResponseSender().send(this.body,this.ioCallback); 
 			}
 		}
 		else if( this.entity != null)
 		{
-	        if(exchange.isInIoThread()) {
-	            exchange.dispatch(handler);
-	            return;
-	          }
-	        
-			
-	        exchange.startBlocking();
-
-	        final int bufferSize = exchange.getConnection().getBufferSize();
-			
-			final JsonStream stream = new JsonStream(exchange.getOutputStream(), bufferSize);
-			
-			try
+	        try
 			{
-				stream.writeVal(this.entity);
-				stream.close();
 				
-			} catch (IOException e)
+			 
+	        if( this.isXml )
+	        {
+	        	exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(this.entity)));
+	        } 
+	        else  
+	        {
+	        	 if(exchange.isInIoThread()) {
+	 	            exchange.dispatch(handler);
+	 	            return;
+	 	          }
+	 	        
+	        	 
+		        exchange.startBlocking();
+	
+		        final int bufferSize = exchange.getConnection().getBufferSize();
+				
+		        try(final JsonStream stream = new JsonStream(exchange.getOutputStream(), bufferSize))
+				{ 
+					stream.writeVal(this.entity); 
+				}
+		         
+				exchange.endExchange();
+
+	        }
+	        
+			} catch (Exception e)
 			{
-				  
-				log.error(e.getMessage(),e); 
-			     exchange.setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR); 
-				 exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-			     exchange.getResponseSender().send(e.getMessage()); 
+				log.error(e.getMessage() + " for entity " + this.entity,e);
+				 
+				 throw new IllegalArgumentException(e);
 			}
 			 
 			
-			exchange.endExchange();
-		}
+ 		}
 		else
 		{
 			exchange.endExchange();

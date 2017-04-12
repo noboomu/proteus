@@ -21,6 +21,8 @@ import com.j256.simplemagic.ContentType;
 import com.jsoniter.output.JsonStream;
 import com.wurrly.server.ServerResponse;
 
+import io.undertow.attribute.ExchangeAttributes;
+import io.undertow.predicate.Predicates;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
@@ -52,7 +54,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 	     
 	    final RoutingHandler handler = new RoutingHandler();
 	    
-	    handler.add(Methods.GET, "/string".intern(), new HttpHandler(){
+	    handler.add(Methods.GET, "/".intern(), new HttpHandler(){
  
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
@@ -76,21 +78,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 			} 
 		} );
 	    
-	    handler.add(Methods.GET, "/string3".intern(), new HttpHandler(){
-	    	 
-			@Override
-			public void handleRequest(HttpServerExchange exchange) throws Exception
-			{
-				// TODO Auto-generated method stub
-				
-				exchange.setStatusCode( 200 );
-				
-				//exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, PLAIN_TEXT);
-				
-				exchange.getResponseSender().send(msgBuffer);
-					
-			} 
-		} );
+	 
 	    
 	    handler.add(Methods.GET, "/string4".intern(), new HttpHandler(){
 	    	 
@@ -293,6 +281,24 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 				
 			} 
 		} );
+	    
+	
+	    
+	    handler.add(Methods.GET, "/string3".intern(),  new HttpHandler(){
+	    	 
+	 			@Override
+	 			public void handleRequest(HttpServerExchange exchange) throws Exception
+	 			{
+	 				// TODO Auto-generated method stub
+	 				 
+	 				exchange.setStatusCode( 200 );
+	 				
+	 				//exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, PLAIN_TEXT);
+	 				
+	 				exchange.getResponseSender().send(msgBuffer);
+	 					
+	 			} 
+	 		} );
 	      
 	    
 

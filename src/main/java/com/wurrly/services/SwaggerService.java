@@ -1,10 +1,8 @@
  
 package com.wurrly.services;
 
-import java.io.File;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,13 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.j256.simplemagic.ContentType;
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import com.typesafe.config.Config;
-import com.wurrly.modules.RoutingModule;
+import com.wurrly.server.MimeTypes;
 import com.wurrly.server.endpoints.EndpointInfo;
-import com.wurrly.server.handlers.HandlerGenerator;
 import com.wurrly.server.swagger.ServerParameterExtension;
 import com.wurrly.utilities.JsonMapper;
 
@@ -37,17 +33,17 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
-import io.undertow.server.handlers.resource.Resource;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 
-import com.j256.simplemagic.ContentType;
-
  
-public class SwaggerService   extends ConfigurableService implements Supplier<RoutingHandler>
+public class SwaggerService   extends BaseService implements Supplier<RoutingHandler>
 {
+	 
+
+	 
 	private static Logger log = LoggerFactory.getLogger(SwaggerService.class.getCanonicalName());
 
 	protected com.wurrly.server.swagger.Reader reader = null;
@@ -58,9 +54,9 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 
 	protected Swagger swagger = null;
 	
-	private String swaggerSpec = null;
+	protected String swaggerSpec = null;
 	
-	private String swaggerIndexHTML = null;
+	protected String swaggerIndexHTML = null;
 	
 	
 	@Inject
@@ -108,11 +104,15 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 	@Named("registeredControllers")
 	protected Set<Class<?>> registeredControllers;
  
-	public SwaggerService()
-	{ 
-		 this.configFile = "swagger.conf";
-  	}
-	
+	/**
+	 * @param config
+	 */
+	public SwaggerService( )
+	{
+	 
+	}
+
+	 
 	public void generateSwaggerSpec()
 	{
 		
@@ -165,14 +165,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 	}
 
 
-	@Override
-	protected void configure()
-	{
-	//	log.debug("Configuring : " + this.getClass().getSimpleName() + " swaggerBasePath: " + swaggerBasePath);
-		 
- 		
-		super.configure();
-	}
+ 
 
 	/**
 	 * @return the swagger
@@ -242,7 +235,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
  
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, ContentType.JSON.getMimeType());
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MimeTypes.APPLICATION_JSON_TYPE);
  
 
 				exchange.getResponseSender().send(swaggerSpec);
@@ -252,7 +245,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 		});
 		
    
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(ContentType.JSON.getMimeType()).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MimeTypes.APPLICATION_JSON_TYPE).build());
 		 
 		pathTemplate =  this.swaggerBasePath;
 		
@@ -264,7 +257,7 @@ public class SwaggerService   extends ConfigurableService implements Supplier<Ro
 			{
  
  
- 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, ContentType.HTML.getMimeType());
+ 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MimeTypes.TEXT_HTML_TYPE);
  				exchange.getResponseSender().send(swaggerIndexHTML);
 				
 			}

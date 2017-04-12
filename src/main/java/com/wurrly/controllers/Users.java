@@ -3,6 +3,8 @@
  */
 package com.wurrly.controllers;
 
+import static com.wurrly.server.ServerResponse.response;
+
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.List;
@@ -31,7 +33,6 @@ import com.typesafe.config.Config;
 import com.wurrly.models.User;
 import com.wurrly.server.ServerRequest;
 import com.wurrly.server.ServerResponse;
-import static com.wurrly.server.ServerResponse.response;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -48,7 +49,6 @@ import io.undertow.util.HttpString;
 public class Users  
 {
 	 
-
 	@Inject
 	@Named("es.index.name")
 	protected String esIndexName;
@@ -110,7 +110,7 @@ public class Users
 	@Path("/form/{userId}")
  	@Consumes("*/*")
 	@ApiOperation(value = "Post a complex form",   httpMethod = "POST", response = User.class)
-	public ServerResponse userForm(@ApiParam(hidden=true) final ServerRequest serverRequest, 
+	public ServerResponse userForm(  final ServerRequest serverRequest, 
 	                    @ApiParam(name="userId",required=true) @PathParam("userId") final Long userId,
 	                    @ApiParam(name="context",required=false) @QueryParam("context") Optional<String> context, 
 	                    @ApiParam(name="type",required=true) @QueryParam("type") User.UserType type, 
@@ -132,7 +132,7 @@ public class Users
 	@GET
 	@Path("/{userId}")
 	@ApiOperation(value = "Find users by id",   httpMethod = "GET", response = User.class)
-	public ServerResponse user(@ApiParam(hidden=true)final ServerRequest serverRequest, 
+	public ServerResponse user( final ServerRequest serverRequest, 
 	                @ApiParam(name="userId", required=true) @PathParam("userId") final Long userId, 
 	                @ApiParam(name="context", required=false) @QueryParam("context") Optional<String> context
 	                )
@@ -158,26 +158,23 @@ public class Users
 	//@Consumes("multipart/form-data")
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
 	@ApiOperation(value = "Create a user",   httpMethod = "POST", response = User.class)
-	public ServerResponse createUser(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
+	public ServerResponse createUser( final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
 	{
-//		
- 
-//	log.debug("context: " + context); 
-//	log.debug("request: " + serverRequest); 
-//	log.debug("file: " + user); 
-		
-		
-		if( user != null )
-		{
-			return response().ok().entity(user);
-		}
-		else
-		{
-			return response().exception(new Exception("No user found"));
-		}
- 
-		 
+ 		 
+ 			ServerResponse response = null;
+ 			
+ 			if( user != null )
+ 			{
+ 	 			response =  response().ok().entity(user) ;
 
+ 			}
+ 			else
+ 			{
+ 	 			response =   response().exception(new Exception("No user found")) ;
+ 				
+ 			}
+ 			
+ 			return  response; 
 	}
 	
 	@PUT

@@ -382,10 +382,7 @@ public class HandlerGenerator
 		}
 	}
 
-	@Inject
-	protected RoutingModule routingModule;
-	
-	
+ 
 
 	@Inject
 	@Named("application.path")
@@ -394,8 +391,14 @@ public class HandlerGenerator
 	protected String packageName;
 	protected String className;
 	protected String sourceString;
-
-	protected Set<Class<?>> controllerClasses = null;
+ 
+	@Inject
+	@Named("registeredEndpoints")
+	protected Set<EndpointInfo> registeredEndpoints;
+	 
+	@Inject
+	@Named("registeredControllers")
+	protected Set<Class<?>> registeredControllers;
 
 	// public static void main(String[] args)
 	// {
@@ -422,11 +425,10 @@ public class HandlerGenerator
 	//
 	// }
 
-	public HandlerGenerator(String packageName, String className, Set<Class<?>> controllerClasses)
+	public HandlerGenerator(String packageName, String className)
 	{
 		this.packageName = packageName;
-		this.className = className;
-		this.controllerClasses = controllerClasses;
+		this.className = className; 
 
 	}
 
@@ -459,7 +461,7 @@ public class HandlerGenerator
 
 			MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addAnnotation(injectClass);
 
-			for (Class<?> clazz : this.controllerClasses)
+			for (Class<?> clazz : this.registeredControllers)
 			{
 				String className = clazz.getSimpleName().toLowerCase();
 
@@ -780,7 +782,7 @@ public class HandlerGenerator
 
 			initBuilder.addCode("$L", "\n");
 
-			this.routingModule.getRegisteredEndpoints().add(route);
+			registeredEndpoints.add(route);
 
 		}
 

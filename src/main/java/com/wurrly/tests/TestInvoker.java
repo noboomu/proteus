@@ -3,11 +3,16 @@
  */
 package com.wurrly.tests;
 
+import static java.lang.invoke.MethodHandles.lookup;
+
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -19,12 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 import com.wurrly.controllers.Users;
 import com.wurrly.server.ServerRequest;
-
-import static java.lang.invoke.MethodHandles.lookup;
-
-import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaMetafactory;
-
+ 
 /**
  * @author jbauer
  *
@@ -64,6 +64,9 @@ private static Logger Logger = LoggerFactory.getLogger(TestInvoker.class.getCano
         }
     }
     
+    
+  
+
 	 
 
 public static void main(String[] args)  

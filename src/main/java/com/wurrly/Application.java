@@ -133,7 +133,7 @@ public class Application
 
 		final DefaultResponseListener defaultResponseListener = injector.getInstance(DefaultResponseListener.class); 
 		 
-		HandlerGenerator generator = new HandlerGenerator("com.wurrly.controllers.handlers","RouteHandlers",this.registeredControllers);
+		HandlerGenerator generator = new HandlerGenerator("com.wurrly.controllers.handlers","RouteHandlers");
 		
 		injector.injectMembers(generator);
 	

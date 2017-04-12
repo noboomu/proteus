@@ -16,7 +16,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.jsoniter.output.JsonStream;
 import com.wurrly.server.MimeTypes;
-import com.wurrly.server.ServerPredicates;
+import com.wurrly.server.predicates.ServerPredicates;
 
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpServerExchange;

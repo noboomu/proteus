@@ -59,8 +59,6 @@ public class RoutingModule extends AbstractModule
 		RoutingHandler router = new RoutingHandler()
 				.setFallbackHandler(BaseHandlers::notFoundHandler);
 	 
-		this.bind(XmlMapper.class).toInstance(new XmlMapper()); 
-
 		 		
 		this.bind(RoutingHandler.class).toInstance(router); 
 		
@@ -81,6 +79,9 @@ public class RoutingModule extends AbstractModule
  
 		this.bind(new TypeLiteral<Set<Class<?>>>() {}).annotatedWith(Names.named("registeredControllers")).toInstance(registeredControllers);
 		this.bind(new TypeLiteral<Set<EndpointInfo>>() {}).annotatedWith(Names.named("registeredEndpoints")).toInstance(registeredEndpoints);
+		
+		this.bind(XmlMapper.class).toInstance(new XmlMapper()); 
+
 
 	}
 

@@ -25,7 +25,7 @@ import com.google.inject.Inject;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
 import com.jsoniter.spi.TypeLiteral;
-import com.wurrly.server.handlers.predicates.MaxRequestContentLengthPredicate;
+import com.wurrly.server.predicates.MaxRequestContentLengthPredicate;
 
 import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.predicate.Predicate;

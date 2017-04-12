@@ -57,32 +57,10 @@ public class ConfigModule extends AbstractModule
 	
 	@Override
 	protected void configure()
-	{
- 
-		if(this.configFile != null )
-		{
-			 this.bindConfig(fileConfig(configFile));
-		}
-		
-		JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
-		JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
-		JsoniterAnnotationSupport.enable();
-		
-        install(new RoutingModule(this.config));
-
-		
-
-//		try
-//		{
-//			Class<? extends DefaultResponseListener> defaultResponseListener = (Class<? extends DefaultResponseListener>) Class.forName(config.getString("application.defaultResponseListener"));
-//					
-//			this.bind(DefaultResponseListener.class).to(defaultResponseListener).in(Singleton.class);
-//			
-//		} catch (Exception e)
-//		{
-//			log.error(e.getMessage(),e);
-//		}
-		
+	{ 
+		this.bindConfig(fileConfig(configFile));
+		 
+        install(new RoutingModule(this.config)); 
 	}
 
  
@@ -92,7 +70,7 @@ public class ConfigModule extends AbstractModule
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void bindConfig(final Config config)
+	private void bindConfig(final Config config)
 	{
 	 
 		traverse(this.binder(), "", config.root());
@@ -120,15 +98,13 @@ public class ConfigModule extends AbstractModule
 		
 		this.config = ConfigFactory.load(config);
 		
-		this.binder().bind(Config.class).toInstance( config );
-		
-		log.info("Config:\n" + config);
+		this.binder().bind(Config.class).toInstance( config ); 
 
 		
  	}
 
 
-	public static void traverse(final Binder binder, final String p, final ConfigObject root)
+	private static void traverse(final Binder binder, final String p, final ConfigObject root)
 	{
 		root.forEach((n, v) -> {
 			if (v instanceof ConfigObject)
@@ -143,7 +119,7 @@ public class ConfigModule extends AbstractModule
 	}
 	
 	
-	public static Config fileConfig(final String fname)
+	private static Config fileConfig(final String fname)
 	{
 		File dir = new File(System.getProperty("user.dir"));
 		File froot = new File(dir, fname);

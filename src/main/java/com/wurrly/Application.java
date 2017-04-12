@@ -21,6 +21,11 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.name.Named;
+import com.jsoniter.DecodingMode;
+import com.jsoniter.JsonIterator;
+import com.jsoniter.annotation.JsoniterAnnotationSupport;
+import com.jsoniter.output.EncodingMode;
+import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 import com.wurrly.controllers.Users;
 import com.wurrly.modules.ConfigModule;
@@ -47,9 +52,7 @@ public class Application
 	
  
 	private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Application.class.getCanonicalName());
-
- 
-	static final String CHARSET = "UTF-8";
+	private static final String CHARSET = "UTF-8";
 	
 	 
 
@@ -211,7 +214,9 @@ public class Application
 
 		try
 		{
-  
+			JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
+			JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
+			JsoniterAnnotationSupport.enable();
 
  			Application app = new Application();
  			

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.jsoniter.any.Any;
 import com.jsoniter.output.JsonStream;
+import com.wurrly.server.predicates.ServerPredicates;
 
 import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.io.IoCallback;

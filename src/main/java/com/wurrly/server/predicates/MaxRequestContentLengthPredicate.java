@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.wurrly.server.handlers.predicates;
+package com.wurrly.server.predicates;
 
 import java.util.Collections;
 import java.util.Map;

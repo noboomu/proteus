@@ -6,6 +6,9 @@ package com.wurrly.services;
 import java.nio.file.Paths;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
@@ -23,6 +26,7 @@ import io.undertow.util.Methods;
  */
 public class AssetsService extends BaseService
 {
+	private static Logger log = LoggerFactory.getLogger(AssetsService.class.getCanonicalName());
 
 	@Inject
 	@Named("registeredEndpoints")
@@ -34,12 +38,12 @@ public class AssetsService extends BaseService
 	@Inject
 	@Named("assets")
 	protected Config serviceConfig;
+	
 	/**
 	 * 
 	 */
 	public AssetsService()
-	{
-		// TODO Auto-generated constructor stub
+	{ 
 	}
 
  

@@ -1,11 +1,11 @@
 /**
  * 
  */
-package com.wurrly.server;
+package com.wurrly.server.predicates;
 
 import java.util.Collections;
 
-import com.wurrly.server.handlers.predicates.MaxRequestContentLengthPredicate;
+import com.wurrly.server.MimeTypes;
 
 import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.predicate.Predicate;

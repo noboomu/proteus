@@ -22,6 +22,7 @@
   		<artifactId>guava</artifactId>
   		<version>21.0</version>
   	</dependency>
+  	
   	<dependency>
   		<groupId>com.typesafe</groupId>
   		<artifactId>config</artifactId>
@@ -116,11 +117,6 @@
     	<groupId>org.javassist</groupId>
     	<artifactId>javassist</artifactId>
     	<version>3.22.0-CR1</version>
-    </dependency>
-    <dependency>
-    	<groupId>com.jsoniter</groupId>
-    	<artifactId>jsoniter</artifactId>
-    	<version>0.9.8</version>
     </dependency>
     <dependency>
     	<groupId>io.undertow</groupId>
@@ -246,6 +242,21 @@
     <artifactId>fast-classpath-scanner</artifactId>
     <version>LATEST</version>
 </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.4.1211</version>
+        </dependency>
 
+    <dependency>
+    	<groupId>com.wurrly</groupId>
+    	<artifactId>jsoniter</artifactId>
+    	<version>0.9.8</version>
+    </dependency>
+    <dependency>
+    	<groupId>com.github.javaparser</groupId>
+    	<artifactId>javaparser-core</artifactId>
+    	<version>[3.2.0,)</version>
+    </dependency>
   </dependencies>
 </project>

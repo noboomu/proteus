@@ -76,11 +76,9 @@ public class TestTypes
 		try
 		{
 			 
-		 
+			
 			ServiceCall<ServerResponse> res = processRequest();
-			
-			
-		 
+		
 			
 			CompletableFuture<ServerResponse> response = (res.invoke(new ServerResponse()));
 			

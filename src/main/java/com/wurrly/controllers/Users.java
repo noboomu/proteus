@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -22,10 +21,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -39,14 +40,15 @@ import com.wurrly.server.ServerResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HttpString; 
 /**
  * User API
  */
 @Api(tags="users")
 @Path("/api/users")
-@Produces(("application/json")) 
-@Consumes(("application/json")) 
+@Produces((MediaType.APPLICATION_JSON)) 
+@Consumes((MediaType.APPLICATION_JSON)) 
 @Singleton
 public class Users  
 {
@@ -69,7 +71,7 @@ public class Users
 	@GET
 	@Path("/{userId}/type")
 	@ApiOperation(value = "Find users by id with type", httpMethod = "GET", response = User.class)
-	public ServerResponse userType(
+	public ServerResponse<User> userType(
 	                    @ApiParam(hidden=true)final ServerRequest serverRequest, @PathParam("userId") final Long userId, 
 	                    @QueryParam("optionalQueryString")  Optional<String> optionalQueryString, 
 	                    @QueryParam("optionalLong")  Optional<Long> optionalLong, 
@@ -101,7 +103,7 @@ public class Users
 				 log.debug("optionalDate: " + optionalDate);
 
  		
-				return response()
+				return response(User.class)
 						.ok()
 						.entity(new User(232343L))
 						.header(HttpString.tryFromString("TestHeader"), "57475475");
@@ -112,7 +114,7 @@ public class Users
 	@Path("/form/{userId}")
  	@Consumes("*/*")
 	@ApiOperation(value = "Post a complex form",   httpMethod = "POST", response = User.class)
-	public ServerResponse userForm(  final ServerRequest serverRequest, 
+	public ServerResponse<Any> userForm(  final ServerRequest serverRequest, 
 	                    @ApiParam(name="userId",required=true) @PathParam("userId") final Long userId,
 	                    @ApiParam(name="context",required=false) @QueryParam("context") Optional<String> context, 
 	                    @ApiParam(name="type",required=true) @QueryParam("type") User.UserType type, 
@@ -126,7 +128,7 @@ public class Users
  	log.debug("testFile: " + testFile);
 //
 //				
-				return response().ok().entity(Any.wrap(new User(userId,type)));
+				return response(Any.class).ok().entity(Any.wrap(new User(userId,type)));
 
 	}
 	 
@@ -134,7 +136,7 @@ public class Users
 	@GET
 	@Path("/{userId}")
 	@ApiOperation(value = "Find users by id",   httpMethod = "GET", response = User.class)
-	public ServerResponse user( final ServerRequest serverRequest, 
+	public ServerResponse<String> user( final ServerRequest serverRequest, 
 	                @ApiParam(name="userId", required=true) @PathParam("userId") final Long userId, 
 	                @ApiParam(name="context", required=false) @QueryParam("context") Optional<String> context
 	                )
@@ -146,7 +148,7 @@ public class Users
 //		log.debug("context: " + context);
 //
 //				
-		return response()
+		return response(String.class)
 				.ok()
 				.applicationJson()
 				.body(JsonStream.serialize(new User(userId)));
@@ -160,14 +162,19 @@ public class Users
 	//@Consumes("multipart/form-data")
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
 	@ApiOperation(value = "Create a user",   httpMethod = "POST", response = User.class)
-	public ServerResponse createUser( final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
+	public ServerResponse<?> createUser( final ServerRequest serverRequest,  
+	                                     @QueryParam("context") Optional<String> context, 
+	                                     final User user, 
+	                                     List<String> stringArgs,
+	                                     Optional<List<String>> optionalStringArgs 
+	                                     )
 	{
  		 
- 			ServerResponse response = null;
+ 			ServerResponse<?> response = null;
  			
  			if( user != null )
  			{
- 	 			response =  response().ok().entity(user) ;
+ 	 			response =  response(User.class).ok().entity(user) ;
 
  			}
  			else
@@ -181,23 +188,51 @@ public class Users
 	
 	@PUT
 	@Path("/username")
-	@Consumes("application/json,application/xml") 
-	@Produces("application/json,application/xml") 
+	@Consumes(MediaType.APPLICATION_JSON + "," + MediaType.APPLICATION_XML) 
+	@Produces(MediaType.APPLICATION_JSON + "," + MediaType.APPLICATION_XML) 
 //	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
 	@ApiOperation(value = "Update a user's name",   httpMethod = "PUT", response = User.class)
-	public CompletableFuture<ServerResponse> updateUsername(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final User user  )
+	public CompletableFuture<ServerResponse<List<User>>> updateUsername(@ApiParam(hidden=true)final ServerRequest serverRequest,  @QueryParam("context") Optional<String> context, final List<User> users  )
 	{
 //		
 	log.debug("esIndexName: " + esIndexName); 
 	log.debug("context: " + context); 
 	log.debug("request: " + serverRequest); 
-	log.debug("file: " + user); 
+	log.debug("file: " + users); 
 
  
-		return CompletableFuture.completedFuture(response().entity(user));
+		return CompletableFuture.completedFuture(response(users));
 
 	}
 
+	@GET
+	@Path("/empty")
+//	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
+	@ApiOperation(value = "Test an empty control endpoint",   httpMethod = "GET" )
+	public CompletableFuture<ServerResponse<ImmutableMap>> empty()
+	{
+//		 
+ 
+		return CompletableFuture.completedFuture(response(ImmutableMap.class).entity( ImmutableMap.of("empty", "success") ));
 
+	}
+	
+	@GET
+	@Path("/raw")
+	@ApiOperation(value = "Test a raw control endpoint",   httpMethod = "GET" )
+	public void raw(HttpServerExchange exchange)
+	{ 
+		exchange.getResponseSender().send("end");
+
+	}
+	
+	@GET
+	@Path("/raw2")
+	@ApiOperation(value = "Test a raw control endpoint",   httpMethod = "GET" )
+	public void raw2(HttpServerExchange exchange)
+	{ 
+		response("end").textPlain().send(exchange);
+
+	}
 
 }

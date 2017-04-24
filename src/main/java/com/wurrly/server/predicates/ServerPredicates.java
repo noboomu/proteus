@@ -27,5 +27,6 @@ public class ServerPredicates
     public static final Predicate STRING_BODY_PREDICATE = io.undertow.predicate.Predicates.and(io.undertow.predicate.Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), MimeTypes.APPLICATION_JSON_TYPE, MimeTypes.APPLICATION_XML_TYPE), MAX_CONTENT_SIZE_PREDICATE );
  	public static final Predicate MULTIPART_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), MimeTypes.OCTET_STREAM_TYPE, MultiPartParserDefinition.MULTIPART_FORM_DATA );
  	public static final Predicate URL_ENCODED_FORM_PREDICATE = io.undertow.predicate.Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), FormEncodedDataDefinition.APPLICATION_X_WWW_FORM_URLENCODED );
- 	
+	public static final Predicate JSON_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), MimeTypes.APPLICATION_JSON_TYPE);
+ 	public static final Predicate XML_PREDICATE = io.undertow.predicate.Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), MimeTypes.APPLICATION_XML_TYPE);
 }

@@ -4,7 +4,7 @@
 package com.wurrly.models;
 
 import com.jsoniter.annotation.JsonIgnore;
-
+import  com.jsoniter.annotation.JsonWrapper;
 public class User
 {
 	public enum UserType
@@ -14,7 +14,8 @@ public class User
 	
 	private Long id = 0L;
 	
-	@JsonIgnore
+	public String username;
+	
 	private UserType type = UserType.GUEST;
 
 	public User()
@@ -64,6 +65,30 @@ public class User
 	public void setType(UserType type)
 	{
 		this.type = type;
+	}
+
+	/**
+	 * @return the username
+	 */
+	public String getUsername()
+	{
+		return username;
+	}
+
+	/**
+	 * @param username the username to set
+	 */
+	public void setUsername(String username)
+	{
+		this.username = username;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public UserType getType()
+	{
+		return type;
 	}
 	
 	

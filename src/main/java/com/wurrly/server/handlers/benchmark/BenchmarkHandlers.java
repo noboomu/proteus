@@ -3,9 +3,12 @@
  */
 package com.wurrly.server.handlers.benchmark;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
@@ -20,6 +23,7 @@ import com.google.common.io.Files;
 import com.j256.simplemagic.ContentType;
 import com.jsoniter.output.JsonStream;
 import com.wurrly.server.ServerResponse;
+import com.wurrly.server.handlers.HandlerGenerator.StatementParameterType;
 
 import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.predicate.Predicates;
@@ -48,18 +52,22 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 		public String message = "hello world";
 	}
 	
+    final static ByteBuffer msgBuffer  = ByteBuffer.wrap("hello world".getBytes());
+
 	public RoutingHandler get()
 	{
-	    final ByteBuffer msgBuffer  = ByteBuffer.wrap("hello world".getBytes());
-	     
+ 	     
 	    final RoutingHandler handler = new RoutingHandler();
 	    
 	    handler.add(Methods.GET, "/".intern(), new HttpHandler(){
  
+	     
+	    	
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
 				// TODO Auto-generated method stub
+				
 				
 				exchange.getResponseSender().send(msgBuffer);  
 				
@@ -73,7 +81,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 			{
 				// TODO Auto-generated method stub
  				
-				exchange.getResponseSender().send(JsonStream.serialize(new BenchmarkMessage()));  
+				exchange.getResponseSender().send(JsonStream.serialize(Collections.singletonMap("message", "Hello, World!")));  
 				
 			} 
 		} );
@@ -99,7 +107,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 	    				{
 	    					// TODO Auto-generated method stub
 	    					
-	    					final ServerResponse resp = ServerResponse.response().body(msgBuffer);
+	    					final ServerResponse<String> resp = ServerResponse.response(String.class).body(msgBuffer);
 	    	 				
 	    					resp.send(this, exchange); 
  	    					
@@ -115,7 +123,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 				{
 					// TODO Auto-generated method stub
 					
-					final ServerResponse resp = ServerResponse.response().body(JsonStream.serialize(new BenchmarkMessage()));
+					final ServerResponse<String> resp = ServerResponse.response(String.class).body(JsonStream.serialize(new BenchmarkMessage()));
 	 				
 					resp.send(this, exchange); 
 					
@@ -174,7 +182,9 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 				Path filePath = Paths.get("./assets");
 				
  			 	exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, ContentType.MP4A.getMimeType());
- 			 	
+ 			 
+// 		        java.util.Optional<java.util.List<java.lang.String>> optionalStringArgs = java.util.Optional.ofNullable(exchange.getQueryParameters().get("optionalStringArgs")).map(java.util.Deque::stream).map( p -> p.map(java.lang.String::valueOf).collect(java.util.stream.Collectors.toList() ));
+
  			 	FileResourceManager mgr = new FileResourceManager(filePath.toFile());
 
  			 	ResourceHandler hdlr = new ResourceHandler(mgr);

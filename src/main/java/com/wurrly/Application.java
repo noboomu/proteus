@@ -3,7 +3,14 @@
  */
 package com.wurrly;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -24,8 +31,11 @@ import com.google.inject.name.Named;
 import com.jsoniter.DecodingMode;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.annotation.JsoniterAnnotationSupport;
+import com.jsoniter.output.Codegen;
 import com.jsoniter.output.EncodingMode;
 import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.Encoder;
+import com.jsoniter.spi.TypeLiteral;
 import com.typesafe.config.Config;
 import com.wurrly.controllers.Users;
 import com.wurrly.modules.ConfigModule;
@@ -35,7 +45,8 @@ import com.wurrly.server.handlers.HandlerGenerator;
 import com.wurrly.server.handlers.benchmark.BenchmarkHandlers;
 import com.wurrly.services.AssetsService;
 import com.wurrly.services.SwaggerService;
-
+ 
+import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.server.DefaultResponseListener;
@@ -52,19 +63,15 @@ public class Application
 	
  
 	private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Application.class.getCanonicalName());
-	private static final String CHARSET = "UTF-8";
-	
-	 
-
-	
-	public static class BaseHandlers
-	{
-		 public static void notFoundHandler(HttpServerExchange exchange) {
-		        exchange.setStatusCode(404);
-		        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-		        exchange.getResponseSender().send("Page Not Found!!");
-		    }
-	}
+ 	
+	 /*
+	  *  public static ExecutorService EXECUTOR =
+            new ThreadPoolExecutor(
+                    cpuCount * 2, cpuCount * 25, 200, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<Runnable>(cpuCount * 100),
+                    new ThreadPoolExecutor.CallerRunsPolicy());
+	  */
+ 
  
  
 	protected Injector injector = null;
@@ -80,8 +87,7 @@ public class Application
 	@Inject
 	@Named("registeredEndpoints")
 	protected Set<EndpointInfo> registeredEndpoints;
-	
- 	protected RoutingModule routingModule = null;
+	 
  	
 	public Application()
 	{
@@ -129,7 +135,7 @@ public class Application
 		     
 		 serviceManager.startAsync();
 	}
-	
+ 
 	public Undertow buildServer()
 	{
 		
@@ -156,19 +162,24 @@ public class Application
 		
 		log.info("\n\nRegistered the following endpoints: \n\n" + sb.toString());
 		
-		webServer = Undertow.builder()
-				.addHttpListener(rootConfig.getInt("application.port"), "localhost")
-				.setBufferSize(1024 * 16)
-				.setIoThreads(Runtime.getRuntime().availableProcessors())
-				.setServerOption(UndertowOptions.ENABLE_HTTP2, true)
-		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
  
+		
+		webServer = Undertow.builder()
+				.addHttpListener(rootConfig.getInt("application.port"),rootConfig.getString("application.host"))
+				.setBufferSize(1024 * 16)
+				.setIoThreads(Runtime.getRuntime().availableProcessors()*2)
+				.setServerOption(UndertowOptions.ENABLE_HTTP2, false)
+		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
+		     //   .setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, true) 
  		        .setSocketOption(org.xnio.Options.BACKLOG, 10000)
+ 		       .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false)
 		        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
 		        .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, 1000000L * 200 )
-				.setWorkerThreads(Runtime.getRuntime().availableProcessors() * 8)
-				.setHandler( new HttpHandler()
+				.setWorkerThreads(Runtime.getRuntime().availableProcessors()*8)
+				.setHandler(
+ new HttpHandler()
 		{
+			
 			@Override
 			public void handleRequest(final HttpServerExchange exchange) throws Exception
 			{
@@ -178,7 +189,7 @@ public class Application
 //					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Origin"), "*");
 //					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Methods"), "*");
 //					exchange.getResponseHeaders().put(HttpString.tryFromString("Access-Control-Allow-Headers"), "*");
-					exchange.getResponseHeaders().put(Headers.SERVER, "Bowser"); 
+					//exchange.getResponseHeaders().put(Headers.SERVER, "Bowser"); 
 
 					 try {
 						   router.handleRequest(exchange);
@@ -191,7 +202,10 @@ public class Application
 					}
 				 
 			}
-		}).build();
+			}
+ 		).build();
+		
+	 
 		
 		return webServer;
 	}
@@ -237,5 +251,13 @@ public class Application
 	}
 	
  
+	public static class BaseHandlers
+	{
+		 public static void notFoundHandler(HttpServerExchange exchange) {
+		        exchange.setStatusCode(404);
+		        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+		        exchange.getResponseSender().send("Page Not Found!!");
+		    }
+	}
 
 }

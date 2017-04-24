@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Objects;
@@ -21,21 +20,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.inject.Inject;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
 import com.jsoniter.spi.TypeLiteral;
-import com.wurrly.server.predicates.MaxRequestContentLengthPredicate;
+import com.wurrly.server.predicates.ServerPredicates;
 
-import io.undertow.attribute.ExchangeAttributes;
-import io.undertow.predicate.Predicate;
-import io.undertow.predicate.Predicates;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData.FormValue;
 import io.undertow.server.handlers.form.FormDataParser;
-import io.undertow.server.handlers.form.FormEncodedDataDefinition;
-import io.undertow.server.handlers.form.MultiPartParserDefinition;
-import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 
@@ -45,11 +37,7 @@ import io.undertow.util.Methods;
 public class Extractors
 {
 	private static Logger log = LoggerFactory.getLogger(Extractors.class.getCanonicalName());
-
  
-	
-	public static final Predicate JSON_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), MimeTypes.APPLICATION_JSON_TYPE);
- 	public static final Predicate XML_PREDICATE = io.undertow.predicate.Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), MimeTypes.APPLICATION_XML_TYPE);
  
 	protected static final XmlMapper XML_MAPPER = new XmlMapper();
 	
@@ -63,7 +51,7 @@ public class Extractors
 
 		public static  <T> java.util.Optional<T> model(final HttpServerExchange exchange, final TypeLiteral<T> type )
 		{
-			if( JSON_PREDICATE.resolve(exchange) )
+			if( ServerPredicates.JSON_PREDICATE.resolve(exchange) )
 			{
 				return jsonModel(exchange,type);
 			}
@@ -75,7 +63,7 @@ public class Extractors
 		
 		public static  <T> java.util.Optional<T> model(final HttpServerExchange exchange, final Class<T> type )
 		{
-			if( JSON_PREDICATE.resolve(exchange) )
+			if( ServerPredicates.JSON_PREDICATE.resolve(exchange) )
 			{
 				return jsonModel(exchange,type);
 			}
@@ -156,6 +144,11 @@ public class Extractors
 		public static  java.util.Optional<Integer> integerValue(final HttpServerExchange exchange, final String name)
 		{
 			return string(exchange, name).map(Integer::parseInt);
+		}
+		
+		public static  java.util.Optional<Short> shortValue(final HttpServerExchange exchange, final String name)
+		{
+			return string(exchange, name).map(Short::parseShort);
 		}
 		
 		public static  java.util.Optional<Float> floatValue(final HttpServerExchange exchange, final String name)
@@ -335,6 +328,11 @@ public class Extractors
 	{
 		return Integer.parseInt(string(exchange, name));
 	}
+	
+	public static  Short shortValue(final HttpServerExchange exchange, final String name)
+	{
+		return Short.parseShort(string(exchange, name));
+	}
 
 	public static  Boolean booleanValue(final HttpServerExchange exchange, final String name)
 	{
@@ -343,7 +341,7 @@ public class Extractors
 	 
 	public static <T>  T model(final HttpServerExchange exchange, final TypeLiteral<T> type )   throws IllegalArgumentException
 	{
-		if( JSON_PREDICATE.resolve(exchange) )
+		if( ServerPredicates.JSON_PREDICATE.resolve(exchange) )
 		{
 			return jsonModel(exchange,type);
 		}
@@ -355,7 +353,7 @@ public class Extractors
 	
 	public static <T> T  model(final HttpServerExchange exchange, final Class<T> type )   throws IllegalArgumentException
 	{
-		if( JSON_PREDICATE.resolve(exchange) )
+		if( ServerPredicates.JSON_PREDICATE.resolve(exchange) )
 		{
 			return jsonModel(exchange,type);
 		}
@@ -366,12 +364,6 @@ public class Extractors
 	}
 
 
-//	public static  <E extends Enum<E>> E enumValue(final HttpServerExchange exchange, Class<E> clazz,final String name)
-//	{
-//		return Enum.valueOf(clazz, string(exchange, name));
-//	}
-	
-	
 	
 	public static  Function<Method,HttpString> httpMethodFromMethod = (m) ->
 			Arrays.stream(m.getDeclaredAnnotations()).map( a -> {

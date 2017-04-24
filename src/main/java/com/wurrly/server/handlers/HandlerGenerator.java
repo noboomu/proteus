@@ -6,11 +6,13 @@ package com.wurrly.server.handlers;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import com.jsoniter.output.Codegen;
 import com.jsoniter.spi.TypeLiteral;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -61,13 +64,18 @@ import net.openhft.compiler.CompilerUtils;
 
 /**
  * @author jbauer
+	@TODO 
+	Binary data in query
+	Clean this UP!!!
+	
  */
 public class HandlerGenerator
 {
 
 	private static Logger log = LoggerFactory.getLogger(HandlerGenerator.class.getCanonicalName());
 
-	private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.(concurrent\\.)?[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
+	private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
+	private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
 
 	public enum StatementParameterType
 	{
@@ -95,8 +103,9 @@ public class HandlerGenerator
 		ValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL,  StatementParameterType.TYPE, com.wurrly.server.Extractors.class,   StatementParameterType.STRING),
 		FromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL,StatementParameterType.TYPE,  com.wurrly.server.Extractors.class, StatementParameterType.STRING),
 
-		ListType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toList())",false, java.util.List.class,StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW  ),
-		
+		ListValueOfType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toList())",false, java.util.List.class,StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW  ),
+		ListFromStringType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toList())",false, java.util.List.class,StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW  ),
+
 		HeaderValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, com.wurrly.server.Extractors.Header.class, StatementParameterType.STRING),
 		HeaderFromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE,com.wurrly.server.Extractors.Header.class,  StatementParameterType.STRING),
 		HeaderStringType("$T $L = $T.string(exchange,$S)", false, java.lang.String.class, StatementParameterType.LITERAL,com.wurrly.server.Extractors.Header.class, StatementParameterType.STRING),
@@ -105,7 +114,8 @@ public class HandlerGenerator
 		OptionalHeaderFromStringType("$T<$T> $L = $T.string(exchange,$S).map($T::fromString)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, com.wurrly.server.Extractors.Header.Optional.class,  StatementParameterType.STRING,StatementParameterType.RAW),
 		OptionalHeaderStringType("$T<$T> $L = $T.string(exchange,$S)", false, Optional.class,  java.lang.String.class, StatementParameterType.LITERAL,com.wurrly.server.Extractors.Header.Optional.class, StatementParameterType.STRING),
 
-		
+		OptionalListValueOfType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toList()))",false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW  ),
+		OptionalListFromStringType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toList()))",false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW  ),
 		
 		OptionalJsonIteratorType("$T<$T> $L = $T.jsonIterator(exchange)", true, Optional.class,   com.jsoniter.JsonIterator.class, StatementParameterType.LITERAL,com.wurrly.server.Extractors.Optional.class),
 		OptionalAnyType("$T<$T> $L = $T.any(exchange)", true,  Optional.class,  com.jsoniter.any.Any.class, StatementParameterType.LITERAL,com.wurrly.server.Extractors.Optional.class),
@@ -257,8 +267,68 @@ public class HandlerGenerator
 			
 			if( isArray && !isOptional )
 			{
-				return ListType;
+				try
+				{
+					Class<?> erasedType = (Class<?>)extractErasedType(type); 
+					
+					if( hasValueOfMethod(erasedType) )
+					{
+						return ListValueOfType;
+
+					}
+					else if( hasFromStringMethod(erasedType) )
+					{
+						return ListFromStringType;
+					}
+					else
+					{
+						return ModelType;
+					}
+					
+				}
+				catch(Exception e)
+				{
+					log.error(e.getMessage(),e);
+
+				}
 			}
+			else if( isArray && isOptional )
+			{
+				try
+				{
+					
+					if(type instanceof ParameterizedType)
+					{
+						ParameterizedType pType = (ParameterizedType)type;
+						type = pType.getActualTypeArguments()[0];
+					}
+					
+					Class<?> erasedType = (Class<?>)extractErasedType(type); 
+					
+
+					if( hasValueOfMethod(erasedType) )
+					{
+						return OptionalListValueOfType;
+
+					}
+					else if( hasFromStringMethod(erasedType) )
+					{
+						return OptionalListFromStringType;
+					}
+					else
+					{
+						return ModelType;
+					}
+					
+				}
+				catch(Exception e)
+				{
+					log.error(e.getMessage(),e);
+
+				}
+			}
+				
+		
 			
 		//	log.debug("type: " + type.getTypeName() + " valueOf: " + hasValueOf + " fromString: " + hasFromString);
 
@@ -345,7 +415,7 @@ public class HandlerGenerator
 					try
 					{
 				 
-						Class<?> erasedType = extractErasedType(type); 
+						Class<?> erasedType = (Class<?>)extractErasedType(type); 
 
 						log.debug("erasedType: " + erasedType + " for " + type);
 
@@ -370,7 +440,7 @@ public class HandlerGenerator
 					return OptionalStringType; 
 				}
 			}
-
+			
 			else if (hasValueOf)
 			{
 				return ValueOfType;
@@ -467,7 +537,7 @@ public class HandlerGenerator
 
 			for (Class<?> clazz : this.registeredControllers)
 			{
-				String className = clazz.getSimpleName().toLowerCase();
+				String className = clazz.getSimpleName().toLowerCase() + "Controller";
 
 				typeBuilder.addField(clazz, className, Modifier.PROTECTED);
 
@@ -498,32 +568,115 @@ public class HandlerGenerator
 	{
 		ClassName httpHandlerClass = ClassName.get("io.undertow.server", "HttpHandler");
 
-		String controllerName = clazz.getSimpleName().toLowerCase();
+		String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
 		
 		
 
 		MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("get").addModifiers(Modifier.PUBLIC).returns(RoutingHandler.class).addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
 
-		final Map<Type, String> typeLiteralsMap = Arrays.stream(clazz.getDeclaredMethods())
+		final Map<Type, String> parameterizedLiteralsNameMap = Arrays.stream(clazz.getDeclaredMethods())
 				.flatMap(m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)
 						.filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
 				.distinct().filter(t -> {
  					TypeHandler handler = TypeHandler.forType(t);
 					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
-		}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForType));
+		}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForParameterizedType));
+
+		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods())
+				.flatMap(m -> Arrays.stream(m.getParameters())
+				         .map(Parameter::getParameterizedType))
+				.filter( t -> {
+					
+					if( t.getTypeName().contains("java.util") )
+					{
+						return false;
+					} 
+					
+					try
+					{
+						Class<?> optionalType = (Class<?>)extractErasedType(t);
+						
+						if(optionalType != null)
+						{
+							t = optionalType;
+						}
+						
+					} catch (Exception e)
+					{
+						
+					}
+					
+					if( t.getTypeName().contains("java.lang") )
+					{
+						return false;
+					} 
+					else if( t.getTypeName().contains("java.nio") )
+					{
+						return false;
+					} 
+					else if( t.getTypeName().contains("java.io") )
+					{
+						return false;
+					} 
+					else if( t.getTypeName().contains("java.util") )
+					{
+						return false;
+					} 
+					else if(t.equals(HttpServerExchange.class) || t.equals(ServerRequest.class))
+					{
+						return false;
+					}
+						
+ 					
+					if( t instanceof Class )
+					{
+						Class<?> pClazz = (Class<?>)t;
+						if(pClazz.isPrimitive())
+						{
+							return false;
+						} 
+						if( pClazz.isEnum() )
+						{
+							return false;
+						}
+						
+						 
+					}
+					
+					TypeHandler handler = TypeHandler.forType(t);
+					
+					System.out.println("handler: " + handler);
+					
+					return true;
+					
+				} )
+				         .distinct()
+				         .collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForType));
+				
+//		System.out.println("typeLiteralsList: " + literalsNameMap);
 
 		initBuilder.addCode("$L", "\n");
+		
+//		System.out.println("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 
-		typeLiteralsMap.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LType = new $T<$L>(){}", TypeLiteral.class, t, n, TypeLiteral.class, t));
+		parameterizedLiteralsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeLiteral = new $T<$L>(){}", TypeLiteral.class, t, n, TypeLiteral.class, t));
+		
+		// encoder = Codegen.getEncoder(userListType.getEncoderCacheKey(), userListType.getType(),null);
+		
+		// $LTypeEncoder = com.jsoniter.output.Codegen.getEncoder($LTypeLiteral.getEncoderCacheKey(), $LTypeLiteral.getType(), null);
+
+		literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeLiteral = new $T<$T>(){}", TypeLiteral.class, t, n, TypeLiteral.class, t));
 
 		initBuilder.addCode("$L", "\n");
 		 
 		
 		List<String> consumesContentTypes = new ArrayList<>();
 		List<String> producesContentTypes = new ArrayList<>();
-
+	
 		for (Method m : clazz.getDeclaredMethods())
 		{
+		 
+			
 			EndpointInfo endpointInfo = new EndpointInfo();
 
 			String producesContentType = "*/*";
@@ -586,6 +739,8 @@ public class HandlerGenerator
 
 			endpointInfo.setMethod(httpMethod);
 
+			endpointInfo.setConsumes(consumesContentType);
+
 			endpointInfo.setPathTemplate(methodPath);
 
 			endpointInfo.setControllerMethod(  m.getName());
@@ -602,7 +757,7 @@ public class HandlerGenerator
 			for (Parameter p : m.getParameters())
 			{
 
-				if (p.getParameterizedType().equals(ServerRequest.class))
+				if (p.getParameterizedType().equals(ServerRequest.class) || p.getParameterizedType().equals(HttpServerExchange.class))
 				{
 					continue;
 				}
@@ -644,6 +799,10 @@ public class HandlerGenerator
 						methodBuilder.addStatement("$T serverRequest = new $T(exchange)", ServerRequest.class, ServerRequest.class);
 						methodBuilder.addCode("$L", "\n");
 
+					}
+					else if (p.getType().equals(HttpServerExchange.class))
+					{
+						methodBuilder.addCode("$L", "\n");
 					}
 					else
 					{
@@ -709,9 +868,9 @@ public class HandlerGenerator
 
 							if (t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType))
 							{
-								String interfaceType = typeLiteralsMap.get(type);
+								String interfaceType = parameterizedLiteralsNameMap.get(type);
 
-								String pType = interfaceType != null ? interfaceType + "Type" : type.getTypeName() + ".class";
+								String pType = interfaceType != null ? interfaceType + "TypeLiteral" : type.getTypeName() + ".class";
 
 								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 							}
@@ -719,6 +878,26 @@ public class HandlerGenerator
 							{
 
 								TypeHandler.addStatement(methodBuilder,p);
+							}
+							else if (t.equals(TypeHandler.OptionalListFromStringType) || t.equals(TypeHandler.OptionalListValueOfType))
+							{
+								// $T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map($T
+
+								ParameterizedType pType = (ParameterizedType)type;
+								
+								if(type instanceof ParameterizedType)
+								{
+									pType = (ParameterizedType)type;
+									type = pType.getActualTypeArguments()[0];
+								}
+								
+								Class<?> erasedType = (Class<?>)extractErasedType(type); 
+								
+								//System.out.println("optionalist: erasedType: " + erasedType + " type: " + type + " pType: " + pType);
+								 
+								methodBuilder.addStatement(t.statement, pType, p.getName(), p.getName(), erasedType);
+								
+								//TypeHandler.addStatement(methodBuilder,p);
 							}
 							else
 							{
@@ -740,7 +919,7 @@ public class HandlerGenerator
 
 			String controllerMethodArgs = Arrays.stream(m.getParameters()).map(Parameter::getName).collect(Collectors.joining(","));
 
-			if (!m.getReturnType().equals(Void.class))
+ 			if (!m.getReturnType().toString().equals("void"))
 			{
 				if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage") || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
 				{
@@ -753,48 +932,59 @@ public class HandlerGenerator
 				{ 
 					functionBlockBuilder.add("$T $L = $L.$L($L);", m.getReturnType(), "response", controllerName, m.getName(), controllerMethodArgs);
 				}
-			}
-	
-			methodBuilder.addCode(functionBlockBuilder.build());
+				
+				methodBuilder.addCode(functionBlockBuilder.build());
 
-			methodBuilder.addCode("$L", "\n");
+				methodBuilder.addCode("$L", "\n");
 
-			 
-
-			endpointInfo.setConsumes(consumesContentType);
-
-			methodBuilder.addCode("$L", "\n");
-			
-			if( m.getReturnType().equals(ServerResponse.class))
-			{
-				methodBuilder.addStatement("$L.send(this,$L)","response","exchange");
-
-			}
-			else if( m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage") || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture") )
-			{
-				   
-					methodBuilder.addStatement("$L.thenAccept( r ->  r.send(this,$L) ).exceptionally( ex -> { throw new java.util.concurrent.CompletionException(ex); } );","response","exchange"); 
-			}
-			else
-			{
-
-
-				methodBuilder.addStatement("exchange.getResponseHeaders().put($T.CONTENT_TYPE, $S)", Headers.class, producesContentType);
-	
-				if (m.getReturnType().equals(String.class))
+				
+				if( m.getReturnType().equals(ServerResponse.class))
 				{
-					methodBuilder.addStatement("exchange.getResponseHeaders().send($L)", "response");
+					methodBuilder.addStatement("$L.send(this,$L)","response","exchange");
+
+				}
+				else if( m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage") || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture") )
+				{ 
+					
+						methodBuilder.addCode("$L.thenAccept( r ->  r.send(this,$L) )\n\t.exceptionally( ex -> ","response","exchange"); 
+						methodBuilder.beginControlFlow("", "");
+						methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
+						methodBuilder.endControlFlow(")", "");
 				}
 				else
 				{
-					methodBuilder.addStatement("exchange.getResponseSender().send(com.jsoniter.output.JsonStream.serialize($L))", "response");
-				}
-	
- 			
-			}
-			
-			handlerClassBuilder.addMethod(methodBuilder.build());
 
+
+					methodBuilder.addStatement("exchange.getResponseHeaders().put($T.CONTENT_TYPE, $S)", Headers.class, producesContentType);
+		
+					if (m.getReturnType().equals(String.class))
+					{
+						methodBuilder.addStatement("exchange.getResponseHeaders().send($L)", "response");
+					}
+					else
+					{
+						methodBuilder.addStatement("exchange.getResponseSender().send(com.jsoniter.output.JsonStream.serialize($L))", "response");
+					}
+		
+	 			
+				}
+				
+				handlerClassBuilder.addMethod(methodBuilder.build());
+ 
+				
+				
+			}
+			else
+			{
+				functionBlockBuilder.add("$L.$L($L);", controllerName, m.getName(), "exchange");
+				
+				methodBuilder.addCode(functionBlockBuilder.build());
+
+				handlerClassBuilder.addMethod(methodBuilder.build());
+
+			}
+	
+		 
 
 			FieldSpec handlerField = FieldSpec.builder(httpHandlerClass, methodName, Modifier.FINAL).initializer("$L", handlerClassBuilder.build()).build();
 
@@ -904,10 +1094,13 @@ public class HandlerGenerator
 
 
 	
-	public static Class<?> extractErasedType(Type type) throws Exception
+ 
+
+	public static Type extractErasedType(Type type) throws Exception
 	{
 		String typeName = type.getTypeName();
 
+		
 		Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
 
 		if (matcher.find())
@@ -922,17 +1115,24 @@ public class HandlerGenerator
 				
 				String clearDollarType = erasedType.replaceAll("\\$", ".");
 				
-				log.debug("erasedType: " + erasedType);
-				log.debug("clearDollarType: " + clearDollarType);
-				
 				try
 				{
-					return  Class.forName(clearDollarType);
-					 
-				} catch (Exception e)
+					Class<?> clazz =   Class.forName(clearDollarType);
+					return clazz;
+
+				} catch (Exception e1)
 				{
-					return Class.forName(erasedType);
-				}
+					try
+					{
+						Class<?> clazz =  Class.forName(erasedType);
+ 
+						return clazz;
+						
+					} catch (Exception e2)
+					{
+						return type;
+					}
+ 				}
 
 			 
 			} 
@@ -941,19 +1141,26 @@ public class HandlerGenerator
 
 				String erasedType = matcher.group(3);
 				
-				String clearDollarType = erasedType.replaceAll("\\$", ".");
-				
-//				log.debug("erasedType: " + erasedType);
-//				log.debug("clearDollarType: " + clearDollarType);
+				String clearDollarType = erasedType.replaceAll("\\$", "."); 
 				
 				try
 				{
-					return  Class.forName(clearDollarType);
-					 
-				} catch (Exception e)
+					Class<?> clazz =   Class.forName(clearDollarType);
+					return clazz;
+
+				} catch (Exception e1)
 				{
-					return Class.forName(erasedType);
-				}
+					try
+					{
+						Class<?> clazz =  Class.forName(erasedType);
+ 
+						return clazz;
+						
+					} catch (Exception e2)
+					{
+						return type;
+					}
+ 				}
 
 			 
 			}
@@ -967,10 +1174,12 @@ public class HandlerGenerator
 		return null;
 	}
 
-	public static String typeLiteralNameForType(Type type)
+	
+	public static String typeLiteralNameForParameterizedType(Type type)
 	{
 		String typeName = type.getTypeName();
-
+		
+ 
 		Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
 
 		if (matcher.find())
@@ -1001,10 +1210,77 @@ public class HandlerGenerator
 					erasedTypeName = erasedParts[0];
 				}
 
-				return String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1, erasedTypeName.length()), genericTypeName);
+				typeName = String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1, erasedTypeName.length()), genericTypeName);
+				
+				return typeName;
 			}
 
 		}
+		
+		matcher = CONCURRENT_TYPE_NAME_PATTERN.matcher(typeName);
+
+		if (matcher.find())
+		{
+
+			int matches = matcher.groupCount();
+
+			if (matches == 2)
+			{
+				String genericInterface = matcher.group(1);
+				String erasedType = matcher.group(2).replaceAll("\\$", ".");
+				
+//				log.debug("genericInterface: " + genericInterface);
+//				log.debug("erasedType: " + erasedType);
+
+				String[] genericParts = genericInterface.split("\\.");
+				String[] erasedParts = erasedType.split("\\.");
+
+				String genericTypeName = genericParts[genericParts.length - 1];
+				String erasedTypeName;
+
+				if (erasedParts.length > 1)
+				{
+					erasedTypeName = erasedParts[erasedParts.length - 2] + erasedParts[erasedParts.length - 1];
+				}
+				else
+				{
+					erasedTypeName = erasedParts[0];
+				}
+
+				typeName = String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1, erasedTypeName.length()), genericTypeName);
+				return typeName;
+			}
+
+		}
+		
+ 
+
+		return typeName;
+	}
+	
+	public static String typeLiteralNameForType(Type type)
+	{
+		String typeName = type.getTypeName();
+		
+	
+ 		String[] erasedParts = typeName.split("\\.");
+
+ 		String erasedTypeName;
+
+		if (erasedParts.length > 1)
+		{
+			erasedTypeName = erasedParts[erasedParts.length - 2] + erasedParts[erasedParts.length - 1];
+		}
+		else
+		{
+			erasedTypeName = erasedParts[0];
+		}
+
+		typeName = String.format("%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1, erasedTypeName.length()));
+
+
+		System.out.println("type: " + type + " typename: " + type.getTypeName());
+
 
 		return typeName;
 	}

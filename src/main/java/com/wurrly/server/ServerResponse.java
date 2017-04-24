@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.jsoniter.any.Any;
+import com.jsoniter.output.JsonContext;
 import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.Encoder;
 import com.wurrly.server.predicates.ServerPredicates;
 
 import io.undertow.attribute.ExchangeAttributes;
@@ -30,21 +32,23 @@ import io.undertow.util.StatusCodes;
 
 /**
  * @author jbauer
- *
+ * @TODO ParameterizevServerResponse TypeLiteral relevant Jsoniter encoder This will remove the lookup and shave some time. Experiment with a ThreadLocal JsonStream and AsciiStream. Refer to JsonStream serialization
  */
-public class ServerResponse
-{ 
+public class ServerResponse<T>
+{
 	private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
-	 
+
 	protected static final XmlMapper XML_MAPPER = new XmlMapper();
 
 	protected ByteBuffer body;
-	
+
 	protected int status = StatusCodes.OK;
 	protected final HeaderMap headers = new HeaderMap();
-	protected final Map<String,Cookie> cookies = new HashMap<>(); 
+	protected final Map<String, Cookie> cookies = new HashMap<>();
 	protected String contentType = null;
-	protected Object entity;
+	protected T entity;
+	protected Throwable throwable;
+	protected Class<? extends JsonContext> jsonContext;
 	protected IoCallback ioCallback;
 	protected boolean hasCookies = false;
 	protected boolean hasHeaders = false;
@@ -54,29 +58,29 @@ public class ServerResponse
 
 	public ServerResponse()
 	{
-		
+
 	}
-	
+
 	public ByteBuffer getBody()
-	{ 
+	{
 		return body;
 	}
-	  
+
 	public int getStatus()
 	{
 		return this.status;
 	}
-	
-	public Map<String,Cookie> getCookies()
+
+	public Map<String, Cookie> getCookies()
 	{
 		return this.cookies;
 	}
-	
+
 	public HeaderMap getHeaders()
 	{
 		return this.headers;
 	}
-	
+
 	/**
 	 * @return the contentType
 	 */
@@ -94,7 +98,8 @@ public class ServerResponse
 	}
 
 	/**
-	 * @param callback the callback to set
+	 * @param callback
+	 *            the callback to set
 	 */
 	public void setIoCallback(IoCallback ioCallback)
 	{
@@ -102,7 +107,8 @@ public class ServerResponse
 	}
 
 	/**
-	 * @param body the body to set
+	 * @param body
+	 *            the body to set
 	 */
 	public void setBody(ByteBuffer body)
 	{
@@ -110,7 +116,8 @@ public class ServerResponse
 	}
 
 	/**
-	 * @param status the status to set
+	 * @param status
+	 *            the status to set
 	 */
 	public void setStatus(int status)
 	{
@@ -118,55 +125,61 @@ public class ServerResponse
 	}
 
 	/**
-	 * @param contentType the contentType to set
+	 * @param contentType
+	 *            the contentType to set
 	 */
 	public void setContentType(String contentType)
 	{
 		this.contentType = contentType;
-		
-		if(this.contentType.equals(MimeTypes.APPLICATION_JSON_TYPE))
+
+		if (this.contentType.equals(MimeTypes.APPLICATION_JSON_TYPE))
 		{
 			this.isJson = true;
 		}
-		else if(this.contentType.equals(MimeTypes.APPLICATION_XML_TYPE))
+		else if (this.contentType.equals(MimeTypes.APPLICATION_XML_TYPE))
 		{
 			this.isXml = true;
 		}
 	}
-	
-	public ServerResponse body(ByteBuffer body)
+
+	public ServerResponse<T> body(ByteBuffer body)
 	{
 		this.body = body;
 		return this;
 	}
-	
-	public ServerResponse entity(Object entity)
+
+	public ServerResponse<T> entity(T entity)
 	{
-		this.entity = entity; 
+		this.entity = entity;
 		return this;
 	}
-	
-	public ServerResponse body(String body)
+
+	public ServerResponse<T> throwable(Throwable throwable)
+	{
+		this.throwable = throwable;
+		return this;
+	}
+
+	public ServerResponse<T> body(String body)
 	{
 		this.body = ByteBuffer.wrap(body.getBytes());
 		return this;
 	}
-	
 
-	public ServerResponse status(int status)
+	public ServerResponse<T> status(int status)
 	{
-		this.status = status; 
+		this.status = status;
 		return this;
 	}
 
-	public ServerResponse header(HttpString headerName, String value)
+	public ServerResponse<T> header(HttpString headerName, String value)
 	{
 		this.headers.put(headerName, value);
 		this.hasHeaders = true;
 		return this;
 	}
 
-	public ServerResponse cookie(String cookieName, Cookie cookie)
+	public ServerResponse<T> cookie(String cookieName, Cookie cookie)
 	{
 		this.cookies.put(cookieName, cookie);
 		this.hasCookies = true;
@@ -174,222 +187,255 @@ public class ServerResponse
 		return this;
 	}
 
-	public ServerResponse contentType(String contentType)
+	public ServerResponse<T> contentType(String contentType)
 	{
 		this.setContentType(contentType);
 		return this;
 	}
- 
-	
-	public ServerResponse applicationJson()
+
+	public ServerResponse<T> applicationJson()
 	{
 		this.contentType = MimeTypes.APPLICATION_JSON_TYPE;
 		this.isJson = true;
 
 		return this;
 	}
-	
-	public ServerResponse textHtml()
+
+	public ServerResponse<T> textHtml()
 	{
-		this.contentType =  MimeTypes.TEXT_HTML_TYPE;
+		this.contentType = MimeTypes.TEXT_HTML_TYPE;
 		return this;
 	}
-	
-	public ServerResponse applicationXml()
+
+	public ServerResponse<T> applicationXml()
 	{
-		this.contentType =  MimeTypes.APPLICATION_XML_TYPE;
+		this.contentType = MimeTypes.APPLICATION_XML_TYPE;
 		this.isXml = true;
 		return this;
 	}
-	
-	public ServerResponse textPlain()
+
+	public ServerResponse<T> textPlain()
 	{
-		this.contentType =  MimeTypes.TEXT_PLAIN_TYPE;
+		this.contentType = MimeTypes.TEXT_PLAIN_TYPE;
 		return this;
 	}
 	
-	public ServerResponse ok()
+	public ServerResponse<T> jsonContext(Class<? extends JsonContext> context)
+	{
+		this.jsonContext = context;
+		return this;
+	}
+
+
+	public ServerResponse<T> ok()
 	{
 		this.status = StatusCodes.OK;
 		return this;
 	}
-	
-	public ServerResponse accepted()
+
+	public ServerResponse<T> accepted()
 	{
 		this.status = StatusCodes.ACCEPTED;
 		return this;
 	}
-	
-	public ServerResponse badRequest()
+
+	public ServerResponse<T> badRequest()
 	{
 		this.status = StatusCodes.BAD_REQUEST;
 		return this;
 	}
-	
-	public ServerResponse internalServerError()
+
+	public ServerResponse<T> internalServerError()
 	{
 		this.status = StatusCodes.INTERNAL_SERVER_ERROR;
 		return this;
 	}
-	
-	public ServerResponse created()
+
+	public ServerResponse<T> created()
 	{
 		this.status = StatusCodes.CREATED;
 		return this;
 	}
-	
-	public ServerResponse notFound()
+
+	public ServerResponse<T> notFound()
 	{
 		this.status = StatusCodes.NOT_FOUND;
 		return this;
 	}
-	
-	public ServerResponse forbidden()
+
+	public ServerResponse<T> forbidden()
 	{
 		this.status = StatusCodes.FORBIDDEN;
 		return this;
 	}
-	
-	
-	public ServerResponse found()
+
+	public ServerResponse<T> found()
 	{
 		this.status = StatusCodes.FOUND;
 		return this;
 	}
-	
-	public ServerResponse noContent()
+
+	public ServerResponse<T> noContent()
 	{
 		this.status = StatusCodes.NO_CONTENT;
 		return this;
 	}
-	
-	public ServerResponse withIoCallback(IoCallback ioCallback)
+
+	public ServerResponse<T> withIoCallback(IoCallback ioCallback)
 	{
 		this.ioCallback = ioCallback;
 		this.hasIoCallback = ioCallback == null;
 		return this;
 	}
-	
-	public ServerResponse exception(Throwable t)
+
+	public ServerResponse<T> exception(Throwable t)
 	{
-		if(this.status == StatusCodes.ACCEPTED)
+		if (this.status == StatusCodes.ACCEPTED)
 		{
 			badRequest();
 		}
-		return this.entity(Any.wrap(t));
+		return this.throwable(t);
+	}
+	
+	public void send( final HttpServerExchange exchange) throws RuntimeException
+	{
+		send(null,exchange);
 	}
 
-	public void send( final HttpHandler handler, final HttpServerExchange exchange )  throws RuntimeException
+	public void send(final HttpHandler handler, final HttpServerExchange exchange) throws RuntimeException
 	{
-		
-		if( this.hasHeaders )
+		final boolean hasBody = this.body != null;
+		final boolean hasEntity = this.entity != null;
+
+		if (this.hasHeaders)
 		{
 			long itr = this.headers.fastIterateNonEmpty();
-			
-			while( itr != -1L )
+
+			while (itr != -1L)
 			{
 				final HeaderValues values = this.headers.fiCurrent(itr);
-				
+
 				exchange.getResponseHeaders().putAll(values.getHeaderName(), values);
-				
-				itr = this.headers.fiNextNonEmpty(itr); 
+
+				itr = this.headers.fiNextNonEmpty(itr);
 			}
 		}
-		
-		if( this.hasCookies )
+
+		if (this.hasCookies)
 		{
 			exchange.getResponseCookies().putAll(this.cookies);
 		}
-		
-		exchange.setStatusCode( this.status );
-		
-		if( this.contentType != null )
+
+		exchange.setStatusCode(this.status);
+
+		if (this.contentType != null)
 		{
 			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
 		}
-		else if( !this.isJson && !this.isXml )
+		else if (!this.isJson && !this.isXml)
 		{
-			if( ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange) )
-			{ 
-				this.applicationJson(); 
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType); 
+			if (ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange))
+			{
+				this.applicationJson();
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
 			}
-			else if( ServerPredicates.ACCEPT_XML_PREDICATE.resolve(exchange) )
-			{ 
-				this.applicationXml(); 
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType); 
+			else if (ServerPredicates.ACCEPT_XML_PREDICATE.resolve(exchange))
+			{
+				this.applicationXml();
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
 			}
 		}
-		
-		if( this.body != null)
+
+		if (hasBody)
 		{
-			if( !this.hasIoCallback )
+			if (!this.hasIoCallback)
 			{
-				exchange.getResponseSender().send(this.body); 
+				exchange.getResponseSender().send(this.body);
 			}
 			else
-			{ 
-				exchange.getResponseSender().send(this.body,this.ioCallback); 
+			{
+				exchange.getResponseSender().send(this.body, this.ioCallback);
 			}
 		}
-		else if( this.entity != null)
+		else if (hasEntity)
 		{
-	        try
+			try
 			{
-				
-			 
-	        if( this.isXml )
-	        {
-	        	exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(this.entity)));
-	        } 
-	        else  
-	        {
-	        	 if(exchange.isInIoThread()) {
-	 	            exchange.dispatch(handler);
-	 	            return;
-	 	          }
-	 	        
-	        	 
-		        exchange.startBlocking();
-	
-		        final int bufferSize = exchange.getConnection().getBufferSize();
-				
-		        try(final JsonStream stream = new JsonStream(exchange.getOutputStream(), bufferSize))
-				{ 
-					stream.writeVal(this.entity); 
-				}
-		         
-				exchange.endExchange();
 
-	        }
-	        
+				if (this.isXml)
+				{
+					exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(this.entity)));
+				}
+				else
+				{
+					if (exchange.isInIoThread() && handler != null)
+					{
+						exchange.dispatch(handler);
+						return;
+					}
+
+					exchange.startBlocking();
+
+					final int bufferSize = exchange.getConnection().getBufferSize();
+					
+					/**
+					 * @TODO Test that this is faster than a thread local JsonStream with the TypeLiteral relevant encoder 
+					 **/
+
+					try (final JsonStream stream = new JsonStream(exchange.getOutputStream(), bufferSize))
+					{
+						stream.writeViewVal(this.entity,this.jsonContext);
+					}
+
+					exchange.endExchange();
+
+				}
+
 			} catch (Exception e)
 			{
-				log.error(e.getMessage() + " for entity " + this.entity,e);
-				 
-				 throw new IllegalArgumentException(e);
+				log.error(e.getMessage() + " for entity " + this.entity, e);
+
+				throw new IllegalArgumentException(e);
 			}
-			 
-			
- 		}
+
+		}
 		else
 		{
 			exchange.endExchange();
 		}
-		
+
 	}
 
 	/**
 	 * Creates builder to build {@link ServerResponse}.
+	 * 
 	 * @return created builder
-	 */ 
-	public static ServerResponse response()
+	 */
+	public static <T> ServerResponse<T> response(Class<T> clazz)
+	{
+		return new ServerResponse<T>();
+	}
+	
+	public static  ServerResponse<ByteBuffer> response(ByteBuffer body)
+	{
+		return new ServerResponse<ByteBuffer>().body(body);
+	}
+	
+	public static  ServerResponse<ByteBuffer> response(String body)
+	{
+		return new ServerResponse<ByteBuffer>().body(body);
+	}
+	
+	public static <T> ServerResponse<T> response(T entity)
+	{
+		return new ServerResponse<T>().entity(entity);
+	}
+ 
+	public static ServerResponse<?> response()
 	{
 		return new ServerResponse();
 	}
+	
+ 
 
-	 
-	
-	
-	 
 }

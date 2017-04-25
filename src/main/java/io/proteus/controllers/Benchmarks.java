@@ -12,11 +12,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 import com.jsoniter.output.JsonStream;
 
+import io.proteus.models.User;
 import io.proteus.models.World;
 import io.proteus.server.ServerResponse;
 import io.swagger.annotations.Api;
@@ -44,9 +44,9 @@ public class Benchmarks
 		response( JsonStream.serialize(ImmutableMap.of("message", "Hello, World!")) ).send(exchange);
 	}
 	
-	@GET
+	@GET 
 	@Path("/world")
-	@ApiOperation(value = "World serialization endpoint",   httpMethod = "GET" )
+	@ApiOperation(value = "World serialization endpoint",   httpMethod = "GET", response = World.class )
 	public void world(HttpServerExchange exchange)
 	{ 
 		JsonStream stream = JsonStream.localStream();
@@ -77,7 +77,7 @@ public class Benchmarks
 	
 	@GET
 	@Path("/world3")
-	@ApiOperation(value = "World serialization endpoint",   httpMethod = "GET" )
+	@ApiOperation(value = "World serialization endpoint",   httpMethod = "GET" , response = World.class)
 	public void world3(HttpServerExchange exchange)
 	{ 
  		World world = new World(123,123);

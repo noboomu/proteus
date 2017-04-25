@@ -212,5 +212,18 @@ public class Users
 	}
 	
 
+	@GET
+	@Path("/futureuser")
+//	@ApiImplicitParams({ @ApiImplicitParam(dataType = "com.wurrly.models.User", name = "user", paramType = "body", required = false, allowMultiple = false) })
+	@ApiOperation(value = "Test an empty control endpoint",   httpMethod = "GET" )
+	public CompletableFuture<ServerResponse<User>> futureUser()
+	{
+//		 
+ 
+		return CompletableFuture.completedFuture(response(User.class).entity( new User(123L) ));
+
+	}
+	
+
 
 }

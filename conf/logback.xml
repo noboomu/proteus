@@ -20,7 +20,7 @@
 	<logger name="io.netty" level="ERROR" />
 	<logger name="io.netty.handler" level="ERROR" />
 	 
-	<logger name="io.proteus.server.swagger" level="INFO" />
+	<logger name="io.proteus.server.swagger" level="DEBUG" />
 	<logger name="io.proteus.server.handlers" level="INFO" />
 	
 	<logger name="com.relayrides" level="ERROR" />

@@ -10,14 +10,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -40,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.jsoniter.output.Codegen;
 import com.jsoniter.spi.TypeLiteral;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -511,7 +509,10 @@ public class HandlerGenerator
 		{
 			this.generateRoutes();
 
-			log.info("CLASS:\n" + this.sourceString);
+		
+			log.info("\n\nGenerated Class Source:\n\n" + this.sourceString);
+			
+//			CompilerUtils.addClassPath("./lib");
 			return CompilerUtils.CACHED_COMPILER.loadFromJava(packageName + "." + className, this.sourceString);
 
 		} catch (Exception e)
@@ -1165,7 +1166,7 @@ public class HandlerGenerator
 		}
 		else
 		{
-			log.warn("No type found for " + typeName);
+			//log.warn("No type found for " + typeName);
 		}
 
 		return null;
@@ -1274,9 +1275,6 @@ public class HandlerGenerator
 		}
 
 		typeName = String.format("%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1, erasedTypeName.length()));
-
-
-		System.out.println("type: " + type + " typename: " + type.getTypeName());
 
 
 		return typeName;

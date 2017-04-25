@@ -20,9 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Files;
-import com.j256.simplemagic.ContentType;
 import com.jsoniter.output.JsonStream;
 
+import io.proteus.server.MediaType;
 import io.proteus.server.ServerResponse;
 import io.proteus.server.handlers.HandlerGenerator.StatementParameterType;
 import io.undertow.attribute.ExchangeAttributes;
@@ -181,7 +181,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 				
 				Path filePath = Paths.get("./assets");
 				
- 			 	exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, ContentType.MP4A.getMimeType());
+ 			 	exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.VIDEO_MP4.toString());
  			 
 // 		        java.util.Optional<java.util.List<java.lang.String>> optionalStringArgs = java.util.Optional.ofNullable(exchange.getQueryParameters().get("optionalStringArgs")).map(java.util.Deque::stream).map( p -> p.map(java.lang.String::valueOf).collect(java.util.stream.Collectors.toList() ));
 
@@ -213,7 +213,7 @@ public class BenchmarkHandlers implements Supplier<RoutingHandler>
 				byte[] bytes = Files.toByteArray(filePath.toFile());
 				
 				exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, bytes.length);
- 			 	exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, ContentType.MP4A.getMimeType());
+ 			 	exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.AUDIO_MP4.toString());
 
  			 	exchange.getResponseSender().send(ByteBuffer.wrap(bytes));
 			 

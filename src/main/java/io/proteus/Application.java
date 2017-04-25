@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+ 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
@@ -34,7 +34,6 @@ import io.proteus.controllers.Users;
 import io.proteus.modules.ConfigModule;
 import io.proteus.server.endpoints.EndpointInfo;
 import io.proteus.server.handlers.BaseHttpHandler;
-import io.proteus.server.handlers.GlobalHeaderHttpHandler;
 import io.proteus.server.handlers.HandlerGenerator;
 import io.proteus.services.AssetsService;
 import io.proteus.services.SwaggerService;
@@ -64,7 +63,7 @@ public class Application
  
 	protected Injector injector = null;
 	protected ServiceManager serviceManager = null;
-	protected Undertow webServer = null;
+	protected Undertow undertow = null;
 
 	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
 	
@@ -116,7 +115,7 @@ public class Application
    
          try {
         	 serviceManager.stopAsync().awaitStopped(5, TimeUnit.SECONDS);
-        	 webServer.stop();
+        	 undertow.stop();
          } catch (TimeoutException timeout) {
            // stopping timed out
          }}));
@@ -129,10 +128,7 @@ public class Application
 		
 		final Config rootConfig = injector.getInstance(Config.class);
 		
-		final RoutingHandler router = injector.getInstance(RoutingHandler.class);
-
-		final DefaultResponseListener defaultResponseListener = injector.getInstance(DefaultResponseListener.class); 
-		
+		final RoutingHandler router = injector.getInstance(RoutingHandler.class);		
 		
 		for(Class<?> controllerClass : registeredControllers)
 		{
@@ -144,17 +140,13 @@ public class Application
 			
 			router.addAll(generatedRouteSupplier.get());
 		}
+		
 		 
 		Config globalHeaders = rootConfig.getConfig("globalHeaders");
 		
 		Map<String,String> globalHeadersParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().render()));
 		   
-		HttpHandler baseHandler = new BaseHttpHandler(router, defaultResponseListener);
-
-		final GlobalHeaderHttpHandler globalHeaderHandler = injector.getInstance(GlobalHeaderHttpHandler.class);
-
- 		//baseHandler = globalHeaderHandler.wrap(baseHandler);
- 		  
+  
 		StringBuilder sb = new StringBuilder(); 
 
 		sb.append("\n\nUsing the following global headers: \n\n");
@@ -164,12 +156,15 @@ public class Application
  		sb.append("\n");
  		
  		log.info(sb.toString());
+ 		
+		HttpHandler baseHandler = injector.getInstance(BaseHttpHandler.class); 
+
   
-		webServer = Undertow.builder()
+		undertow = Undertow.builder()
 				.addHttpListener(rootConfig.getInt("application.port"),rootConfig.getString("application.host"))
 				.setBufferSize(1024 * 16)
 				.setIoThreads(Runtime.getRuntime().availableProcessors()*2)
-				.setServerOption(UndertowOptions.ENABLE_HTTP2, false)
+				.setServerOption(UndertowOptions.ENABLE_HTTP2, true)
 		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
 		     //   .setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, true) 
  		        .setSocketOption(org.xnio.Options.BACKLOG, 10000)
@@ -180,9 +175,9 @@ public class Application
 				.setHandler( baseHandler )
 				.build();
 		
-	 
+			 
 		
-		return webServer;
+		return undertow;
 	}
 	
 	public Application useService(Class<? extends Service> serviceClass)
@@ -198,6 +193,15 @@ public class Application
 	}
 	
   	
+	/**
+	 * @return the undertow
+	 */
+	public Undertow getUndertow()
+	{
+		return undertow;
+	}
+ 
+
 	public static void main(String[] args)
 	{
 
@@ -218,6 +222,8 @@ public class Application
  			 app.useController(Benchmarks.class);
 
  			 app.start();
+ 			 
+  
  			 
 		} catch (Exception e)
 		{

@@ -10,7 +10,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HttpMethod;
@@ -35,10 +35,11 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
-import com.fasterxml.jackson.databind.type.SimpleType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.github.javaparser.utils.Log;
 
 import io.proteus.server.ServerRequest;
+import io.proteus.server.ServerResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -88,6 +89,7 @@ import io.swagger.util.BaseReaderUtils;
 import io.swagger.util.ParameterProcessor;
 import io.swagger.util.PathUtils;
 import io.swagger.util.ReflectionUtils;
+import io.undertow.server.HttpServerExchange;
 
 /**
  * @author jbauer
@@ -831,6 +833,8 @@ public class Reader {
 
         Type responseType = null;
         Map<String, Property> defaultResponseHeaders = new LinkedHashMap<String, Property>();
+        
+       
 
         if (apiOperation != null) {
             if (apiOperation.hidden()) {
@@ -891,6 +895,39 @@ public class Reader {
             LOGGER.debug("picking up response class from method {}", method);
             responseType = method.getGenericReturnType();
         }
+        
+            
+        if (responseType != null) {
+        	 final JavaType javaType = TypeFactory.defaultInstance().constructType(responseType);
+        	 if (!isVoid(javaType)) {
+        	       
+        		 final Class<?> responseCls = javaType.getRawClass();
+        		  
+        	        if( responseCls != null )
+        	        {
+        	        	if( responseCls.isAssignableFrom(ServerResponse.class))
+        	        	{
+                 	        responseType = javaType.containedType(0); 
+        	        	}
+        	        	else if(  responseCls.isAssignableFrom(CompletableFuture.class) )
+        	        	{ 
+                	        Class<?> futureCls = javaType.containedType(0).getRawClass();
+                	        
+                	        if( futureCls.isAssignableFrom(ServerResponse.class))
+            	        	{
+                	        	final JavaType futureType = TypeFactory.defaultInstance().constructType(javaType.containedType(0));
+                     	        responseType = futureType.containedType(0); 
+            	        	}
+                	        else
+                	        {
+                	        	responseType = javaType.containedType(0);
+                	        } 
+        	        	}
+        	        } 
+        	 }
+        }
+   
+         
         if (isValidResponse(responseType)) {
             final Property property = ModelConverters.getInstance().readAsProperty(responseType);
             if (property != null) {
@@ -968,17 +1005,25 @@ public class Reader {
             Type[] genericParameterTypes = method.getGenericParameterTypes();
              
             for (int i = 0; i < genericParameterTypes.length; i++) {
-                Type type =  TypeFactory.defaultInstance().constructType(genericParameterTypes[i], cls);
+            	 
+              Type type =  TypeFactory.defaultInstance().constructType(genericParameterTypes[i], cls);
                 
-                if(type.equals(ServerRequest.class))
+           	 if( type.getTypeName().contains("Optional") || type.getTypeName().contains("io.proteus.server.ServerResponse"))
+      		{
+      			if( type instanceof com.fasterxml.jackson.databind.type.SimpleType)
+      			{
+      				com.fasterxml.jackson.databind.type.SimpleType simpleType = (com.fasterxml.jackson.databind.type.SimpleType)type;
+      								 
+      				type = simpleType.containedType(0); 
+      			}
+      	 
+       		}
+                
+                if(type.equals(ServerRequest.class) || type.equals(HttpServerExchange.class) || type.getTypeName().contains("io.proteus.server.ServerResponse"))
                 {
                 	continue;
                 }
-                
-                LOGGER.debug("GenericParameterTypes TYPE: " + type);
-
-                
-               
+                 
                 
                 List<Parameter> parameters = getParameters(type, Arrays.asList(paramAnnotations[i]), methodParameters[i]);
 
@@ -990,7 +1035,7 @@ public class Reader {
             for (int i = 0; i < annotatedMethod.getParameterCount(); i++) {
                 AnnotatedParameter param = annotatedMethod.getParameter(i);
                 
-                if(param.getParameterType().equals(ServerRequest.class))
+                if(param.getParameterType().equals(ServerRequest.class) || param.getParameterType().equals(HttpServerExchange.class) || param.getParameterType().getTypeName().contains("ServerResponse"))
                 {
                 	continue;
                 }
@@ -1064,6 +1109,9 @@ public class Reader {
         LOGGER.debug("getParameters for {}", type);
         Set<Type> typesToSkip = new HashSet<>();
         typesToSkip.add(TypeFactory.defaultInstance().constructType(ServerRequest.class));
+        typesToSkip.add(TypeFactory.defaultInstance().constructType(HttpServerExchange.class));
+        typesToSkip.add(TypeFactory.defaultInstance().constructType(ServerResponse.class));
+
         final SwaggerExtension extension = chain.next();
       
         if (typesToSkip.contains(type)) {
@@ -1174,7 +1222,9 @@ public class Reader {
     }
 
     private void appendModels(Type type) {
-        final Map<String, Model> models = ModelConverters.getInstance().readAll(type);
+         
+    	final Map<String, Model> models = ModelConverters.getInstance().readAll(type);
+        
         for (Map.Entry<String, Model> entry : models.entrySet()) {
             swagger.model(entry.getKey(), entry.getValue());
         }
@@ -1203,7 +1253,17 @@ public class Reader {
         if (isVoid(javaType)) {
             return false;
         }
+ 
         final Class<?> cls = javaType.getRawClass();
+      
+        if( cls != null )
+        {
+        	if( cls.isAssignableFrom(ServerResponse.class) || cls.isAssignableFrom(CompletableFuture.class))
+        	{
+        		return false;
+        	}
+        }
+
         return !javax.ws.rs.core.Response.class.isAssignableFrom(cls) && !isResourceClass(cls);
     }
 

@@ -3,9 +3,9 @@
  */
 package io.proteus.server.handlers;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +15,16 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.jsoniter.output.JsonStream;
+import com.typesafe.config.Config;
 
 import io.proteus.server.MimeTypes;
 import io.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.util.HeaderMap;
+import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
+import io.undertow.util.HttpString;
 
 /**
  * @author jbauer
@@ -31,6 +35,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 {
 	private static Logger log = LoggerFactory.getLogger(ServerDefaultResponseListener.class.getCanonicalName());
  
+
 	@Inject
 	protected XmlMapper xmlMapper;
 	 
@@ -41,7 +46,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 		 if (!exchange.isResponseChannelAvailable()) {
              return false;
          }
-    
+		   
          if (exchange.getStatusCode() == 500) {
               
         	 Throwable throwable = exchange.getAttachment(DefaultResponseListener.EXCEPTION);

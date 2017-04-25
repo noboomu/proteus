@@ -44,6 +44,7 @@ public class ServerParameterExtension extends DefaultParameterExtension
  
 	      }
 		 
+		 
 		return  super.extractParameters(annotations, type, typesToSkip, chain);
 	  
 	}
@@ -53,10 +54,10 @@ public class ServerParameterExtension extends DefaultParameterExtension
 	protected boolean shouldIgnoreType(Type type, Set<Type> typesToSkip)
 	{ 
  
-		if( type.getTypeName().contains("ServerRequest"))
+		if( type.getTypeName().contains("io.proteus.server.ServerRequest") || type.getTypeName().contains("HttpServerExchange") || type.getTypeName().contains("io.proteus.server.ServerResponse"))
 		{
 			return true;
-		}
+		} 
 		
 		return super.shouldIgnoreType(type, typesToSkip);
 	}
@@ -71,7 +72,7 @@ public class ServerParameterExtension extends DefaultParameterExtension
 	      	type = java.io.File.class; 
 
 	      }
-
+	 
 		return super.constructType(type);
 
 	}

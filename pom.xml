@@ -249,7 +249,7 @@
         </dependency>
 
     <dependency>
-    	<groupId>com.wurrly</groupId>
+    	<groupId>io.proteus</groupId>
     	<artifactId>jsoniter</artifactId>
     	<version>0.9.8</version>
     </dependency>

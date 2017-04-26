@@ -2,7 +2,6 @@
  * 
  */
 package io.proteus;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
- 
+
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
@@ -33,13 +32,12 @@ import io.proteus.controllers.Benchmarks;
 import io.proteus.controllers.Users;
 import io.proteus.modules.ConfigModule;
 import io.proteus.server.endpoints.EndpointInfo;
-import io.proteus.server.handlers.BaseHttpHandler;
+import io.proteus.server.handlers.DefaultHttpHandler;
 import io.proteus.server.handlers.HandlerGenerator;
 import io.proteus.services.AssetsService;
 import io.proteus.services.SwaggerService;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
-import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
 /**
@@ -47,26 +45,9 @@ import io.undertow.server.RoutingHandler;
  */
 public class Application
 {
-	
- 
+	 
 	private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Application.class.getCanonicalName());
- 	
-	 /*
-	  *  public static ExecutorService EXECUTOR =
-            new ThreadPoolExecutor(
-                    cpuCount * 2, cpuCount * 25, 200, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<Runnable>(cpuCount * 100),
-                    new ThreadPoolExecutor.CallerRunsPolicy());
-	  */
- 
- 
- 
-	protected Injector injector = null;
-	protected ServiceManager serviceManager = null;
-	protected Undertow undertow = null;
-
-	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
-	
+   
 	@Inject
 	@Named("registeredControllers")
 	protected Set<Class<?>> registeredControllers;
@@ -74,7 +55,17 @@ public class Application
 	@Inject
 	@Named("registeredEndpoints")
 	protected Set<EndpointInfo> registeredEndpoints;
+ 
+	protected Injector injector = null;
+	protected ServiceManager serviceManager = null;
+	protected Undertow undertow = null;
+
+	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
+	
+	protected Class<? extends HttpHandler> rootHandlerClass;
 	 
+	protected HttpHandler rootHandler;
+
  	
 	public Application()
 	{
@@ -86,10 +77,14 @@ public class Application
 	
 	public void start()
 	{
+		if( this.rootHandlerClass == null && this.rootHandler == null )
+		{
+			log.error("Cannot start the server without specifying the root handler class or a root HttpHandler!");
+			System.exit(1);
+		}
+		
 		log.info("Starting services...");
-		
-
-		
+		 
 		Set<Service> services = registeredServices.stream()
 				.map( sc -> injector.getInstance(sc))
 				.collect(Collectors.toSet());
@@ -97,28 +92,35 @@ public class Application
 		this.serviceManager = new ServiceManager(services);
 		
 		this.serviceManager.addListener(new Listener() {
-		         public void stopped() {}
+		         public void stopped() {
+		 
+		         }
 		         public void healthy() {
 		        	 log.info("Services are healthy...");
-		         
-		        	 
+		          
 		        	 buildServer().start(); 
 		         }
 		         public void failure(Service service) 
 		         {
+		        	 log.error("Error on service: " + service);
 		           System.exit(1);
 		         }
 		       },
 		       MoreExecutors.directExecutor());
 
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-   
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			  @Override
+	            public void run() {
          try {
+        	 log.info("Shutting down...");
+        	 
         	 serviceManager.stopAsync().awaitStopped(5, TimeUnit.SECONDS);
         	 undertow.stop();
+        	 
+        	 log.info("Shutdown complete.");
          } catch (TimeoutException timeout) {
-           // stopping timed out
-         }}));
+           timeout.printStackTrace();
+         }}});
 		     
 		 serviceManager.startAsync();
 	}
@@ -157,8 +159,16 @@ public class Application
  		
  		log.info(sb.toString());
  		
-		HttpHandler baseHandler = injector.getInstance(BaseHttpHandler.class); 
-
+		final HttpHandler handler; 
+		
+		if( this.rootHandlerClass != null )
+		{
+			handler = this.injector.getInstance(this.rootHandlerClass);
+		}
+		else
+		{
+			handler = this.rootHandler;
+		}
   
 		undertow = Undertow.builder()
 				.addHttpListener(rootConfig.getInt("application.port"),rootConfig.getString("application.host"))
@@ -172,7 +182,7 @@ public class Application
 		        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
 		        .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, 1000000L * 200 )
 				.setWorkerThreads(Runtime.getRuntime().availableProcessors()*8)
-				.setHandler( baseHandler )
+				.setHandler( handler )
 				.build();
 		
 			 
@@ -180,16 +190,26 @@ public class Application
 		return undertow;
 	}
 	
-	public Application useService(Class<? extends Service> serviceClass)
+	public Application addService(Class<? extends Service> serviceClass)
 	{
 		this.registeredServices.add(serviceClass);
 		return this;
 	}
 	
-	public Application useController(Class<?> controllerClass)
+	public Application addController(Class<?> controllerClass)
 	{
 		this.registeredControllers.add(controllerClass);
 		return this;
+	}
+	
+	public void setRootHandlerClass( Class<? extends HttpHandler> rootHandlerClass )
+	{
+		this.rootHandlerClass = rootHandlerClass;
+	}
+	
+	public void setRootHandler( HttpHandler rootHandler )
+	{
+		this.rootHandler = rootHandler;
 	}
 	
   	
@@ -206,24 +226,27 @@ public class Application
 	{
 
 		try
-		{
+		{ 
+			
 			JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
 			JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
 			JsoniterAnnotationSupport.enable();
 
  			Application app = new Application();
  			
- 			 app.useService(SwaggerService.class);
+ 			 app.addService(SwaggerService.class);
  			 
- 			 app.useService(AssetsService.class);
+ 			 app.addService(AssetsService.class);
 
- 			 app.useController(Users.class);
+ 			 app.addController(Users.class);
  			 
- 			 app.useController(Benchmarks.class);
+ 			 app.addController(Benchmarks.class);
+ 			 
+ 			 app.setRootHandlerClass(DefaultHttpHandler.class);
 
  			 app.start();
  			 
-  
+ 		 
  			 
 		} catch (Exception e)
 		{
@@ -232,8 +255,6 @@ public class Application
 
 
 	}
-	
- 
  
 
 }

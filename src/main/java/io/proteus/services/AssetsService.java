@@ -33,7 +33,7 @@ public class AssetsService extends BaseService
 	protected Set<EndpointInfo> registeredEndpoints;
  
 	@Inject
-	protected RoutingHandler rootHandler;
+	protected RoutingHandler router;
 	
 	@Inject
 	@Named("assets")
@@ -59,7 +59,7 @@ public class AssetsService extends BaseService
 		final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile());
 
 
-		rootHandler.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex['" + assetsPath  +  "/(.*)']", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
+		router.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex['" + assetsPath  +  "/(.*)']", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
 		.setCachable(TruePredicate.instance())
 		.setCacheTime(assetsCacheTime)
 		));

@@ -92,9 +92,8 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	@Named("application.path")
 	protected String applicationPath;
 	
-
 	@Inject
-	protected RoutingHandler rootHandler;
+	protected RoutingHandler router;
 	
 	@Inject
 	@Named("registeredEndpoints")
@@ -349,7 +348,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		log.info("swagger spec: " + JsonMapper.toPrettyJSON(swagger));
 
-		rootHandler.addAll(this.get()); 
+		router.addAll(this.get()); 
 	}
 
 	/* (non-Javadoc)

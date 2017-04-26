@@ -23,9 +23,9 @@ import io.undertow.util.HttpString;
 /**
  * @author jbauer
  */
-public class BaseHttpHandler implements HttpHandler
+public class DefaultHttpHandler implements HttpHandler
 {
-	private static Logger log = LoggerFactory.getLogger(BaseHttpHandler.class.getCanonicalName());
+	private static Logger log = LoggerFactory.getLogger(DefaultHttpHandler.class.getCanonicalName());
 
 	@Inject(optional=true)
 	protected DefaultResponseListener defaultResponseListener;
@@ -38,10 +38,10 @@ public class BaseHttpHandler implements HttpHandler
 
 	/**
 	 * @param defaultResponseListener
-	 * @param rootHandler
+	 * @param router
 	 */
 	@Inject
-	public BaseHttpHandler(Config config)
+	public DefaultHttpHandler(Config config)
 	{
 		Config globalHeaders = config.getConfig("globalHeaders");
 

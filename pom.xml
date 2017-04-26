@@ -43,7 +43,7 @@
 					<source>1.8</source>
 					<target>1.8</target>
 					<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-					
+
 					<compilerArgument>-parameters</compilerArgument>
 
 				</configuration>
@@ -76,17 +76,18 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<executions>
 					<execution>
+
 						<goals>
 							<goal>exec</goal>
 						</goals>
 					</execution>
 				</executions>
 				<configuration>
-
 					<executable>java</executable>
 					<arguments>
 						<argument>-Dlogback.configurationFile=${project.build.directory}/conf/logback.xml</argument>
 						<argument>-Xbootclasspath/p:lib/alpn-boot-8.1.11.v20170118.jar</argument>
+
 						<argument>-classpath</argument>
 						<!-- automatically creates the classpath using all project dependencies, 
 							also adding the project build directory -->
@@ -111,7 +112,21 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			<plugin>
+				<!-- Build an executable JAR -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>io.proteus.Application</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -300,26 +315,26 @@
 			<artifactId>jansi</artifactId>
 			<version>1.15</version>
 		</dependency>
-    <dependency>
-    	<groupId>com.graphql-java</groupId>
-    	<artifactId>graphql-java</artifactId>
-    	<version>2.3.0</version>
-    </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>9.4.1211</version>
-        </dependency>
+		<dependency>
+			<groupId>com.graphql-java</groupId>
+			<artifactId>graphql-java</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.4.1211</version>
+		</dependency>
 
-    <dependency>
-    	<groupId>io.proteus</groupId>
-    	<artifactId>jsoniter</artifactId>
-    	<version>0.9.8</version>
-    </dependency>
-    <dependency>
-    	<groupId>com.github.javaparser</groupId>
-    	<artifactId>javaparser-core</artifactId>
-    	<version>[3.2.0,)</version>
-    </dependency>
-  </dependencies>
+		<dependency>
+			<groupId>io.proteus</groupId>
+			<artifactId>jsoniter</artifactId>
+			<version>0.9.8</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.javaparser</groupId>
+			<artifactId>javaparser-core</artifactId>
+			<version>[3.2.0,)</version>
+		</dependency>
+	</dependencies>
 </project>

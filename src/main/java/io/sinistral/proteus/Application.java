@@ -193,24 +193,24 @@ public class Application
 		{
 			handler = rootHandler;
 		}
-		  
+  
 		undertow = Undertow.builder()
 				.addHttpListener(config.getInt("application.port"),config.getString("application.host"))
-				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
-		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate")) 
+				.setBufferSize(config.getBytes("undertow.bufferSize").intValue())
+				.setIoThreads(config.getInt("undertow.ioThreads"))
+ 				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
+		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
 		        .setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, config.getBoolean("undertow.server.bufferPipelinedData")) 
+ 		        .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
  		        .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
 		        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME,  config.getBoolean("undertow.server.recordRequestStartTime"))
 		        .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize") )
- 		        .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
 				.setWorkerThreads(config.getInt("undertow.workerThreads"))
-				.setBufferSize(config.getBytes("undertow.bufferSize").intValue())
-				.setIoThreads(config.getInt("undertow.ioThreads"))
 				.setDirectBuffers( config.getBoolean("undertow.directBuffers"))
+
 				.setHandler( handler )
 				.build();
 		
-			 
 		
 		return undertow;
 	}

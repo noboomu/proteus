@@ -2,7 +2,9 @@
  * 
  */
 package io.sinistral.proteus;
-import java.util.HashSet;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +22,7 @@ import com.google.common.util.concurrent.ServiceManager.Listener;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.name.Named;
 import com.jsoniter.DecodingMode;
 import com.jsoniter.JsonIterator;
@@ -56,28 +59,56 @@ public class Application
 	@Named("registeredEndpoints")
 	protected Set<EndpointInfo> registeredEndpoints;
  
+	@Inject
+	@Named("registeredServices")
+	protected Set<Class<? extends Service>> registeredServices;
+	
+	@Inject
+	protected RoutingHandler router;
+	
+	@Inject
+	protected Config config;
+	
+	protected List<com.google.inject.Module> registeredModules = new ArrayList<>();
+
 	protected Injector injector = null;
 	protected ServiceManager serviceManager = null;
-	protected Undertow undertow = null;
-
-	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
-	
+	protected Undertow undertow = null; 
 	protected Class<? extends HttpHandler> rootHandlerClass;
-	 
 	protected HttpHandler rootHandler;
+ 
 
  	
 	public Application()
 	{
 		
-		injector = Guice.createInjector(new ConfigModule());  
-		injector.injectMembers(this);
+		injector = Guice.createInjector(new ConfigModule("application.conf"));  
+		injector.injectMembers(this); 
+		
+	}
+	
+	public Application(String configFile)
+	{
+		
+		injector = Guice.createInjector(new ConfigModule(configFile));  
+		injector.injectMembers(this); 
+		
+	}
+	
+	public Application(URL configURL)
+	{
+		
+		injector = Guice.createInjector(new ConfigModule(configURL));  
+		injector.injectMembers(this); 
 		
 	}
 	
 	public void start()
 	{
-		if( this.rootHandlerClass == null && this.rootHandler == null )
+
+		injector = injector.createChildInjector(registeredModules);
+		
+		if( rootHandlerClass == null && rootHandler == null )
 		{
 			log.error("Cannot start the server without specifying the root handler class or a root HttpHandler!");
 			System.exit(1);
@@ -86,52 +117,61 @@ public class Application
 		log.info("Starting services...");
 		 
 		Set<Service> services = registeredServices.stream()
-				.map( sc -> injector.getInstance(sc))
+				.map( sc -> injector.getInstance(sc) )
 				.collect(Collectors.toSet());
 		
-		this.serviceManager = new ServiceManager(services);
-		
-		this.serviceManager.addListener(new Listener() {
-		         public void stopped() {
-		 
-		         }
-		         public void healthy() {
-		        	 log.info("Services are healthy...");
-		          
-		        	 buildServer().start(); 
-		         }
-		         public void failure(Service service) 
-		         {
-		        	 log.error("Error on service: " + service);
-		           System.exit(1);
-		         }
-		       },
-		       MoreExecutors.directExecutor());
+		serviceManager = new ServiceManager(services);
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			  @Override
-	            public void run() {
-         try {
-        	 log.info("Shutting down...");
-        	 
-        	 serviceManager.stopAsync().awaitStopped(5, TimeUnit.SECONDS);
-        	 undertow.stop();
-        	 
-        	 log.info("Shutdown complete.");
-         } catch (TimeoutException timeout) {
-           timeout.printStackTrace();
-         }}});
-		     
+		serviceManager.addListener(new Listener()
+		{
+			public void stopped()
+			{
+
+			}
+
+			public void healthy()
+			{
+				log.info("Services are healthy...");
+
+				buildServer().start();
+				
+				printStatus(); 
+			}
+
+			public void failure(Service service)
+			{
+				log.error("Error on service: " + service);
+				System.exit(1);
+			}
+		}, MoreExecutors.directExecutor());
+
+		Runtime.getRuntime().addShutdownHook(new Thread()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					log.info("Shutting down...");
+
+					serviceManager.stopAsync().awaitStopped(5, TimeUnit.SECONDS);
+					undertow.stop();
+
+					log.info("Shutdown complete.");
+				} catch (TimeoutException timeout)
+				{
+					timeout.printStackTrace();
+				}
+			}
+		});
+
 		 serviceManager.startAsync();
-	}
+		 
+ 	}
  
 	public Undertow buildServer()
 	{
-		
-		final Config rootConfig = injector.getInstance(Config.class);
-		
-		final RoutingHandler router = injector.getInstance(RoutingHandler.class);		
-		
+						
 		for(Class<?> controllerClass : registeredControllers)
 		{
 			HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers",controllerClass);
@@ -142,46 +182,31 @@ public class Application
 			
 			router.addAll(generatedRouteSupplier.get());
 		}
-		
 		 
-		Config globalHeaders = rootConfig.getConfig("globalHeaders");
-		
-		Map<String,String> globalHeadersParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().render()));
-		   
-  
-		StringBuilder sb = new StringBuilder(); 
-
-		sb.append("\n\nUsing the following global headers: \n\n");
-		sb.append(globalHeadersParameters.entrySet().stream().map( e -> "\t" + e.getKey() + " = " + e.getValue() ).collect(Collectors.joining("\n"))); 
- 		sb.append("\n\nRegistered the following endpoints: \n\n");
- 		sb.append(this.registeredEndpoints.stream().sorted().map(EndpointInfo::toString).collect(Collectors.joining("\n")));
- 		sb.append("\n");
- 		
- 		log.info(sb.toString());
- 		
 		final HttpHandler handler; 
 		
-		if( this.rootHandlerClass != null )
+		if( rootHandlerClass != null )
 		{
-			handler = this.injector.getInstance(this.rootHandlerClass);
+			handler = injector.getInstance(rootHandlerClass);
 		}
 		else
 		{
-			handler = this.rootHandler;
+			handler = rootHandler;
 		}
-  
+		  
 		undertow = Undertow.builder()
-				.addHttpListener(rootConfig.getInt("application.port"),rootConfig.getString("application.host"))
-				.setBufferSize(1024 * 16)
-				.setIoThreads(Runtime.getRuntime().availableProcessors()*2)
-				.setServerOption(UndertowOptions.ENABLE_HTTP2, true)
-		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
-		     //   .setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, true) 
- 		        .setSocketOption(org.xnio.Options.BACKLOG, 10000)
- 		       .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false)
-		        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
-		        .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, 1000000L * 200 )
-				.setWorkerThreads(Runtime.getRuntime().availableProcessors()*8)
+				.addHttpListener(config.getInt("application.port"),config.getString("application.host"))
+				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
+		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate")) 
+		        .setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, config.getBoolean("undertow.server.bufferPipelinedData")) 
+ 		        .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
+		        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME,  config.getBoolean("undertow.server.recordRequestStartTime"))
+		        .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize") )
+ 		        .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
+				.setWorkerThreads(config.getInt("undertow.workerThreads"))
+				.setBufferSize(config.getBytes("undertow.bufferSize").intValue())
+				.setIoThreads(config.getInt("undertow.ioThreads"))
+				.setDirectBuffers( config.getBoolean("undertow.directBuffers"))
 				.setHandler( handler )
 				.build();
 		
@@ -192,13 +217,19 @@ public class Application
 	
 	public Application addService(Class<? extends Service> serviceClass)
 	{
-		this.registeredServices.add(serviceClass);
+		registeredServices.add(serviceClass);
 		return this;
 	}
 	
 	public Application addController(Class<?> controllerClass)
 	{
-		this.registeredControllers.add(controllerClass);
+		registeredControllers.add(controllerClass);
+		return this;
+	}
+	
+	public Application addModule(Module module)
+	{
+		registeredModules.add(module);
 		return this;
 	}
 	
@@ -212,15 +243,46 @@ public class Application
 		this.rootHandler = rootHandler;
 	}
 	
-  	
-	/**
-	 * @return the undertow
-	 */
+  	 
 	public Undertow getUndertow()
 	{
 		return undertow;
 	}
  
+
+	/**
+	 * @return the serviceManager
+	 */
+	public ServiceManager getServiceManager()
+	{
+		return serviceManager;
+	}
+
+	/**
+	 * @return the config
+	 */
+	public Config getConfig()
+	{
+		return config;
+	}
+	
+	public void printStatus()
+	{
+		Config globalHeaders = config.getConfig("globalHeaders");
+		
+		Map<String,String> globalHeadersParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().render()));
+		   
+  
+		StringBuilder sb = new StringBuilder(); 
+
+		sb.append("\n\nUsing the following global headers: \n\n");
+		sb.append(globalHeadersParameters.entrySet().stream().map( e -> "\t" + e.getKey() + " = " + e.getValue() ).collect(Collectors.joining("\n"))); 
+ 		sb.append("\n\nRegistered the following endpoints: \n\n");
+ 		sb.append(this.registeredEndpoints.stream().sorted().map(EndpointInfo::toString).collect(Collectors.joining("\n")));
+ 		sb.append("\n");
+ 		
+ 		log.info(sb.toString()); 
+	}
 
 	public static void main(String[] args)
 	{

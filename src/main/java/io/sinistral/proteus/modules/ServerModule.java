@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
@@ -27,16 +28,17 @@ import io.undertow.server.RoutingHandler;
  *
  */
 @Singleton
-public class RoutingModule extends AbstractModule  
+public class ServerModule extends AbstractModule  
 {
-	private static Logger log = LoggerFactory.getLogger(RoutingModule.class.getCanonicalName());
+	private static Logger log = LoggerFactory.getLogger(ServerModule.class.getCanonicalName());
 
 	protected Set<EndpointInfo> registeredEndpoints = new TreeSet<>();
 	protected Set<Class<?>> registeredControllers = new HashSet<>();
-	
+	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
+
 	protected Config config;
 	
-	public RoutingModule(Config config)
+	public ServerModule(Config config)
 	{
 		this.config = config;
 	}
@@ -66,7 +68,7 @@ public class RoutingModule extends AbstractModule
 		 		
 		this.bind(RoutingHandler.class).toInstance(router); 
 		
-		this.bind(RoutingModule.class).toInstance(this);
+		this.bind(ServerModule.class).toInstance(this);
 		  
 		
 		try
@@ -84,7 +86,8 @@ public class RoutingModule extends AbstractModule
  
 		this.bind(new TypeLiteral<Set<Class<?>>>() {}).annotatedWith(Names.named("registeredControllers")).toInstance(registeredControllers);
 		this.bind(new TypeLiteral<Set<EndpointInfo>>() {}).annotatedWith(Names.named("registeredEndpoints")).toInstance(registeredEndpoints);
-		
+		this.bind(new TypeLiteral<Set<Class<? extends Service>>>() {}).annotatedWith(Names.named("registeredServices")).toInstance(registeredServices);
+
 		this.bind(XmlMapper.class).toInstance(new XmlMapper()); 
 
 

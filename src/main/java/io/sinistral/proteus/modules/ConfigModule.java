@@ -5,6 +5,7 @@ package io.sinistral.proteus.modules;
 
 import java.io.File;
 import java.lang.reflect.Type;
+import java.net.URL;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -18,11 +19,6 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Types;
-import com.jsoniter.DecodingMode;
-import com.jsoniter.JsonIterator;
-import com.jsoniter.annotation.JsoniterAnnotationSupport;
-import com.jsoniter.output.EncodingMode;
-import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigObject;
@@ -41,7 +37,8 @@ public class ConfigModule extends AbstractModule
 	 * @param configFileName
 	 */
 	
-	protected String configFile = "application.conf";
+	protected String configFile = null;
+	protected URL configURL = null;
 	protected Config config = null;
 	
 	public ConfigModule()
@@ -53,21 +50,32 @@ public class ConfigModule extends AbstractModule
 	{
 		this.configFile = configFile;
 	}
+	
+	public ConfigModule(URL configURL)
+	{
+		this.configURL = configURL;
+	}
 
 	
 	@Override
 	protected void configure()
 	{ 
-		this.bindConfig(fileConfig(configFile));
-		 
-        install(new RoutingModule(this.config)); 
+		if(configFile == null && configURL == null)
+		{
+			this.bindConfig(ConfigFactory.defaultApplication());
+		}
+		else if(configURL != null)
+		{
+			this.bindConfig( ConfigFactory.load(ConfigFactory.parseURL(configURL)));
+		}
+		else if(configFile != null)
+		{
+			this.bindConfig(fileConfig(configFile));
+		}
+		
+        install(new ServerModule(this.config)); 
 	}
 
- 
-	public void bindFileConfig(String fileName)
-	{
-		 this.bindConfig(fileConfig(configFile));
-	}
 	
 	@SuppressWarnings("unchecked")
 	private void bindConfig(final Config config)
@@ -96,7 +104,11 @@ public class ConfigModule extends AbstractModule
 		}
 		// bind config
 		
-		this.config = ConfigFactory.load(config);
+		Config referenceConfig = ConfigFactory.load(ConfigFactory.defaultReference());
+		  
+		this.config = ConfigFactory.load(config).withFallback(referenceConfig);
+		
+		System.out.println(this.config);
 		
 		this.binder().bind(Config.class).toInstance( config ); 
 

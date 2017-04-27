@@ -41,7 +41,15 @@ public class Benchmarks
 	@ApiOperation(value = "Json serialization endpoint",   httpMethod = "GET" )
 	public void json(HttpServerExchange exchange)
 	{ 
-		response( JsonStream.serialize(ImmutableMap.of("message", "Hello, World!")) ).send(exchange);
+		response( JsonStream.serialize(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+	}
+	
+	@GET
+	@Path("/json2")
+	@ApiOperation(value = "Json serialization endpoint",   httpMethod = "GET" )
+	public void json2(HttpServerExchange exchange)
+	{ 
+		response( JsonStream.serializeToBytes(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
 	}
 	
 	@GET 

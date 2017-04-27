@@ -378,27 +378,6 @@ public class ServerResponse<T>
 				}
 				else
 				{
-//					if (exchange.isInIoThread() && handler != null)
-//					{
-//						exchange.dispatch(handler);
-//						return;
-//					}
-//
-//					exchange.startBlocking();
-//
-//					final int bufferSize = exchange.getConnection().getBufferSize();
-//					
-//					/**
-//					 * @TODO Test that this is faster than a thread local JsonStream with the TypeLiteral relevant encoder 
-//					 **/
-//
-//					try (final JsonStream stream = new JsonStream(exchange.getOutputStream(), bufferSize))
-//					{
-//						stream.writeViewVal(this.entity,this.jsonContext);
-//					}
-//
-//					exchange.endExchange();
-					
 					try
 					{
 						exchange.getResponseSender().send(JsonStream.serialize(this.entity, this.jsonContext));

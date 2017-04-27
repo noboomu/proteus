@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.github.javaparser.utils.Log;
 
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
@@ -92,6 +91,7 @@ import io.swagger.util.ReflectionUtils;
 import io.undertow.server.HttpServerExchange;
 
 /**
+ * Copied from swagger.io implementation with tweaks to ignore or re-map server specific classes
  * @author jbauer
  *
  */
@@ -196,7 +196,8 @@ public class Reader {
         return read(cls, parentPath, parentMethod, isSubresource, parentConsumes, parentProduces, parentTags, parentParameters, new HashSet<>());
     }
 
-    private Swagger read(Class<?> cls, String parentPath, String parentMethod, boolean isSubresource, String[] parentConsumes, String[] parentProduces, Map<String, Tag> parentTags, List<Parameter> parentParameters, Set<Class<?>> scannedResources) {
+    @SuppressWarnings("deprecation")
+	private Swagger read(Class<?> cls, String parentPath, String parentMethod, boolean isSubresource, String[] parentConsumes, String[] parentProduces, Map<String, Tag> parentTags, List<Parameter> parentParameters, Set<Class<?>> scannedResources) {
         Map<String, Tag> tags = new LinkedHashMap<String, Tag>();
         List<SecurityRequirement> securities = new ArrayList<SecurityRequirement>();
 
@@ -474,7 +475,8 @@ public class Reader {
                 Arrays.<Annotation>asList(param));
     }
 
-    protected void readSwaggerConfig(Class<?> cls, SwaggerDefinition config) {
+    @SuppressWarnings("deprecation")
+	protected void readSwaggerConfig(Class<?> cls, SwaggerDefinition config) {
         if (!config.basePath().isEmpty()) {
             swagger.setBasePath(config.basePath());
         }
@@ -798,7 +800,8 @@ public class Reader {
                 Collections.<Parameter> emptyList(), Collections.<ApiResponse> emptyList());
     }
 
-    private Operation parseMethod(Class<?> cls, Method method, AnnotatedMethod annotatedMethod,
+    @SuppressWarnings("deprecation")
+	private Operation parseMethod(Class<?> cls, Method method, AnnotatedMethod annotatedMethod,
             List<Parameter> globalParameters, List<ApiResponse> classApiResponses) {
         Operation operation = new Operation();
         if (annotatedMethod != null) {

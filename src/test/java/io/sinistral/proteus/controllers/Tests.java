@@ -5,6 +5,7 @@ package io.sinistral.proteus.controllers;
 
 import static io.sinistral.proteus.server.ServerResponse.response;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -18,8 +19,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -27,6 +30,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.inject.Singleton;
 import com.jsoniter.output.JsonStream;
  
@@ -133,6 +137,32 @@ public class Tests
 	public CompletableFuture<ServerResponse<ImmutableMap<String,String>>> responseFutureMap()
 	{ 
 		return CompletableFuture.completedFuture(response( ImmutableMap.of("message", "success") ).applicationJson());
+	}
+	
+	@POST
+	@Path("/response/file/path")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
+ 	@Consumes("*/*")
+	@ApiOperation(value = "Upload file path endpoint",   httpMethod = "POST" )
+	public ServerResponse<ByteBuffer> responseUploadFilePath(ServerRequest request, @FormParam("file") java.nio.file.Path file ) throws Exception
+	{ 
+		 
+		return response(ByteBuffer.wrap(Files.toByteArray(file.toFile()))).applicationOctetStream();
+		 
+
+	}
+	
+	@POST
+	@Path("/response/file/bytebuffer")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
+ 	@Consumes("*/*")
+	@ApiOperation(value = "Upload file path endpoint",   httpMethod = "POST" )
+	public ServerResponse<ByteBuffer> responseUploadByteBuffer(ServerRequest request, @FormParam("file") ByteBuffer file ) throws Exception
+	{ 
+		 
+		return response(file).applicationOctetStream();
+		 
+
 	}
 	
 	@GET

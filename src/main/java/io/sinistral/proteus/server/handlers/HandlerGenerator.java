@@ -91,10 +91,10 @@ public class HandlerGenerator
 		FilePathType("$T $L = $T.filePath(exchange,$S)", true, java.nio.file.Path.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		AnyType("$T $L = $T.any(exchange)", true, com.jsoniter.any.Any.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class),
 		JsonIteratorType("$T $L = $T.jsonIterator(exchange)", true, com.jsoniter.JsonIterator.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class),
-		ModelType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
+		ModelType("$T $L = $T.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.LITERAL),
  
 		//EnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.TYPE, StatementParameterType.STRING),
-		ByteBufferType("$T $L =  $T.fileBytes(exchange,$S)", false, java.nio.ByteBuffer.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+		ByteBufferType("$T $L =  $T.byteBuffer(exchange,$S)", true, java.nio.ByteBuffer.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		DateType("$T $L =  $T.date(exchange,$S)", false, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		ZonedDateTimeType("$T $L = $T.zonedDateTime(exchange,$S)",false,java.time.ZonedDateTime.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING  ),
 		OffsetDateTimeType("$T $L = $T.offsetDateTime(exchange,$S)",false,java.time.OffsetDateTime.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING  ),
@@ -128,6 +128,9 @@ public class HandlerGenerator
 		OptionalIntegerType("$T<Integer> $L = $T.integerValue(exchange,$S)", false,  Optional.class,  StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalBooleanType("$T<Boolean> $L = $T.booleanValue(exchange,$S)", false,  Optional.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalFilePathType("$T<$T> $L = $T.filePath(exchange,$S)", true,  Optional.class, java.nio.file.Path.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+		
+		OptionalByteBufferType("$T<$T> $L = $T.byteBuffer(exchange,$S)", true,  Optional.class, java.nio.ByteBuffer.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+
 		OptionalFloatType("$T<Long> $L = $T.floatValue(exchange,$S)", false,   Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalDoubleType("$T<Integer> $L = $T.doubleValue(exchange,$S)", false,  Optional.class,  StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		
@@ -432,6 +435,10 @@ public class HandlerGenerator
 				else if (type.getTypeName().contains("java.nio.file.Path"))
 				{
 					return OptionalFilePathType;
+				} 
+				else if (type.getTypeName().contains("java.nio.ByteBuffer"))
+				{
+					return OptionalByteBufferType;
 				} 
 				else
 				{

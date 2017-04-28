@@ -205,6 +205,32 @@ public class Extractors
 		{
 			return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map(FormValue::getPath);
 		}
+		
+		public static  java.util.Optional<ByteBuffer> byteBuffer(final HttpServerExchange exchange, final String name)  
+		{
+			 return Optional.filePath(exchange,name).map( fp -> {
+				 
+				 
+				 try(final FileChannel fileChannel = FileChannel.open(fp, StandardOpenOption.READ))
+				 {
+					 final ByteBuffer buffer = ByteBuffer.allocate((int)fileChannel.size());
+					 
+					 fileChannel.read(buffer);
+
+					 buffer.flip();
+					 
+					 return buffer;
+					 
+				 } catch(Exception e)
+				 { 
+					 return null;
+				 }
+				 
+			 });
+			   
+			 
+			 
+		}
 	}
 	
 	public static class Header
@@ -331,7 +357,7 @@ public class Extractors
 		}
 	}
 	
-	public static  ByteBuffer fileBytes(final HttpServerExchange exchange, final String name) throws IOException
+	public static  ByteBuffer byteBuffer(final HttpServerExchange exchange, final String name) throws IOException
 	{
 		 final Path filePath = filePath(exchange,name);
 		   

@@ -211,13 +211,19 @@ public class ServerResponse<T>
 		{
  			this.processJson = true; 
 		}
-		this.contentType = MimeTypes.APPLICATION_JSON_TYPE;
+		this.contentType = javax.ws.rs.core.MediaType.APPLICATION_JSON;
 		return this;
 	}
 
 	public ServerResponse<T> textHtml()
 	{
-		this.contentType = MimeTypes.TEXT_HTML_TYPE;
+		this.contentType = javax.ws.rs.core.MediaType.TEXT_HTML;
+		return this;
+	}
+	
+	public ServerResponse<T> applicationOctetStream()
+	{
+		this.contentType = javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 		return this;
 	}
 
@@ -227,13 +233,13 @@ public class ServerResponse<T>
 		{
  			this.processXml = true; 
 		}		
-		this.contentType = MimeTypes.APPLICATION_XML_TYPE; 
+		this.contentType = javax.ws.rs.core.MediaType.APPLICATION_XML; 
 		return this;
 	}
 
 	public ServerResponse<T> textPlain()
 	{
-		this.contentType = MimeTypes.TEXT_PLAIN_TYPE;
+		this.contentType = javax.ws.rs.core.MediaType.TEXT_PLAIN;
 		return this;
 	}
 	

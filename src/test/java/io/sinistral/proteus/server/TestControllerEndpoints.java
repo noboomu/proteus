@@ -7,6 +7,9 @@ import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertThat;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
@@ -27,6 +30,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
+import org.apache.commons.io.IOUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,6 +63,7 @@ public class TestControllerEndpoints
 	private static String USER_JSON_RESPONSE = "{\r\n  \"id\": 123,\r\n  \"type\": \"GUEST\"\r\n}";
 	private static String USER_XML_RESPONSE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<User>\r\n\t<id>123</id>\r\n\t<type>GUEST</type>\r\n</User>";
 	 
+	private File file = null;
 	
 	@Before
 	public void setUp(){
@@ -66,6 +71,9 @@ public class TestControllerEndpoints
 	{
 		RestAssured.baseURI = "http://localhost:8090/v1";
 		RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+		
+
+		file = new File(getClass().getClassLoader().getResource("data/video.mp4").toURI());
 		
 	} catch (Exception e)
 	{
@@ -132,6 +140,58 @@ public class TestControllerEndpoints
 	{
 		given().log().all().accept(ContentType.JSON).when().get("tests/response/future/map").then().log().all().statusCode(200).and().body("message",is("success")); 
  	}
+	
+	@Test
+	public void responseUploadFilePathParameter()
+	{
+
+		try
+		{
+ 			
+			
+			final InputStream is = given().multiPart("file", file).log().uri().accept(ContentType.ANY).when().post("tests/response/file/path").asInputStream();
+			
+			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+	        IOUtils.copy(is, byteArrayOutputStream);
+	        IOUtils.closeQuietly(byteArrayOutputStream);
+	        IOUtils.closeQuietly(is);
+	        
+	        
+	        assertThat(byteArrayOutputStream.size(), equalTo( Long.valueOf(file.length()).intValue() ));
+
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+  	}
+	
+	@Test
+	public void responseUploadByteBufferParameter()
+	{
+
+		try
+		{ 
+
+			final InputStream is = given().multiPart("file", file).log().uri().accept(ContentType.ANY).when().post("tests/response/file/bytebuffer").asInputStream();
+			
+			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+	        IOUtils.copy(is, byteArrayOutputStream);
+	        IOUtils.closeQuietly(byteArrayOutputStream);
+	        IOUtils.closeQuietly(is);
+	        
+	        
+	        assertThat(byteArrayOutputStream.size(), equalTo( Long.valueOf(file.length()).intValue() ));
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+  	}
 	
 	@Test
 	public void responseComplexParameters()

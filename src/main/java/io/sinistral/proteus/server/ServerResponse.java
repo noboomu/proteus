@@ -315,6 +315,7 @@ public class ServerResponse<T>
 	{
 		final boolean hasBody = this.body != null;
 		final boolean hasEntity = this.entity != null;
+		
 
 		if (this.hasHeaders)
 		{

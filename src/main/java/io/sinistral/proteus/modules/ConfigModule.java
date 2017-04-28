@@ -25,6 +25,7 @@ import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValue;
 
 /**
+ * Most of this is taken from Jooby
  * @author jbauer
  */
 
@@ -101,14 +102,13 @@ public class ConfigModule extends AbstractModule
 			{
 				this.binder().bindConstant().annotatedWith(named).to(value.toString());
 			}
-		}
-		// bind config
+		} 
 		
 		Config referenceConfig = ConfigFactory.load(ConfigFactory.defaultReference());
 		  
 		this.config = ConfigFactory.load(config).withFallback(referenceConfig);
 		
-		System.out.println(this.config);
+		log.debug(this.config.toString());
 		
 		this.binder().bind(Config.class).toInstance( config ); 
 

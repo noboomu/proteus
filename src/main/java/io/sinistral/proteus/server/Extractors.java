@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
@@ -134,10 +136,23 @@ public class Extractors
 		 
 
 		public static java.util.Optional<Date> date(final HttpServerExchange exchange,final String name)  {
-			   
-			 return string(exchange, name).map( ZonedDateTime::parse ).map(ZonedDateTime::toInstant).map(Date::from);
+			   			
+			 return string(exchange, name).map( OffsetDateTime::parse ).map(OffsetDateTime::toInstant).map(Date::from);
 			 
 		}
+		
+		public static java.util.Optional<OffsetDateTime> offsetDateTime(final HttpServerExchange exchange,final String name)  {
+			    
+			 return string(exchange, name).map( OffsetDateTime::parse );
+			 
+		}
+		
+		public static java.util.Optional<ZonedDateTime> zonedDateTime(final HttpServerExchange exchange,final String name)  {
+		    
+			 return string(exchange, name).map( ZonedDateTime::parse );
+			 
+		}
+		 
 
 		public static java.util.Optional<Any> any(final HttpServerExchange exchange )
 		{
@@ -194,9 +209,17 @@ public class Extractors
 	
 	public static class Header
 	{
-		public static  String string(final HttpServerExchange exchange, final String name)
+		public static  String string(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException
 		{
-			return exchange.getRequestHeaders().get(name).getFirst();
+			try
+			{ 
+				
+				return exchange.getRequestHeaders().get(name).getFirst(); 
+				
+			} catch(NullPointerException e)
+			{
+				throw new IllegalArgumentException("Missing parameter " + name, e);
+			}
 		}
 		
 		public static class Optional
@@ -211,10 +234,22 @@ public class Extractors
 		
 	}
 	
-	public static Date date(final HttpServerExchange exchange,final String name)  {
-		  
-		 return Date.from( ZonedDateTime.parse( string(exchange,name) ).toInstant() );
-		    
+	public static Date date(final HttpServerExchange exchange,final String name) throws java.lang.IllegalArgumentException {
+		   
+			return Date.from( OffsetDateTime.parse( string(exchange,name) ).toInstant() ); 
+	}
+	
+
+	public static ZonedDateTime zonedDateTime(final HttpServerExchange exchange,final String name) throws java.lang.IllegalArgumentException  {
+	    
+		 return  ZonedDateTime.parse( string(exchange,name) );
+		 
+	}
+	
+	public static OffsetDateTime offsetDateTime(final HttpServerExchange exchange,final String name) throws java.lang.IllegalArgumentException  {
+	    
+		 return  OffsetDateTime.parse( string(exchange,name) );
+		 
 	}
 
 	public static  <T> T jsonModel(final HttpServerExchange exchange, final TypeLiteral<T> type ) throws IllegalArgumentException
@@ -285,9 +320,15 @@ public class Extractors
 		return JsonIterator.parse(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
 	}
 
-	public static  Path filePath(final HttpServerExchange exchange, final String name)
+	public static  Path filePath(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
 	{
-		return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getPath();
+		try
+		{
+			return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getPath();
+		} catch(NullPointerException e)
+		{
+			throw new IllegalArgumentException("Missing parameter " + name, e);
+		}
 	}
 	
 	public static  ByteBuffer fileBytes(final HttpServerExchange exchange, final String name) throws IOException
@@ -308,44 +349,52 @@ public class Extractors
 	}
 
 	
-	public static  String string(final HttpServerExchange exchange, final String name)
+	public static String string(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException
 	{
-		return exchange.getQueryParameters().get(name).getFirst();
+		try
+		{
+			return exchange.getQueryParameters().get(name).getFirst();
+		} catch (NullPointerException e)
+		{
+			throw new IllegalArgumentException("Missing parameter " + name, e);
+		}
 	}
 	
-	public static <T> T extractWithFunction(final HttpServerExchange exchange, final String name, Function<String,T> function)
+	public static <T> T extractWithFunction(final HttpServerExchange exchange, final String name, Function<String,T> function) throws java.lang.IllegalArgumentException 
 	{
-		return function.apply(exchange.getQueryParameters().get(name).getFirst());
+		return function.apply(string(exchange, name));
 	}
 	
-	public static  Float floatValue(final HttpServerExchange exchange, final String name)
-	{
-		return Float.parseFloat(string(exchange, name));
+	public static  Float floatValue(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
+	{ 
+		return Float.parseFloat(string(exchange, name)); 
 	}
 	
-	public static  Double doubleValue(final HttpServerExchange exchange, final String name)
-	{
-		return Double.parseDouble(string(exchange, name));
+	public static  Double doubleValue(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
+	{ 
+		return Double.parseDouble(string(exchange, name)); 
 	}
  
 
-	public static  Long longValue(final HttpServerExchange exchange, final String name)
-	{
-		return Long.parseLong( string(exchange, name) );
+	public static  Long longValue(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
+	{ 
+		return Long.parseLong( string(exchange, name) ); 
 	}
 
-	public static  Integer integerValue(final HttpServerExchange exchange, final String name)
-	{
+	public static  Integer integerValue(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
+	{ 
 		return Integer.parseInt(string(exchange, name));
+	 
 	}
 	
-	public static  Short shortValue(final HttpServerExchange exchange, final String name)
-	{
+	public static  Short shortValue(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
+	{ 
 		return Short.parseShort(string(exchange, name));
+	 
 	}
 
-	public static  Boolean booleanValue(final HttpServerExchange exchange, final String name)
-	{
+	public static  Boolean booleanValue(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
+	{ 
 		return Boolean.parseBoolean(string(exchange, name));
 	}
 	 

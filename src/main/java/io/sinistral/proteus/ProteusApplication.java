@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -31,8 +32,6 @@ import com.jsoniter.output.EncodingMode;
 import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 
-import io.sinistral.proteus.controllers.Benchmarks;
-import io.sinistral.proteus.controllers.Users;
 import io.sinistral.proteus.modules.ConfigModule;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.handlers.DefaultHttpHandler;
@@ -46,10 +45,10 @@ import io.undertow.server.RoutingHandler;
 /**
  * @author jbauer
  */
-public class Application
+public class ProteusApplication
 {
 	 
-	private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Application.class.getCanonicalName());
+	private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ProteusApplication.class.getCanonicalName());
    
 	@Inject
 	@Named("registeredControllers")
@@ -76,10 +75,10 @@ public class Application
 	protected Undertow undertow = null; 
 	protected Class<? extends HttpHandler> rootHandlerClass;
 	protected HttpHandler rootHandler;
- 
+	protected AtomicBoolean running = new AtomicBoolean(false);
 
  	
-	public Application()
+	public ProteusApplication()
 	{
 		
 		injector = Guice.createInjector(new ConfigModule("application.conf"));  
@@ -87,7 +86,7 @@ public class Application
 		
 	}
 	
-	public Application(String configFile)
+	public ProteusApplication(String configFile)
 	{
 		
 		injector = Guice.createInjector(new ConfigModule(configFile));  
@@ -95,7 +94,7 @@ public class Application
 		
 	}
 	
-	public Application(URL configURL)
+	public ProteusApplication(URL configURL)
 	{
 		
 		injector = Guice.createInjector(new ConfigModule(configURL));  
@@ -110,8 +109,8 @@ public class Application
 		
 		if( rootHandlerClass == null && rootHandler == null )
 		{
-			log.error("Cannot start the server without specifying the root handler class or a root HttpHandler!");
-			System.exit(1);
+			log.warn("No root handler class or root HttpHandler was specified, using default DefaultHttpHandler.");
+			rootHandlerClass = DefaultHttpHandler.class;
 		}
 		
 		log.info("Starting services...");
@@ -126,23 +125,28 @@ public class Application
 		{
 			public void stopped()
 			{
-
+				undertow.stop(); 
+				running.set(false);
 			}
 
 			public void healthy()
 			{
 				log.info("Services are healthy...");
 
-				buildServer().start();
+				buildServer();
 				
+				undertow.start();
+								
 				printStatus(); 
+				
+				running.set(true);
 			}
 
 			public void failure(Service service)
 			{
 				log.error("Error on service: " + service);
-				System.exit(1);
 			}
+			
 		}, MoreExecutors.directExecutor());
 
 		Runtime.getRuntime().addShutdownHook(new Thread()
@@ -152,12 +156,7 @@ public class Application
 			{
 				try
 				{
-					log.info("Shutting down...");
-
-					serviceManager.stopAsync().awaitStopped(5, TimeUnit.SECONDS);
-					undertow.stop();
-
-					log.info("Shutdown complete.");
+					shutdown();
 				} catch (TimeoutException timeout)
 				{
 					timeout.printStackTrace();
@@ -168,8 +167,22 @@ public class Application
 		 serviceManager.startAsync();
 		 
  	}
+	
+	public void shutdown() throws TimeoutException
+	{
+		log.info("Shutting down...");
+
+		serviceManager.stopAsync().awaitStopped(5, TimeUnit.SECONDS); 
+
+		log.info("Shutdown complete.");
+	}
+	
+	public boolean isRunning()
+	{
+		return this.running.get();
+	}
  
-	public Undertow buildServer()
+	public void buildServer()
 	{
 						
 		for(Class<?> controllerClass : registeredControllers)
@@ -178,9 +191,17 @@ public class Application
 			
 			injector.injectMembers(generator);
 		
-			Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(generator.compileClass());
-			
-			router.addAll(generatedRouteSupplier.get());
+			try
+			{
+				Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(generator.compileClass());
+				
+				router.addAll(generatedRouteSupplier.get());
+				
+			} catch (Exception e)
+			{
+				log.error("Exception creating handlers for " + controllerClass.getName() + "!!!"); 
+			}
+		 
 		}
 		 
 		final HttpHandler handler; 
@@ -194,7 +215,7 @@ public class Application
 			handler = rootHandler;
 		}
   
-		undertow = Undertow.builder()
+		this.undertow = Undertow.builder()
 				.addHttpListener(config.getInt("application.port"),config.getString("application.host"))
 				.setBufferSize(16 * 1024)
 				.setIoThreads( config.getInt("undertow.ioThreads") )
@@ -207,24 +228,22 @@ public class Application
 				.setWorkerThreads( config.getInt("undertow.workerThreads") )
 				.setHandler( handler )
 				.build();
-		
-		
-		return undertow;
+		 
 	}
 	
-	public Application addService(Class<? extends Service> serviceClass)
+	public ProteusApplication addService(Class<? extends Service> serviceClass)
 	{
 		registeredServices.add(serviceClass);
 		return this;
 	}
 	
-	public Application addController(Class<?> controllerClass)
+	public ProteusApplication addController(Class<?> controllerClass)
 	{
 		registeredControllers.add(controllerClass);
 		return this;
 	}
 	
-	public Application addModule(Module module)
+	public ProteusApplication addModule(Module module)
 	{
 		registeredModules.add(module);
 		return this;
@@ -291,16 +310,12 @@ public class Application
 			JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
 			JsoniterAnnotationSupport.enable();
 
- 			Application app = new Application();
+ 			ProteusApplication app = new ProteusApplication();
  			
  			 app.addService(SwaggerService.class);
  			 
  			 app.addService(AssetsService.class);
-
- 			 app.addController(Users.class);
- 			 
- 			 app.addController(Benchmarks.class);
- 			 
+ 
  			 app.setRootHandlerClass(DefaultHttpHandler.class);
 
  			 app.start();

@@ -1,12 +1,11 @@
  
 package io.sinistral.proteus.services;
 
-import java.io.StringWriter;
-import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -21,17 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.mitchellbosecke.pebble.PebbleEngine;
-import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import com.typesafe.config.Config;
 
 import io.sinistral.proteus.server.MimeTypes;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.swagger.ServerParameterExtension;
-import io.sinistral.proteus.utilities.JsonMapper;
 import io.swagger.jaxrs.ext.SwaggerExtension;
 import io.swagger.jaxrs.ext.SwaggerExtensions;
 import io.swagger.models.Info;
@@ -108,12 +103,27 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	@Named("registeredControllers")
 	protected Set<Class<?>> registeredControllers;
  
+	protected ObjectMapper mapper = new ObjectMapper();
+	
+	protected ObjectWriter writer = null;
+	
 	/**
 	 * @param config
 	 */
 	public SwaggerService( )
-	{
-	 
+	{ 
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
+		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		mapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
+		mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+		mapper.setSerializationInclusion(Include.NON_NULL);
+
+		mapper.registerModule(new Jdk8Module());
+
+		
+		writer = mapper.writerWithDefaultPrettyPrinter();
+		writer = writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
 	}
 
 	 
@@ -162,21 +172,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		classes.forEach( c -> this.reader.read(c));
 		
 		this.swagger = this.reader.getSwagger();
-		
-		ObjectMapper mapper = new ObjectMapper();
-		
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		mapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
-		mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-		mapper.setSerializationInclusion(Include.NON_NULL);
-
-		mapper.registerModule(new Jdk8Module());
-
-		
-		ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
-		writer = writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
+	 
 		
 		try
 		{
@@ -216,33 +212,25 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		{  
  
 			   
-			PebbleEngine engine = new PebbleEngine.Builder().build();
+//			PebbleEngine engine = new PebbleEngine.Builder().build();
 	
-			PebbleTemplate compiledTemplate = engine.getTemplate("swagger/index.html");
-	
+			byte[] templateBytes = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("swagger/index.html").toURI()));
+			
+			String templateString = new String(templateBytes,Charset.defaultCharset());
+			 
 			String themePath = "swagger-ui.css";
 			 
 			if(!this.swaggerTheme.equals("default"))
 			{
 				themePath= "themes/theme-" + this.swaggerTheme + ".css"; 
 			} 
-			
-			log.debug("theme: " + themePath);
-			
-			Map<String, Object> context = new HashMap<>();
-
-			context.put("themePath", themePath);
-			context.put("title", applicationName + " Swagger UI");
-			context.put("swaggerBasePath", this.swaggerBasePath);
-			context.put("swaggerFullPath", "http://" + host + ((port != 80 && port != 443) ? ":" + port : "") + this.swaggerBasePath + ".json"  ) ;
-			
-			Writer writer = new StringWriter();
 			 
-			compiledTemplate.evaluate(writer, context);
-	
-			this.swaggerIndexHTML = writer.toString();
-	
-			//log.debug("found swaggerContent: " + swaggerIndexHTML); 
+			templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
+			templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", this.swaggerBasePath);
+			templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");
+			templateString = templateString.replaceAll("\\{\\{ swaggerFullPath \\}\\}","//" + host + ((port != 80 && port != 443) ? ":" + port : "") + this.swaggerBasePath + ".json");
+
+			this.swaggerIndexHTML = templateString; 
 		
 		} catch (Exception e)
 		{ 
@@ -372,11 +360,8 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		this.generateSwaggerSpec();
 		this.generateSwaggerHTML();
-
- 		
-		Swagger swagger = this.getSwagger();
-		
-		log.info("swagger spec: " + JsonMapper.toPrettyJSON(swagger));
+ 
+		log.debug("\nSwagger Spec:\n" +  writer.writeValueAsString(this.swagger));
 
 		router.addAll(this.get()); 
 	}

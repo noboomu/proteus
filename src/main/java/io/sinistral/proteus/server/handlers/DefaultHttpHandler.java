@@ -62,7 +62,7 @@ public class DefaultHttpHandler implements HttpHandler
 	public void handleRequest(final HttpServerExchange exchange) throws Exception
 	{
 
-		if(this.defaultResponseListener != null)
+ 		if(this.defaultResponseListener != null)
 		{
 			exchange.addDefaultResponseListener(defaultResponseListener);
 		}
@@ -75,17 +75,7 @@ public class DefaultHttpHandler implements HttpHandler
             fiGlobal = headers.fiNextNonEmpty(fiGlobal);
         }
         
-		try
-		{
-			next.handleRequest(exchange);
-		} catch (Exception e)
-		{
-			if (exchange.isResponseChannelAvailable())
-			{
-				log.error(e.getMessage());
-				exchange.endExchange();
-			}
-		}
+		next.handleRequest(exchange); 
 
 	}
 

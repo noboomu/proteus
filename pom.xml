@@ -5,7 +5,23 @@
 	<artifactId>proteus-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
+	 <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/test/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </testResource>
+        </testResources>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -25,26 +41,10 @@
 											<goal>testCompile</goal>
 										</goals>
 									</pluginExecutionFilter>
-
 									<action>
 										<execute />
 									</action>
 								</pluginExecution>
-						<!-- 	 	<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>com.fizzed</groupId>
-										<artifactId>rocker-maven-plugin</artifactId>
-										<versionRange>[${rocker.version},)</versionRange>
-										<goals>
-											<goal>generate</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute>
-											<runOnIncremental>true</runOnIncremental>
-										</execute>
-									</action>
-								</pluginExecution>  --> 
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
@@ -58,127 +58,60 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-					<compilerArgument>-parameters</compilerArgument>
-
+					<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+					<compilerArgument>-parameters</compilerArgument> 
 				</configuration>
 			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.2</version>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<phase>validate</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/conf</outputDirectory>
-							<resources>
-								<resource>
-									<directory>conf</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<executable>java</executable>
-					<arguments>
-						<argument>-Dlogback.configurationFile=${project.build.directory}/conf/logback.xml</argument>
-						<argument>-Xbootclasspath/p:lib/alpn-boot-8.1.11.v20170118.jar</argument>
-
-						<argument>-classpath</argument>
-						<!-- automatically creates the classpath using all project dependencies, 
-							also adding the project build directory -->
-						<classpath />
-						<argument>io.sinistral.proteus.Application</argument>
-
-					</arguments>
-
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<!-- Build an executable JAR -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.0.2</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>io.sinistral.proteus.Application</mainClass>
-
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-		<!--   <plugin>
-				<groupId>com.fizzed</groupId>
-				<artifactId>rocker-maven-plugin</artifactId>
-				<version>0.18.0</version>
-				<executions>
-					<execution>
-						<id>generate-rocker-templates</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>   -->
 		</plugins>
 	</build>
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-		</dependency>
+	
 		<dependency>
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
 			<version>3.0.2</version>
 			<scope>test</scope>
 		</dependency>
+		
 		<dependency>
-			<groupId>org.mortbay.jetty.alpn</groupId>
-			<artifactId>alpn-boot</artifactId>
-			<version>8.1.11.v20170118</version>
-			<scope>runtime</scope>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
-
+	 
+	 <dependency>
+			<groupId>io.undertow</groupId>
+			<artifactId>undertow-core</artifactId>
+			<version>1.4.13.Final</version>
+		</dependency> 
+		<dependency>
+			<groupId>org.glassfish.jersey</groupId>
+			<artifactId>jax-rs-ri</artifactId>
+			<version>2.0-rc1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup</groupId>
+			<artifactId>javapoet</artifactId>
+			<version>1.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>4.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.openhft</groupId>
+			<artifactId>compiler</artifactId>
+			<version>2.3.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
@@ -201,12 +134,7 @@
 			<artifactId>jackson-core</artifactId>
 			<version>[2.8.7,2.9.0)</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.msgpack</groupId>
-			<artifactId>jackson-dataformat-msgpack</artifactId>
-			<version>0.8.12</version>
-		</dependency>
+ 
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
@@ -254,57 +182,13 @@
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-
-		<!-- <dependency> <groupId>org.hashids</groupId> <artifactId>hashids</artifactId> 
-			<version>1.0.1</version> </dependency> <dependency> <groupId>com.squareup.okhttp3</groupId> 
-			<artifactId>okhttp</artifactId> <version>[3.6.0,4.0.0)</version> </dependency> 
-			<dependency> <groupId>com.squareup.okhttp3</groupId> <artifactId>okhttp-urlconnection</artifactId> 
-			<version>3.6.0</version> </dependency> <dependency> <groupId>com.squareup.okhttp3</groupId> 
-			<artifactId>okcurl</artifactId> <version>[3.6.0,4.0.0)</version> </dependency> 
-			<dependency> <groupId>com.squareup.retrofit2</groupId> <artifactId>retrofit</artifactId> 
-			<version>2.2.0</version> </dependency> <dependency> <groupId>com.squareup.retrofit2</groupId> 
-			<artifactId>adapter-java8</artifactId> <version>2.2.0</version> </dependency> 
-			<dependency> <groupId>com.squareup.retrofit2</groupId> <artifactId>converter-jackson</artifactId> 
-			<version>2.2.0</version> </dependency> <dependency> <groupId>com.squareup.okhttp3</groupId> 
-			<artifactId>logging-interceptor</artifactId> <version>3.6.0</version> </dependency> -->
+		</dependency> 
 		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
 			<version>3.22.0-CR1</version>
 		</dependency>
-		<dependency>
-			<groupId>io.undertow</groupId>
-			<artifactId>undertow-core</artifactId>
-			<version>1.4.13.Final</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.glassfish.jersey</groupId>
-			<artifactId>jax-rs-ri</artifactId>
-			<version>2.0-rc1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.squareup</groupId>
-			<artifactId>javapoet</artifactId>
-			<version>1.8.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.inject</groupId>
-			<artifactId>guice</artifactId>
-			<version>4.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>net.openhft</groupId>
-			<artifactId>compiler</artifactId>
-			<version>2.3.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+		 
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-parser</artifactId>
@@ -327,20 +211,6 @@
 			<version>4.4.6</version>
 		</dependency>
 		<dependency>
-			<groupId>com.mitchellbosecke</groupId>
-			<artifactId>pebble</artifactId>
-			<version>2.3.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<!-- <dependency> <groupId>com.auth0</groupId> <artifactId>java-jwt</artifactId> 
-			<version>3.1.0</version> </dependency> -->
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.25</version>
@@ -359,34 +229,12 @@
 			<groupId>com.graphql-java</groupId>
 			<artifactId>graphql-java</artifactId>
 			<version>2.3.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>9.4.1211</version>
-		</dependency>
-
+		</dependency> 
 		<dependency>
 			<groupId>io.sinistral</groupId>
 			<artifactId>jsoniter</artifactId>
 			<version>0.9.9-SNAPSHOT</version>
 		</dependency>
-		<dependency>
-			<groupId>com.github.javaparser</groupId>
-			<artifactId>javaparser-core</artifactId>
-			<version>[3.2.0,)</version>
-		</dependency>
-<!-- 		<dependency>
-			<groupId>com.fizzed</groupId>
-			<artifactId>rocker-runtime</artifactId>
-			<version>0.18.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fizzed</groupId>
-			<artifactId>rocker-compiler</artifactId>
-			<version>0.18.0</version>
-			<scope>provided</scope>
-		</dependency> -->
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

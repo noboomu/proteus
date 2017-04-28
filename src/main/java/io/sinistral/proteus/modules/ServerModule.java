@@ -16,6 +16,11 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
+import com.jsoniter.DecodingMode;
+import com.jsoniter.JsonIterator;
+import com.jsoniter.annotation.JsoniterAnnotationSupport;
+import com.jsoniter.output.EncodingMode;
+import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
@@ -89,6 +94,10 @@ public class ServerModule extends AbstractModule
 		this.bind(new TypeLiteral<Set<Class<? extends Service>>>() {}).annotatedWith(Names.named("registeredServices")).toInstance(registeredServices);
 
 		this.bind(XmlMapper.class).toInstance(new XmlMapper()); 
+		
+		JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
+		JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
+		JsoniterAnnotationSupport.enable();
 
 
 	}

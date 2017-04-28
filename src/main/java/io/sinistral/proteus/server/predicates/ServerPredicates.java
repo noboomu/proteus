@@ -21,6 +21,8 @@ import io.undertow.util.Headers;
 public class ServerPredicates
 {
 	public static final Predicate WILDCARD_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MediaType.ANY.toString());
+	public static final Predicate NO_WILDCARD_PREDICATE = Predicates.not(Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MediaType.ANY.toString()));
+
 	/*
 	 * public static final Predicate ACCEPT_XML_PREDICATE =  io.undertow.predicate.Predicates.and(io.undertow.predicate.Predicates.not( io.undertow.predicate.Predicates.contains( ExchangeAttributes.requestHeader(Headers.ACCEPT), MediaType.ANY.toString() ) ),
  	                                                                                           io.undertow.predicate.Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MimeTypes.APPLICATION_XML_TYPE));
@@ -28,6 +30,9 @@ public class ServerPredicates
 	 */
 	public static final Predicate ACCEPT_JSON_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MimeTypes.APPLICATION_JSON_TYPE);
  	public static final Predicate ACCEPT_XML_PREDICATE = io.undertow.predicate.Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MimeTypes.APPLICATION_XML_TYPE);
+  	
+    public static final Predicate ACCEPT_XML_EXCLUSIVE_PREDICATE = io.undertow.predicate.Predicates.and(ACCEPT_XML_PREDICATE, NO_WILDCARD_PREDICATE );
+
  	public static final Predicate MAX_CONTENT_SIZE_PREDICATE = new MaxRequestContentLengthPredicate.Builder().build(Collections.singletonMap("value", 0L));
     public static final Predicate STRING_BODY_PREDICATE = io.undertow.predicate.Predicates.and(io.undertow.predicate.Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), MimeTypes.APPLICATION_JSON_TYPE, MimeTypes.APPLICATION_XML_TYPE), MAX_CONTENT_SIZE_PREDICATE );
  	public static final Predicate MULTIPART_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), MimeTypes.OCTET_STREAM_TYPE, MultiPartParserDefinition.MULTIPART_FORM_DATA );

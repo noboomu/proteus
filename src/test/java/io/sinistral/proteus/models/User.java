@@ -3,18 +3,21 @@
  */
 package io.sinistral.proteus.models;
 
-import com.jsoniter.annotation.JsonIgnore;
-import  com.jsoniter.annotation.JsonWrapper;
+ 
+/**
+ * @author jbauer
+ *
+ */
 public class User
 {
+ 
 	public enum UserType
 	{
 		GUEST,MEMBER,ADMIN
 	}
 	
 	private Long id = 0L;
-	
-	public String username;
+	 
 	
 	private UserType type = UserType.GUEST;
 
@@ -67,22 +70,7 @@ public class User
 		this.type = type;
 	}
 
-	/**
-	 * @return the username
-	 */
-	public String getUsername()
-	{
-		return username;
-	}
-
-	/**
-	 * @param username the username to set
-	 */
-	public void setUsername(String username)
-	{
-		this.username = username;
-	}
-
+ 
 	/**
 	 * @return the type
 	 */
@@ -90,7 +78,6 @@ public class User
 	{
 		return type;
 	}
-	
 	
 	
 }

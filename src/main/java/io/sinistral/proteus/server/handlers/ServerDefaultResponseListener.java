@@ -25,6 +25,7 @@ import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
+import io.undertow.util.StatusCodes;
 
 /**
  * @author jbauer
@@ -68,7 +69,12 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
      			}
      		} 
         	 
-        	 if( ServerPredicates.ACCEPT_XML_PREDICATE.resolve(exchange) )
+        	 if(throwable instanceof IllegalArgumentException )
+        	 {
+        		 exchange.setStatusCode(StatusCodes.BAD_REQUEST);
+        	 }
+        	 
+        	 if( ServerPredicates.ACCEPT_XML_EXCLUSIVE_PREDICATE.resolve(exchange) )
         	 {  
 				try
 				{

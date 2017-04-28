@@ -10,6 +10,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -95,6 +96,10 @@ public class HandlerGenerator
 		//EnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.TYPE, StatementParameterType.STRING),
 		ByteBufferType("$T $L =  $T.fileBytes(exchange,$S)", false, java.nio.ByteBuffer.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		DateType("$T $L =  $T.date(exchange,$S)", false, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+		ZonedDateTimeType("$T $L = $T.zonedDateTime(exchange,$S)",false,java.time.ZonedDateTime.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING  ),
+		OffsetDateTimeType("$T $L = $T.offsetDateTime(exchange,$S)",false,java.time.OffsetDateTime.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING  ),
+
+		
 		FloatType("Integer $L = $T.floatValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		DoubleType("Integer $L = $T.doubleValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		
@@ -115,17 +120,21 @@ public class HandlerGenerator
 		OptionalListValueOfType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toList()))",false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW  ),
 		OptionalListFromStringType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toList()))",false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW  ),
 		
+ 
 		OptionalJsonIteratorType("$T<$T> $L = $T.jsonIterator(exchange)", true, Optional.class,   com.jsoniter.JsonIterator.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class),
 		OptionalAnyType("$T<$T> $L = $T.any(exchange)", true,  Optional.class,  com.jsoniter.any.Any.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class),
 		OptionalStringType("$T<String> $L = $T.string(exchange,$S)", false,  Optional.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalLongType("$T<Long> $L = $T.longValue(exchange,$S)", false,   Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalIntegerType("$T<Integer> $L = $T.integerValue(exchange,$S)", false,  Optional.class,  StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalBooleanType("$T<Boolean> $L = $T.booleanValue(exchange,$S)", false,  Optional.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalPathType("$T<$T> $L = $T.filePath(exchange,$S)", true,  Optional.class, java.nio.file.Path.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+		OptionalFilePathType("$T<$T> $L = $T.filePath(exchange,$S)", true,  Optional.class, java.nio.file.Path.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalFloatType("$T<Long> $L = $T.floatValue(exchange,$S)", false,   Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalDoubleType("$T<Integer> $L = $T.doubleValue(exchange,$S)", false,  Optional.class,  StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		
 		OptionalDateType("$T<$T> $L = $T.date(exchange,$S)", false,  Optional.class, java.util.Date.class,  StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+		OptionalInstantType("$T<$T> $L = $T.instant(exchange,$S)",false,  Optional.class, java.time.Instant.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING  ),
+		OptionalZonedDateTimeType("$T<$T> $L = $T.zonedDateTime(exchange,$S)",false,  Optional.class, java.time.ZonedDateTime.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING  ),
+		OptionalOffsetDateTimeType("$T<$T> $L = $T.offsetDateTime(exchange,$S)",false,  Optional.class, java.time.OffsetDateTime.class,  StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING  ),
 
 		OptionalModelType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false,   StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
@@ -366,6 +375,14 @@ public class HandlerGenerator
 			{
 				return DateType;
 			}
+			else if (type.equals(java.time.ZonedDateTime.class))
+			{
+				return ZonedDateTimeType;
+			}
+			else if (type.equals(java.time.OffsetDateTime.class))
+			{
+				return OffsetDateTimeType;
+			}
 			else if (type.equals(com.jsoniter.any.Any.class))
 			{
 				return AnyType;
@@ -388,6 +405,14 @@ public class HandlerGenerator
 				{
 					return OptionalDateType;
 				}
+				else if (type.getTypeName().contains("java.time.OffsetDateTime"))
+				{
+					return OptionalOffsetDateTimeType;
+				}
+				else if (type.getTypeName().contains("java.time.ZonedDateTime"))
+				{
+					return ZonedDateTimeType;
+				}
 				else if (type.getTypeName().contains("java.lang.Boolean"))
 				{
 					return OptionalBooleanType;
@@ -406,7 +431,7 @@ public class HandlerGenerator
 				}
 				else if (type.getTypeName().contains("java.nio.file.Path"))
 				{
-					return OptionalPathType;
+					return OptionalFilePathType;
 				} 
 				else
 				{
@@ -651,18 +676,10 @@ public class HandlerGenerator
 				         .distinct()
 				         .collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForType));
 				
-//		System.out.println("typeLiteralsList: " + literalsNameMap);
-
 		initBuilder.addCode("$L", "\n");
-		
-//		System.out.println("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
-
+		  
 		parameterizedLiteralsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeLiteral = new $T<$L>(){}", TypeLiteral.class, t, n, TypeLiteral.class, t));
-		
-		// encoder = Codegen.getEncoder(userListType.getEncoderCacheKey(), userListType.getType(),null);
-		
-		// $LTypeEncoder = com.jsoniter.output.Codegen.getEncoder($LTypeLiteral.getEncoderCacheKey(), $LTypeLiteral.getType(), null);
-
+	 
 		literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeLiteral = new $T<$T>(){}", TypeLiteral.class, t, n, TypeLiteral.class, t));
 
 		initBuilder.addCode("$L", "\n");
@@ -673,6 +690,11 @@ public class HandlerGenerator
 	
 		for (Method m : clazz.getDeclaredMethods())
 		{
+
+			if( !Optional.ofNullable(m.getAnnotation(javax.ws.rs.Path.class)).isPresent() )
+			{
+				continue;
+			}
 		 
 			
 			EndpointInfo endpointInfo = new EndpointInfo();
@@ -728,7 +750,16 @@ public class HandlerGenerator
  
 			endpointInfo.setControllerName(clazz.getSimpleName());
 
-			String methodPath = Extractors.pathTemplateFromMethod.apply(m).replaceAll("\\/\\/", "\\/");
+			String methodPath = null;
+			
+			try
+			{
+				methodPath = Extractors.pathTemplateFromMethod.apply(m).replaceAll("\\/\\/", "\\/");
+			} catch (Exception e)
+			{
+				log.error(e.getMessage() + " for " + m ,e);
+				continue;
+			}
 
 			methodPath = applicationPath + methodPath;
 
@@ -794,7 +825,7 @@ public class HandlerGenerator
 
 					if (p.getType().equals(ServerRequest.class))
 					{
-						methodBuilder.addStatement("$T serverRequest = new $T(exchange)", ServerRequest.class, ServerRequest.class);
+						methodBuilder.addStatement("$T $L = new $T(exchange)", ServerRequest.class, p.getName(), ServerRequest.class);
 						methodBuilder.addCode("$L", "\n");
 
 					}

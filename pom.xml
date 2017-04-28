@@ -25,10 +25,26 @@
 											<goal>testCompile</goal>
 										</goals>
 									</pluginExecutionFilter>
+
 									<action>
-										<ignore />
+										<execute />
 									</action>
 								</pluginExecution>
+						<!-- 	 	<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.fizzed</groupId>
+										<artifactId>rocker-maven-plugin</artifactId>
+										<versionRange>[${rocker.version},)</versionRange>
+										<goals>
+											<goal>generate</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnIncremental>true</runOnIncremental>
+										</execute>
+									</action>
+								</pluginExecution>  --> 
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
@@ -77,7 +93,6 @@
 				<version>1.6.0</version>
 				<executions>
 					<execution>
-
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -124,30 +139,44 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 							<mainClass>io.sinistral.proteus.Application</mainClass>
+
 						</manifest>
 					</archive>
 				</configuration>
 			</plugin>
+		<!--   <plugin>
+				<groupId>com.fizzed</groupId>
+				<artifactId>rocker-maven-plugin</artifactId>
+				<version>0.18.0</version>
+				<executions>
+					<execution>
+						<id>generate-rocker-templates</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>   -->
 		</plugins>
 	</build>
 	<dependencies>
-   		<dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
 		<dependency>
-		    <groupId>io.rest-assured</groupId>
-		    <artifactId>rest-assured</artifactId>
-		    <version>3.0.2</version>
-		    <scope>test</scope>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+		</dependency>
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<version>3.0.2</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty.alpn</groupId>
 			<artifactId>alpn-boot</artifactId>
 			<version>8.1.11.v20170118</version>
-			<scope>runtime</scope> 
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
@@ -340,13 +369,24 @@
 		<dependency>
 			<groupId>io.sinistral</groupId>
 			<artifactId>jsoniter</artifactId>
-			<version>0.9.8</version>
+			<version>0.9.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.javaparser</groupId>
 			<artifactId>javaparser-core</artifactId>
 			<version>[3.2.0,)</version>
 		</dependency>
+<!-- 		<dependency>
+			<groupId>com.fizzed</groupId>
+			<artifactId>rocker-runtime</artifactId>
+			<version>0.18.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fizzed</groupId>
+			<artifactId>rocker-compiler</artifactId>
+			<version>0.18.0</version>
+			<scope>provided</scope>
+		</dependency> -->
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

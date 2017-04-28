@@ -3,7 +3,9 @@
  */
 package io.sinistral.proteus.server;
 
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,16 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.jsoniter.any.Any;
 import com.jsoniter.output.JsonContext;
 import com.jsoniter.output.JsonStream;
-import com.jsoniter.spi.Encoder;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
-import io.undertow.attribute.ExchangeAttributes;
+import io.undertow.io.AsyncSenderImpl;
 import io.undertow.io.IoCallback;
-import io.undertow.predicate.Predicate;
-import io.undertow.predicate.Predicates;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
@@ -378,16 +376,8 @@ public class ServerResponse<T>
 				}
 				else
 				{
-					try
-					{
-						exchange.getResponseSender().send(JsonStream.serialize(this.entity, this.jsonContext));
-					} catch (Exception e)
-					{
-						log.error(e.getMessage() + " for entity " + this.entity, e);
-
-						throw new IllegalArgumentException(e);
-					}
-
+					 				
+					exchange.getResponseSender().send(JsonStream.serializeToBytes(this.entity, this.jsonContext)); 
 				}
 
 			} catch (Exception e)

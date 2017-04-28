@@ -10,7 +10,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -511,7 +510,7 @@ public class HandlerGenerator
 			this.generateRoutes();
 
 		
-			log.info("\n\nGenerated Class Source:\n\n" + this.sourceString);
+			log.debug("\n\nGenerated Class Source:\n\n" + this.sourceString);
 			
 //			CompilerUtils.addClassPath("./lib");
 			return CompilerUtils.CACHED_COMPILER.loadFromJava(packageName + "." + className, this.sourceString);

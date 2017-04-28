@@ -5,23 +5,30 @@ package io.sinistral.proteus.controllers;
 
 import static io.sinistral.proteus.server.ServerResponse.response;
 
-import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import org.xnio.channels.Channels;
+import org.xnio.conduits.StreamSinkConduit;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 import com.jsoniter.output.JsonStream;
 
-import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.models.World;
 import io.sinistral.proteus.server.ServerResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.undertow.io.UndertowOutputStream;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.protocol.http.HttpServerConnection;
+import io.undertow.util.Headers;
 
 /**
  * @author jbauer
@@ -51,6 +58,8 @@ public class Benchmarks
 	{ 
 		response( JsonStream.serializeToBytes(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
 	}
+	
+
 	
 	@GET 
 	@Path("/world")

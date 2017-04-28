@@ -20,9 +20,11 @@
 	<logger name="io.netty" level="ERROR" />
 	<logger name="io.netty.handler" level="ERROR" />
 	 
-	<logger name="io.sinistral.proteus.server.swagger" level="DEBUG" />
+	<logger name="io.sinistral.proteus.server.swagger" level="INFO" />
 	<logger name="io.sinistral.proteus.server.handlers" level="INFO" />
+	<logger name="io.sinistral.proteus.services" level="INFO" />
 	
+	io.sinistral.proteus.services
 	<logger name="com.relayrides" level="ERROR" />
 	<logger name="org.apache.activemq" level="ERROR" />
 	<logger name="org.apache.camel" level="ERROR" />
@@ -98,11 +100,7 @@
 	  
 	<logger name="org.apache.kafka.clients.NetworkClient" level="ERROR" />
 	<logger name="org.apache.kafka.clients.producer" level="ERROR" />
-	
-  	<logger name="com.wurrly.controllers" level="DEBUG" />
-   	<logger name="com.wurrly.service" level="DEBUG" />
-    <logger name="com.wurrly.models" level="DEBUG" />
-    <logger name="com.wurrly.protocol.Serializers" level="ERROR" />
+	 
       
        	<logger name="java.util.logging.Logger" level="ERROR" />
      	<logger name="com.google.inject.internal" level="ERROR" />

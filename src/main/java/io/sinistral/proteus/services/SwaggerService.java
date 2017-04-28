@@ -15,6 +15,9 @@ import javax.ws.rs.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.mitchellbosecke.pebble.PebbleEngine;
@@ -41,14 +44,12 @@ import io.undertow.util.Methods;
  
 public class SwaggerService   extends BaseService implements Supplier<RoutingHandler>
 {
-	 
-
-	 
+	  
 	private static Logger log = LoggerFactory.getLogger(SwaggerService.class.getCanonicalName());
 
 	protected io.sinistral.proteus.server.swagger.Reader reader = null;
 	
-	protected String swaggerResourcePath = "./swagger";
+	protected final String swaggerResourcePath = "./swagger";
 	
 	protected final String swaggerThemesPath = "./swagger/themes";
 
@@ -158,8 +159,20 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		this.swagger = this.reader.getSwagger();
 		
-		this.swaggerSpec =  JsonMapper.toPrettyJSON(this.swagger);
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+		writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
 		
+		try
+		{
+			
+			this.swaggerSpec = writer.writeValueAsString(this.swagger);
+			
+		} catch (Exception e)
+		{
+			log.error(e.getMessage(),e);
+		}
+ 		
  		
 	}
 
@@ -186,6 +199,8 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	{
 		try
 		{  
+ 
+			   
 			PebbleEngine engine = new PebbleEngine.Builder().build();
 	
 			PebbleTemplate compiledTemplate = engine.getTemplate("swagger/index.html");

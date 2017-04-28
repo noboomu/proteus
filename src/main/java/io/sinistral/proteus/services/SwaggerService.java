@@ -15,9 +15,13 @@ import javax.ws.rs.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.mitchellbosecke.pebble.PebbleEngine;
@@ -160,8 +164,19 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		this.swagger = this.reader.getSwagger();
 		
 		ObjectMapper mapper = new ObjectMapper();
+		
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
+		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		mapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
+		mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+		mapper.setSerializationInclusion(Include.NON_NULL);
+
+		mapper.registerModule(new Jdk8Module());
+
+		
 		ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
-		writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
+		writer = writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
 		
 		try
 		{

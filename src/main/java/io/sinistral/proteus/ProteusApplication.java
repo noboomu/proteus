@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
+import com.google.common.util.concurrent.Service.State;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.common.util.concurrent.ServiceManager.Listener;
 import com.google.inject.Guice;
@@ -104,7 +106,12 @@ public class ProteusApplication
 	
 	public void start()
 	{
-
+		if(this.isRunning())
+		{
+			log.warn("Server has already started...");
+			return;
+		}
+		
 		injector = injector.createChildInjector(registeredModules);
 		
 		if( rootHandlerClass == null && rootHandler == null )
@@ -144,7 +151,7 @@ public class ProteusApplication
 
 			public void failure(Service service)
 			{
-				log.error("Error on service: " + service);
+				log.error("Service failure: " + service);
 			}
 			
 		}, MoreExecutors.directExecutor());
@@ -170,6 +177,13 @@ public class ProteusApplication
 	
 	public void shutdown() throws TimeoutException
 	{
+		if(!this.isRunning())
+		{
+			log.warn("Server is not running..."); 
+			
+			return;
+		}
+		
 		log.info("Shutting down...");
 
 		serviceManager.stopAsync().awaitStopped(5, TimeUnit.SECONDS); 
@@ -199,7 +213,7 @@ public class ProteusApplication
 				
 			} catch (Exception e)
 			{
-				log.error("Exception creating handlers for " + controllerClass.getName() + "!!!"); 
+				log.error("Exception creating handlers for " + controllerClass.getName() + "!!!\n" + e.getMessage(), e); 
 			}
 		 
 		}
@@ -291,10 +305,30 @@ public class ProteusApplication
   
 		StringBuilder sb = new StringBuilder(); 
 
-		sb.append("\n\nUsing the following global headers: \n\n");
+		sb.append("\n\nUsing global headers: \n\n");
 		sb.append(globalHeadersParameters.entrySet().stream().map( e -> "\t" + e.getKey() + " = " + e.getValue() ).collect(Collectors.joining("\n"))); 
- 		sb.append("\n\nRegistered the following endpoints: \n\n");
+ 		sb.append("\n\nRegistered endpoints: \n\n");
  		sb.append(this.registeredEndpoints.stream().sorted().map(EndpointInfo::toString).collect(Collectors.joining("\n")));
+ 		sb.append("\n\nRegistered services: \n\n");
+ 		
+ 		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();
+ 		
+ 		String serviceStrings = serviceStateMap.asMap().entrySet().stream().sorted().flatMap( e -> {
+ 			
+  			
+ 			return e.getValue().stream().map( s -> {
+ 				return "\t" + s.getClass().getSimpleName() + "\t"  + e.getKey();
+ 			});
+
+ 			
+ 		}).collect(Collectors.joining("\n"));
+ 
+ 		sb.append(serviceStrings);
+ 		
+ 		sb.append("\n");
+ 		
+ 		sb.append("\nListening on port " + config.getInt("application.port"));
+ 		
  		sb.append("\n");
  		
  		log.info(sb.toString()); 

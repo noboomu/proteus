@@ -5,12 +5,8 @@ package io.sinistral.proteus.controllers;
 
 import static io.sinistral.proteus.server.ServerResponse.response;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +29,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.inject.Singleton;
 import com.jsoniter.output.JsonStream;
- 
+
 import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
@@ -41,7 +37,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.util.HttpString;
 
 /**
  * @author jbauer

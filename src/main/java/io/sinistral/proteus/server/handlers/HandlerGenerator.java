@@ -55,6 +55,7 @@ import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.swagger.annotations.Api;
+import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.util.Headers;
@@ -91,7 +92,7 @@ public class HandlerGenerator
 		FilePathType("$T $L = $T.filePath(exchange,$S)", true, java.nio.file.Path.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		AnyType("$T $L = $T.any(exchange)", true, com.jsoniter.any.Any.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class),
 		JsonIteratorType("$T $L = $T.jsonIterator(exchange)", true, com.jsoniter.JsonIterator.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class),
-		ModelType("$T $L = $T.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.LITERAL),
+		ModelType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
  
 		//EnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.TYPE, StatementParameterType.STRING),
 		ByteBufferType("$T $L =  $T.byteBuffer(exchange,$S)", true, java.nio.ByteBuffer.class, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
@@ -793,7 +794,7 @@ public class HandlerGenerator
 			for (Parameter p : m.getParameters())
 			{
 
-				if (p.getParameterizedType().equals(ServerRequest.class) || p.getParameterizedType().equals(HttpServerExchange.class))
+				if (p.getParameterizedType().equals(ServerRequest.class) || p.getParameterizedType().equals(HttpServerExchange.class) ||  p.getParameterizedType().equals(HttpHandler.class))
 				{
 					continue;
 				}
@@ -838,6 +839,11 @@ public class HandlerGenerator
 					}
 					else if (p.getType().equals(HttpServerExchange.class))
 					{
+						methodBuilder.addCode("$L", "\n");
+					}
+					else if (p.getType().equals(HttpHandler.class))
+					{
+						methodBuilder.addStatement("$T $L = this", HttpHandler.class, p.getName());
 						methodBuilder.addCode("$L", "\n");
 					}
 					else
@@ -907,8 +913,11 @@ public class HandlerGenerator
 								String interfaceType = parameterizedLiteralsNameMap.get(type);
 
 								String pType = interfaceType != null ? interfaceType + "TypeLiteral" : type.getTypeName() + ".class";
-
-								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
+								
+								 
+	 							methodBuilder.addStatement(t.statement, type, p.getName(), pType);
+ 
+								 
 							}
 							else if (t.equals(TypeHandler.OptionalFromStringType) || t.equals(TypeHandler.OptionalValueOfType))
 							{
@@ -1029,11 +1038,22 @@ public class HandlerGenerator
 			}
 			else
 			{
-				functionBlockBuilder.add("$L.$L($L);", controllerName, m.getName(), "exchange");
+				 
+				functionBlockBuilder.add("$L.$L($L);",    controllerName, m.getName(), controllerMethodArgs);
+			 
 				
 				methodBuilder.addCode(functionBlockBuilder.build());
 
+				methodBuilder.addCode("$L", "\n");
+ 
+				 
 				handlerClassBuilder.addMethod(methodBuilder.build());
+				
+//				functionBlockBuilder.add("$L.$L($L);", controllerName, m.getName(), "exchange");
+//				
+//				methodBuilder.addCode(functionBlockBuilder.build());
+//
+//				handlerClassBuilder.addMethod(methodBuilder.build());
 
 			}
 	

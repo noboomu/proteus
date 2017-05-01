@@ -7,7 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.AbstractIdleService;
+import com.google.inject.Binder;
 import com.google.inject.Inject;
+import com.google.inject.Module;
+import com.google.inject.Singleton;
 import com.typesafe.config.Config;
 
 import io.sinistral.proteus.modules.ConfigModule;
@@ -16,7 +19,8 @@ import io.sinistral.proteus.modules.ConfigModule;
  * @author jbauer
  *
  */
-public class BaseService  extends AbstractIdleService
+@Singleton
+public abstract class BaseService  extends AbstractIdleService implements Module
 {
 	private static Logger log = LoggerFactory.getLogger(BaseService.class.getCanonicalName());
 
@@ -51,6 +55,16 @@ public class BaseService  extends AbstractIdleService
 	protected void shutDown() throws Exception
 	{
 		log.info("Stopping " + this.getClass().getSimpleName() ); 
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.google.inject.Module#configure(com.google.inject.Binder)
+	 */
+	public void configure(Binder binder)
+	{
+		 
+		
 	}
 	
 

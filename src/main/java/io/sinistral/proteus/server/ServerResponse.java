@@ -6,6 +6,7 @@ package io.sinistral.proteus.server;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -220,6 +221,7 @@ public class ServerResponse<T>
 		this.contentType = javax.ws.rs.core.MediaType.TEXT_HTML;
 		return this;
 	}
+	 
 	
 	public ServerResponse<T> applicationOctetStream()
 	{

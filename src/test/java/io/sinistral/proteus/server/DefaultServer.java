@@ -47,8 +47,6 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			public void testStarted(Description description) throws Exception
 			{
 
-				System.out.println("testStarted: " + description.getClassName() + "." + description.getMethodName());
-
 				super.testStarted(description);
 			}
 
@@ -56,15 +54,11 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			public void testFinished(Description description) throws Exception
 			{
 
-				System.out.println("testFinished: " + description.getClassName() + "." + description.getMethodName());
-
 				super.testFinished(description);
 			}
 		});
 
 		runInternal(notifier);
-		
-		
 
 		super.run(notifier);
 	}
@@ -79,12 +73,10 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			app.addService(SwaggerService.class);
 			app.addService(AssetsService.class);
 			app.addController(Tests.class);
-			
-			 
 
 			app.start();
-			
-			while(!app.isRunning())
+
+			while (!app.isRunning())
 			{
 				try
 				{

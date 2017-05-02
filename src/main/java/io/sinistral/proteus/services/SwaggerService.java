@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -252,7 +253,9 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			
 				try(JarFile jarFile = new JarFile(srcFile, false))
 				{ 
-					Path tmpDirParent = Paths.get(config.getString("application.tmpdir"));
+					String appName = config.getString("application.name").replaceAll(" ", "_");
+ 					
+					Path tmpDirParent = Files.createTempDirectory(appName);
 					
 					Path swaggerTmpDir = tmpDirParent.resolve("swagger/");
 					

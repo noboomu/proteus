@@ -25,7 +25,8 @@ import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValue;
 
 /**
- * Most of this is taken from Jooby
+ * Much of this is taken with reverence from Jooby
+ * 
  * @author jbauer
  */
 
@@ -80,22 +81,25 @@ public class ConfigModule extends AbstractModule
 	
 	@SuppressWarnings("unchecked")
 	private void bindConfig(final Config config)
-	{
-	 
+	{ 
 		traverse(this.binder(), "", config.root());
  
-		
-		// terminal nodes
 		for (Entry<String, ConfigValue> entry : config.entrySet())
 		{
 			String name = entry.getKey();
+			
 			Named named = Names.named(name);
+			
 			Object value = entry.getValue().unwrapped();
+			
 			if (value instanceof List)
 			{
 				List<Object> values = (List<Object>) value;
+				
 				Type listType = values.size() == 0 ? String.class : Types.listOf(values.iterator().next().getClass());
+				
 				Key<Object> key = (Key<Object>) Key.get(listType, Names.named(name));
+				 
 				this.binder().bind(key).toInstance(values);
 			}
 			else
@@ -116,35 +120,43 @@ public class ConfigModule extends AbstractModule
  	}
 
 
-	private static void traverse(final Binder binder, final String p, final ConfigObject root)
+	private static void traverse(final Binder binder, final String nextPath, final ConfigObject rootConfig)
 	{
-		root.forEach((n, v) -> {
-			if (v instanceof ConfigObject)
+		rootConfig.forEach((key, value) -> 
+		{
+			if (value instanceof ConfigObject)
 			{
-				ConfigObject child = (ConfigObject) v;
-				String path = p + n;
+				ConfigObject child = (ConfigObject) value;
+				
+				String path = nextPath + key;
+				
 				Named named = Names.named(path);
+				
 				binder.bind(Config.class).annotatedWith(named).toInstance(child.toConfig());
+				
 				traverse(binder, path + ".", child);
 			}
 		});
 	}
 	
 	
-	private static Config fileConfig(final String fname)
+	private static Config fileConfig(final String fileName)
 	{
-		File dir = new File(System.getProperty("user.dir"));
-		File froot = new File(dir, fname);
-		if (froot.exists())
+		File userDirectory = new File(System.getProperty("user.dir"));
+		
+		File fileRoot = new File(userDirectory, fileName);
+		
+		if (fileRoot.exists())
 		{
-			return ConfigFactory.load(ConfigFactory.parseFile(froot));
+			return ConfigFactory.load(ConfigFactory.parseFile(fileRoot));
 		}
 		else
 		{
-			File fconfig = new File(new File(dir, "conf"), fname);
-			if (fconfig.exists())
+			File fileConfig = new File(new File(userDirectory, "conf"), fileName);
+			
+			if (fileConfig.exists())
 			{
-				return ConfigFactory.load(ConfigFactory.parseFile(fconfig));
+				return ConfigFactory.load(ConfigFactory.parseFile(fileConfig));
 			}
 		}
 		return ConfigFactory.empty();

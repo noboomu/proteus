@@ -54,7 +54,7 @@ public class ServerParameterExtension extends DefaultParameterExtension
 	protected boolean shouldIgnoreType(Type type, Set<Type> typesToSkip)
 	{ 
  
-		if( type.getTypeName().contains("io.sinistral.proteus.server.ServerRequest") || type.getTypeName().contains("HttpServerExchange") || type.getTypeName().contains("io.sinistral.proteus.server.ServerResponse"))
+		if( type.getTypeName().contains("io.sinistral.proteus.server.ServerRequest") || type.getTypeName().contains("HttpServerExchange") ||  type.getTypeName().contains("HttpHandler") || type.getTypeName().contains("io.sinistral.proteus.server.ServerResponse"))
 		{
 			return true;
 		} 

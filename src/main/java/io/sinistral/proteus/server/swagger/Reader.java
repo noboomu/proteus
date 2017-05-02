@@ -88,6 +88,7 @@ import io.swagger.util.BaseReaderUtils;
 import io.swagger.util.ParameterProcessor;
 import io.swagger.util.PathUtils;
 import io.swagger.util.ReflectionUtils;
+import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 
 /**
@@ -1022,7 +1023,7 @@ public class Reader {
       	 
        		}
                 
-                if(type.equals(ServerRequest.class) || type.equals(HttpServerExchange.class) || type.getTypeName().contains("io.sinistral.proteus.server.ServerResponse"))
+                if(type.equals(ServerRequest.class) || type.equals(HttpServerExchange.class) || type.equals(HttpHandler.class) || type.getTypeName().contains("io.sinistral.proteus.server.ServerResponse"))
                 {
                 	continue;
                 }
@@ -1038,7 +1039,7 @@ public class Reader {
             for (int i = 0; i < annotatedMethod.getParameterCount(); i++) {
                 AnnotatedParameter param = annotatedMethod.getParameter(i);
                 
-                if(param.getParameterType().equals(ServerRequest.class) || param.getParameterType().equals(HttpServerExchange.class) || param.getParameterType().getTypeName().contains("ServerResponse"))
+                if(param.getParameterType().equals(ServerRequest.class) || param.getParameterType().equals(HttpServerExchange.class) || param.getParameterType().equals(HttpHandler.class)|| param.getParameterType().getTypeName().contains("ServerResponse"))
                 {
                 	continue;
                 }
@@ -1114,6 +1115,7 @@ public class Reader {
         typesToSkip.add(TypeFactory.defaultInstance().constructType(ServerRequest.class));
         typesToSkip.add(TypeFactory.defaultInstance().constructType(HttpServerExchange.class));
         typesToSkip.add(TypeFactory.defaultInstance().constructType(ServerResponse.class));
+        typesToSkip.add(TypeFactory.defaultInstance().constructType(HttpHandler.class));
 
         final SwaggerExtension extension = chain.next();
       

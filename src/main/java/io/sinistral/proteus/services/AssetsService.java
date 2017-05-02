@@ -5,6 +5,7 @@ package io.sinistral.proteus.services;
 
 import java.nio.file.Paths;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import io.undertow.util.Methods;
  * @author jbauer
  *
  */
-public class AssetsService extends BaseService
+public class AssetsService extends BaseService implements Supplier<RoutingHandler>
 {
 	private static Logger log = LoggerFactory.getLogger(AssetsService.class.getCanonicalName());
 
@@ -45,19 +46,16 @@ public class AssetsService extends BaseService
 	public AssetsService()
 	{ 
 	}
-
- 
-	@Override
-	protected void startUp() throws Exception
-	{
-		super.startUp();
-
+	
+	public RoutingHandler get()
+	{ 
+		RoutingHandler router = new RoutingHandler();
+		
 		final String assetsPath = serviceConfig.getString("path");
 		final String assetsDirectoryName = serviceConfig.getString("dir") ;
 		final Integer assetsCacheTime = serviceConfig.getInt("cache.time");
 		
 		final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile());
-
 
 		router.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex('" + assetsPath  +  "/(.*)')", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
 		.setCachable(TruePredicate.instance())
@@ -66,6 +64,16 @@ public class AssetsService extends BaseService
 		
 		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("*/*").withPathTemplate(assetsPath).withControllerName("Assets").withMethod(Methods.GET).build());
 
+		return router;
+	}
+
+ 
+	@Override
+	protected void startUp() throws Exception
+	{
+		super.startUp();
+		
+		router.addAll(this.get());
 	}
 
  

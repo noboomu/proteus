@@ -30,10 +30,9 @@ import io.undertow.server.RoutingHandler;
 
 /**
  * @author jbauer
- *
  */
 @Singleton
-public class ServerModule extends AbstractModule  
+public class ServerModule extends AbstractModule
 {
 	private static Logger log = LoggerFactory.getLogger(ServerModule.class.getCanonicalName());
 
@@ -42,24 +41,21 @@ public class ServerModule extends AbstractModule
 	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
 
 	protected Config config;
-	
+
 	public ServerModule(Config config)
 	{
 		this.config = config;
 	}
-	 
- 
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void configure()
 	{
- 
-		
+
 		this.binder().requestInjection(this);
-		
- 		
+
 		RoutingHandler router = new RoutingHandler();
-	 
+
 		try
 		{
 			String className = config.getString("application.fallbackHandler");
@@ -68,41 +64,40 @@ public class ServerModule extends AbstractModule
 			router.setFallbackHandler(clazz.newInstance());
 		} catch (Exception e)
 		{
-			log.error(e.getMessage(),e);
+			log.error(e.getMessage(), e);
 		}
-		 		
-		this.bind(RoutingHandler.class).toInstance(router); 
-		
+
+		this.bind(RoutingHandler.class).toInstance(router);
+
 		this.bind(ServerModule.class).toInstance(this);
-		  
-		
+
 		try
 		{
 			String className = config.getString("application.defaultResponseListener");
-			log.info("Installing DefaultResponseListener " + className); 
+			log.info("Installing DefaultResponseListener " + className);
 			Class<? extends DefaultResponseListener> clazz = (Class<? extends DefaultResponseListener>) Class.forName(className);
-			this.bind(DefaultResponseListener.class).to(clazz).in(Singleton.class); 
+			this.bind(DefaultResponseListener.class).to(clazz).in(Singleton.class);
 		} catch (Exception e)
 		{
-			log.error(e.getMessage(),e);
+			log.error(e.getMessage(), e);
 		}
-		
- 
- 
-		this.bind(new TypeLiteral<Set<Class<?>>>() {}).annotatedWith(Names.named("registeredControllers")).toInstance(registeredControllers);
-		this.bind(new TypeLiteral<Set<EndpointInfo>>() {}).annotatedWith(Names.named("registeredEndpoints")).toInstance(registeredEndpoints);
-		this.bind(new TypeLiteral<Set<Class<? extends Service>>>() {}).annotatedWith(Names.named("registeredServices")).toInstance(registeredServices);
 
-		this.bind(XmlMapper.class).toInstance(new XmlMapper()); 
-		
+		this.bind(new TypeLiteral<Set<Class<?>>>()
+		{
+		}).annotatedWith(Names.named("registeredControllers")).toInstance(registeredControllers);
+		this.bind(new TypeLiteral<Set<EndpointInfo>>()
+		{
+		}).annotatedWith(Names.named("registeredEndpoints")).toInstance(registeredEndpoints);
+		this.bind(new TypeLiteral<Set<Class<? extends Service>>>()
+		{
+		}).annotatedWith(Names.named("registeredServices")).toInstance(registeredServices);
+
+		this.bind(XmlMapper.class).toInstance(new XmlMapper());
+
 		JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
 		JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
 		JsoniterAnnotationSupport.enable();
 
-
 	}
-
- 
- 
 
 }

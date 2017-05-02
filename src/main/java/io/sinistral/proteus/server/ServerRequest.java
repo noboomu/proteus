@@ -103,7 +103,7 @@ public class ServerRequest
 
 	/**
 	 * @param key
-	 * @return
+	 * @return the attachment
 	 * @see io.undertow.util.AbstractAttachable#getAttachment(io.undertow.util.AttachmentKey)
 	 */
 	public <T> T getAttachment(AttachmentKey<T> key)
@@ -112,7 +112,7 @@ public class ServerRequest
 	}
 
 	/**
-	 * @return
+	 * @return the inetSocketAddress
 	 * @see io.undertow.server.HttpServerExchange#getDestinationAddress()
 	 */
 	public InetSocketAddress getDestinationAddress()
@@ -121,7 +121,7 @@ public class ServerRequest
 	}
  
 	/**
-	 * @return
+	 * @return the query parameters
 	 * @see io.undertow.server.HttpServerExchange#getQueryParameters()
 	 */
 	public Map<String, Deque<String>> getQueryParameters()
@@ -130,7 +130,7 @@ public class ServerRequest
 	}
 
 	/**
-	 * @return
+	 * @return the path parameters
 	 * @see io.undertow.server.HttpServerExchange#getPathParameters()
 	 */
 	public Map<String, Deque<String>> getPathParameters()

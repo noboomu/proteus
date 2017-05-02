@@ -3,10 +3,7 @@
  */
 package io.sinistral.proteus.server;
 
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +15,6 @@ import com.jsoniter.output.JsonContext;
 import com.jsoniter.output.JsonStream;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
-import io.undertow.io.AsyncSenderImpl;
 import io.undertow.io.IoCallback;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -31,7 +27,6 @@ import io.undertow.util.StatusCodes;
 
 /**
  * @author jbauer
- * @TODO ParameterizevServerResponse TypeLiteral relevant Jsoniter encoder This will remove the lookup and shave some time. Experiment with a ThreadLocal JsonStream and AsciiStream. Refer to JsonStream serialization
  */
 public class ServerResponse<T>
 {
@@ -98,8 +93,8 @@ public class ServerResponse<T>
 	}
 
 	/**
-	 * @param callback
-	 *            the callback to set
+	 * @param ioCallback
+	 *            the ioCallback to set
 	 */
 	public void setIoCallback(IoCallback ioCallback)
 	{

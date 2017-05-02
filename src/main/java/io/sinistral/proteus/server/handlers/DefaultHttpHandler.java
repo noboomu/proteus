@@ -35,11 +35,7 @@ public class DefaultHttpHandler implements HttpHandler
 	
 	protected final HeaderMap headers = new HeaderMap();
 
-
-	/**
-	 * @param defaultResponseListener
-	 * @param router
-	 */
+ 
 	@Inject
 	public DefaultHttpHandler(Config config)
 	{

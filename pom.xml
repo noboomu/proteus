@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.sinistral</groupId>
 	<artifactId>proteus-core</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<name>proteus core</name>
     <description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
     <url>http://github.com/noboomu/proteus</url>
@@ -136,7 +136,7 @@
                 <configuration>
                     <serverId>ossrh</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin> 
             <plugin>
@@ -146,7 +146,7 @@
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>release</releaseProfiles>
+                    <releaseProfiles>ossrh</releaseProfiles>
                     <goals>deploy</goals>
                 </configuration>
             </plugin>
@@ -344,6 +344,7 @@
 		    <id>ossrh</id>
 		    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		  </repository>
+		      <downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-core</downloadUrl>
     </distributionManagement> 
  
 </project>

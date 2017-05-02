@@ -10,7 +10,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,11 +62,7 @@ import io.undertow.util.HttpString;
 import net.openhft.compiler.CompilerUtils;
 
 /**
- * @author jbauer
-	@TODO 
-	Binary data in query
-	Clean this UP!!!
-	
+ * @author jbauer 
  */
 public class HandlerGenerator
 {

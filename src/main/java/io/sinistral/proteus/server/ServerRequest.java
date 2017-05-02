@@ -28,6 +28,11 @@ import io.undertow.util.FastConcurrentDirectDeque;
 import io.undertow.util.Headers;
 import io.undertow.util.MalformedMessageException;
 
+/**
+ * 
+ * @author jbauer
+ *
+ */
 public class ServerRequest
 {
 	private static Logger log = LoggerFactory.getLogger(ServerRequest.class.getCanonicalName());
@@ -114,9 +119,7 @@ public class ServerRequest
 	{
 		return exchange.getDestinationAddress();
 	}
-	
-	// ChainedHandlerWrapper
-
+ 
 	/**
 	 * @return
 	 * @see io.undertow.server.HttpServerExchange#getQueryParameters()
@@ -173,33 +176,6 @@ public class ServerRequest
 	                throw new IOException(e);
 	            } 
  		
-//		else
-//		{
-//			this.exchange.startBlocking();
-//
-//            InputStream is = exchange.getInputStream();
-//            if (is != null) {
-//            	
-//            	try
-//				{
-//            		 if (is.available() != -1) {
-//            			 
-//            			 try(Scanner scanner = new Scanner(is, "UTF-8"))
-//            			 {
-//            				 String s = scanner.useDelimiter("\\A").next();
-//                             s = s.trim(); 
-//                             this.exchange.putAttachment(BYTE_BUFFER_KEY, ByteBuffer.wrap(s.getBytes()));
-//            			 } 
-//                         
-//                     }
-//            		 
-//				 } catch (IOException e) {
-//					 log.error("IOException: ", e);
-//	             }
-//            	
-//            }
-//		}
-		
 	}
 
 	private void parseMultipartForm() throws IOException

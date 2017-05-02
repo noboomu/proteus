@@ -124,9 +124,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	
 	protected ClassLoader serviceClassLoader = null;
 	
-	/**
-	 * @param config
-	 */
+
 	public SwaggerService( )
 	{ 
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -204,20 +202,13 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
  		
 	}
 
-
  
-
-	/**
-	 * @return the swagger
-	 */
 	public Swagger getSwagger()
 	{
 		return swagger;
 	}
 
-	/**
-	 * @param swagger the swagger to set
-	 */
+ 
 	public void setSwagger(Swagger swagger)
 	{
 		this.swagger = swagger;

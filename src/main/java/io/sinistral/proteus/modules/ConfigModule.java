@@ -41,7 +41,12 @@ public class ConfigModule extends AbstractModule
 	
 	public ConfigModule()
 	{
+		this.configFile = System.getenv("config.file");
 		
+		if(this.configFile == null)
+		{
+			this.configFile = "application.conf";
+		}
 	}
 	
 	public ConfigModule(String configFile)

@@ -6,14 +6,19 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.jar.JarFile;
 
 import javax.ws.rs.HttpMethod;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,12 +43,15 @@ import io.swagger.models.Swagger;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.handlers.ResponseCodeHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
+import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.Resource;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
+
 
  
 public class SwaggerService   extends BaseService implements Supplier<RoutingHandler>
@@ -53,9 +61,9 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 
 	protected io.sinistral.proteus.server.swagger.Reader reader = null;
 	
-	protected final String swaggerResourcePath = "swagger";
+	protected final String swaggerResourcePathPrefix = "swagger";
 	
-	protected final String swaggerThemesPath = "swagger/themes";
+	protected final String swaggerResourcePrefix = "io/sinistral/proteus/swagger";
 
 	protected Swagger swagger = null;
 	
@@ -110,7 +118,9 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
  
 	protected ObjectMapper mapper = new ObjectMapper();
 	
-	protected ObjectWriter writer = null;
+	protected ObjectWriter writer = null; 
+	
+	protected Path swaggerResourcePath = null;
 	
 	protected ClassLoader serviceClassLoader = null;
 	
@@ -217,10 +227,9 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	{
 		try
 		{  
- 
-			this.serviceClassLoader = this.getClass().getClassLoader();
+  
 			
-			final InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream("swagger/index.html");
+			final InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(swaggerResourcePrefix + "/index.html");
 			
 			byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
 			
@@ -238,20 +247,69 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");
 			templateString = templateString.replaceAll("\\{\\{ swaggerFullPath \\}\\}","//" + host + ((port != 80 && port != 443) ? ":" + port : "") + this.swaggerBasePath + ".json");
 
-			this.swaggerIndexHTML = templateString; 
+			this.swaggerIndexHTML = templateString;  
+  
+			URL url = this.getClass().getClassLoader().getResource(swaggerResourcePrefix);
 			
-			
-//			final InputStream resourceInputStream = this.getClass().getClassLoader().getResourceAsStream("swagger/swagger-ui-bundle.js");
-//			
-//			byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream); 
-//			
-//			String resourceString = new String(resourceBytes,Charset.defaultCharset());
-//			
-//			System.out.println("resource: " + resourceString);
-//			
-		 
-			
+			if( url.toExternalForm().contains("!") )
+			{
+				log.debug("Copying Swagger resources...");
 
+				String jarPathString = url.toExternalForm().substring(0, url.toExternalForm().indexOf("!") ).replaceAll("file:", "").replaceAll("jar:", "");
+		 
+				File srcFile = new File(jarPathString);
+			
+				try(JarFile jarFile = new JarFile(srcFile, false))
+				{ 
+					Path tmpDirParent = Paths.get(config.getString("application.tmpdir"));
+					
+					Path swaggerTmpDir = tmpDirParent.resolve("swagger/");
+					
+					if(swaggerTmpDir.toFile().exists())
+					{
+						log.debug("Deleting existing Swagger directory at " + swaggerTmpDir);
+						
+						try
+						{
+							FileUtils.deleteDirectory(swaggerTmpDir.toFile());
+
+						} catch (java.lang.IllegalArgumentException e)
+						{
+							log.debug("Swagger tmp directory is not a directory...");
+							swaggerTmpDir.toFile().delete();
+						}
+ 					}
+					
+					java.nio.file.Files.createDirectory( swaggerTmpDir );
+					
+					this.swaggerResourcePath = swaggerTmpDir;
+			 
+					jarFile.stream().filter( ze ->  ze.getName().endsWith("js") || ze.getName().endsWith("css") || ze.getName().endsWith("map") || ze.getName().endsWith("html") ).forEach( ze -> {
+						
+						try
+						{
+							final InputStream entryInputStream = jarFile.getInputStream(ze);
+							
+							String filename = ze.getName().substring(swaggerResourcePrefix.length() + 1); 
+							
+							Path entryFilePath = swaggerTmpDir.resolve(filename); 
+
+							java.nio.file.Files.createDirectories(entryFilePath.getParent());
+							
+							java.nio.file.Files.copy(entryInputStream, entryFilePath,StandardCopyOption.REPLACE_EXISTING);
+							
+						} catch (Exception e)
+						{
+							log.error(e.getMessage() + " for entry " + ze.getName());
+						} 
+					}); 
+				}
+			}
+			else
+			{
+				this.swaggerResourcePath = Paths.get(this.getClass().getClassLoader().getResource(this.swaggerResourcePrefix).toURI());
+				this.serviceClassLoader = this.getClass().getClassLoader();
+			}
 		
 		} catch (Exception e)
 		{ 
@@ -266,6 +324,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		String pathTemplate = this.swaggerBasePath + ".json";
 		
+		FileResourceManager resourceManager = new FileResourceManager(this.swaggerResourcePath.toFile(),1024);
  		
 		router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
 
@@ -273,9 +332,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
  
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MimeTypes.APPLICATION_JSON_TYPE);
- 
-
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MimeTypes.APPLICATION_JSON_TYPE); 
 				exchange.getResponseSender().send(swaggerSpec);
 				
 			}
@@ -287,7 +344,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		 
 		pathTemplate =  this.swaggerBasePath;
 		
- 		
+  		
 		router.add(HttpMethod.GET, pathTemplate , new HttpHandler(){
 
 			@Override
@@ -304,35 +361,6 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
  
 		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/html").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
  
-		pathTemplate = this.swaggerBasePath + "/themes/*";
-		
-		router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
-
-			@Override
-			public void handleRequest(HttpServerExchange exchange) throws Exception
-			{
- 
-				String canonicalPath = CanonicalPathUtils.canonicalize((exchange.getRelativePath()));
-						
-				canonicalPath = swaggerThemesPath + canonicalPath.split(swaggerBasePath+"/themes")[1]; 
-				
-				try(final InputStream resourceInputStream = serviceClassLoader.getResourceAsStream(canonicalPath))
-				{
-				
-					byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream); 
-				
-					exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.TEXT_CSS_UTF8.toString());
-				
-					exchange.getResponseSender().send(ByteBuffer.wrap(resourceBytes));
-				
-				}
-			}
-			
-		});
-		 
-		
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/css").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
-
  		
 		try
 		{
@@ -340,7 +368,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 
 			 pathTemplate =  this.swaggerBasePath + "/*";
 			 
-			 router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
+			 router.add(HttpMethod.GET, pathTemplate, new ResourceHandler(resourceManager){
 
 					@Override
 					public void handleRequest(HttpServerExchange exchange) throws Exception
@@ -348,19 +376,35 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 						 
 						String canonicalPath = CanonicalPathUtils.canonicalize((exchange.getRelativePath()));
 					 
-						canonicalPath = swaggerResourcePath + canonicalPath.split(swaggerBasePath)[1]; 
-						 
-						System.out.println("canonicalPath: " + canonicalPath);
+						canonicalPath =  canonicalPath.split(swaggerBasePath)[1];  
 						
-						try(final InputStream resourceInputStream = serviceClassLoader.getResourceAsStream(canonicalPath))
+						exchange.setRelativePath(canonicalPath);
+						
+						if(serviceClassLoader == null)
+						{   
+							super.handleRequest(exchange);
+						}
+						else
 						{
-						
-							byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream); 
-						
-							exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.APPLICATION_JAVASCRIPT_UTF8.toString());
-						
-							exchange.getResponseSender().send(ByteBuffer.wrap(resourceBytes));
-						
+							canonicalPath = swaggerResourcePrefix + canonicalPath;
+							
+							try(final InputStream resourceInputStream = serviceClassLoader.getResourceAsStream(  canonicalPath))
+							{
+							 
+								if(resourceInputStream == null)
+								{
+									ResponseCodeHandler.HANDLE_404.handleRequest(exchange);
+									return;
+								}
+								
+								byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream); 
+								
+								io.sinistral.proteus.server.MediaType mediaType = io.sinistral.proteus.server.MediaType.getByFileName(canonicalPath);
+								
+								exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, mediaType.toString());
+							
+								exchange.getResponseSender().send(ByteBuffer.wrap(resourceBytes)); 
+							}
 						}
 						
 					}

@@ -74,8 +74,8 @@
 <script src="{{ swaggerBasePath }}/swagger-ui-standalone-preset.js"> </script>
 <script>
 
-var hasDefaultTheme = "{{themePath}}" == 'default';
-if(hasDefaultTheme)
+var hasDefaultTheme = "{{ themePath }}" == 'default';
+if(!hasDefaultTheme)
 {
   var newStyle = document.createElement('link');
   newStyle.setAttribute('rel','stylesheet');

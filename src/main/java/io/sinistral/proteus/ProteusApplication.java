@@ -83,7 +83,7 @@ public class ProteusApplication
 	public ProteusApplication()
 	{
 		
-		injector = Guice.createInjector(new ConfigModule("application.conf"));  
+		injector = Guice.createInjector(new ConfigModule());  
 		injector.injectMembers(this); 
 		
 	}
@@ -186,7 +186,7 @@ public class ProteusApplication
 		
 		log.info("Shutting down...");
 
-		serviceManager.stopAsync().awaitStopped(5, TimeUnit.SECONDS); 
+		serviceManager.stopAsync().awaitStopped(8, TimeUnit.SECONDS); 
 
 		log.info("Shutdown complete.");
 	}

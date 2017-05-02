@@ -503,32 +503,7 @@ public class HandlerGenerator
 	
 	protected Class<?> controllerClass;
 
-
-	// public static void main(String[] args)
-	// {
-	// try
-	// {
-	// RouteGenerator generator = new RouteGenerator("io.sinistral.proteus.controllers.handlers","RouteHandlers");
-	//
-	// Set<Class<?>> classes = getApiClasses("io.sinistral.proteus.controllers",null);
-	//
-	// generator.generateRoutes(classes);
-	//
-	// StringBuilder sb = new StringBuilder();
-	//
-	// //generator.getRestRoutes().stream().forEachOrdered( r -> sb.append(r.toString() + "\n"));
-	//
-	// System.out.println(sb.toString());
-	//
-	// System.out.println("\n" + generator.sourceString);
-	//
-	// } catch (Exception e)
-	// {
-	// log.error(e.getMessage(),e);
-	// }
-	//
-	// }
-
+ 
 	public HandlerGenerator(String packageName, Class<?> controllerClass)
 	{
 		this.packageName = packageName;
@@ -673,10 +648,8 @@ public class HandlerGenerator
 						
 						 
 					}
-					
-					TypeHandler handler = TypeHandler.forType(t);
-					
-					System.out.println("handler: " + handler);
+					 
+					 
 					
 					return true;
 					
@@ -938,12 +911,10 @@ public class HandlerGenerator
 								
 								Class<?> erasedType = (Class<?>)extractErasedType(type); 
 								
-								//System.out.println("optionalist: erasedType: " + erasedType + " type: " + type + " pType: " + pType);
-								 
+ 								 
 								methodBuilder.addStatement(t.statement, pType, p.getName(), p.getName(), erasedType);
 								
-								//TypeHandler.addStatement(methodBuilder,p);
-							}
+ 							}
 							else
 							{
 								TypeHandler.addStatement(methodBuilder, p);

@@ -424,7 +424,8 @@ public class ServerResponse<T>
 		return new ServerResponse<T>().entity(entity);
 	}
  
-	public static ServerResponse<?> response()
+	@SuppressWarnings("rawtypes")
+	public static ServerResponse response()
 	{
 		return new ServerResponse();
 	}

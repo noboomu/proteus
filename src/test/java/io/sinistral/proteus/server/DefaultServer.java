@@ -5,7 +5,6 @@ package io.sinistral.proteus.server;
 
 import org.junit.runner.Description;
 import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -15,10 +14,6 @@ import io.sinistral.proteus.ProteusApplication;
 import io.sinistral.proteus.controllers.Tests;
 import io.sinistral.proteus.services.AssetsService;
 import io.sinistral.proteus.services.SwaggerService;
-
-import static io.restassured.RestAssured.*;
-import static io.restassured.matcher.RestAssuredMatchers.*;
-import static org.hamcrest.Matchers.*;
 
 /**
  * @author jbauer

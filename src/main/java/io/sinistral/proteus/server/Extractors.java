@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -17,9 +16,6 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.Objects;
 import java.util.function.Function;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.jsoniter.JsonIterator;
@@ -38,9 +34,7 @@ import io.undertow.util.Methods;
  */
 public class Extractors
 {
-	private static Logger log = LoggerFactory.getLogger(Extractors.class.getCanonicalName());
- 
- 
+  
 	protected static final XmlMapper XML_MAPPER = new XmlMapper();
 	
 	public static class Optional

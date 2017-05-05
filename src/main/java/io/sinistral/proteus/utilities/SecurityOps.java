@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
-import java.util.function.Function;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;

@@ -115,6 +115,7 @@ public class TestControllerEndpoints
 		given().accept(ContentType.JSON).log().uri().when().get("tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	public void responseUploadFilePathParameter()
 	{
@@ -139,6 +140,7 @@ public class TestControllerEndpoints
 
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	public void responseUploadByteBufferParameter()
 	{

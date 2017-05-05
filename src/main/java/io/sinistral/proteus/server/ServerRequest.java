@@ -6,14 +6,11 @@ package io.sinistral.proteus.server;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xnio.channels.StreamSourceChannel;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
@@ -34,24 +31,21 @@ import io.undertow.util.MalformedMessageException;
  *
  */
 public class ServerRequest
-{
-	private static Logger log = LoggerFactory.getLogger(ServerRequest.class.getCanonicalName());
-  
-    
+{    
     public static final AttachmentKey<ByteBuffer> BYTE_BUFFER_KEY = AttachmentKey.create(ByteBuffer.class);
-  
-	private static final String CHARSET = "UTF-8";
-	
+ 
+	protected static final String CHARSET = "UTF-8";
+	protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+
 	public final HttpServerExchange exchange;
 	
-	private final String path;
-	private FormData form; 
-	private final String contentType;
-	private final String method;  
+	protected final String path;
+	protected FormData form; 
+	protected final String contentType;
+	protected final String method;  
 	
 
-	private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
- 	
+  	
 	public ServerRequest()
 	{
 		this.method = null;

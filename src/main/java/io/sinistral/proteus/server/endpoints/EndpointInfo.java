@@ -5,8 +5,8 @@ package io.sinistral.proteus.server.endpoints;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import io.undertow.util.HttpString;
-import javax.annotation.Generated;
 
 /**
  * @author jbauer

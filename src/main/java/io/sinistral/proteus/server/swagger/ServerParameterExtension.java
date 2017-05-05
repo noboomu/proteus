@@ -5,13 +5,9 @@ package io.sinistral.proteus.server.swagger;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JavaType;
 
@@ -25,7 +21,6 @@ import io.swagger.models.parameters.Parameter;
  */
 public class ServerParameterExtension extends DefaultParameterExtension
 {
-	private static Logger log = LoggerFactory.getLogger(ServerParameterExtension.class.getCanonicalName());
 
 	public ServerParameterExtension()
 	{
@@ -42,8 +37,7 @@ public class ServerParameterExtension extends DefaultParameterExtension
 	      {
 	      	type = java.io.File.class;
  
-	      }
-		 
+	      } 
 		 
 		return  super.extractParameters(annotations, type, typesToSkip, chain);
 	  

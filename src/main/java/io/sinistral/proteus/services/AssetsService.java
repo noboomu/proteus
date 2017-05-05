@@ -7,9 +7,6 @@ import java.nio.file.Paths;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
@@ -27,7 +24,6 @@ import io.undertow.util.Methods;
  */
 public class AssetsService extends BaseService implements Supplier<RoutingHandler>
 {
-	private static Logger log = LoggerFactory.getLogger(AssetsService.class.getCanonicalName());
 
 	@Inject
 	@Named("registeredEndpoints")

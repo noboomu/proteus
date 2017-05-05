@@ -6,9 +6,6 @@ package io.sinistral.proteus.server.handlers;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Inject;
 import com.typesafe.config.Config;
 
@@ -25,7 +22,6 @@ import io.undertow.util.HttpString;
  */
 public class DefaultHttpHandler implements HttpHandler
 {
-	private static Logger log = LoggerFactory.getLogger(DefaultHttpHandler.class.getCanonicalName());
 
 	@Inject(optional=true)
 	protected DefaultResponseListener defaultResponseListener;

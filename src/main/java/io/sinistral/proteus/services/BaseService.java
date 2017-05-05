@@ -13,8 +13,6 @@ import com.google.inject.Module;
 import com.google.inject.Singleton;
 import com.typesafe.config.Config;
 
-import io.sinistral.proteus.modules.ConfigModule;
-
 /**
  * @author jbauer
  *

@@ -127,14 +127,14 @@ public class ServerResponse<T>
 	{
 		this.contentType = contentType;
 
-		if (this.contentType.equals(MimeTypes.APPLICATION_JSON_TYPE))
+		if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_JSON))
 		{
 			if(!this.preprocessed)
 			{
 				this.processJson = true;
 			}
 		}
-		else if (this.contentType.equals(MimeTypes.APPLICATION_XML_TYPE))
+		else if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_XML))
 		{
 			if(!this.preprocessed)
 			{

@@ -5,7 +5,8 @@ package io.sinistral.proteus.server.handlers;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,16 +16,11 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.jsoniter.output.JsonStream;
-import com.typesafe.config.Config;
 
-import io.sinistral.proteus.server.MimeTypes;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.util.HeaderMap;
-import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
 import io.undertow.util.StatusCodes;
 
 /**
@@ -81,7 +77,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 					
 					final String xmlBody = xmlMapper.writeValueAsString(errorMap);
 					 exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, xmlBody.length());
-		             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MimeTypes.APPLICATION_XML_TYPE);
+		             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_XML);
 	        		 exchange.getResponseSender().send(xmlBody);
 	        		 
 				} catch (JsonProcessingException e)
@@ -94,7 +90,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
         	 { 
 	        	 final String jsonBody = JsonStream.serialize(errorMap);
 	        	 
-	             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MimeTypes.APPLICATION_JSON_TYPE);
+	             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 	             exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, jsonBody.length());
 	             exchange.getResponseSender().send(jsonBody); 
         	 }

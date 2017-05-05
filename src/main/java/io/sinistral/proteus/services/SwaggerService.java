@@ -11,13 +11,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.jar.JarFile;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -33,8 +33,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
-
-import io.sinistral.proteus.server.MimeTypes;
+ 
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.swagger.ServerParameterExtension;
 import io.swagger.jaxrs.ext.SwaggerExtension;
@@ -45,9 +44,7 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.ResponseCodeHandler;
-import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.FileResourceManager;
-import io.undertow.server.handlers.resource.Resource;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
@@ -155,8 +152,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		SwaggerExtensions.setExtensions(extensions);
 
 		log.debug("Added SwaggerExtension: ServerParameterExtension");
-		
-		
+		 
 		Swagger swagger = new Swagger();
 		
 		swagger.setBasePath(applicationPath);
@@ -326,7 +322,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
  
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MimeTypes.APPLICATION_JSON_TYPE); 
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_JSON); 
 				exchange.getResponseSender().send(swaggerSpec);
 				
 			}
@@ -334,7 +330,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		});
 		
    
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MimeTypes.APPLICATION_JSON_TYPE).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MediaType.APPLICATION_JSON).build());
 		 
 		pathTemplate =  this.swaggerBasePath;
 		
@@ -346,14 +342,14 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			{
  
  
- 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MimeTypes.TEXT_HTML_TYPE);
+ 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
  				exchange.getResponseSender().send(swaggerIndexHTML);
 				
 			}
 			
 		});
  
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/html").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.TEXT_HTML).withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
  
  		
 		try
@@ -407,7 +403,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			
 
 				
-			 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+			 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.WILDCARD).withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
 
  
 

@@ -754,6 +754,7 @@ public class MediaType  {
 	public static final MediaType APPLICATION_X_MIE = create("application/x-mie", "mie");
 	public static final MediaType APPLICATION_X_MIF = create("application/x-mif", "mif");
 	public static final MediaType APPLICATION_XML_DTD_UTF8 = createUTF8("application/xml-dtd", "dtd");
+	public static final MediaType APPLICATION_XML = create("application/xml", "xml", "xsl", "xsd");
 	public static final MediaType APPLICATION_XML_UTF8 = createUTF8("application/xml", "xml", "xsl", "xsd");
 	public static final MediaType APPLICATION_X_MOBIPOCKET_EBOOK = create("application/x-mobipocket-ebook", "prc",
 		"mobi");

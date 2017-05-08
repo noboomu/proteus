@@ -20,7 +20,7 @@ import io.undertow.util.HttpString;
 /**
  * @author jbauer
  */
-public class DefaultHttpHandler implements HttpHandler
+public class ServerDefaultHttpHandler implements HttpHandler
 {
 
 	@Inject(optional=true)
@@ -33,7 +33,7 @@ public class DefaultHttpHandler implements HttpHandler
 
  
 	@Inject
-	public DefaultHttpHandler(Config config)
+	public ServerDefaultHttpHandler(Config config)
 	{
 		Config globalHeaders = config.getConfig("globalHeaders");
 

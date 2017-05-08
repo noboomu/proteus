@@ -36,7 +36,7 @@ import com.typesafe.config.Config;
 
 import io.sinistral.proteus.modules.ConfigModule;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.sinistral.proteus.server.handlers.DefaultHttpHandler;
+import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.services.AssetsService;
 import io.sinistral.proteus.services.SwaggerService;
@@ -116,8 +116,8 @@ public class ProteusApplication
 		
 		if( rootHandlerClass == null && rootHandler == null )
 		{
-			log.warn("No root handler class or root HttpHandler was specified, using default DefaultHttpHandler.");
-			rootHandlerClass = DefaultHttpHandler.class;
+			log.warn("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
+			rootHandlerClass = ServerDefaultHttpHandler.class;
 		}
 		
 		log.info("Starting services...");
@@ -350,7 +350,7 @@ public class ProteusApplication
  			 
  			 app.addService(AssetsService.class);
  
- 			 app.setRootHandlerClass(DefaultHttpHandler.class);
+ 			 app.setRootHandlerClass(ServerDefaultHttpHandler.class);
 
  			 app.start();
  			 

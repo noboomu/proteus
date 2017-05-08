@@ -54,6 +54,7 @@ import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.swagger.annotations.Api;
+import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
@@ -750,7 +751,7 @@ public class HandlerGenerator
 
 			endpointInfo.setControllerMethod(  m.getName());
 
-			String methodName = String.format("%c%s%sHandler", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName().substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()));
+			String handlerName = String.format("%c%s%sHandler", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName().substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()));
 
 			TypeSpec.Builder handlerClassBuilder = TypeSpec.anonymousClassBuilder("").addSuperinterface(httpHandlerClass);
 
@@ -1025,12 +1026,43 @@ public class HandlerGenerator
 	
 		 
 
-			FieldSpec handlerField = FieldSpec.builder(httpHandlerClass, methodName, Modifier.FINAL).initializer("$L", handlerClassBuilder.build()).build();
+			FieldSpec handlerField = FieldSpec.builder(httpHandlerClass, handlerName, Modifier.FINAL).initializer("$L", handlerClassBuilder.build()).build();
 
 			initBuilder.addCode("$L\n", handlerField.toString());
+			
+			Optional<io.sinistral.proteus.annotations.Chain> wrapAnnotation = Optional.ofNullable(m.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
+			
+			if( wrapAnnotation.isPresent() )
+			{
+				io.sinistral.proteus.annotations.Chain w = wrapAnnotation.get();
+			
+				Class<? extends HandlerWrapper> wrapperClasses[] = w.value();
+								
+				initBuilder.addStatement("$T currentHandler = $L", HttpHandler.class, handlerName);
+  
 
-			initBuilder.addStatement("$L.add(io.undertow.util.Methods.$L,$S,$L)", "router", httpMethod, methodPath, methodName);
+				for(  int i = 0; i < wrapperClasses.length; i++ )
+				{
+					Class<? extends HandlerWrapper> wrapperClass = wrapperClasses[i];
+					
+					String wrapperName = generateFieldName(wrapperClass.getCanonicalName());
+					  
+					initBuilder.addStatement("$T $L = new $T()", wrapperClass,wrapperName, wrapperClass);
 
+					initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler");
+					 
+				}
+				
+				initBuilder.addStatement("$L.add(io.undertow.util.Methods.$L,$S,$L)", "router", httpMethod, methodPath, "currentHandler");
+
+			}
+		else
+		{
+			initBuilder.addStatement("$L.add(io.undertow.util.Methods.$L,$S,$L)", "router", httpMethod, methodPath, handlerName);
+		}
+
+
+ 
 			initBuilder.addCode("$L", "\n");
 
 			registeredEndpoints.add(endpointInfo);
@@ -1315,10 +1347,33 @@ public class HandlerGenerator
 			erasedTypeName = erasedParts[0];
 		}
 
-		typeName = String.format("%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1, erasedTypeName.length()));
+		typeName = generateFieldName(erasedTypeName);
 
 
 		return typeName;
+	}
+	
+	public static String generateFieldName(String name)
+	{
+		String[] parts = name.split("\\.");
+		
+		StringBuilder sb = new StringBuilder();
+		
+		for( int i = 0; i < parts.length; i++ )
+		{
+			String part = parts[i];
+			
+			if(i == 0)
+			{
+				sb.append(String.format("%s%s", Character.toLowerCase(part.charAt(0)), part.substring(1, part.length())));
+			}
+			else
+			{
+				sb.append(String.format("%s%s", Character.toUpperCase(part.charAt(0)), part.substring(1, part.length())));
+			}
+		}
+		
+		return sb.toString();
 	}
 
 	public static void generateTypeLiteral(MethodSpec.Builder builder, Type type, String name)

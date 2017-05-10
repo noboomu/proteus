@@ -19,7 +19,7 @@ A great deal of inspiration came from working with the following excellent proje
  - [Logback](https://logback.qos.ch/) (logging)
  - [Typesafe Config](https://github.com/typesafehub/config) (config)
  - [Swagger](http://swagger.io/) (annotations and swagger spec)
- - [jax-rs](http://docs.oracle.com/javaee/6/api/javax/ws/rs/package-summary.html) (annotations only)
+ - [JAX-RS](http://docs.oracle.com/javaee/6/api/javax/ws/rs/package-summary.html) (annotations only)
 
 ### Dependencies
 * [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
@@ -29,8 +29,30 @@ A great deal of inspiration came from working with the following excellent proje
   - We are very impressed by what Jooby has done with server configuration  
   - Parameters are all configured in the ```conf/application.conf``` file 
   - Proteus applications generally have a main method that creates an instance of ```io.sinistral.proteus.ProteusApplication``` 
+
+  
   - The user adds ```Service``` and ```Module``` classes to the application instance via ```addService``` and ```addModule``` methods prior to calling ```start``` 
 
+  
+  ```Java
+public class ExampleApplication extends ProteusApplication
+{
+    public static void main( String[] args )
+    {
+        
+        ExampleApplication app = new ExampleApplication();
+        
+        app.addService(io.sinistral.proteus.services.SwaggerService.class);
+		 
+		 app.addService(io.sinistral.proteus.services.AssetsService.class);
+  
+		 app.addController(Benchmarks.class);  
+		
+		 app.start(); 
+    }
+}
+  ```
+  
 ### Getting Started
  - COMING SOON
  

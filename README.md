@@ -90,8 +90,8 @@ A great deal of inspiration came from working with the following excellent proje
  	@GET
 	@Path("/world")
 	@Produces((MediaType.APPLICATION_JSON)) 
-	@ApiOperation(value = "Return a random world instance",   httpMethod = "GET", response=World.class )
-	public io.sinistral.proteus.server.ServerResponse<World> plaintext(Integer id,  Integer randomNumber )
+	@ApiOperation(value = "Return a world JSON object",   httpMethod = "GET", response=World.class )
+	public io.sinistral.proteus.server.ServerResponse<World> getWorld(Integer id,  Integer randomNumber )
 	{ 
 		return io.sinistral.proteus.server.ServerResponse.response().entity(new World(id,randomNumber));
 	}

@@ -12,7 +12,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -607,6 +607,8 @@ public class HandlerGenerator
 		ClassName httpHandlerClass = ClassName.get("io.undertow.server", "HttpHandler");
 
 		String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
+		
+		HashSet<String> handlerNameSet = new HashSet<>();
 
 		MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("get").addModifiers(Modifier.PUBLIC).returns(RoutingHandler.class).addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
 
@@ -792,6 +794,15 @@ public class HandlerGenerator
 			endpointInfo.setControllerMethod(m.getName());
 
 			String handlerName = String.format("%c%s%sHandler", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName().substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()));
+			
+			int nameIndex = 1;
+			
+			while(handlerNameSet.contains(handlerName))
+			{
+				handlerName = handlerName + "_" + nameIndex++;
+			}
+			
+			handlerNameSet.add(handlerName);
 
 			TypeSpec.Builder handlerClassBuilder = TypeSpec.anonymousClassBuilder("").addSuperinterface(httpHandlerClass);
 

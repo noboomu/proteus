@@ -93,9 +93,40 @@ A great deal of inspiration came from working with the following excellent proje
 	@ApiOperation(value = "Return a world JSON object",   httpMethod = "GET", response=World.class )
 	public io.sinistral.proteus.server.ServerResponse<World> getWorld(Integer id,  Integer randomNumber )
 	{ 
+		return io.sinistral.proteus.server.ServerResponse.response(new World(id,randomNumber));
+	}
+  ```
+- The entity can be set separately as well:
+  ```java
+ 	@GET
+	@Path("/world")
+	@Produces((MediaType.APPLICATION_JSON)) 
+	@ApiOperation(value = "Return a world JSON object",   httpMethod = "GET", response=World.class )
+	public io.sinistral.proteus.server.ServerResponse<World> getWorld(Integer id,  Integer randomNumber )
+	{ 
 		return io.sinistral.proteus.server.ServerResponse.response().entity(new World(id,randomNumber));
 	}
   ```
+- CompletableFuture<ServerResponse<T>> is also supported:
+    ```java
+	@GET
+	@Path("/future/user")
+	@ApiOperation(value = "Future user endpoint",   httpMethod = "GET" )
+	public CompletableFuture<ServerResponse<User>> futureUser()
+	{ 
+		return CompletableFuture.completedFuture(response( new User(123L) ).applicationJson() );
+	}
+	```
+- In this case a handler will be generated the following source code:
+    ```java
+    public void handleRequest(final io.undertow.server.HttpServerExchange exchange) throws java.lang.Exception { 
+        CompletableFuture<ServerResponse<User>> response = examplesController.futureUser();
+        response.thenAccept( r ->  r.applicationJson().send(this,exchange) )
+        	.exceptionally( ex ->  {
+          		throw new java.util.concurrent.CompletionException(ex);
+          	} );
+      }
+    ```
 
 ##### Endpoint Arguments
  - a ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint argument if the user wishes to access request properties that are not included in the argument list

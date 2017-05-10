@@ -170,7 +170,7 @@ public class Tests
 	
 	@GET
 	@Path("/response/parameters/complex/{pathLong}")
-	@ApiOperation(value = "Complex parameters", httpMethod = "GET", response = User.class)
+	@ApiOperation(value = "Complex parameters", httpMethod = "GET")
 	public ServerResponse<Map<String,Object>> complexParameters(
 	                    final ServerRequest serverRequest, 
 	                    @PathParam("pathLong") final Long pathLong, 
@@ -203,13 +203,8 @@ public class Tests
 		responseMap.put("queryUUID", queryUUID.toString()); 
 		responseMap.put("queryLong", queryLong);
 		responseMap.put("pathLong", pathLong);
-		responseMap.put("headerString", headerString);
-
-		responseMap.put("queryIntegerList", queryIntegerList);
-		
-	 
-		
-		
+		responseMap.put("headerString", headerString); 
+		responseMap.put("queryIntegerList", queryIntegerList); 
 		return response(responseMap).applicationJson(); 
 	}
 }

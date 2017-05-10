@@ -71,7 +71,7 @@ A great deal of inspiration came from working with the following excellent proje
  - Methods that take an ```HttpServerExchange``` as an argument should not return a value
  - In this case the method takes on full responsibility for completing the exchange
  
-##### ServerResponse<T>
+##### ```ServerResponse<T>```
 - The static method ```io.sinistral.proteus.server.ServerResponse.response``` helps create ```ServerResponse<T>``` instances that are the preferred return type for endpoint methods
 - For methods that should return a String or ByteBuffer to the client users can create responses like this:
   ```java
@@ -100,7 +100,47 @@ A great deal of inspiration came from working with the following excellent proje
 ##### Endpoint Arguments
  - a ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint argument if the user wishes to access request properties that are not included in the argument list
  - Proteus is capable of parsing most types of endpoint arguments automatically so long as the type has a ```fromString```, ```valueOf```, or can be deserialized from JSON
- - Mutlipart / Form file uploads can be passed to the endpoint methods as a ```java.io.File```, a ```java.nio.Files.Path```, or a ```java.nio.ByteBuffer```
+ - Multi-part / Form file uploads can be passed to the endpoint methods as a ```java.io.File```, a ```java.nio.Files.Path```, or a ```java.nio.ByteBuffer```
+ - Optional arguments are also supported, here is a more complex endpoint demonstrating several argument types
+    ```java
+ 	@GET
+	@Path("/response/parameters/complex/{pathLong}")
+	@ApiOperation(value = "Complex parameters", httpMethod = "GET")
+	public ServerResponse<Map<String,Object>> complexParameters(
+	                    final ServerRequest serverRequest, 
+	                    @PathParam("pathLong") final Long pathLong, 
+	                    @QueryParam("optionalQueryString") Optional<String> optionalQueryString, 
+	                    @QueryParam("optionalQueryLong") Optional<Long> optionalQueryLong, 
+	                    @QueryParam("optionalQueryDate") Optional<OffsetDateTime> optionalQueryDate, 
+	                    @QueryParam("optionalQueryUUID") Optional<UUID> optionalQueryUUID, 
+	                    @HeaderParam("optionalHeaderUUID") Optional<UUID> optionalHeaderUUID,
+	                    @QueryParam("optionalQueryEnum") Optional<User.UserType> optionalQueryEnum,
+	                    @HeaderParam("optionalHeaderString") Optional<String> optionalHeaderString,
+	                    @QueryParam("queryUUID") UUID queryUUID,  
+	                    @HeaderParam("headerString") String headerString,
+ 	                    @QueryParam("queryEnum") User.UserType queryEnum, 
+	                    @QueryParam("queryIntegerList") List<Integer> queryIntegerList, 
+	                    @QueryParam("queryLong") Long queryLong 
+	                    )
+	{
+ 			
+		Map<String,Object> responseMap = new HashMap<>(); 
+		responseMap.put("optionalQueryString", optionalQueryString.orElse(null));
+		responseMap.put("optionalQueryLong", optionalQueryLong.orElse(null));
+	 	responseMap.put("optionalQueryDate", optionalQueryDate.map(OffsetDateTime::toString).orElse(null));
+		responseMap.put("optionalQueryUUID", optionalQueryUUID.map(UUID::toString).orElse(null));
+		responseMap.put("optionalHeaderUUID", optionalHeaderUUID.map(UUID::toString).orElse(null));
+		responseMap.put("optionalHeaderString", optionalHeaderString.orElse(null));
+		responseMap.put("optionalQueryEnum", optionalQueryEnum.orElse(null));
+		responseMap.put("queryEnum", queryEnum);
+		responseMap.put("queryUUID", queryUUID.toString()); 
+		responseMap.put("queryLong", queryLong);
+		responseMap.put("pathLong", pathLong);
+		responseMap.put("headerString", headerString); 
+		responseMap.put("queryIntegerList", queryIntegerList); 
+		return response(responseMap).applicationJson(); 
+	}
+	```
     
 ### Getting Started
  - COMING SOON

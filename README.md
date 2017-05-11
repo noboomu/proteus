@@ -80,10 +80,10 @@ A great deal of inspiration came from working with the following excellent proje
 - For methods that should return a String or ByteBuffer to the client users can create responses like this:
   ```java
 	@GET
-	@Path("/echo")
+	@Path("/plaintext2")
 	@Produces((MediaType.TEXT_PLAIN)) 
-	@ApiOperation(value = "Echo a message",   httpMethod = "GET" )
-	public io.sinistral.proteus.server.ServerResponse<ByteBuffer> plaintext(String message)
+	@ApiOperation(value = "Serve a plaintext message using a ServerResponse",   httpMethod = "GET" )
+	public io.sinistral.proteus.server.ServerResponse<ByteBuffer> plaintext2(String message)
 	{ 
 		return io.sinistral.proteus.server.ServerResponse.response("Hello, World!").contentType(PLAINTEXT_TYPE);
 	}
@@ -100,13 +100,13 @@ A great deal of inspiration came from working with the following excellent proje
 		return io.sinistral.proteus.server.ServerResponse.response(new World(id,randomNumber));
 	}
   ```
-- The entity can be set separately as well:
+- The entity can be set separately as well (however, this removes the type checking):
   ```java
  	@GET
 	@Path("/world")
 	@Produces((MediaType.APPLICATION_JSON)) 
 	@ApiOperation(value = "Return a world JSON object",   httpMethod = "GET", response=World.class )
-	public io.sinistral.proteus.server.ServerResponse<World> getWorld(Integer id,  Integer randomNumber )
+	public io.sinistral.proteus.server.ServerResponse getWorld(Integer id,  Integer randomNumber )
 	{ 
 		return io.sinistral.proteus.server.ServerResponse.response().entity(new World(id,randomNumber));
 	}

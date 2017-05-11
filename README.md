@@ -177,9 +177,9 @@ A great deal of inspiration came from working with the following excellent proje
 	}
 	```
 ### Services
-- Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService```.
-- ##### AssetService
-  - The AssetService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
+- Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
+- ##### AssetsService
+  - The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
   - The default configuration:
     ```js
     assets {
@@ -209,7 +209,7 @@ A great deal of inspiration came from working with the following excellent proje
             # swagger info version
             version = ${application.version}
          }
-        # swagger-ui theme from ostranme's swagger-ui-themes, the following are built-in 
+        # swagger-ui theme from ostranmes swagger-ui-themes, the following are built-in 
         # [feeling-blue, flattop, material, monokai, muted, newspaper, outline]
         # specifying a different name causes the SwaggerService to search in 
         # {swagger.resourcePrefix}/themes for a file named "theme-{swagger.theme}.css"

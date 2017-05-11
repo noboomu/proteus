@@ -181,7 +181,7 @@ A great deal of inspiration came from working with the following excellent proje
 - ##### AssetsService
   - The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
   - The default configuration:
-    ```js
+    ```
     assets {
         # the base path assets will be server from
         path = "/public"
@@ -197,7 +197,7 @@ A great deal of inspiration came from working with the following excellent proje
   - The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
   - The service is configured in your ```application.conf``` file.
   - The default configuration:
-    ```js
+    ```
     swagger {
         # the path that has an index.html template and theme css files
         resourcePrefix="io/sinistral/proteus/swagger"

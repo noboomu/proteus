@@ -26,8 +26,8 @@ A great deal of inspiration came from working with the following excellent proje
 * [Maven 3](http://maven.apache.org/)
 
 ### Setup
-  - We are very impressed by what Jooby has done with server configuration  
-  - Parameters are all configured in the ```conf/application.conf``` file 
+  - We are very impressed by what Jooby has done with server configuration.
+  - Parameters are all configured in the ```conf/application.conf``` file.
   - Proteus applications generally have a main method that creates an instance of ```io.sinistral.proteus.ProteusApplication``` 
   - Prior to calling ```start``` on the ```ProteusApplication``` instance:
      - Register ```Service``` classes via ```addService```  
@@ -47,6 +47,10 @@ A great deal of inspiration came from working with the following excellent proje
     }
     ```
   
+### Under the Hood
+- Proteus takes your MVC controller classes and methods decorated with Swagger / JAX-RS annotations and generates native Undertow handler classes at runtime. 
+- You can review the generated code by setting the ```io.sinistral.proteus.server``` log level to ```DEBUG```.
+
 ### API Endpoints
 - Classes with API endpoints respect standard Swagger / JAX-RS annotations:
   ```java
@@ -67,12 +71,12 @@ A great deal of inspiration came from working with the following excellent proje
 	}
 	```
 ##### HttpServerExchange: Total Control
- - For total control and maximum performance the raw ```HttpServerExchange``` can be passed to the endpoint method
- - Methods that take an ```HttpServerExchange``` as an argument should not return a value
- - In this case the method takes on full responsibility for completing the exchange
+ - For total control and maximum performance the raw ```HttpServerExchange``` can be passed to the endpoint method.
+ - Methods that take an ```HttpServerExchange``` as an argument should not return a value.
+ - In this case the method takes on full responsibility for completing the exchange.
  
 ##### ```ServerResponse<T>```
-- The static method ```io.sinistral.proteus.server.ServerResponse.response``` helps create ```ServerResponse<T>``` instances that are the preferred return type for endpoint methods
+- The static method ```io.sinistral.proteus.server.ServerResponse.response``` helps create ```ServerResponse<T>``` instances that are the preferred return type for endpoint methods.
 - For methods that should return a String or ByteBuffer to the client users can create responses like this:
   ```java
 	@GET
@@ -84,7 +88,7 @@ A great deal of inspiration came from working with the following excellent proje
 		return io.sinistral.proteus.server.ServerResponse.response("Hello, World!").contentType(PLAINTEXT_TYPE);
 	}
 	```
-- By default, passing a String to the response helper will convert it into a ByteBuffer
+- By default, passing a String to the response helper will convert it into a ByteBuffer.
 - For other types of responses the following demonstrates the preferred style:
   ```java
  	@GET
@@ -129,10 +133,10 @@ A great deal of inspiration came from working with the following excellent proje
     ```
 
 ##### Endpoint Arguments
- - a ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint argument if the user wishes to access request properties that are not included in the argument list
- - Proteus is capable of parsing most types of endpoint arguments automatically so long as the type has a ```fromString```, ```valueOf```, or can be deserialized from JSON
+ - a ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint argument if the user wishes to access request properties that are not included in the argument list.
+ - Proteus is capable of parsing most types of endpoint arguments automatically so long as the type has a ```fromString```, ```valueOf```, or can be deserialized from JSON.
  - Multi-part / Form file uploads can be passed to the endpoint methods as a ```java.io.File```, a ```java.nio.Files.Path```, or a ```java.nio.ByteBuffer```
- - Optional arguments are also supported, here is a more complex endpoint demonstrating several argument types
+ - Optional arguments are also supported, here is a more complex endpoint demonstrating several argument types:
     ```java
  	@GET
 	@Path("/response/parameters/complex/{pathLong}")
@@ -172,7 +176,55 @@ A great deal of inspiration came from working with the following excellent proje
 		return response(responseMap).applicationJson(); 
 	}
 	```
-    
+### Services
+- Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService```.
+- ##### AssetService
+  - The AssetService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
+  - The default configuration:
+    ```js
+    assets {
+        # the base path assets will be server from
+        path = "/public"
+        # the directory to load the assets from
+         dir = "./assets"
+        cache {
+         # cache timeout for the assets
+         time = 500
+        }
+    }
+    ```
+- ##### SwaggerService
+  - The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
+  - The service is configured in your ```application.conf``` file.
+  - The default configuration:
+    ```js
+    swagger {
+        # the path that has an index.html template and theme css files
+        resourcePrefix="io/sinistral/proteus/swagger"
+        # swagger version
+        swagger: "2.0"
+        info {
+            # swagger info title
+            title = ${application.name}
+            # swagger info version
+            version = ${application.version}
+         }
+        # swagger-ui theme from ostranme's swagger-ui-themes, the following are built-in 
+        # [feeling-blue, flattop, material, monokai, muted, newspaper, outline]
+        # specifying a different name causes the SwaggerService to search in 
+        # {swagger.resourcePrefix}/themes for a file named "theme-{swagger.theme}.css"
+        theme="default"
+        # where the swagger endpoints will be mounted
+        basePath= ${application.path}"/swagger"
+        #the name of the spec file
+        specFilename="swagger.json"
+        consumes = ["application/json"]
+        produces = ["application/json"]
+        # supported schemes
+        schemes = ["http"]
+        }
+    ```
+
 ### Getting Started
  - COMING SOON
  

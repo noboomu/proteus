@@ -7,6 +7,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1263,7 +1264,7 @@ public class Reader {
       
         if( cls != null )
         {
-        	if( cls.isAssignableFrom(ServerResponse.class) || cls.isAssignableFrom(CompletableFuture.class))
+        	if( cls.isAssignableFrom(ServerResponse.class) || cls.isAssignableFrom(CompletableFuture.class) || cls.isAssignableFrom(ByteBuffer.class))
         	{
         		return false;
         	}

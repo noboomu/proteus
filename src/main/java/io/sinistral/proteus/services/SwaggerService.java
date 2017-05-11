@@ -61,14 +61,17 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	
 	protected final String swaggerResourcePathPrefix = "swagger";
 	
-	protected final String swaggerResourcePrefix = "io/sinistral/proteus/swagger";
-
+ 
 	protected Swagger swagger = null;
 	
 	protected String swaggerSpec = null;
 	
 	protected String swaggerIndexHTML = null;
 	
+	
+	@Inject
+	@Named("swagger.resourcePrefix")
+	protected String swaggerResourcePrefix;
 	
 	@Inject
 	@Named("swagger.basePath")

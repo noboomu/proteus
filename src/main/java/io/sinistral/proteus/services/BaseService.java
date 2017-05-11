@@ -14,6 +14,8 @@ import com.google.inject.Singleton;
 import com.typesafe.config.Config;
 
 /**
+ * An abstract base class for a Proteus service.
+ * 
  * @author jbauer
  *
  */

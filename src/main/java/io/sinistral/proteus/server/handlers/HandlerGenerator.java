@@ -183,7 +183,7 @@ public class HandlerGenerator
 		}
 
 		/**
-		 * Helper function to bind values to a {@link MethodSpec.Builder}
+		 * Helper function to bind values to a {@link com.squareup.javapoet.MethodSpec.Builder}
 		 * 
 		 * @param builder
 		 * @param parameter
@@ -262,7 +262,7 @@ public class HandlerGenerator
 		}
 
 		/**
-		 * Helper function to bind a {@link Parameter} to a {@link MethodSpec.Builder}
+		 * Helper function to bind a {@link Parameter} to a {@link com.squareup.javapoet.MethodSpec.Builder}
 		 * 
 		 * @param builder
 		 * @param parameter

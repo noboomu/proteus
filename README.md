@@ -111,7 +111,7 @@ A great deal of inspiration came from working with the following excellent proje
 		return io.sinistral.proteus.server.ServerResponse.response().entity(new World(id,randomNumber));
 	}
   ```
-- CompletableFuture<ServerResponse<T>> is also supported:
+- ```CompletableFuture<ServerResponse<T>>``` is also supported:
     ```java
 	@GET
 	@Path("/future/user")
@@ -121,7 +121,7 @@ A great deal of inspiration came from working with the following excellent proje
 		return CompletableFuture.completedFuture(response( new User(123L) ).applicationJson() );
 	}
 	```
-- In this case a handler will be generated the following source code:
+- In this case a handler will be generated with the following source code:
     ```java
     public void handleRequest(final io.undertow.server.HttpServerExchange exchange) throws java.lang.Exception { 
         CompletableFuture<ServerResponse<User>> response = examplesController.futureUser();

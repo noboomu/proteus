@@ -1,5 +1,5 @@
-# PROTEUS
 
+![Alt logo](https://cdn.rawgit.com/noboomu/proteus/master/src/main/resources/proteus-logo.svg)
 
 An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first REST API framework atop [Undertow](http://undertow.io). 
 A great deal of inspiration came from working with the following excellent projects: [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).

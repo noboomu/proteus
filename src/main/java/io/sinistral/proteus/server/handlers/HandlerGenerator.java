@@ -281,8 +281,7 @@ public class HandlerGenerator
 		 */
 		public static TypeHandler forType(Type type)
 		{
-			log.debug("forType " + type);
-
+ 
 			boolean hasValueOf = false;
 			boolean hasFromString = false;
 			boolean isOptional = type.getTypeName().contains("java.util.Optional");
@@ -471,8 +470,7 @@ public class HandlerGenerator
 
 						Class<?> erasedType = (Class<?>) extractErasedType(type);
 
-						log.debug("erasedType: " + erasedType + " for " + type);
-
+ 
 						if (hasValueOfMethod(erasedType))
 						{
 							return OptionalValueOfType;

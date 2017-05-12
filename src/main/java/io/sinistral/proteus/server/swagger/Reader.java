@@ -832,7 +832,7 @@ public class Reader {
             operationId = this.getOperationId(method.getName());
         }
         
-        LOGGER.debug("initial operationId: " + operationId + " nickname: " + apiOperation.nickname());
+      //  LOGGER.debug("initial operationId: " + operationId + " nickname: " + apiOperation.nickname());
 
          String responseContainer = null;
 
@@ -849,7 +849,7 @@ public class Reader {
                 operationId = apiOperation.nickname();
             }
 
-            LOGGER.debug("operationId after nickname: " + operationId);
+          //  LOGGER.debug("operationId after nickname: " + operationId);
 
             defaultResponseHeaders = parseResponseHeaders(apiOperation.responseHeaders());
 
@@ -1061,7 +1061,8 @@ public class Reader {
 
         if (operation.getResponses() == null) {
             Response response = new Response().description(SUCCESSFUL_OPERATION);
-            operation.defaultResponse(response);
+            
+            operation.response(200, response);
         }
 
         processOperationDecorator(operation, method);
@@ -1073,7 +1074,7 @@ public class Reader {
         final Iterator<SwaggerExtension> chain = SwaggerExtensions.chain();
         if (chain.hasNext()) {
             SwaggerExtension extension = chain.next();
-            LOGGER.debug("trying to decorate operation: {}", extension);
+          //  LOGGER.debug("trying to decorate operation: {}", extension);
             extension.decorateOperation(operation, method, chain);
         }
     }
@@ -1081,8 +1082,7 @@ public class Reader {
     private void addResponse(Operation operation, ApiResponse apiResponse) {
         Map<String, Property> responseHeaders = parseResponseHeaders(apiResponse.responseHeaders());
 
-        Response response = new Response()
-.description(apiResponse.message()).headers(responseHeaders);
+        Response response = new Response().description(apiResponse.message()).headers(responseHeaders);
 
         if (apiResponse.code() == 0) {
             operation.defaultResponse(response);
@@ -1111,7 +1111,7 @@ public class Reader {
         }
  
         
-        LOGGER.debug("getParameters for {}", type);
+     //   LOGGER.debug("getParameters for {}", type);
         Set<Type> typesToSkip = new HashSet<>();
         typesToSkip.add(TypeFactory.defaultInstance().constructType(ServerRequest.class));
         typesToSkip.add(TypeFactory.defaultInstance().constructType(HttpServerExchange.class));
@@ -1150,7 +1150,7 @@ public class Reader {
             final List<Parameter> processed = new ArrayList<Parameter>(parameters.size());
             for (Parameter parameter : parameters) {
             	
-                LOGGER.debug("getParameters for {}", type);
+              //  LOGGER.debug("getParameters for {}", type);
 
                 if (ParameterProcessor.applyAnnotations(swagger, parameter, type, annotations) != null) {
                 	
@@ -1159,11 +1159,11 @@ public class Reader {
             }
             return processed;
         } else {
-            LOGGER.debug("no parameter found, looking at body params");
+          //  LOGGER.debug("no parameter found, looking at body params");
             final List<Parameter> body = new ArrayList<Parameter>();
             if (!typesToSkip.contains(type)) {
             	
-                LOGGER.debug("getBody Parameters for {}", type);
+          //      LOGGER.debug("getBody Parameters for {}", type);
 
                 Parameter param = ParameterProcessor.applyAnnotations(swagger, null, type, annotations);
                 if (param != null) {

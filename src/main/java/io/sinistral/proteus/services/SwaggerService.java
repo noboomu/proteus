@@ -60,15 +60,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	protected io.sinistral.proteus.server.swagger.Reader reader = null;
 	
 	protected final String swaggerResourcePathPrefix = "swagger";
-	
- 
-	protected Swagger swagger = null;
-	
-	protected String swaggerSpec = null;
-	
-	protected String swaggerIndexHTML = null;
-	
-	
+
 	@Inject
 	@Named("swagger.resourcePrefix")
 	protected String swaggerResourcePrefix;
@@ -89,6 +81,9 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	@Named("swagger.info")
 	protected Config swaggerInfo;
 	
+	@Inject
+	@Named("swagger.redocPath")
+	protected String redocPath;
 	
 	@Inject
 	@Named("application.host")
@@ -125,6 +120,13 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	
 	protected ClassLoader serviceClassLoader = null;
 	
+	protected Swagger swagger = null;
+	
+	protected String swaggerSpec = null;
+	
+	protected String swaggerIndexHTML = null;
+	
+	protected String redocHTML = null;
 
 	public SwaggerService( )
 	{ 
@@ -220,25 +222,38 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		{  
   
 			
-			final InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(swaggerResourcePrefix + "/index.html");
-			
-			byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
-			
-			String templateString = new String(templateBytes,Charset.defaultCharset());
-			 
-			String themePath = "swagger-ui.css";
-			 
-			if(!this.swaggerTheme.equals("default"))
+			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(swaggerResourcePrefix + "/index.html"))
 			{
-				themePath= "themes/theme-" + this.swaggerTheme + ".css"; 
-			} 
-			 
-			templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
-			templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", this.swaggerBasePath);
-			templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");
-			templateString = templateString.replaceAll("\\{\\{ swaggerFullPath \\}\\}","//" + host + ((port != 80 && port != 443) ? ":" + port : "") + this.swaggerBasePath + ".json");
-
-			this.swaggerIndexHTML = templateString;  
+				byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
+				
+				String templateString = new String(templateBytes,Charset.defaultCharset());
+				 
+				String themePath = "swagger-ui.css";
+				 
+				if(!swaggerTheme.equals("default"))
+				{
+					themePath= "themes/theme-" + swaggerTheme + ".css"; 
+				} 
+				 
+				templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
+				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", swaggerBasePath);
+				templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");
+				templateString = templateString.replaceAll("\\{\\{ swaggerFullPath \\}\\}","//" + host + ((port != 80 && port != 443) ? ":" + port : "") + swaggerBasePath + ".json");
+	
+				this.swaggerIndexHTML = templateString;   
+			}
+			
+			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(swaggerResourcePrefix + "/redoc.html"))
+			{
+				byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
+				
+				String templateString = new String(templateBytes,Charset.defaultCharset());
+				
+				templateString = templateString.replaceAll("\\{\\{ swaggerSpecPath \\}\\}", this.swaggerBasePath + ".json");
+				templateString = templateString.replaceAll("\\{\\{ applicationName \\}\\}", applicationName);
+	
+				this.redocHTML = templateString;   
+			}
   
 			URL url = this.getClass().getClassLoader().getResource(swaggerResourcePrefix);
 			
@@ -332,12 +347,28 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			
 		});
 		
-   
 		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MediaType.APPLICATION_JSON).build());
+		
+		pathTemplate = this.swaggerBasePath + "/" + this.redocPath;
+				 
+		router.add(HttpMethod.GET,pathTemplate, new HttpHandler(){
+
+			@Override
+			public void handleRequest(HttpServerExchange exchange) throws Exception
+			{
+ 
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML); 
+				exchange.getResponseSender().send(redocHTML);
+				
+			}
+			
+		});
+		
+   
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MediaType.TEXT_HTML).build());
 		 
 		pathTemplate =  this.swaggerBasePath;
-		
-  		
+		 
 		router.add(HttpMethod.GET, pathTemplate , new HttpHandler(){
 
 			@Override

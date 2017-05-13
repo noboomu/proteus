@@ -76,7 +76,7 @@ public class ConfigModule extends AbstractModule
 			this.bindConfig(fileConfig(configFile));
 		}
 		
-        install(new ServerModule(this.config)); 
+        install(new ApplicationModule(this.config)); 
 	}
 
 	

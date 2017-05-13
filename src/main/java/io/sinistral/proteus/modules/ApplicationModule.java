@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.ws.rs.core.MediaType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,15 +28,18 @@ import com.typesafe.config.Config;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.util.Headers;
+import io.undertow.util.Methods;
 
 /**
  * @author jbauer
  */
 @Singleton
-public class ServerModule extends AbstractModule
+public class ApplicationModule extends AbstractModule
 {
-	private static Logger log = LoggerFactory.getLogger(ServerModule.class.getCanonicalName());
+	private static Logger log = LoggerFactory.getLogger(ApplicationModule.class.getCanonicalName());
 
 	protected Set<EndpointInfo> registeredEndpoints = new TreeSet<>();
 	protected Set<Class<?>> registeredControllers = new HashSet<>();
@@ -42,7 +47,7 @@ public class ServerModule extends AbstractModule
 
 	protected Config config;
 
-	public ServerModule(Config config)
+	public ApplicationModule(Config config)
 	{
 		this.config = config;
 	}
@@ -55,6 +60,25 @@ public class ServerModule extends AbstractModule
 		this.binder().requestInjection(this);
 
 		RoutingHandler router = new RoutingHandler();
+		
+		if(config.hasPath("health.statusPath"))
+		{
+			   final String statusPath = config.getString("health.statusPath");
+			
+			   router.add(Methods.GET, statusPath, new HttpHandler()
+	           {
+
+				@Override
+				public void handleRequest(HttpServerExchange exchange) throws Exception
+				{
+					exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, MediaType.TEXT_PLAIN);
+					exchange.getResponseSender().send("OK");
+				}
+		
+	           });
+			   
+			this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/plain").withPathTemplate(statusPath).withControllerName("Internal").withMethod(Methods.GET).build()); 
+		}
 
 		try
 		{
@@ -69,7 +93,7 @@ public class ServerModule extends AbstractModule
 
 		this.bind(RoutingHandler.class).toInstance(router);
 
-		this.bind(ServerModule.class).toInstance(this);
+		this.bind(ApplicationModule.class).toInstance(this);
 
 		try
 		{

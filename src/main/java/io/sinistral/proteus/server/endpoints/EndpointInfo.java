@@ -19,7 +19,7 @@ public class EndpointInfo implements Comparable<EndpointInfo>
 	private String consumes = "*/*";
 	private String produces = "*/*";
 	private String controllerMethod = "*";
-	private String controllerName = "anonymous";
+	private String controllerName = "_";
 
 	
 	private EndpointInfo(Builder builder)
@@ -166,7 +166,7 @@ public class EndpointInfo implements Comparable<EndpointInfo>
 	@Override
 	public String toString()
 	{
-		return String.format("%-8s %-30s %-26s %-26s %s", this.method, this.pathTemplate, "[" + this.consumes + "]", "[" + this.produces+ "]", "("+this.controllerName+"."+this.controllerMethod+ ")");
+		return String.format("%-8s %-40s %-26s %-26s %s", this.method, this.pathTemplate, "[" + this.consumes + "]", "[" + this.produces+ "]", "("+this.controllerName+"."+this.controllerMethod+ ")");
 	}
 
 	/**
@@ -190,8 +190,8 @@ public class EndpointInfo implements Comparable<EndpointInfo>
 		private String pathTemplate;
 		private String consumes = "*/*";
 		private String produces = "*/*";
-		private String controllerMethod = "anonymous";
-		private String controllerName = "anonymous";
+		private String controllerMethod = "_";
+		private String controllerName = "_";
 
 		private Builder()
 		{

@@ -238,7 +238,7 @@ public class ProteusApplication
 				.addHttpListener(config.getInt("application.ports.http"),config.getString("application.host"))
 				.setBufferSize(16 * 1024)
 				.setIoThreads( config.getInt("undertow.ioThreads") )
- 				.setServerOption(UndertowOptions.ENABLE_HTTP2, false)
+ 				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.enableHttp2"))
 		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
  		        .setSocketOption(org.xnio.Options.BACKLOG,  config.getInt("undertow.socket.backlog") )
  		        .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false)

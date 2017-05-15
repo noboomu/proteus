@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -81,6 +82,7 @@ public class ProteusApplication
 	protected HttpHandler rootHandler;
 	protected AtomicBoolean running = new AtomicBoolean(false);
 	protected List<Integer> ports = new ArrayList<>();
+	protected Function<Undertow.Builder,Undertow.Builder> serverConfigurationFunction = null;
 
  	
 	public ProteusApplication()
@@ -245,6 +247,7 @@ public class ProteusApplication
 				.setWorkerThreads( config.getInt("undertow.workerThreads") )
 				.setHandler( handler );
 		
+		
 		ports.add(config.getInt("application.ports.http"));
 		
 		if( config.getBoolean("undertow.ssl.enabled") )
@@ -269,6 +272,11 @@ public class ProteusApplication
 				log.error(e.getMessage(),e);
 			}
  		}
+		
+		if( serverConfigurationFunction != null )
+		{
+			undertowBuilder = serverConfigurationFunction.apply(undertowBuilder);
+		}
 		
 		this.undertow = undertowBuilder.build();
 		 
@@ -308,6 +316,15 @@ public class ProteusApplication
 		return undertow;
 	}
  
+
+	/**
+	 * Allows direct access to the Undertow.Builder for custom configuration
+	 * @param serverConfigurationFunction the serverConfigurationFunction
+	 */
+	public void setServerConfigurationFunction(Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction)
+	{
+		this.serverConfigurationFunction = serverConfigurationFunction;
+	}
 
 	/**
 	 * @return the serviceManager

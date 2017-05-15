@@ -153,10 +153,10 @@ public class EndpointInfo implements Comparable<EndpointInfo>
 	public int compareTo(EndpointInfo other) {
 
 	     return new CompareToBuilder()
+  	       .append(this.pathTemplate, other.pathTemplate)
 	       .append(this.controllerName, other.controllerName)
-	       .append(this.method, other.method)
 	       .append(this.controllerMethod, other.controllerMethod)
-	       .append(this.pathTemplate, other.pathTemplate)
+	       .append(this.method, other.method)
 
 	       .toComparison();
 	   }
@@ -166,7 +166,7 @@ public class EndpointInfo implements Comparable<EndpointInfo>
 	@Override
 	public String toString()
 	{
-		return String.format("%-8s %-40s %-26s %-26s %s", this.method, this.pathTemplate, "[" + this.consumes + "]", "[" + this.produces+ "]", "("+this.controllerName+"."+this.controllerMethod+ ")");
+		return String.format("\t%-8s %-40s %-26s %-26s %s", this.method, this.pathTemplate, "[" + this.consumes + "]", "[" + this.produces+ "]", "("+this.controllerName+"."+this.controllerMethod+ ")");
 	}
 
 	/**

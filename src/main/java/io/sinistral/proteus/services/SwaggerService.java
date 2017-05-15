@@ -94,7 +94,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	protected String applicationName;
 	
 	@Inject
-	@Named("application.port")
+	@Named("swagger.port")
 	protected Integer port;
 	
 	@Inject

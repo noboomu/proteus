@@ -2,7 +2,14 @@
  * 
  */
 package io.sinistral.proteus;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,15 +55,19 @@ import io.sinistral.proteus.utilities.SecurityOps;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.util.Headers;
+import io.undertow.util.Methods;
+
 /**
  * @author jbauer
  */
 public class ProteusApplication
 {
-	 
+
 	private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ProteusApplication.class.getCanonicalName());
-   
+
 	@Inject
 	@Named("registeredControllers")
 	protected Set<Class<?>> registeredControllers;
@@ -62,82 +75,79 @@ public class ProteusApplication
 	@Inject
 	@Named("registeredEndpoints")
 	protected Set<EndpointInfo> registeredEndpoints;
- 
+
 	@Inject
 	@Named("registeredServices")
 	protected Set<Class<? extends Service>> registeredServices;
-	
+
 	@Inject
 	protected RoutingHandler router;
-	
+
 	@Inject
 	protected Config config;
-	
+
 	protected List<com.google.inject.Module> registeredModules = new ArrayList<>();
 
 	protected Injector injector = null;
 	protected ServiceManager serviceManager = null;
-	protected Undertow undertow = null; 
+	protected Undertow undertow = null;
 	protected Class<? extends HttpHandler> rootHandlerClass;
 	protected HttpHandler rootHandler;
 	protected AtomicBoolean running = new AtomicBoolean(false);
 	protected List<Integer> ports = new ArrayList<>();
-	protected Function<Undertow.Builder,Undertow.Builder> serverConfigurationFunction = null;
+	protected Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction = null;
 
- 	
 	public ProteusApplication()
 	{
-		
-		injector = Guice.createInjector(new ConfigModule());  
-		injector.injectMembers(this); 
-		
+
+		injector = Guice.createInjector(new ConfigModule());
+		injector.injectMembers(this);
+
 	}
-	
+
 	public ProteusApplication(String configFile)
 	{
-		
-		injector = Guice.createInjector(new ConfigModule(configFile));  
-		injector.injectMembers(this); 
-		
+
+		injector = Guice.createInjector(new ConfigModule(configFile));
+		injector.injectMembers(this);
+
 	}
-	
+
 	public ProteusApplication(URL configURL)
 	{
-		
-		injector = Guice.createInjector(new ConfigModule(configURL));  
-		injector.injectMembers(this); 
-		
+
+		injector = Guice.createInjector(new ConfigModule(configURL));
+		injector.injectMembers(this);
+
 	}
-	
+
 	public void start()
 	{
-		if(this.isRunning())
+		if (this.isRunning())
 		{
 			log.warn("Server has already started...");
 			return;
 		}
-		
+
 		injector = injector.createChildInjector(registeredModules);
-		
-		if( rootHandlerClass == null && rootHandler == null )
+
+		if (rootHandlerClass == null && rootHandler == null)
 		{
 			log.warn("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
 			rootHandlerClass = ServerDefaultHttpHandler.class;
 		}
-		
+
 		log.info("Starting services...");
-		 
-		Set<Service> services = registeredServices.stream()
-				.map( sc -> injector.getInstance(sc) )
-				.collect(Collectors.toSet());
-		
+
+		Set<Service> services = registeredServices.stream().map(sc -> injector.getInstance(sc)).collect(Collectors.toSet());
+
 		serviceManager = new ServiceManager(services);
 
 		serviceManager.addListener(new Listener()
 		{
 			public void stopped()
 			{
-				undertow.stop(); 
+				undertow.stop();
 				running.set(false);
 			}
 
@@ -146,11 +156,11 @@ public class ProteusApplication
 				log.info("Services are healthy...");
 
 				buildServer();
-				
+
 				undertow.start();
-								
-				printStatus(); 
-				
+
+				printStatus();
+
 				running.set(true);
 			}
 
@@ -158,7 +168,7 @@ public class ProteusApplication
 			{
 				log.error("Service failure: " + service);
 			}
-			
+
 		}, MoreExecutors.directExecutor());
 
 		Runtime.getRuntime().addShutdownHook(new Thread()
@@ -176,56 +186,58 @@ public class ProteusApplication
 			}
 		});
 
-		 serviceManager.startAsync();
-		 
- 	}
-	
+		serviceManager.startAsync();
+
+	}
+
 	public void shutdown() throws TimeoutException
 	{
-		if(!this.isRunning())
+		if (!this.isRunning())
 		{
-			log.warn("Server is not running..."); 
-			
+			log.warn("Server is not running...");
+
 			return;
 		}
-		
+
 		log.info("Shutting down...");
 
-		serviceManager.stopAsync().awaitStopped(8, TimeUnit.SECONDS); 
+		serviceManager.stopAsync().awaitStopped(8, TimeUnit.SECONDS);
 
 		log.info("Shutdown complete.");
 	}
-	
+
 	public boolean isRunning()
 	{
 		return this.running.get();
 	}
- 
+
 	public void buildServer()
 	{
-						
-		for(Class<?> controllerClass : registeredControllers)
+
+		for (Class<?> controllerClass : registeredControllers)
 		{
-			HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers",controllerClass);
-			
+			HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
+
 			injector.injectMembers(generator);
-		
+
 			try
 			{
 				Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(generator.compileClass());
-				
+
 				router.addAll(generatedRouteSupplier.get());
-				
+
 			} catch (Exception e)
 			{
-				log.error("Exception creating handlers for " + controllerClass.getName() + "!!!\n" + e.getMessage(), e); 
+				log.error("Exception creating handlers for " + controllerClass.getName() + "!!!\n" + e.getMessage(), e);
 			}
-		 
+
 		}
-		 
-		final HttpHandler handler; 
-		
-		if( rootHandlerClass != null )
+
+		this.addDefaultRoutes(router);
+
+		final HttpHandler handler;
+
+		if (rootHandlerClass != null)
 		{
 			handler = injector.getInstance(rootHandlerClass);
 		}
@@ -233,93 +245,78 @@ public class ProteusApplication
 		{
 			handler = rootHandler;
 		}
-  
-		Undertow.Builder undertowBuilder = Undertow.builder()
-				.addHttpListener(config.getInt("application.ports.http"),config.getString("application.host"))
-				.setBufferSize(16 * 1024)
-				.setIoThreads( config.getInt("undertow.ioThreads") )
- 				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.enableHttp2"))
-		        .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true) 
- 		        .setSocketOption(org.xnio.Options.BACKLOG,  config.getInt("undertow.socket.backlog") )
- 		        .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false)
-		        .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME,  false)
-		        .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize") )
-				.setWorkerThreads( config.getInt("undertow.workerThreads") )
-				.setHandler( handler );
-		
-		
+
+		Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(config.getInt("application.ports.http"), config.getString("application.host")).setBufferSize(16 * 1024).setIoThreads(config.getInt("undertow.ioThreads"))
+				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.enableHttp2")).setServerOption(UndertowOptions.ALWAYS_SET_DATE, true).setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
+				.setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false).setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false).setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
+				.setWorkerThreads(config.getInt("undertow.workerThreads")).setHandler(handler);
+
 		ports.add(config.getInt("application.ports.http"));
-		
-		if( config.getBoolean("undertow.ssl.enabled") )
+
+		if (config.getBoolean("undertow.ssl.enabled"))
 		{
 			try
 			{
-				KeyStore keyStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.keystorePath"), config.getString("undertow.ssl.keystorePassword") );
-				KeyStore trustStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.truststorePath"), config.getString("undertow.ssl.truststorePassword") );
-				
- 
-				undertowBuilder.addHttpsListener(config.getInt("application.ports.https"), config.getString("application.host"), 
-				                                 SecurityOps.createSSLContext(
-				                                                              keyStore, 
-				                                                              trustStore, 
-				                                                              config.getString("undertow.ssl.keystorePassword")
-				                                                              ));
+				KeyStore keyStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.keystorePath"), config.getString("undertow.ssl.keystorePassword"));
+				KeyStore trustStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.truststorePath"), config.getString("undertow.ssl.truststorePassword"));
+
+				undertowBuilder.addHttpsListener(config.getInt("application.ports.https"), config.getString("application.host"), SecurityOps.createSSLContext(keyStore, trustStore, config.getString("undertow.ssl.keystorePassword")));
 
 				ports.add(config.getInt("application.ports.https"));
 
 			} catch (Exception e)
 			{
-				log.error(e.getMessage(),e);
+				log.error(e.getMessage(), e);
 			}
- 		}
-		
-		if( serverConfigurationFunction != null )
+		}
+
+		if (serverConfigurationFunction != null)
 		{
 			undertowBuilder = serverConfigurationFunction.apply(undertowBuilder);
 		}
-		
+
 		this.undertow = undertowBuilder.build();
-		 
+
 	}
-	
+
 	public ProteusApplication addService(Class<? extends Service> serviceClass)
 	{
 		registeredServices.add(serviceClass);
 		return this;
 	}
-	
+
 	public ProteusApplication addController(Class<?> controllerClass)
 	{
 		registeredControllers.add(controllerClass);
 		return this;
 	}
-	
+
 	public ProteusApplication addModule(Module module)
 	{
 		registeredModules.add(module);
 		return this;
 	}
-	
-	public void setRootHandlerClass( Class<? extends HttpHandler> rootHandlerClass )
+
+	public void setRootHandlerClass(Class<? extends HttpHandler> rootHandlerClass)
 	{
 		this.rootHandlerClass = rootHandlerClass;
 	}
-	
-	public void setRootHandler( HttpHandler rootHandler )
+
+	public void setRootHandler(HttpHandler rootHandler)
 	{
 		this.rootHandler = rootHandler;
 	}
-	
-  	 
+
 	public Undertow getUndertow()
 	{
 		return undertow;
 	}
- 
 
 	/**
 	 * Allows direct access to the Undertow.Builder for custom configuration
-	 * @param serverConfigurationFunction the serverConfigurationFunction
+	 * 
+	 * @param serverConfigurationFunction
+	 *            the serverConfigurationFunction
 	 */
 	public void setServerConfigurationFunction(Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction)
 	{
@@ -341,74 +338,145 @@ public class ProteusApplication
 	{
 		return config;
 	}
-	
+
 	public void printStatus()
 	{
 		Config globalHeaders = config.getConfig("globalHeaders");
-		
-		Map<String,String> globalHeadersParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().render()));
-		   
-  
-		StringBuilder sb = new StringBuilder(); 
+
+		Map<String, String> globalHeadersParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().render()));
+
+		StringBuilder sb = new StringBuilder();
 
 		sb.append("\n\nUsing global headers: \n\n");
-		sb.append(globalHeadersParameters.entrySet().stream().map( e -> "\t" + e.getKey() + " = " + e.getValue() ).collect(Collectors.joining("\n"))); 
- 		sb.append("\n\nRegistered endpoints: \n\n");
- 		sb.append(this.registeredEndpoints.stream().sorted().map(EndpointInfo::toString).collect(Collectors.joining("\n")));
- 		sb.append("\n\nRegistered services: \n\n");
- 		
- 		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();
- 		
- 		String serviceStrings = serviceStateMap.asMap().entrySet().stream().sorted().flatMap( e -> {
- 			
-  			
- 			return e.getValue().stream().map( s -> {
- 				return "\t" + s.getClass().getSimpleName() + "\t"  + e.getKey();
- 			});
+		sb.append(globalHeadersParameters.entrySet().stream().map(e -> "\t" + e.getKey() + " = " + e.getValue()).collect(Collectors.joining("\n")));
+		sb.append("\n\nRegistered endpoints: \n\n");
+		sb.append(this.registeredEndpoints.stream().sorted().map(EndpointInfo::toString).collect(Collectors.joining("\n")));
+		sb.append("\n\nRegistered services: \n\n");
 
- 			
- 		}).collect(Collectors.joining("\n"));
- 
- 		sb.append(serviceStrings);
- 		
- 		sb.append("\n");
- 		
- 		sb.append("\nListening on: " + this.ports);
- 		
- 		sb.append("\n");
- 		
- 		log.info(sb.toString()); 
+		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();
+
+		String serviceStrings = serviceStateMap.asMap().entrySet().stream().sorted().flatMap(e -> {
+
+			return e.getValue().stream().map(s -> {
+				return "\t" + s.getClass().getSimpleName() + "\t" + e.getKey();
+			});
+
+		}).collect(Collectors.joining("\n"));
+
+		sb.append(serviceStrings);
+
+		sb.append("\n");
+
+		sb.append("\nListening on: " + this.ports);
+
+		sb.append("\n");
+
+		log.info(sb.toString());
 	}
 
-	public static void main(String[] args)
+	public void addDefaultRoutes(RoutingHandler router)
 	{
 
-		try
-		{ 
-			
-			JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
-			JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
-			JsoniterAnnotationSupport.enable();
-
- 			ProteusApplication app = new ProteusApplication();
- 			
- 			 app.addService(SwaggerService.class);
- 			 
- 			 app.addService(AssetsService.class);
- 
- 			 app.setRootHandlerClass(ServerDefaultHttpHandler.class);
-
- 			 app.start();
- 			 
- 		 
- 			 
-		} catch (Exception e)
+		if (config.hasPath("health.statusPath"))
 		{
-			log.error(e.getMessage(),e);
+			try
+			{
+				final String statusPath = config.getString("health.statusPath");
+
+				router.add(Methods.GET, statusPath, new HttpHandler()
+				{
+
+					@Override
+					public void handleRequest(HttpServerExchange exchange) throws Exception
+					{
+						exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, MediaType.TEXT_PLAIN);
+						exchange.getResponseSender().send("OK");
+					}
+
+				});
+
+				this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/plain").withPathTemplate(statusPath).withControllerName("Internal").withMethod(Methods.GET).build());
+
+			} catch (Exception e)
+			{
+				log.error("Error adding health status route.", e.getMessage());
+			}
 		}
 
+		if (config.hasPath("application.favicon"))
+		{
+			try
+			{
 
+				final ByteBuffer faviconImageBuffer;
+				
+				final File faviconFile = new File(config.getString("application.favicon"));
+
+				if (!faviconFile.exists())
+				{
+					try (final InputStream stream = this.getClass().getResourceAsStream(config.getString("application.favicon")))
+					{
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+						byte[] buffer = new byte[4096];
+						int read = 0;
+						while (read != -1)
+						{
+							read = stream.read(buffer);
+							if (read > 0)
+							{
+								baos.write(buffer, 0, read);
+							}
+						}
+
+						faviconImageBuffer = ByteBuffer.wrap(baos.toByteArray());
+					}
+
+				}
+				else
+				{
+					try (final InputStream stream = Files.newInputStream(Paths.get(config.getString("application.favicon"))))
+					{
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+						byte[] buffer = new byte[4096];
+						int read = 0;
+						while (read != -1)
+						{
+							read = stream.read(buffer);
+							if (read > 0)
+							{
+								baos.write(buffer, 0, read);
+							}
+						}
+
+						faviconImageBuffer = ByteBuffer.wrap(baos.toByteArray());
+					}
+				}
+
+				if (faviconImageBuffer != null)
+				{
+
+					router.add(Methods.GET, "favicon.ico", new HttpHandler()
+					{
+						@Override
+						public void handleRequest(HttpServerExchange exchange) throws Exception
+						{
+							exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.IMAGE_X_ICON.toString());
+							exchange.getResponseSender().send(faviconImageBuffer);
+						}
+
+					});
+
+				}
+
+			} catch (Exception e)
+			{
+				log.error("Error adding favicon route.", e.getMessage());
+			}
+		}
 	}
- 
+
+
 
 }

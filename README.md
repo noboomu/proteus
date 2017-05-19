@@ -17,7 +17,9 @@ Proteus takes your MVC controller classes and methods decorated with Swagger / J
 
 ## Setup
 
-Parameters are all configured in the `conf/application.conf` file.
+By default, the configuration is loaded into a `com.typesafe.config.Config` from a file at `conf/application.conf`.
+`@Named` annotated properties of `Module`, `Service` and controller classes are bound to values found in the configuration.
+
 Proteus applications generally have a main method that creates an instance of `io.sinistral.proteus.ProteusApplication`. 
 Prior to calling `start` on the `ProteusApplication` instance:
 * Register `Service` classes via `addService`  
@@ -25,6 +27,9 @@ Prior to calling `start` on the `ProteusApplication` instance:
 * Register classes annotated with `io.swagger.annotations.Api` via `addController`  
 
 Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/swagger` and [Redoc](https://github.com/Rebilly/ReDoc) at `/swagger/redoc`.
+
+> A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.servicesBaseService`.
+> A `Module` implements `com.google.inject.Module`.
 
 ##### Example Application Class
 

@@ -21,6 +21,7 @@ By default, the configuration is loaded into a `com.typesafe.config.Config` from
 `@Named` annotated properties of `Module`, `Service` and controller classes are bound to values found in the configuration.
 
 Proteus applications generally have a main method that creates an instance of `io.sinistral.proteus.ProteusApplication`. 
+
 Prior to calling `start` on the `ProteusApplication` instance:
 * Register `Service` classes via `addService`  
 * Register `Module` classes via `addModule`  

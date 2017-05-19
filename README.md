@@ -30,6 +30,7 @@ Prior to calling `start` on the `ProteusApplication` instance:
 Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/swagger` and [Redoc](https://github.com/Rebilly/ReDoc) at `/swagger/redoc`.
 
 > A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.servicesBaseService`.
+
 > A `Module` implements `com.google.inject.Module`.
 
 ##### Example Application Class

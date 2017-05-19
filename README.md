@@ -13,11 +13,14 @@
 
 ## Under the Hood
 
-Proteus takes your MVC controller classes and methods decorated with Swagger / JAX-RS annotations and generates native Undertow handler classes at runtime. You can review the generated code by setting the ```io.sinistral.proteus.server``` log level to `DEBUG`.
+Proteus takes your MVC controller classes and methods decorated with Swagger / JAX-RS annotations and generates native Undertow handler classes at runtime. 
+
+You can review the generated code by setting the ```io.sinistral.proteus.server``` log level to `DEBUG`.
 
 ## Setup
 
 By default, the configuration is loaded into a `com.typesafe.config.Config` from a file at `conf/application.conf`.
+
 `@Named` annotated properties of `Module`, `Service` and controller classes are bound to values found in the configuration.
 
 Proteus applications generally have a main method that creates an instance of `io.sinistral.proteus.ProteusApplication`. 
@@ -125,12 +128,16 @@ public void plaintext(HttpServerExchange exchange)
 ##### HttpServerExchange = Total Control
 
 For total control and maximum performance the raw `HttpServerExchange` can be passed to the controller method.
+
 Methods that take an `HttpServerExchange` as an argument should __not__ return a value.
+
 In this case the method takes on __full responsibility__ for completing the exchange.
  
 ##### ServerResponse = Convenience
 The static method ```io.sinistral.proteus.server.ServerResponse.response``` helps create ```ServerResponse<T>``` instances that are the preferred return type for controller methods.
+
 If the response object's `contentType` is not explicitly set, the `@Produces` annotation is used in combination with the `Accept` headers to determine the `Content-Type`.
+
 For methods that should return a `String` or `ByteBuffer` to the client users can create responses like this:
  ```java
 @GET
@@ -143,6 +150,7 @@ public ServerResponse<ByteBuffer> plaintext(String message)
 }
 ```
 By default, passing a `String` to the static `ServerResponse.response` helper function will convert it into a `ByteBuffer`.
+
 For other types of responses the following demonstrates the preferred style:
 ```java
 @GET
@@ -155,7 +163,7 @@ public io.sinistral.proteus.server.ServerResponse<World> getWorld(Integer id,  I
 }
 ```
 The entity can be set separately as well:
-> this disables static type checking
+> this disables static type checking!
 ```java
 @GET
 @Path("/world")
@@ -189,8 +197,11 @@ public void handleRequest(final io.undertow.server.HttpServerExchange exchange) 
 
 ### Arguments
 A ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint argument if the user wishes to access request properties that are not included in the argument list.
+
 Proteus is capable of parsing most types of endpoint arguments automatically so long as the type has a ```fromString```, ```valueOf```, or can be deserialized from JSON.
+
 Multipart/Form file uploads can be passed to the endpoint methods as a ```java.io.File```, a ```java.nio.Files.Path```, or a ```java.nio.ByteBuffer```.
+
 Optional arguments are also supported, here is a more complex endpoint demonstrating several argument types:
 ```java
 @GET
@@ -234,6 +245,7 @@ public ServerResponse<Map<String,Object>> complexParameters(
 Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
 ##### AssetsService
 The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
+
 The default configuration:
 ```
 assets {
@@ -249,7 +261,9 @@ assets {
 ```
 ##### SwaggerService   
 The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
+
 The service is configured in your ```application.conf``` file.
+
 The default configuration:
 ```
 swagger {

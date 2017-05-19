@@ -86,7 +86,7 @@ public class ProteusApplication
 	@Inject
 	protected Config config;
 
-	protected List<com.google.inject.Module> registeredModules = new ArrayList<>();
+	protected List<Class<? extends Module>> registeredModules = new ArrayList<>();
 
 	protected Injector injector = null;
 	protected ServiceManager serviceManager = null;
@@ -129,7 +129,11 @@ public class ProteusApplication
 			return;
 		}
 
-		injector = injector.createChildInjector(registeredModules);
+		log.info("Configuring modules...");
+
+		Set<Module> modules = registeredModules.stream().map(mc -> injector.getInstance(mc)).collect(Collectors.toSet());
+
+		injector = injector.createChildInjector(modules);
 
 		if (rootHandlerClass == null && rootHandler == null)
 		{
@@ -291,7 +295,7 @@ public class ProteusApplication
 		return this;
 	}
 
-	public ProteusApplication addModule(Module module)
+	public ProteusApplication addModule(Class<? extends Module> module)
 	{
 		registeredModules.add(module);
 		return this;

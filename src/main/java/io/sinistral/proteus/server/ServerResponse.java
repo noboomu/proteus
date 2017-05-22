@@ -10,6 +10,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.jsoniter.output.JsonContext;
 import com.jsoniter.output.JsonStream;
@@ -48,8 +49,8 @@ public class ServerResponse<T>
 	protected boolean hasHeaders = false;
 	protected boolean hasIoCallback = false;
 	protected boolean processXml = false;
-	protected boolean processJson = false; 
-	protected boolean preprocessed = false; 
+	protected boolean processJson = false;
+	protected boolean preprocessed = false;
 
 	public ServerResponse()
 	{
@@ -129,14 +130,14 @@ public class ServerResponse<T>
 
 		if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_JSON))
 		{
-			if(!this.preprocessed)
+			if (!this.preprocessed)
 			{
 				this.processJson = true;
 			}
 		}
 		else if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_XML))
 		{
-			if(!this.preprocessed)
+			if (!this.preprocessed)
 			{
 				this.processXml = true;
 			}
@@ -149,20 +150,19 @@ public class ServerResponse<T>
 		this.preprocessed = true;
 		return this;
 	}
-	
 
 	public ServerResponse<T> body(String body)
 	{
-		return this.body( ByteBuffer.wrap(body.getBytes()) ); 
+		return this.body(ByteBuffer.wrap(body.getBytes()));
 	}
 
 	public ServerResponse<T> entity(T entity)
 	{
 		this.entity = entity;
 		this.preprocessed = false;
-		
+
 		return this;
-	} 
+	}
 
 	public ServerResponse<T> throwable(Throwable throwable)
 	{
@@ -173,7 +173,6 @@ public class ServerResponse<T>
 		}
 		return this;
 	}
- 
 
 	public ServerResponse<T> status(int status)
 	{
@@ -191,7 +190,7 @@ public class ServerResponse<T>
 	public ServerResponse<T> cookie(String cookieName, Cookie cookie)
 	{
 		this.cookies.put(cookieName, cookie);
-		this.hasCookies = true; 
+		this.hasCookies = true;
 		return this;
 	}
 
@@ -203,9 +202,9 @@ public class ServerResponse<T>
 
 	public ServerResponse<T> applicationJson()
 	{
- 		if(!this.preprocessed)
+		if (!this.preprocessed)
 		{
- 			this.processJson = true; 
+			this.processJson = true;
 		}
 		this.contentType = javax.ws.rs.core.MediaType.APPLICATION_JSON;
 		return this;
@@ -216,8 +215,7 @@ public class ServerResponse<T>
 		this.contentType = javax.ws.rs.core.MediaType.TEXT_HTML;
 		return this;
 	}
-	 
-	
+
 	public ServerResponse<T> applicationOctetStream()
 	{
 		this.contentType = javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
@@ -226,11 +224,11 @@ public class ServerResponse<T>
 
 	public ServerResponse<T> applicationXml()
 	{
-		if(!this.preprocessed)
+		if (!this.preprocessed)
 		{
- 			this.processXml = true; 
-		}		
-		this.contentType = javax.ws.rs.core.MediaType.APPLICATION_XML; 
+			this.processXml = true;
+		}
+		this.contentType = javax.ws.rs.core.MediaType.APPLICATION_XML;
 		return this;
 	}
 
@@ -239,13 +237,12 @@ public class ServerResponse<T>
 		this.contentType = javax.ws.rs.core.MediaType.TEXT_PLAIN;
 		return this;
 	}
-	
+
 	public ServerResponse<T> jsonContext(Class<? extends JsonContext> context)
 	{
 		this.jsonContext = context;
 		return this;
 	}
-
 
 	public ServerResponse<T> ok()
 	{
@@ -308,17 +305,16 @@ public class ServerResponse<T>
 		return this;
 	}
 
- 
-	public void send( final HttpServerExchange exchange) throws RuntimeException
+	public void send(final HttpServerExchange exchange) throws RuntimeException
 	{
-		send(null,exchange);
+		send(null, exchange);
 	}
 
 	public void send(final HttpHandler handler, final HttpServerExchange exchange) throws RuntimeException
 	{
 		final boolean hasBody = this.body != null;
 		final boolean hasEntity = this.entity != null;
-		
+		final boolean hasError = this.throwable != null;
 
 		if (this.hasHeaders)
 		{
@@ -359,6 +355,38 @@ public class ServerResponse<T>
 			}
 		}
 
+		if (hasError)
+		{
+			Map<String, String> errorMap = new HashMap<>();
+
+			errorMap.put("message", throwable.getMessage());
+
+			if (throwable.getStackTrace() != null)
+			{
+				if (throwable.getStackTrace().length > 0)
+				{
+					errorMap.put("exceptionClass", throwable.getStackTrace()[0].getClassName());
+				}
+			}
+
+			if (this.processXml)
+			{
+				try
+				{
+					exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(errorMap)));
+				} catch (JsonProcessingException e)
+				{
+					log.warn("Unable to create XML from error...");
+				}
+			}
+			else
+			{
+				exchange.getResponseSender().send(JsonStream.serializeToBytes(errorMap, this.jsonContext));
+			}
+
+			return;
+		}
+
 		if (hasBody)
 		{
 			if (!this.hasIoCallback)
@@ -380,8 +408,8 @@ public class ServerResponse<T>
 				}
 				else
 				{
-					 				
-					exchange.getResponseSender().send(JsonStream.serializeToBytes(this.entity, this.jsonContext)); 
+
+					exchange.getResponseSender().send(JsonStream.serializeToBytes(this.entity, this.jsonContext));
 				}
 
 			} catch (Exception e)
@@ -408,28 +436,26 @@ public class ServerResponse<T>
 	{
 		return new ServerResponse<T>();
 	}
-	
-	public static  ServerResponse<ByteBuffer> response(ByteBuffer body)
+
+	public static ServerResponse<ByteBuffer> response(ByteBuffer body)
 	{
 		return new ServerResponse<ByteBuffer>().body(body);
 	}
-	
-	public static  ServerResponse<ByteBuffer> response(String body)
+
+	public static ServerResponse<ByteBuffer> response(String body)
 	{
 		return new ServerResponse<ByteBuffer>().body(body);
 	}
-	
+
 	public static <T> ServerResponse<T> response(T entity)
 	{
 		return new ServerResponse<T>().entity(entity);
 	}
- 
+
 	@SuppressWarnings("rawtypes")
 	public static ServerResponse response()
 	{
 		return new ServerResponse();
 	}
-	
- 
 
 }

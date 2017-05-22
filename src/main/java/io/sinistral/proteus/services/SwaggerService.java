@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.jar.JarFile;
@@ -33,21 +34,32 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
- 
+import com.typesafe.config.ConfigObject;
+
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.sinistral.proteus.server.swagger.ServerParameterExtension;
+import io.sinistral.proteus.server.swagger.ServerParameterExtension;  
 import io.swagger.jaxrs.ext.SwaggerExtension;
 import io.swagger.jaxrs.ext.SwaggerExtensions;
 import io.swagger.models.Info;
+import io.swagger.models.SecurityRequirement;
 import io.swagger.models.Swagger;
+import io.swagger.models.auth.ApiKeyAuthDefinition;
+import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.undertow.attribute.ExchangeAttribute;
+import io.undertow.attribute.ExchangeAttributes;
+import io.undertow.predicate.Predicate;
+import io.undertow.predicate.Predicates;
+import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.handlers.PredicateHandler;
 import io.undertow.server.handlers.ResponseCodeHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
+import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 
 
@@ -82,6 +94,10 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	protected Config swaggerInfo;
 	
 	@Inject
+	@Named("swagger.security")
+	protected Config swaggerSecurity;
+	
+	@Inject
 	@Named("swagger.redocPath")
 	protected String redocPath;
 	
@@ -111,6 +127,10 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	@Inject
 	@Named("registeredControllers")
 	protected Set<Class<?>> registeredControllers;
+	
+	@Inject
+	@Named("registeredHandlerWrappers")
+	protected Map<String,HandlerWrapper> registeredHandlerWrappers;
  
 	protected ObjectMapper mapper = new ObjectMapper();
 	
@@ -182,6 +202,61 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		}
 		
 		swagger.setInfo(info);
+		
+		if(swaggerSecurity.hasPath("apiKeys"))
+		{
+			List<? extends ConfigObject> apiKeys = swaggerSecurity.getObjectList("apiKeys");
+			
+			for(ConfigObject apiKey : apiKeys)
+			{
+				Config apiKeyConfig = apiKey.toConfig();
+				
+				String key = apiKeyConfig.getString("key");
+				String name = apiKeyConfig.getString("name");
+				String value = apiKeyConfig.getString("value");
+				
+				io.swagger.models.auth.In keyLocation = io.swagger.models.auth.In.valueOf(apiKeyConfig.getString("in"));
+				
+				final Predicate predicate;
+				
+				switch( keyLocation )
+				{
+					case HEADER:
+					{
+						ExchangeAttribute[] attributes =  new ExchangeAttribute[]{ExchangeAttributes.requestHeader(HttpString.tryFromString(name)), ExchangeAttributes.constant(value)};
+						predicate = Predicates.equals(  attributes );  
+						break;
+					}
+					case QUERY:
+					{
+						predicate = Predicates.contains(ExchangeAttributes.queryString(),value);	 
+						break;
+					}
+					default:
+						predicate = Predicates.truePredicate();
+						break; 
+				}
+				
+				if(predicate != null)
+				{
+					log.debug("Adding apiKey handler " + name + " in " + keyLocation + " named " + key);
+					
+					final HandlerWrapper wrapper = new HandlerWrapper()
+					{ 
+						@Override
+						public HttpHandler wrap(final HttpHandler handler)
+						{
+							return new PredicateHandler( predicate, handler, ResponseCodeHandler.HANDLE_403);
+						} 
+					};
+					
+					ApiKeyAuthDefinition keyAuthDefinition = new ApiKeyAuthDefinition(key, keyLocation);
+					swagger.addSecurityDefinition(name, keyAuthDefinition);
+					
+					registeredHandlerWrappers.put(name, wrapper);
+				} 
+			}
+		}
 
 
 		this.reader = new io.sinistral.proteus.server.swagger.Reader(swagger);
@@ -189,7 +264,8 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		classes.forEach( c -> this.reader.read(c));
 		
 		this.swagger = this.reader.getSwagger();
-	 
+		
+
 		
 		try
 		{

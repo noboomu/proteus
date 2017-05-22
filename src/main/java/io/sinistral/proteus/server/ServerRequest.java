@@ -15,6 +15,7 @@ import org.xnio.channels.StreamSourceChannel;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.connector.PooledByteBuffer;
+import io.undertow.security.api.SecurityContext;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
@@ -76,17 +77,12 @@ public class ServerRequest
 			{ 
 				this.extractBytes();
 			}   
-		}
-		
-
-
+		} 
 	}
 	
 
 	public Deque<FormData.FormValue> files(final String name)
 	{
-
- 		
 		if (this.form != null)
 		{
 			return form.get(name);
@@ -132,6 +128,14 @@ public class ServerRequest
 		return exchange.getPathParameters();
 	}
 
+	/**
+	 * @return the security context
+	 * @see io.undertow.server.security.api#getSecurityContext()
+	 */
+	public SecurityContext getSecurityContext()
+	{
+		return exchange.getSecurityContext();
+	}
  
 	
 	private void extractBytes() throws IOException
@@ -238,7 +242,11 @@ public class ServerRequest
 		return exchange.getRequestURI();
 	}
 
-	 
+	public HttpServerExchange exchange()
+	{
+		return exchange;
+	}
+
 	public void startAsync(final Executor executor, final Runnable runnable)
 	{
 		exchange.dispatch(executor, runnable);

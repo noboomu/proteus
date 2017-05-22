@@ -24,9 +24,8 @@ public class ServerParameterExtension extends DefaultParameterExtension
 
 	public ServerParameterExtension()
 	{
-		super();
-		
-		
+ 		super();
+
 	}
  
 	@Override
@@ -47,8 +46,13 @@ public class ServerParameterExtension extends DefaultParameterExtension
 	@Override
 	protected boolean shouldIgnoreType(Type type, Set<Type> typesToSkip)
 	{ 
- 
-		if( type.getTypeName().contains("io.sinistral.proteus.server.ServerRequest") || type.getTypeName().contains("HttpServerExchange") ||  type.getTypeName().contains("HttpHandler") || type.getTypeName().contains("io.sinistral.proteus.server.ServerResponse"))
+	 
+		if( type.getTypeName().contains("io.sinistral.proteus.server.ServerRequest") 
+				|| type.getTypeName().contains("HttpServerExchange") 
+				|| type.getTypeName().contains("HttpHandler") 
+				|| type.getTypeName().contains("io.sinistral.proteus.server.ServerResponse") 
+				|| type.getTypeName().contains("io.undertow.server.session")
+				)
 		{
 			return true;
 		} 

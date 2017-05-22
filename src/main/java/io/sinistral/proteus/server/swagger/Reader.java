@@ -1136,14 +1136,15 @@ public class Reader {
         typesToSkip.add(TypeFactory.defaultInstance().constructType(HttpServerExchange.class));
         typesToSkip.add(TypeFactory.defaultInstance().constructType(ServerResponse.class));
         typesToSkip.add(TypeFactory.defaultInstance().constructType(HttpHandler.class));
+        typesToSkip.add(TypeFactory.defaultInstance().constructType(io.undertow.server.session.Session.class));
 
         final SwaggerExtension extension = chain.next();
-      
+              
         if (typesToSkip.contains(type)) {
             return Collections.emptyList();
         }
  
-
+ 
         annotations = new ArrayList<>(annotations);
   
          
@@ -1200,8 +1201,6 @@ public class Reader {
             final List<Parameter> body = new ArrayList<Parameter>();
             if (!typesToSkip.contains(type)) {
             	
-          //      LOGGER.debug("getBody Parameters for {}", type);
-
                 Parameter param = ParameterProcessor.applyAnnotations(swagger, null, type, annotations);
                 if (param != null) {
                 	 

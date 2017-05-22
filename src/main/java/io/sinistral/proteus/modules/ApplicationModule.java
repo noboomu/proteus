@@ -3,7 +3,9 @@
  */
 package io.sinistral.proteus.modules;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -25,6 +27,7 @@ import com.typesafe.config.Config;
 
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.undertow.server.DefaultResponseListener;
+import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
 
@@ -39,6 +42,7 @@ public class ApplicationModule extends AbstractModule
 	protected Set<EndpointInfo> registeredEndpoints = new TreeSet<>();
 	protected Set<Class<?>> registeredControllers = new HashSet<>();
 	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
+	protected Map<String,HandlerWrapper> registeredHandlerWrappers = new HashMap<>();
 
 	protected Config config;
 
@@ -85,12 +89,18 @@ public class ApplicationModule extends AbstractModule
 		this.bind(new TypeLiteral<Set<Class<?>>>()
 		{
 		}).annotatedWith(Names.named("registeredControllers")).toInstance(registeredControllers);
+		
 		this.bind(new TypeLiteral<Set<EndpointInfo>>()
 		{
 		}).annotatedWith(Names.named("registeredEndpoints")).toInstance(registeredEndpoints);
+		
 		this.bind(new TypeLiteral<Set<Class<? extends Service>>>()
 		{
 		}).annotatedWith(Names.named("registeredServices")).toInstance(registeredServices);
+		
+		this.bind(new TypeLiteral<Map<String,HandlerWrapper>>()
+		{
+		}).annotatedWith(Names.named("registeredHandlerWrappers")).toInstance(registeredHandlerWrappers);
 
 		this.bind(XmlMapper.class).toInstance(new XmlMapper());
 

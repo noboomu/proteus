@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HttpMethod;
@@ -101,6 +103,8 @@ public class Reader {
     private static final Logger LOGGER = LoggerFactory.getLogger(Reader.class);
     private static final String SUCCESSFUL_OPERATION = "successful operation";
     private static final String PATH_DELIMITER = "/";
+    private static final Pattern PATH_PATTERN = Pattern.compile("\\{([^\\}]*?)\\}");
+
 
     private final ReaderConfig config;
     private Swagger swagger;
@@ -308,17 +312,37 @@ public class Reader {
                 String operationPath = getPath(apiPath, methodPath, parentPath);
                 Map<String, String> regexMap = new LinkedHashMap<>();
                 operationPath = PathUtils.parsePath(operationPath, regexMap);
+                
+              
+                
                 if (operationPath != null) {
                     if (isIgnored(operationPath)) {
                         continue;
                     }
+                    
+                    List<String> pathParamNames = new ArrayList<>();
+                    
+        			Matcher m = PATH_PATTERN.matcher(operationPath);
+        			while(m.find())
+        			{
+        					String pathParamName = m.group(1);
+        					int bracketIndex = pathParamName.indexOf('[');
+        					
+        					if(bracketIndex > -1)
+        					{
+        						pathParamName = pathParamName.substring(0, bracketIndex);
+        					}
+        					
+        					pathParamNames.add(pathParamName);
+        			} 
+        			 
 
                     final ApiOperation apiOperation = ReflectionUtils.getAnnotation(method, ApiOperation.class);
                     String httpMethod = extractOperationMethod(apiOperation, method, SwaggerExtensions.chain());
 
                     Operation operation = null;
                     if (apiOperation != null || config.isScanAllResources() || httpMethod != null || methodPath != null) {
-                        operation = parseMethod(cls, method, annotatedMethod, globalParameters, classApiResponses);
+                        operation = parseMethod(cls, method, annotatedMethod, globalParameters, classApiResponses,pathParamNames);
                     }
                     if (operation == null) {
                         continue;
@@ -799,12 +823,12 @@ public class Reader {
         JavaType classType = TypeFactory.defaultInstance().constructType(method.getDeclaringClass());
         BeanDescription bd = new ObjectMapper().getSerializationConfig().introspect(classType);
         return parseMethod(classType.getClass(), method, bd.findMethod(method.getName(), method.getParameterTypes()),
-                Collections.<Parameter> emptyList(), Collections.<ApiResponse> emptyList());
+                Collections.<Parameter> emptyList(), Collections.<ApiResponse> emptyList(),Collections.emptyList());
     }
 
     @SuppressWarnings("deprecation")
 	private Operation parseMethod(Class<?> cls, Method method, AnnotatedMethod annotatedMethod,
-            List<Parameter> globalParameters, List<ApiResponse> classApiResponses) {
+            List<Parameter> globalParameters, List<ApiResponse> classApiResponses, List<String> pathParamNames) {
         Operation operation = new Operation();
         if (annotatedMethod != null) {
             method = annotatedMethod.getAnnotated();
@@ -831,15 +855,12 @@ public class Reader {
         } else {
             operationId = this.getOperationId(method.getName());
         }
-        
-      //  LOGGER.debug("initial operationId: " + operationId + " nickname: " + apiOperation.nickname());
-
+         
          String responseContainer = null;
 
         Type responseType = null;
         Map<String, Property> defaultResponseHeaders = new LinkedHashMap<String, Property>();
-        
-       
+         
 
         if (apiOperation != null) {
             if (apiOperation.hidden()) {
@@ -847,10 +868,8 @@ public class Reader {
             }
             if (operationId == null) {
                 operationId = apiOperation.nickname();
-            }
-
-          //  LOGGER.debug("operationId after nickname: " + operationId);
-
+            } 
+            
             defaultResponseHeaders = parseResponseHeaders(apiOperation.responseHeaders());
 
             operation.summary(apiOperation.value()).description(apiOperation.notes());
@@ -1030,7 +1049,7 @@ public class Reader {
                 }
                  
                 
-                List<Parameter> parameters = getParameters(type, Arrays.asList(paramAnnotations[i]), methodParameters[i]);
+                List<Parameter> parameters = getParameters(type, Arrays.asList(paramAnnotations[i]), methodParameters[i], pathParamNames);
 
                 for (Parameter parameter : parameters) {
                     operation.parameter(parameter);
@@ -1050,7 +1069,7 @@ public class Reader {
                  
                  
                 
-                List<Parameter> parameters = getParameters(type, Arrays.asList(paramAnnotations[i]),methodParameters[i]);
+                List<Parameter> parameters = getParameters(type, Arrays.asList(paramAnnotations[i]),methodParameters[i],pathParamNames);
                 
                 for (Parameter parameter : parameters) {
                 	 
@@ -1102,7 +1121,7 @@ public class Reader {
         }
     }
 
-    private List<Parameter> getParameters(Type type, List<Annotation> annotations, java.lang.reflect.Parameter methodParameter) {
+    private List<Parameter> getParameters(Type type, List<Annotation> annotations, java.lang.reflect.Parameter methodParameter, List<String> pathParamNames) {
         final Iterator<SwaggerExtension> chain = SwaggerExtensions.chain();
         
          
@@ -1126,11 +1145,11 @@ public class Reader {
  
 
         annotations = new ArrayList<>(annotations);
+  
          
         if(! annotations.stream().filter( a -> a instanceof ApiParam ).findFirst().isPresent() )
         {
-        	annotations.add( AnnotationHelper.createApiParam( methodParameter ) ) ;
-
+        	annotations.add( AnnotationHelper.createApiParam( methodParameter ) ) ; 
         }
         
 
@@ -1143,6 +1162,24 @@ public class Reader {
 			
 			  annotations.add(AnnotationHelper.createFormParam(methodParameter));
 			  
+        }
+		
+        if(annotations.size() == 1)
+        {
+        	if( annotations.get(0) instanceof ApiParam)
+        	{ 
+        	    // If there is only one ApiParam and the parameter type is a member of the java.lang and the name of that parameter is in the path operation's path make the assumption that this is a path param
+        		if(methodParameter.getType().getName().indexOf("java.lang") > -1 && pathParamNames.contains(methodParameter.getName()))
+        		{
+        			annotations.add(AnnotationHelper.createPathParam(methodParameter));
+
+        		}
+        	    // If there is only one ApiParam and the parameter type is a member of the java.lang or java.util package we make the assumption that this is a query param
+        		else if( methodParameter.getType().getName().indexOf("java.lang") > -1 || methodParameter.getType().getName().indexOf("java.util") > -1 )
+        		{
+        			annotations.add(AnnotationHelper.createQueryParam(methodParameter));
+        		}
+        	}
         }
         
         final List<Parameter> parameters = extension.extractParameters(annotations, type, typesToSkip, chain);

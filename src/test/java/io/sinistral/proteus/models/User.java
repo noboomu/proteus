@@ -79,5 +79,9 @@ public class User
 		return type;
 	}
 	
+	public static User generateUser()
+	{
+		return new User((long)(Math.random()*1000)+1L, UserType.ADMIN);
+	}
 	
 }

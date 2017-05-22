@@ -7,43 +7,83 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
 import javax.ws.rs.FormParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Example;
 
 /**
  * @author jbauer
- *
  */
 public class AnnotationHelper
 {
-	public static FormParam createFormParam(Parameter parameter){
-			
-			return new FormParam(){
+	public static FormParam createFormParam(Parameter parameter)
+	{
 
-				/* (non-Javadoc)
-				 * @see javax.ws.rs.FormParam#value()
-				 */
-				@Override
-				public String value()
-				{
-					// TODO Auto-generated method stub
-					return parameter.getName();
-				}
+		return new FormParam()
+		{
 
-				@Override
-				public Class<? extends Annotation> annotationType()
-				{
-					return FormParam.class;
-				}
-				
-				
-			};
+			@Override
+			public String value()
+			{
+				return parameter.getName();
+			}
+
+			@Override
+			public Class<? extends Annotation> annotationType()
+			{
+				return FormParam.class;
+			}
+
+		};
 	}
-	
-	public static ApiParam createApiParam(Parameter parameter){
-		
-		return new ApiParam(){
+
+	public static QueryParam createQueryParam(Parameter parameter)
+	{
+
+		return new QueryParam()
+		{
+
+			@Override
+			public String value()
+			{
+				return parameter.getName();
+			}
+
+			@Override
+			public Class<? extends Annotation> annotationType()
+			{
+				return QueryParam.class;
+			}
+		};
+	}
+
+	public static PathParam createPathParam(Parameter parameter)
+	{
+
+		return new PathParam()
+		{
+
+			@Override
+			public String value()
+			{
+				return parameter.getName();
+			}
+
+			@Override
+			public Class<? extends Annotation> annotationType()
+			{
+				return PathParam.class;
+			}
+		};
+	}
+
+	public static ApiParam createApiParam(Parameter parameter)
+	{
+
+		return new ApiParam()
+		{
 
 			@Override
 			public Class<? extends Annotation> annotationType()
@@ -54,7 +94,7 @@ public class AnnotationHelper
 
 			@Override
 			public String name()
-			{ 
+			{
 				return parameter.getName();
 			}
 
@@ -81,7 +121,7 @@ public class AnnotationHelper
 
 			@Override
 			public boolean required()
-			{ 
+			{
 				return !parameter.getParameterizedType().getTypeName().contains("java.util.Optional");
 			}
 
@@ -154,7 +194,7 @@ public class AnnotationHelper
 				// TODO Auto-generated method stub
 				return null;
 			}
-			
+
 		};
 	}
 }

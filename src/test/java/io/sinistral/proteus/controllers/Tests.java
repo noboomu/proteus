@@ -140,11 +140,18 @@ public class Tests
  	@Consumes("*/*")
 	@ApiOperation(value = "Upload file path endpoint",   httpMethod = "POST" )
 	public ServerResponse<ByteBuffer> responseUploadFilePath(ServerRequest request, @FormParam("file") java.nio.file.Path file ) throws Exception
-	{ 
-		 
-		return response(ByteBuffer.wrap(Files.toByteArray(file.toFile()))).applicationOctetStream();
-		 
-
+	{  
+		return response(ByteBuffer.wrap(Files.toByteArray(file.toFile()))).applicationOctetStream(); 
+	}
+	
+	@POST
+	@Path("/response/json/echo")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
+ 	@Consumes("*/*")
+	@ApiOperation(value = "Echo json endpoint",   httpMethod = "POST" )
+	public ServerResponse<User> responseEchoJson(ServerRequest request, @FormParam("user") User user ) throws Exception
+	{  
+		return response(user).applicationJson();
 	}
 	
 	@POST

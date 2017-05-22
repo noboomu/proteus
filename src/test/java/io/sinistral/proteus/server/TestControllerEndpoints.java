@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.models.User;
+import io.sinistral.proteus.models.User.UserType;
 
 /*
  * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;
@@ -100,6 +101,15 @@ public class TestControllerEndpoints
 	public void responsePlaintext()
 	{
 		given().accept(ContentType.TEXT).log().uri().when().get("tests/response/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
+	}
+	
+	@Test
+	public void responseEchoUser()
+	{
+		User user = new User(101L,UserType.ADMIN);
+		  
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(user).log().uri().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+
 	}
 
 	@Test

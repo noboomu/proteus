@@ -251,9 +251,9 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 					};
 					
 					ApiKeyAuthDefinition keyAuthDefinition = new ApiKeyAuthDefinition(name, keyLocation);
-					swagger.addSecurityDefinition(name, keyAuthDefinition);
+					swagger.addSecurityDefinition(key, keyAuthDefinition);
 					
-					registeredHandlerWrappers.put(name, wrapper);
+					registeredHandlerWrappers.put(key, wrapper);
 				} 
 			}
 		}

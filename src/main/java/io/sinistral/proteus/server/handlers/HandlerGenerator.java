@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.jsoniter.spi.TypeLiteral;
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -49,6 +50,7 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import io.sinistral.proteus.server.Extractors;
@@ -576,11 +578,21 @@ public class HandlerGenerator
 
 			String className = this.controllerClass.getSimpleName().toLowerCase() + "Controller";
 
-			typeBuilder.addField(this.controllerClass, className, Modifier.PROTECTED);
+			typeBuilder.addField(this.controllerClass, className, Modifier.PROTECTED,  Modifier.FINAL);
+			
+			ClassName wrapperClass = ClassName.get("io.undertow.server", "HandlerWrapper");
+			ClassName stringClass = ClassName.get("java.lang", "String"); 
+			ClassName mapClass = ClassName.get("java.util", "Map");
+			TypeName mapOfWrappers = ParameterizedTypeName.get(mapClass, stringClass, wrapperClass);
+			
+			TypeName annotatedMapOfWrappers = mapOfWrappers.annotated(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S","registeredHandlerWrappers").build());
+			
+			typeBuilder.addField(mapOfWrappers, "registeredHandlerWrappers", Modifier.PROTECTED,  Modifier.FINAL); 
 
 			constructor.addParameter(this.controllerClass, className);
-
+			constructor.addParameter(annotatedMapOfWrappers, "registeredHandlerWrappers");
 			constructor.addStatement("this.$N = $N", className, className);
+			constructor.addStatement("this.$N = $N", "registeredHandlerWrappers", "registeredHandlerWrappers");
 
 			addClassMethodHandlers(typeBuilder, this.controllerClass);
 
@@ -700,6 +712,8 @@ public class HandlerGenerator
 				typeLevelHandlerWrapperMap.put(wrapperClass, wrapperName);
 			}
 		}
+		
+		
 
 		initBuilder.addStatement("$T currentHandler = $L", HttpHandler.class, "null");
 
@@ -767,7 +781,8 @@ public class HandlerGenerator
 			}
 
 			endpointInfo.setControllerName(clazz.getSimpleName());
-
+			
+		
 			String methodPath = null;
 
 			try
@@ -1056,7 +1071,31 @@ public class HandlerGenerator
 
 			Optional<io.sinistral.proteus.annotations.Chain> wrapAnnotation = Optional.ofNullable(m.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
 
-			if (wrapAnnotation.isPresent() || typeLevelHandlerWrapperMap.size() > 0)
+			/*
+			 * Authorization
+			 */
+			
+			List<String> securityDefinitions = new ArrayList<>();
+			
+			if( Optional.ofNullable(m.getAnnotation(io.swagger.annotations.ApiOperation.class)).isPresent() )
+			{
+				io.swagger.annotations.ApiOperation apiOperationAnnotation = m.getAnnotation(io.swagger.annotations.ApiOperation.class);
+				
+				io.swagger.annotations.Authorization[] authorizationAnnotations = apiOperationAnnotation.authorizations();
+				if(authorizationAnnotations.length > 0)
+				{
+					for(io.swagger.annotations.Authorization authorizationAnnotation: authorizationAnnotations )
+					{
+						if(authorizationAnnotation.value().length() > 0)
+						{
+							securityDefinitions.add(authorizationAnnotation.value());
+						}
+					}
+				} 
+			}
+
+			
+			if (wrapAnnotation.isPresent() || typeLevelHandlerWrapperMap.size() > 0 || securityDefinitions.size() > 0)
 			{
 				initBuilder.addStatement("currentHandler = $L", handlerName);
 
@@ -1079,18 +1118,20 @@ public class HandlerGenerator
 							initBuilder.addStatement("final $T $L = new $T()", wrapperClass, wrapperName, wrapperClass);
 						}
 
-						initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler");
-
+						initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler"); 
 					}
 				}
-				else
+				 
+				for (Class<? extends HandlerWrapper> wrapperClass : typeLevelHandlerWrapperMap.keySet())
 				{
-					for (Class<? extends HandlerWrapper> wrapperClass : typeLevelHandlerWrapperMap.keySet())
-					{
-						String wrapperName = typeLevelHandlerWrapperMap.get(wrapperClass);
-						initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler");
-					}
-				}
+					String wrapperName = typeLevelHandlerWrapperMap.get(wrapperClass);
+					initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler");
+				} 
+				
+				for (String securityDefinitionName : securityDefinitions)
+				{
+					initBuilder.addStatement("currentHandler = registeredHandlerWrappers.get($S).wrap($L)", securityDefinitionName, "currentHandler");
+				} 
 
 				initBuilder.addStatement("$L.add(io.undertow.util.Methods.$L,$S,$L)", "router", httpMethod, methodPath, "currentHandler");
 			}

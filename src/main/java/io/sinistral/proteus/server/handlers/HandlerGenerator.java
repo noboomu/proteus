@@ -721,6 +721,30 @@ public class HandlerGenerator
 
 		List<String> consumesContentTypes = new ArrayList<>();
 		List<String> producesContentTypes = new ArrayList<>();
+		
+		/*
+		 * Controller Level Authorization
+		 */
+		
+		List<String> typeLevelSecurityDefinitions = new ArrayList<>();
+		
+		if( Optional.ofNullable(clazz.getAnnotation(io.swagger.annotations.Api.class)).isPresent() )
+		{
+			io.swagger.annotations.Api apiAnnotation = clazz.getAnnotation(io.swagger.annotations.Api.class);
+			
+			io.swagger.annotations.Authorization[] authorizationAnnotations = apiAnnotation.authorizations();
+			
+			if(authorizationAnnotations.length > 0)
+			{
+				for(io.swagger.annotations.Authorization authorizationAnnotation: authorizationAnnotations )
+				{
+					if(authorizationAnnotation.value().length() > 0)
+					{
+						typeLevelSecurityDefinitions.add(authorizationAnnotation.value());
+					}
+				}
+			} 
+		}
 
 		for (Method m : clazz.getDeclaredMethods())
 		{
@@ -1076,6 +1100,8 @@ public class HandlerGenerator
 			 */
 			
 			List<String> securityDefinitions = new ArrayList<>();
+			
+			securityDefinitions.addAll(typeLevelSecurityDefinitions);
 			
 			if( Optional.ofNullable(m.getAnnotation(io.swagger.annotations.ApiOperation.class)).isPresent() )
 			{

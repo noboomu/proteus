@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,18 +39,26 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
 
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.sinistral.proteus.server.swagger.ServerParameterExtension;  
+import io.sinistral.proteus.server.security.MapIdentityManager;
+import io.sinistral.proteus.server.swagger.ServerParameterExtension;
 import io.swagger.jaxrs.ext.SwaggerExtension;
 import io.swagger.jaxrs.ext.SwaggerExtensions;
 import io.swagger.models.Info;
-import io.swagger.models.SecurityRequirement;
 import io.swagger.models.Swagger;
 import io.swagger.models.auth.ApiKeyAuthDefinition;
-import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.models.auth.BasicAuthDefinition;
 import io.undertow.attribute.ExchangeAttribute;
 import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.predicate.Predicate;
 import io.undertow.predicate.Predicates;
+import io.undertow.security.api.AuthenticationMechanism;
+import io.undertow.security.api.AuthenticationMode;
+import io.undertow.security.handlers.AuthenticationCallHandler;
+import io.undertow.security.handlers.AuthenticationConstraintHandler;
+import io.undertow.security.handlers.AuthenticationMechanismsHandler;
+import io.undertow.security.handlers.SecurityInitialHandler;
+import io.undertow.security.idm.IdentityManager;
+import io.undertow.security.impl.BasicAuthenticationMechanism;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -255,6 +265,53 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 					
 					registeredHandlerWrappers.put(key, wrapper);
 				} 
+			}
+		}
+		
+		if(swaggerSecurity.hasPath("basicRealms"))
+		{
+			List<? extends ConfigObject> realms = swaggerSecurity.getObjectList("basicRealms");
+			
+			for(ConfigObject realm : realms)
+			{
+				Config realmConfig = realm.toConfig();
+				 
+				final String name = realmConfig.getString("name");
+			 
+				List<String> identities = realmConfig.getStringList("identities");
+				  
+				final Map<String, char[]> identityMap = new HashMap<>();
+				
+				identities.stream().forEach( i -> {
+					String[] identity = i.split(":");
+					
+					identityMap.put(identity[0], identity[1].toCharArray());
+				});
+				
+		        final IdentityManager identityManager = new MapIdentityManager(identityMap);
+ 
+				log.debug("Adding basic handler for realm " + name + " with identities " + identityMap);
+
+				
+				final HandlerWrapper wrapper = new HandlerWrapper()
+				{ 
+					@Override
+					public HttpHandler wrap(final HttpHandler handler)
+					{
+						HttpHandler authHandler = new AuthenticationCallHandler(handler);
+						authHandler = new AuthenticationConstraintHandler(authHandler);
+					    final List<AuthenticationMechanism> mechanisms = Collections.<AuthenticationMechanism>singletonList(new BasicAuthenticationMechanism(name));
+					    authHandler = new AuthenticationMechanismsHandler(authHandler, mechanisms);
+					    authHandler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, authHandler);
+						return authHandler;
+					} 
+				};
+				
+				BasicAuthDefinition authDefinition = new BasicAuthDefinition();
+				swagger.addSecurityDefinition(name, authDefinition);
+				
+				registeredHandlerWrappers.put(name, wrapper);
+				
 			}
 		}
 

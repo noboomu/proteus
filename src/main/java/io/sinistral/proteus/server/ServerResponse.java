@@ -17,6 +17,7 @@ import com.jsoniter.output.JsonStream;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.io.IoCallback;
+import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
@@ -357,33 +358,8 @@ public class ServerResponse<T>
 
 		if (hasError)
 		{
-			Map<String, String> errorMap = new HashMap<>();
-
-			errorMap.put("message", throwable.getMessage());
-
-			if (throwable.getStackTrace() != null)
-			{
-				if (throwable.getStackTrace().length > 0)
-				{
-					errorMap.put("exceptionClass", throwable.getStackTrace()[0].getClassName());
-				}
-			}
-
-			if (this.processXml)
-			{
-				try
-				{
-					exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(errorMap)));
-				} catch (JsonProcessingException e)
-				{
-					log.warn("Unable to create XML from error...");
-				}
-			}
-			else
-			{
-				exchange.getResponseSender().send(JsonStream.serializeToBytes(errorMap, this.jsonContext));
-			}
-
+			exchange.putAttachment(DefaultResponseListener.EXCEPTION, throwable);
+			
 			return;
 		}
 

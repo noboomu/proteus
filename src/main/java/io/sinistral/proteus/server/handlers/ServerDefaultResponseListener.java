@@ -44,7 +44,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
              return false;
          }
 		   
-         if (exchange.getStatusCode() == 500) {
+         if (exchange.getStatusCode() >= 400) {
               
         	 Throwable throwable = exchange.getAttachment(DefaultResponseListener.EXCEPTION);
         	 

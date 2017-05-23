@@ -1101,8 +1101,7 @@ public class HandlerGenerator
 			
 			List<String> securityDefinitions = new ArrayList<>();
 			
-			securityDefinitions.addAll(typeLevelSecurityDefinitions);
-			
+ 			
 			if( Optional.ofNullable(m.getAnnotation(io.swagger.annotations.ApiOperation.class)).isPresent() )
 			{
 				io.swagger.annotations.ApiOperation apiOperationAnnotation = m.getAnnotation(io.swagger.annotations.ApiOperation.class);
@@ -1118,6 +1117,11 @@ public class HandlerGenerator
 						}
 					}
 				} 
+			}
+			
+			if(securityDefinitions.isEmpty())
+			{
+				securityDefinitions.addAll(typeLevelSecurityDefinitions);
 			}
 
 			

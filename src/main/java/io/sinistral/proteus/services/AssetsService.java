@@ -68,7 +68,7 @@ public class AssetsService extends BaseService implements Supplier<RoutingHandle
 		
 		final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile(),1024l);
 
-		router.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex('" + assetsPath  +  "/(.*)')", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
+		router.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex['" + assetsPath  +  "/(.*)']", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
 		.setCachable(TruePredicate.instance())
 		.setCacheTime(assetsCacheTime)
 		));

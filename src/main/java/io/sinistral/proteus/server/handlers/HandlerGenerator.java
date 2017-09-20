@@ -53,6 +53,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
@@ -573,7 +574,8 @@ public class HandlerGenerator
 			ClassName extractorClass = ClassName.get("io.sinistral.proteus.server", "Extractors");
 
 			ClassName injectClass = ClassName.get("com.google.inject", "Inject");
-
+			
+ 
 			MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addAnnotation(injectClass);
 
 			String className = this.controllerClass.getSimpleName().toLowerCase() + "Controller";
@@ -757,7 +759,18 @@ public class HandlerGenerator
 			EndpointInfo endpointInfo = new EndpointInfo();
 
 			String producesContentType = "*/*";
+			String consumesContentType = "*/*";
 
+			Boolean isBlocking = false;
+			
+			Optional<Blocking> blockingAnnotation = Optional.ofNullable(m.getAnnotation(Blocking.class));
+			
+			if(blockingAnnotation.isPresent())
+			{
+				isBlocking = blockingAnnotation.get().value();
+			}
+
+			
 			Optional<javax.ws.rs.Produces> producesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Produces.class));
 
 			if (!producesAnnotation.isPresent())
@@ -781,8 +794,6 @@ public class HandlerGenerator
 			}
 
 			endpointInfo.setProduces(producesContentType);
-
-			String consumesContentType = "*/*";
 
 			Optional<javax.ws.rs.Consumes> consumesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Consumes.class));
 
@@ -862,12 +873,13 @@ public class HandlerGenerator
 
 					if (t.isBlocking())
 					{
-
-						methodBuilder.beginControlFlow("if(exchange.isInIoThread())");
-						methodBuilder.addStatement("exchange.dispatch(this)");
-						methodBuilder.addStatement("return");
-
-						methodBuilder.endControlFlow();
+						isBlocking = true;
+						
+//						methodBuilder.beginControlFlow("if(exchange.isInIoThread())");
+//						methodBuilder.addStatement("exchange.dispatch(this)");
+//						methodBuilder.addStatement("return");
+//
+//						methodBuilder.endControlFlow();
 
 						break;
 					}
@@ -1052,7 +1064,7 @@ public class HandlerGenerator
 						}
 					}
 
-					methodBuilder.addCode("$L.thenAccept( r ->  r" + postProcess + "send(this,$L) )\n\t.exceptionally( ex -> ", "response", "exchange");
+					methodBuilder.addCode("$L.thenAcceptAsync( r ->  r" + postProcess + "send(this,$L), io.undertow.util.SameThreadExecutor.INSTANCE )\n\t.exceptionally( ex -> ", "response", "exchange");
 					methodBuilder.beginControlFlow("", "");
 					methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
 					methodBuilder.endControlFlow(")", "");
@@ -1101,6 +1113,10 @@ public class HandlerGenerator
 			
 			List<String> securityDefinitions = new ArrayList<>();
 			
+			/*
+			 * @TODO wrap blocking in BlockingHandler
+			 */
+			
  			
 			if( Optional.ofNullable(m.getAnnotation(io.swagger.annotations.ApiOperation.class)).isPresent() )
 			{
@@ -1124,6 +1140,10 @@ public class HandlerGenerator
 				securityDefinitions.addAll(typeLevelSecurityDefinitions);
 			}
 
+			if(isBlocking)
+			{
+				handlerName = "new io.undertow.server.handlers.BlockingHandler(" + handlerName + ")";
+			}
 			
 			if (wrapAnnotation.isPresent() || typeLevelHandlerWrapperMap.size() > 0 || securityDefinitions.size() > 0)
 			{

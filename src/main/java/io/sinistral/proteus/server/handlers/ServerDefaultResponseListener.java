@@ -20,6 +20,7 @@ import com.jsoniter.output.JsonStream;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.util.AttachmentKey;
 import io.undertow.util.Headers;
 import io.undertow.util.StatusCodes;
 
@@ -33,6 +34,8 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 	private static Logger log = LoggerFactory.getLogger(ServerDefaultResponseListener.class.getCanonicalName());
  
 
+   public static  AttachmentKey<Throwable> EXCEPTION = AttachmentKey.create(Throwable.class);
+
 	@Inject
 	protected XmlMapper xmlMapper;
 	 
@@ -44,9 +47,9 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
              return false;
          }
 		   
-         if (exchange.getStatusCode() >= 400) {
+         if (exchange.getResponseCode() >= 400) {
               
-        	 Throwable throwable = exchange.getAttachment(DefaultResponseListener.EXCEPTION);
+        	 Throwable throwable = exchange.getAttachment(EXCEPTION);
         	 
         	 if( throwable == null )
         	 {
@@ -67,7 +70,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
         	 
         	 if(throwable instanceof IllegalArgumentException )
         	 {
-        		 exchange.setStatusCode(StatusCodes.BAD_REQUEST);
+        		 exchange.setResponseCode(StatusCodes.BAD_REQUEST);
         	 }
         	 
         	 if( ServerPredicates.ACCEPT_XML_EXCLUSIVE_PREDICATE.resolve(exchange) )

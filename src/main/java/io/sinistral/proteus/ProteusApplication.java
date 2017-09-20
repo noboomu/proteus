@@ -38,19 +38,12 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Named;
-import com.jsoniter.DecodingMode;
-import com.jsoniter.JsonIterator;
-import com.jsoniter.annotation.JsoniterAnnotationSupport;
-import com.jsoniter.output.EncodingMode;
-import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 
 import io.sinistral.proteus.modules.ConfigModule;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
-import io.sinistral.proteus.services.AssetsService;
-import io.sinistral.proteus.services.SwaggerService;
+import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.utilities.SecurityOps;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
@@ -250,10 +243,17 @@ public class ProteusApplication
 			handler = rootHandler;
 		}
 
-		Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(config.getInt("application.ports.http"), config.getString("application.host")).setBufferSize(16 * 1024).setIoThreads(config.getInt("undertow.ioThreads"))
-				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.enableHttp2")).setServerOption(UndertowOptions.ALWAYS_SET_DATE, true).setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
-				.setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false).setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false).setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
-				.setWorkerThreads(config.getInt("undertow.workerThreads")).setHandler(handler);
+		Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(config.getInt("application.ports.http"), config.getString("application.host"))
+				.setBufferSize(16 * 1024)
+				.setIoThreads(config.getInt("undertow.ioThreads"))
+				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.enableHttp2"))
+				.setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
+				.setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
+				.setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false)
+				.setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
+				.setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
+				.setWorkerThreads(config.getInt("undertow.workerThreads"))
+				.setHandler(handler);
 
 		ports.add(config.getInt("application.ports.http"));
 

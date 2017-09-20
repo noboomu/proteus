@@ -12,7 +12,8 @@ import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.undertow.predicate.TruePredicate;
+import io.undertow.predicate.Predicate; 
+import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
@@ -24,7 +25,21 @@ import io.undertow.util.Methods;
  */
 public class AssetsService extends BaseService implements Supplier<RoutingHandler>
 {
+	private static class TruePredicate implements Predicate {
 
+	    public static final TruePredicate INSTANCE = new TruePredicate();
+
+	    public static TruePredicate instance() {
+	        return INSTANCE;
+	    }
+
+	    @Override
+	    public boolean resolve(final HttpServerExchange value) {
+	        return true;
+	    }
+ 
+	}
+	
 	@Inject
 	@Named("registeredEndpoints")
 	protected Set<EndpointInfo> registeredEndpoints;
@@ -51,7 +66,7 @@ public class AssetsService extends BaseService implements Supplier<RoutingHandle
 		final String assetsDirectoryName = serviceConfig.getString("dir") ;
 		final Integer assetsCacheTime = serviceConfig.getInt("cache.time");
 		
-		final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile());
+		final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile(),1024l);
 
 		router.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex('" + assetsPath  +  "/(.*)')", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
 		.setCachable(TruePredicate.instance())

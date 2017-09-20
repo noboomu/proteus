@@ -49,6 +49,15 @@ import io.undertow.server.HttpServerExchange;
 @Singleton
 public class Tests
 {
+	 private static final ByteBuffer buffer;
+	  static {
+	    String message = "Hello, World!";
+	    byte[] messageBytes = message.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+	    buffer = ByteBuffer.allocateDirect(messageBytes.length);
+	    buffer.put(messageBytes);
+	    buffer.flip();
+	  }
+	  
 	@GET
 	@Path("/exchange/json/serialize")
 	@ApiOperation(value = "Json serialization endpoint",   httpMethod = "GET" )
@@ -114,6 +123,16 @@ public class Tests
 	{ 
 		response("Hello, World!").textPlain().send(exchange);
 
+	}
+	
+	@GET
+	@Path("/exchange/plaintext2")
+	@Produces((MediaType.TEXT_PLAIN)) 
+	@ApiOperation(value = "Plaintext endpoint 2",   httpMethod = "GET" )
+	public void exchangePlaintext2(HttpServerExchange exchange)
+	{ 
+		exchange.getResponseHeaders().put(io.undertow.util.Headers.CONTENT_TYPE, "text/plain");
+	    exchange.getResponseSender().send(buffer.duplicate());
 	}
 	
 	@GET

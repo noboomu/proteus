@@ -96,6 +96,12 @@ public class TestControllerEndpoints
 	{
 		given().accept(ContentType.TEXT).log().uri().when().get("tests/exchange/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
 	}
+	
+	@Test
+	public void exchangePlaintext2()
+	{
+		given().accept(ContentType.TEXT).log().uri().when().get("tests/exchange/plaintext2").then().statusCode(200).and().body(containsString("Hello, World!"));
+	}
 
 	@Test
 	public void responsePlaintext()

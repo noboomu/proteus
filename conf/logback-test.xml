@@ -1,0 +1,117 @@
+<configuration packagingData="true" debug="true">
+
+	<turboFilter class="ch.qos.logback.classic.turbo.DuplicateMessageFilter" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<withJansi>true</withJansi>
+		<encoder>
+			<pattern>%date{ISO8601} %highlight(%-5level) [%boldCyan(%logger)]
+				[%boldYellow(%method %F) ] - %boldWhite(%message) %n %red(%ex)
+			</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="org.apache.http" level="DEBUG" />
+
+
+	<logger name="javax.mail" level="DEBUG" />
+	<logger name="com.squareup.okhttp" level="WARN" />
+	<logger name="javax.activation" level="DEBUG" />
+
+	<logger name="io.netty" level="DEBUG" />
+	<logger name="io.netty.handler" level="DEBUG" />
+
+	<logger name="io.sinistral.proteus.server.swagger" level="DEBUG" />
+	<logger name="io.sinistral.proteus.server.handlers" level="DEBUG" />
+	<logger name="io.sinistral.proteus.services" level="DEBUG" />
+
+	io.sinistral.proteus.services
+	<logger name="com.relayrides" level="DEBUG" />
+	<logger name="org.apache.activemq" level="DEBUG" />
+	<logger name="org.apache.camel" level="DEBUG" />
+	<logger name="org.apache.activemq" level="DEBUG" />
+	<logger name="sun.net" level="DEBUG" />
+	<logger name="org.springsource" level="DEBUG" />
+	<logger name="com.sun.jersey" level="DEBUG" />
+
+
+	<logger name="org.xnio.nio" level="DEBUG" />
+	<logger name="io.undertow" level="DEBUG" />
+
+
+	<logger name="org.reflections" level="OFF" />
+	<logger name="org.elasticsearch" level="DEBUG" />
+	<logger name="org.ajave.ebean" level="DEBUG" />
+
+	<logger name="org.avaje.ebean.SQL" level="DEBUG" />
+	<logger name="org.avaje.ebean.SUM" level="DEBUG" />
+	<logger name="org.avaje.ebean.TXN" level="DEBUG" />
+	<logger name="com.avaje.ebeaninternal" level="DEBUG" />
+	<logger name="org.avaje.ebean.cache.BEAN" level="DEBUG" />
+
+	<logger name="io.swagger.converter" level="DEBUG" />
+	<logger name="io.swagger.jackson" level="DEBUG" />
+
+
+	<logger name="com.avaje.ebean.config.PropertyMapLoader" level="DEBUG" />
+	<logger name="com.avaje.ebeaninternal.server.core.XmlConfigLoader"
+		level="DEBUG" />
+	<logger name="com.avaje.ebeaninternal.server.lib.BackgroundThread"
+		level="DEBUG" />
+
+	<logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
+	<logger name="swagger" level="DEBUG" />
+	<logger name="com.zaxxer.hikari" level="DEBUG" />
+	<logger name="com.zaxxer.hikari.pool" level="DEBUG" />
+	<logger name="javax.management" level="DEBUG" />
+	<logger name="javax.management.mbeanserver" level="OFF" />
+	<logger name="java.jmx" level="DEBUG" />
+
+	<logger name="net.sf.ehcache" level="DEBUG" />
+
+	<logger name="org.apache.http" level="DEBUG" />
+	<logger name="com.amazonaws" level="DEBUG" />
+	<logger name="org.apache.http.wire" level="DEBUG" />
+
+	<logger name="com.wordnik" level="OFF" />
+
+	<logger name="javax.mail" level="DEBUG" />
+	<logger name="com.squareup.okhttp" level="WARN" />
+
+	<logger name="org.hibernate.validator" level="DEBUG" />
+	<logger name="org.xnio.nio" level="DEBUG" />
+
+
+	<logger name="org.apache.camel" level="DEBUG" />
+	<logger name="org.apache.activemq" level="DEBUG" />
+	<logger name="sun.net" level="DEBUG" />
+	<logger name="org.springsource" level="DEBUG" />
+	<logger name="com.sun.jersey" level="DEBUG" />
+	<logger name="akka.event.EventStream" level="DEBUG" />
+	<logger name="akka.event.slf4j" level="DEBUG" />
+	<logger name="com.googlecode.mp4parser" level="DEBUG" />
+	<logger name="com.googlecode.mp4parser.util" level="DEBUG" />
+
+	<logger name="org.elasticsearch.plugins" level="DEBUG" />
+
+	<logger name="org.apache.commons.logging.impl.Jdk14Logger"
+		level="DEBUG" />
+	<logger name="org.zeroturnaround.exec.ProcessExecutor" level="DEBUG" />
+	<logger name="org.zeroturnaround.exec" level="DEBUG" />
+
+	<!-- <logger name="com.datastax.driver.core.QueryLogger.NORMAL" level="trace" 
+		/> -->
+
+	<logger name="org.apache.kafka.clients.NetworkClient" level="DEBUG" />
+	<logger name="org.apache.kafka.clients.producer" level="DEBUG" />
+
+
+	<logger name="java.util.logging.Logger" level="DEBUG" />
+	<logger name="com.google.inject.internal" level="DEBUG" />
+	<logger name="com.google.inject" level="DEBUG" />
+	<logger name="com.datastax" level="DEBUG" />
+
+	<root level="debug">
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>

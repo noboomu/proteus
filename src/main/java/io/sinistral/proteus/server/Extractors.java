@@ -344,7 +344,7 @@ public class Extractors
 	{
 		try
 		{
-			return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getFile().toPath();
+			return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getPath();
 		} catch(NullPointerException e)
 		{
 			throw new IllegalArgumentException("Missing parameter " + name, e);

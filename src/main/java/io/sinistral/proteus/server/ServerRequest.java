@@ -162,12 +162,16 @@ public class ServerRequest
 	                    	
 	 	                    ByteBuffer buffer = ByteBuffer.allocate(pos);
 	 	                    
-	 	                   ByteBuffer src = buf.duplicate();
-	 	                   src.position(0);
-	 	                   src.limit(0 + pos);
-	 	                   buffer.put(src);
+	 	                   int nTransfer = Math.min(buffer.remaining(), buf.remaining());
+		 	                  if (nTransfer > 0)
+		 	                  {
+		 	                	 buffer.put(buf.array(), 
+		 	                	           buf.arrayOffset()+buf.position(), 
+		 	                                  nTransfer);
+		 	                	buf.position(buf.position()+nTransfer);
+		 	                  }
 
-	                    	//System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
+	                    //	System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
 	                    	
 	    	                exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
 	    	                
@@ -188,7 +192,7 @@ public class ServerRequest
 		
 		this.exchange.startBlocking();
 		final FormDataParser formDataParser = new MultiPartParserDefinition()
-				.setTempFileLocation(new File(TMP_DIR))
+				.setTempFileLocation(new File(TMP_DIR).toPath())
 				.setDefaultEncoding(CHARSET)
 				.create(this.exchange);
 

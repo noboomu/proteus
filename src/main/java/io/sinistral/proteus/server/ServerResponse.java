@@ -10,13 +10,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.jsoniter.output.JsonContext;
 import com.jsoniter.output.JsonStream;
 
-import io.sinistral.proteus.server.handlers.ServerDefaultResponseListener;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.io.IoCallback;
+import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
@@ -335,7 +336,7 @@ public class ServerResponse<T>
 			exchange.getResponseCookies().putAll(this.cookies);
 		}
 
-		exchange.setResponseCode(this.status);
+		exchange.setStatusCode(this.status);
 
 		if (this.contentType != null)
 		{
@@ -357,7 +358,7 @@ public class ServerResponse<T>
 
 		if (hasError)
 		{
-			exchange.putAttachment(ServerDefaultResponseListener.EXCEPTION, throwable);
+			exchange.putAttachment(DefaultResponseListener.EXCEPTION, throwable);
 			
 			return;
 		}

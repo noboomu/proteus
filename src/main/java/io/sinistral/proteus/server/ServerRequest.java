@@ -11,11 +11,10 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import org.xnio.Pool;
-import org.xnio.Pooled;
 import org.xnio.channels.StreamSourceChannel;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
+import io.undertow.connector.PooledByteBuffer;
 import io.undertow.security.api.SecurityContext;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -143,10 +142,9 @@ public class ServerRequest
 	{  
 		 
 			this.exchange.startBlocking();
-						 
-			
-			 try (Pooled<ByteBuffer> pooled = exchange.getConnection().getBufferPool().allocate()){
-	                ByteBuffer buf = pooled.getResource();
+ 
+			 try (PooledByteBuffer pooled = exchange.getConnection().getByteBufferPool().getArrayBackedPool().allocate()){
+	                ByteBuffer buf = pooled.getBuffer();
 	                 
                     final StreamSourceChannel channel = this.exchange.getRequestChannel(); 
 
@@ -161,17 +159,8 @@ public class ServerRequest
 	                    	int pos = buf.limit();
 	                    	
 	 	                    ByteBuffer buffer = ByteBuffer.allocate(pos);
-	 	                    
-	 	                   int nTransfer = Math.min(buffer.remaining(), buf.remaining());
-		 	                  if (nTransfer > 0)
-		 	                  {
-		 	                	 buffer.put(buf.array(), 
-		 	                	           buf.arrayOffset()+buf.position(), 
-		 	                                  nTransfer);
-		 	                	buf.position(buf.position()+nTransfer);
-		 	                  }
 
-	                    //	System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
+	                    	System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
 	                    	
 	    	                exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
 	    	                

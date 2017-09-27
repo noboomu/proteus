@@ -41,7 +41,7 @@ public class ConfigModule extends AbstractModule
 	
 	public ConfigModule()
 	{
-		this.configFile = System.getenv("config.file");
+		this.configFile = System.getProperty("config.file");
 		
 		if(this.configFile == null)
 		{
@@ -57,6 +57,7 @@ public class ConfigModule extends AbstractModule
 	public ConfigModule(URL configURL)
 	{
 		this.configURL = configURL;
+		 
 	}
 
 	

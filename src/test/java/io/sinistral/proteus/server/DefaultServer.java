@@ -61,6 +61,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 	private static void runInternal(final RunNotifier notifier)
 	{
 
+		System.out.println(System.getenv("config.file"));
 		if (first)
 		{
 			first = false;

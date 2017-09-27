@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.sinistral</groupId>
 	<artifactId>proteus-core</artifactId>
-	<version>0.1.7.1-SNAPSHOT</version>
+	<version>0.1.7.2-SNAPSHOT</version>
 	<name>proteus core</name>
     <description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
     <url>http://github.com/noboomu/proteus</url>
@@ -116,6 +116,21 @@
                     </execution>
                 </executions>
             </plugin> 
+            <plugin> 
+			     <artifactId>maven-surefire-plugin</artifactId>
+			     <version>2.20.1</version>
+			     
+			     <dependencies>
+				      <dependency>
+				        <groupId>org.apache.maven.surefire</groupId>
+				        <artifactId>surefire-junit47</artifactId>
+				        <version>2.20.1</version>
+				      </dependency>
+				    </dependencies>
+			     <configuration> 
+			        <argLine>-Dconfig.file=src/main/resources/reference.conf</argLine>
+			     </configuration>
+			</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -184,6 +199,8 @@
 			<scope>test</scope>
 		</dependency>
 	 
+	   
+        
 	 <dependency>
 			<groupId>io.undertow</groupId>
 			<artifactId>undertow-core</artifactId>

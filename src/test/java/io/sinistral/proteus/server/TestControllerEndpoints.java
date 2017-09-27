@@ -27,7 +27,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.models.User.UserType;
-
+ 
 /*
  * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;
  */
@@ -45,9 +45,7 @@ public class TestControllerEndpoints
 	{
 		try
 		{
-			RestAssured.baseURI = "http://localhost:8090/v1";
-			RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-
+	 
 			file = new File(getClass().getClassLoader().getResource("data/video.mp4").toURI());
 
 		} catch (Exception e)

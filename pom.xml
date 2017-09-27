@@ -128,7 +128,7 @@
 				      </dependency>
 				    </dependencies>
 			     <configuration> 
-			        <argLine>-Dconfig.file=src/main/resources/reference.conf</argLine>
+			        <argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
 			     </configuration>
 			</plugin>
             <plugin>

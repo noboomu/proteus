@@ -2,7 +2,10 @@
 ![Alt logo](https://cdn.rawgit.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/proteus-logo.svg)
 
 * An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first REST API framework atop [Undertow](http://undertow.io). 
-* A great deal of inspiration came from working with the following excellent projects: [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
+* Inspired by: [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
+* Verifiably [fast AF](https://www.techempower.com/benchmarks/previews/round15/#section=data-r15&hw=ph&test=db).
+* 20x faster than Java Play
+* 13x faster than Spring
 
 ## Motivation
 

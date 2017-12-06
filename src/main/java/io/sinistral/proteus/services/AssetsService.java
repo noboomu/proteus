@@ -12,7 +12,7 @@ import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.undertow.predicate.TruePredicate;
+import io.undertow.predicate.Predicates;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
@@ -51,10 +51,10 @@ public class AssetsService extends BaseService implements Supplier<RoutingHandle
 		final String assetsDirectoryName = serviceConfig.getString("dir") ;
 		final Integer assetsCacheTime = serviceConfig.getInt("cache.time");
 		
-		final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile());
+		final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile(), 0L);
 
-		router.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex('" + assetsPath  +  "/(.*)')", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
-		.setCachable(TruePredicate.instance())
+		router.add(Methods.GET, assetsPath + "/*", io.undertow.Handlers.rewrite("regex['" + assetsPath  +  "/(.*)']", "/$1", getClass().getClassLoader(), new ResourceHandler(fileResourceManager)
+		.setCachable(Predicates.truePredicate())
 		.setCacheTime(assetsCacheTime)
 		));
 		

@@ -12,6 +12,7 @@ import static org.junit.Assert.assertThat;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
+import com.google.common.io.Files;
+
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.models.User.UserType;
@@ -143,8 +145,17 @@ public class TestControllerEndpoints
 			IOUtils.copy(is, byteArrayOutputStream);
 			IOUtils.closeQuietly(byteArrayOutputStream);
 			IOUtils.closeQuietly(is);
+			
+			
 
 			assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+			
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			
+			byte[] fileBytes = Files.toByteArray(file);
+			
+			assertThat(md.digest(byteArrayOutputStream.toByteArray()), equalTo(md.digest(fileBytes)));
+			
 
 		} catch (Exception e)
 		{

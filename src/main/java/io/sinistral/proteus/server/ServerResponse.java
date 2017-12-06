@@ -15,12 +15,14 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.jsoniter.output.JsonContext;
 import com.jsoniter.output.JsonStream;
 
+import io.sinistral.proteus.server.handlers.ServerDefaultResponseListener;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.io.IoCallback;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
+import io.undertow.util.AttachmentKey;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
@@ -34,6 +36,7 @@ public class ServerResponse<T>
 {
 	private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
 
+ 
 	protected static final XmlMapper XML_MAPPER = new XmlMapper();
 
 	protected ByteBuffer body;
@@ -336,7 +339,7 @@ public class ServerResponse<T>
 			exchange.getResponseCookies().putAll(this.cookies);
 		}
 
-		exchange.setStatusCode(this.status);
+		exchange.setResponseCode(this.status);
 
 		if (this.contentType != null)
 		{
@@ -358,7 +361,7 @@ public class ServerResponse<T>
 
 		if (hasError)
 		{
-			exchange.putAttachment(DefaultResponseListener.EXCEPTION, throwable);
+			exchange.putAttachment(ServerDefaultResponseListener.EXCEPTION, throwable);
 			
 			return;
 		}

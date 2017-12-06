@@ -11,10 +11,10 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import org.xnio.Pooled;
 import org.xnio.channels.StreamSourceChannel;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
-import io.undertow.connector.PooledByteBuffer;
 import io.undertow.security.api.SecurityContext;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -143,33 +143,47 @@ public class ServerRequest
 		 
 			this.exchange.startBlocking();
  
-			 try (PooledByteBuffer pooled = exchange.getConnection().getByteBufferPool().getArrayBackedPool().allocate()){
-	                ByteBuffer buf = pooled.getBuffer();
-	                 
+			 try (Pooled<ByteBuffer> pooled = exchange.getConnection().getBufferPool().allocate()){
+	               
+				 ByteBuffer buffer = pooled.getResource();
+	                    
                     final StreamSourceChannel channel = this.exchange.getRequestChannel(); 
 
-	                while (true) {
+//	                while (true) {
 	                	
-	                    buf.clear();
+	                   buffer.clear();
 	                    
- 	                    int c = channel.read(buf); 
- 	                      
-	                    if (c == -1) {
-	                      
-	                    	int pos = buf.limit();
-	                    	
-	 	                    ByteBuffer buffer = ByteBuffer.allocate(pos);
-
-	                    	System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
-	                    	
-	    	                exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
-	    	                
-	    	                break;
-	    	                
-	                    } else if (c != 0) {
-	                        buf.limit(c);
-	                    }
-	                }
+ 	                   channel.read(buffer); 
+ 	                    
+ 	                   int pos = buffer.position();
+ 	                   
+ 	                   buffer.rewind();
+ 	                    
+ 	                   byte[] bytes = new byte[pos];
+ 	                  
+ 	                   buffer.get(bytes);
+ 	                  
+ 	                   exchange.putAttachment(BYTE_BUFFER_KEY, ByteBuffer.wrap(bytes));
+ 	                   
+ 	                   buffer.clear();
+ 	                   
+ 	                  pooled.free();
+//	                    if (c == -1) {
+//	                      
+//	                    	int pos = buffer.limit();
+//	                    	
+//	 	                    ByteBuffer buffer = ByteBuffer.allocate(pos);
+//
+//	                    	System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
+//	                    	
+//	    	                exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
+//	    	                
+//	    	                break;
+//	    	                
+//	                    } else if (c != 0) {
+//	                        buf.limit(c);
+//	                    }
+	               // }
  	            } catch (MalformedMessageException e) {
 	                throw new IOException(e);
 	            } 
@@ -181,7 +195,7 @@ public class ServerRequest
 		
 		this.exchange.startBlocking();
 		final FormDataParser formDataParser = new MultiPartParserDefinition()
-				.setTempFileLocation(new File(TMP_DIR).toPath())
+				.setTempFileLocation(new File(TMP_DIR))
 				.setDefaultEncoding(CHARSET)
 				.create(this.exchange);
 

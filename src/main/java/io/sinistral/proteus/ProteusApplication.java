@@ -5,7 +5,9 @@ package io.sinistral.proteus;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -47,7 +49,6 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.utilities.SecurityOps;
 import io.undertow.Undertow;
-import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -61,7 +62,7 @@ import io.undertow.util.Methods;
 public class ProteusApplication
 {
 
-	private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ProteusApplication.class.getCanonicalName());
+	public static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ProteusApplication.class.getCanonicalName());
 
 	@Inject
 	@Named("registeredControllers")
@@ -158,15 +159,15 @@ public class ProteusApplication
 
 				undertow.start();
 				
-				for(ListenerInfo info : undertow.getListenerInfo())
-				{
-					SocketAddress address = info.getAddress();
-					
-					if(address != null)
-					{ 
-						ports.add( ((java.net.InetSocketAddress) address).getPort());
-					}
-				}
+//				for(ListenerInfo info : undertow.getListenerInfo())
+//				{
+//					SocketAddress address = info.getAddress();
+//					
+//					if(address != null)
+//					{ 
+//						ports.add( ((java.net.InetSocketAddress) address).getPort());
+//					}
+//				}
 
 				printStatus();
 
@@ -254,6 +255,14 @@ public class ProteusApplication
 			handler = rootHandler;
 		}
 		
+		Undertow.Builder builder = this.generateBuilder(handler);
+		
+		this.undertow = builder.build();
+
+	}
+	
+	public Undertow.Builder generateBuilder( HttpHandler handler )
+	{
 		int httpPort = config.getInt("application.ports.http");
 		
 		if(System.getProperty("http.port") != null)
@@ -261,16 +270,27 @@ public class ProteusApplication
 			httpPort = Integer.parseInt(System.getProperty("http.port"));
 		}
 		
+		if( httpPort == 0 )
+		{ 
+			try (ServerSocket socket = new ServerSocket(0)) {
+				httpPort = socket.getLocalPort();
+			} catch (IOException e) {
+			}  
+		}
+		
+		this.ports.add(httpPort);
+		
 		Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
 				.setBufferSize(16 * 1024)
 				.setIoThreads(Runtime.getRuntime().availableProcessors() * 2)
-				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.enableHttp2"))
-				.setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
+				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
+//				.setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
 				.setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
 				.setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false)
 				.setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
+                .setServerOption(UndertowOptions.ENABLE_CONNECTOR_STATISTICS, false)
 				.setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
-				.setWorkerThreads(config.getInt("undertow.workerThreads"))
+				.setWorkerThreads(config.getInt("undertow.server.workerThreads"))
 				.setHandler(handler);
 
  
@@ -284,6 +304,9 @@ public class ProteusApplication
 				{
 					httpsPort = Integer.parseInt(System.getProperty("https.port"));
 				}
+				
+				this.ports.add(httpsPort);
+
 				
 				KeyStore keyStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.keystorePath"), config.getString("undertow.ssl.keystorePassword"));
 				KeyStore trustStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.truststorePath"), config.getString("undertow.ssl.truststorePassword"));
@@ -302,7 +325,7 @@ public class ProteusApplication
 			undertowBuilder = serverConfigurationFunction.apply(undertowBuilder);
 		}
 
-		this.undertow = undertowBuilder.build();
+		return undertowBuilder;
 
 	}
 
@@ -364,6 +387,22 @@ public class ProteusApplication
 	public Config getConfig()
 	{
 		return config;
+	}
+
+	/**
+	 * @return the injector
+	 */
+	public Injector getInjector()
+	{
+		return injector;
+	}
+
+	/**
+	 * @param injector the injector to set
+	 */
+	public void setInjector(Injector injector)
+	{
+		this.injector = injector;
 	}
 
 	public void printStatus()
@@ -445,7 +484,7 @@ public class ProteusApplication
 					{
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-						byte[] buffer = new byte[4096];
+						byte[] buffer = new byte[256];
 						int read = 0;
 						while (read != -1)
 						{
@@ -466,7 +505,7 @@ public class ProteusApplication
 					{
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-						byte[] buffer = new byte[4096];
+						byte[] buffer = new byte[256];
 						int read = 0;
 						while (read != -1)
 						{

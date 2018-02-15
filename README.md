@@ -4,7 +4,7 @@
 * An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first REST API framework atop [Undertow](http://undertow.io). 
 * Inspired by: [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
 * Verifiably [fast AF](https://www.techempower.com/benchmarks/previews/round15/#section=data-r15&hw=ph&test=db).
-* 20x faster than Java Play amd 13x faster than Spring in latest Techempower benchmarks.
+* Waaaaaaaay faster than Play and Spring, checkout the latest Techempower benchmarks.
 
 ## Motivation
 

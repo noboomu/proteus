@@ -1232,6 +1232,10 @@ public class MediaType  {
 	public byte[] getBytes() {
 		return bytes;
 	}
+	
+	public String contentType() {
+		return this.contentType;
+	}
 
 	@Override
 	public String toString() {

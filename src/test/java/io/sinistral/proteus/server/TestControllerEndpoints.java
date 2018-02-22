@@ -12,18 +12,20 @@ import static org.junit.Assert.assertThat;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.CoreMatchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.models.User.UserType;
@@ -45,8 +47,11 @@ public class TestControllerEndpoints
 	{
 		try
 		{
-	 
-			file = new File(getClass().getClassLoader().getResource("data/video.mp4").toURI());
+ 			byte[] bytes  = new byte[8388608];
+			Random random = new Random(); 
+			random.nextBytes(bytes);
+
+			file = Files.createTempFile("test-asset", ".mp4").toFile();
 
 		} catch (Exception e)
 		{
@@ -248,6 +253,23 @@ public class TestControllerEndpoints
 
 		assertThat((map.get("optionalQueryDate").toString()), containsString("1970-01-01"));
 
+	}
+	
+	@After
+	public void tearDown()
+	{
+		try
+		{
+ 			if(file.exists())
+ 			{
+ 				file.delete();
+ 			}
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

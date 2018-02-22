@@ -909,6 +909,11 @@ public class Reader {
                 }
             }
         }
+        
+        /*
+         * @TODO
+         * Use apiOperation response class instead of unwrapping ServerResponse's inner type
+         */
 
         if (apiOperation != null && StringUtils.isNotEmpty(apiOperation.responseReference())) {
             Response response = new Response().description(SUCCESSFUL_OPERATION);

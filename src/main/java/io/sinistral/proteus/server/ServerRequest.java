@@ -44,7 +44,8 @@ public class ServerRequest
 	protected FormData form; 
 	protected final String contentType;
 	protected final String method;  
-	
+	protected final String accept;  
+
 
   	
 	public ServerRequest()
@@ -53,6 +54,7 @@ public class ServerRequest
 		this.path = null;
 		this.exchange = null;
 		this.contentType = null;
+		this.accept = null;
  
 	}
 	
@@ -62,6 +64,7 @@ public class ServerRequest
 		this.path = exchange.getRequestPath();
 		this.exchange = exchange;
 		this.contentType = exchange.getRequestHeaders().getFirst(Headers.CONTENT_TYPE);
+		this.accept = exchange.getRequestHeaders().getFirst(Headers.ACCEPT);
  
 		if (this.contentType != null )
 		{
@@ -230,6 +233,16 @@ public class ServerRequest
 	public String method()
 	{
 		return this.method;
+	}
+	
+	public String accept()
+	{
+		return this.accept;
+	}
+	
+	public String contentType()
+	{
+		return this.contentType;
 	}
 
 	public String path()

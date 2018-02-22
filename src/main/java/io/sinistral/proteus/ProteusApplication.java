@@ -190,7 +190,7 @@ public class ProteusApplication
 					shutdown();
 				} catch (TimeoutException timeout)
 				{
-					timeout.printStackTrace();
+					 log.error(timeout.getMessage(),timeout);
 				}
 			}
 		});
@@ -209,7 +209,12 @@ public class ProteusApplication
 
 		log.info("Shutting down...");
 
-		serviceManager.stopAsync().awaitStopped(8, TimeUnit.SECONDS);
+ 		  try {
+ 				serviceManager.stopAsync().awaitStopped(1, TimeUnit.SECONDS);
+
+	         } catch (TimeoutException timeout) {
+	        	 log.warn("Failed to shutdown within specified timeout.");
+	      }
 
 		log.info("Shutdown complete.");
 	}

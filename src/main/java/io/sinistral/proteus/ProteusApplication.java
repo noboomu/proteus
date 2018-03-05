@@ -381,37 +381,51 @@ public class ProteusApplication
 
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("\n\nUsing global headers: \n\n");
-		sb.append(globalHeadersParameters.entrySet().stream().map(e -> "\t" + e.getKey() + " = " + e.getValue()).collect(Collectors.joining("\n")));
-		sb.append("\n\nRegistered endpoints: \n\n");
+		sb.append("\nUsing global headers: \n");
 		
-		List<String> tableHeaders = Arrays.asList("Method","Path","Consumes","Produces","Controller");
+		List<String> tableHeaders = Arrays.asList("Header","Value");
 		
-		List<List<String>> tableRows = this.registeredEndpoints.stream().sorted().map( e -> {
+		List<List<String>> tableRows = globalHeadersParameters.entrySet().stream().map( e -> {
+			
+			return Arrays.asList( e.getKey(), e.getValue() );
+			
+		}).collect(Collectors.toList());
+		
+		TablePrinter printer = new TablePrinter(tableHeaders, tableRows);
+
+		sb.append(printer.toString());
+
+		sb.append("\nRegistered endpoints: \n");
+		
+		tableHeaders = Arrays.asList("Method","Path","Consumes","Produces","Controller");
+		
+		tableRows = this.registeredEndpoints.stream().sorted().map( e -> {
 				
 			return Arrays.asList( e.getMethod().toString(), e.getPathTemplate(), String.format("[%s]", e.getConsumes()), String.format("[%s]", e.getProduces()), String.format("(%s.%s)", e.getControllerName() , e.getControllerMethod() ) );
 			
 		}).collect(Collectors.toList());
 		
-		TablePrinter printer = new TablePrinter(tableHeaders, tableRows);
+		printer = new TablePrinter(tableHeaders, tableRows);
 		
 		sb.append(printer.toString());
 		
-		sb.append("\n\nRegistered services: \n\n");
+		sb.append("\nRegistered services: \n");
 
 		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();
 
-		String serviceStrings = serviceStateMap.asMap().entrySet().stream().sorted().flatMap(e -> {
+		tableHeaders = Arrays.asList("Service","State");
+		
+		tableRows = serviceStateMap.asMap().entrySet().stream().flatMap(e -> {
 
 			return e.getValue().stream().map(s -> {
-				return "\t" + s.getClass().getSimpleName() + "\t" + e.getKey();
+				return Arrays.asList(s.getClass().getSimpleName() , e.getKey().toString() );
 			});
 
-		}).collect(Collectors.joining("\n"));
+		}).collect(Collectors.toList());
 
-		sb.append(serviceStrings);
-
-		sb.append("\n");
+		printer = new TablePrinter(tableHeaders, tableRows);
+		
+		sb.append(printer.toString());
 
 		sb.append("\nListening on: " + this.ports);
 

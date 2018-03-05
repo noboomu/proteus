@@ -262,10 +262,24 @@ public class ServerResponse<T>
 		this.status = StatusCodes.BAD_REQUEST;
 		return this;
 	}
+	
+	public ServerResponse<T> badRequest(Throwable t)
+	{
+		this.status = StatusCodes.BAD_REQUEST;
+		this.throwable = t;
+		return this;
+	}
 
 	public ServerResponse<T> internalServerError()
 	{
 		this.status = StatusCodes.INTERNAL_SERVER_ERROR;
+		return this;
+	}
+	
+	public ServerResponse<T> internalServerError(Throwable t)
+	{
+		this.status = StatusCodes.INTERNAL_SERVER_ERROR;
+		this.throwable = t;
 		return this;
 	}
 
@@ -280,10 +294,24 @@ public class ServerResponse<T>
 		this.status = StatusCodes.NOT_FOUND;
 		return this;
 	}
+	
+	public ServerResponse<T> notFound(Throwable t)
+	{
+		this.status = StatusCodes.NOT_FOUND;
+		this.throwable = t;
+		return this;
+	}
 
 	public ServerResponse<T> forbidden()
 	{
 		this.status = StatusCodes.FORBIDDEN;
+		return this;
+	}
+	
+	public ServerResponse<T> forbidden(Throwable t)
+	{
+		this.status = StatusCodes.FORBIDDEN;
+		this.throwable = t;
 		return this;
 	}
 
@@ -296,6 +324,13 @@ public class ServerResponse<T>
 	public ServerResponse<T> noContent()
 	{
 		this.status = StatusCodes.NO_CONTENT;
+		return this;
+	}
+	
+	public ServerResponse<T> noContent(Throwable t)
+	{
+		this.status = StatusCodes.NO_CONTENT;
+		this.throwable = t;
 		return this;
 	}
 

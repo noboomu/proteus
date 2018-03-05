@@ -152,9 +152,9 @@ public class ServerRequest
                     final StreamSourceChannel channel = this.exchange.getRequestChannel(); 
 
 	                while (true) {
+	                	 
+	                	buf.clear();
 	                	
-	                    buf.clear();
-	                    
  	                    int c = channel.read(buf); 
  	                      
 	                    if (c == -1) {

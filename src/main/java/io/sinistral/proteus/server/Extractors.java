@@ -197,14 +197,13 @@ public class Extractors
 
 		public static  java.util.Optional<Path> filePath(final HttpServerExchange exchange, final String name)
 		{
-			return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map( fv -> fv.getFile().toPath());
+			return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map( fv -> fv.getPath());
 		}
 		
 		public static  java.util.Optional<ByteBuffer> byteBuffer(final HttpServerExchange exchange, final String name)  
 		{
 			 return Optional.filePath(exchange,name).map( fp -> {
-				 
-				 
+				  
 				 try(final FileChannel fileChannel = FileChannel.open(fp, StandardOpenOption.READ))
 				 {
 					 final ByteBuffer buffer = ByteBuffer.allocate((int)fileChannel.size());
@@ -219,11 +218,7 @@ public class Extractors
 				 { 
 					 return null;
 				 }
-				 
 			 });
-			   
-			 
-			 
 		}
 	}
 	
@@ -233,9 +228,7 @@ public class Extractors
 		{
 			try
 			{ 
-				
 				return exchange.getRequestHeaders().get(name).getFirst(); 
-				
 			} catch(NullPointerException e)
 			{
 				throw new IllegalArgumentException("Missing parameter " + name, e);
@@ -467,6 +460,10 @@ public class Extractors
                 else if( a instanceof javax.ws.rs.OPTIONS)
                 {
                     return Methods.OPTIONS;
+                }
+                else if( a instanceof javax.ws.rs.HEAD)
+                {
+                    return Methods.HEAD;
                 }
 
                 else

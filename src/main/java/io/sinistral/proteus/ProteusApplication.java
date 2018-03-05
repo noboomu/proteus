@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +47,7 @@ import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.utilities.SecurityOps;
+import io.sinistral.proteus.utilities.TablePrinter;
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
@@ -382,7 +384,21 @@ public class ProteusApplication
 		sb.append("\n\nUsing global headers: \n\n");
 		sb.append(globalHeadersParameters.entrySet().stream().map(e -> "\t" + e.getKey() + " = " + e.getValue()).collect(Collectors.joining("\n")));
 		sb.append("\n\nRegistered endpoints: \n\n");
+		
+		List<String> tableHeaders = Arrays.asList("Method","Path","Consumes","Produces","Controller");
+		
+		List<List<String>> tableRows = this.registeredEndpoints.stream().sorted().map( e -> {
+				
+			return Arrays.asList( e.getMethod().toString(), e.getPathTemplate(), String.format("[%s]", e.getConsumes()), String.format("[%s]", e.getProduces()), String.format("(%s.%s)", e.getControllerName() , e.getControllerMethod() ) );
+			
+		}).collect(Collectors.toList());
+		
+		TablePrinter printer = new TablePrinter(tableHeaders, tableRows);
+		
+		sb.append(printer.toString());
+		
 		sb.append(this.registeredEndpoints.stream().sorted().map(EndpointInfo::toString).collect(Collectors.joining("\n")));
+		
 		sb.append("\n\nRegistered services: \n\n");
 
 		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();

@@ -397,8 +397,6 @@ public class ProteusApplication
 		
 		sb.append(printer.toString());
 		
-		sb.append(this.registeredEndpoints.stream().sorted().map(EndpointInfo::toString).collect(Collectors.joining("\n")));
-		
 		sb.append("\n\nRegistered services: \n\n");
 
 		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();

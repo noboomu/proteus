@@ -1,10 +1,10 @@
 
 ![Alt logo](https://cdn.rawgit.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/proteus-logo.svg)
 
-* An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first REST API framework atop [Undertow](http://undertow.io). 
+* An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first MVC REST framework atop [Undertow](http://undertow.io). 
 * Inspired by: [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
-* Verifiably [fast AF](https://www.techempower.com/benchmarks/previews/round15/#section=data-r15&hw=ph&test=db).
-* Waaaaaaaay faster than Play and Spring, checkout the latest Techempower benchmarks.
+* Verifiably [FAST AF](https://www.techempower.com/benchmarks/).
+* [Latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus at least 6x faster than Spring and Play across the board. 
 
 ## Motivation
 
@@ -129,7 +129,7 @@ public void plaintext(HttpServerExchange exchange)
 ```
 In addition, the `io.sinistral.proteus.annotations.Blocking` annotation can be used to explicitly mark a method for blocked request handling. 
 
-## Return Types
+### Return Types
 ---
 ##### HttpServerExchange = Total Control
 
@@ -248,7 +248,7 @@ public ServerResponse<Map<String,Object>> complexParameters(
 		return response(responseMap).applicationJson(); 
 	}
 ```
-## Services
+### Services
 ---
 Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
 #### AssetsService

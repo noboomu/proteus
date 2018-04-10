@@ -457,6 +457,14 @@ public class Reader {
                 }
             }
         }
+        
+        List<Tag> swaggerTags = new ArrayList<Tag>(swagger.getTags());
+        
+        swaggerTags.sort( (a,b) -> { 
+        	return a.getName().compareTo(b.getName());
+        });
+        
+        swagger.setTags(swaggerTags);
 
         return swagger;
     }

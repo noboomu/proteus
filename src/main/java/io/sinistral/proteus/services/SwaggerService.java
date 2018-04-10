@@ -112,7 +112,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	protected String redocPath;
 	
 	@Inject
-	@Named("application.host")
+	@Named("swagger.host")
 	protected String host;
 	
 	@Inject

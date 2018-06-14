@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.CoreMatchers;
@@ -25,6 +26,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.jsoniter.JsonIterator;
+import com.jsoniter.output.JsonStream;
 
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.models.User;
@@ -117,7 +121,7 @@ public class TestControllerEndpoints
 	{
 		User user = new User(101L,UserType.ADMIN);
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(user).log().uri().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(user).log().all().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
 
 	}
 
@@ -150,6 +154,28 @@ public class TestControllerEndpoints
 			IOUtils.closeQuietly(is);
 
 			assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	
+	@Test
+	public void responseParseListParameter()
+	{
+
+		try
+		{
+			
+			List<Long> values = new Random().longs(10, 0L, 20L).boxed().collect(Collectors.toList());
+			
+			  
+			
+			given().contentType(ContentType.JSON).accept(ContentType.JSON).body(values).log().all().when().post("tests/response/parse/ids").then().statusCode(200);
+
 
 		} catch (Exception e)
 		{

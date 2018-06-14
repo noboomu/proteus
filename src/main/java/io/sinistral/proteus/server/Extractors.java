@@ -52,25 +52,27 @@ public class Extractors
 
 		public static  <T> java.util.Optional<T> model(final HttpServerExchange exchange, final TypeLiteral<T> type )
 		{
-			if( ServerPredicates.JSON_PREDICATE.resolve(exchange) )
+			if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 			{
-				return jsonModel(exchange,type);
+
+				return xmlModel(exchange,type);			
 			}
 			else
 			{
-				return xmlModel(exchange,type);
+				return jsonModel(exchange,type); 
 			}
 		}
 		
 		public static  <T> java.util.Optional<T> model(final HttpServerExchange exchange, final Class<T> type )
 		{
-			if( ServerPredicates.JSON_PREDICATE.resolve(exchange) )
+			if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 			{
-				return jsonModel(exchange,type);
+
+				return xmlModel(exchange,type);			
 			}
 			else
 			{
-				return xmlModel(exchange,type);
+				return jsonModel(exchange,type); 
 			}
 		}
 		
@@ -273,7 +275,7 @@ public class Extractors
 		}
 		catch( Exception e )
 		{
-			throw new IllegalArgumentException("Invalid JSON");
+			throw new IllegalArgumentException("Invalid JSON: " + new String(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array()) );
 		}
 	}
 	
@@ -285,7 +287,7 @@ public class Extractors
 		}
 		catch( Exception e )
 		{
-			throw new IllegalArgumentException("Invalid JSON");
+			throw new IllegalArgumentException("Invalid JSON: " + new String(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array()) );
 
 		}
 	}
@@ -413,25 +415,26 @@ public class Extractors
 	 
 	public static <T>  T model(final HttpServerExchange exchange, final TypeLiteral<T> type )   throws IllegalArgumentException
 	{
-		if( ServerPredicates.JSON_PREDICATE.resolve(exchange) )
+		if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 		{
-			return jsonModel(exchange,type);
+			return xmlModel(exchange,type);
 		}
 		else
 		{
-			return xmlModel(exchange,type);
+			return jsonModel(exchange,type);
 		}
 	}
 	
 	public static <T> T  model(final HttpServerExchange exchange, final Class<T> type )   throws IllegalArgumentException
 	{
-		if( ServerPredicates.JSON_PREDICATE.resolve(exchange) )
+		if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 		{
-			return jsonModel(exchange,type);
+
+			return xmlModel(exchange,type);			
 		}
 		else
 		{
-			return xmlModel(exchange,type);
+			return jsonModel(exchange,type); 
 		}
 	}
 

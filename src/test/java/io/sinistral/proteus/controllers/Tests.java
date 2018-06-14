@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -30,6 +31,7 @@ import com.google.common.io.Files;
 import com.google.inject.Singleton;
 import com.jsoniter.output.JsonStream;
 
+import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
@@ -174,6 +176,20 @@ public class Tests
 	}
 	
 	@POST
+	@Path("/response/parse/ids")
+	@Blocking
+	@Produces(MediaType.APPLICATION_JSON) 
+ 	@Consumes(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Convert ids",   httpMethod = "POST" )
+	public ServerResponse<List<Long>> listConversion( ServerRequest request, @BeanParam List<Long> ids ) throws Exception
+	{ 
+		 
+		return response( ids ).applicationJson(); 
+		 
+
+	}
+	
+	@POST
 	@Path("/response/file/bytebuffer")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
@@ -185,6 +201,7 @@ public class Tests
 		 
 
 	}
+	
 	
 	@GET
 	@Path("/response/future/user")

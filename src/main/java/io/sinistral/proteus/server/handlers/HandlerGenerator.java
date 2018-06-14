@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.lang.model.element.Modifier;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
@@ -113,9 +114,14 @@ public class HandlerGenerator
 		ValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		FromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 
-		ListValueOfType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toList())", false, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-		ListFromStringType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toList())", false, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+		QueryListValueOfType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toList())", false, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+		QueryListFromStringType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toList())", false, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+ 
+		//BeanListValueOfType("$T<$T> $L = $T.string(exchange,$S).map($T::valueOf).collect(java.util.stream.Collectors.toList())", true, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class,  StatementParameterType.LITERAL,  StatementParameterType.RAW),
+		BeanListValueOfType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
+		BeanListFromStringType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
 
+		
 		HeaderValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
 		HeaderFromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
 		HeaderStringType("$T $L = $T.string(exchange,$S)", false, java.lang.String.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
@@ -124,9 +130,14 @@ public class HandlerGenerator
 		OptionalHeaderFromStringType("$T<$T> $L = $T.string(exchange,$S).map($T::fromString)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Header.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
 		OptionalHeaderStringType("$T<$T> $L = $T.string(exchange,$S)", false, Optional.class, java.lang.String.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Header.Optional.class, StatementParameterType.STRING),
 
-		OptionalListValueOfType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toList()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-		OptionalListFromStringType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toList()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+		QueryOptionalListValueOfType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toList()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+		QueryOptionalListFromStringType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toList()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
 
+ 
+		OptionalBeanListValueOfType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
+		OptionalBeanListFromStringType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
+
+		
 		OptionalJsonIteratorType("$T<$T> $L = $T.jsonIterator(exchange)", true, Optional.class, com.jsoniter.JsonIterator.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
 		OptionalAnyType("$T<$T> $L = $T.any(exchange)", true, Optional.class, com.jsoniter.any.Any.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
 		OptionalStringType("$T<String> $L = $T.string(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
@@ -197,7 +208,9 @@ public class HandlerGenerator
 		public static void addStatement(MethodSpec.Builder builder, Parameter parameter, TypeHandler handler) throws Exception
 		{
 			Object[] args = new Object[handler.parameterTypes.length];
-
+			
+			 
+///typeLiteralNameForParameterizedType
 			for (int i = 0; i < handler.parameterTypes.length; i++)
 			{
 				if (handler.parameterTypes[i] instanceof StatementParameterType)
@@ -261,6 +274,11 @@ public class HandlerGenerator
 
 				}
 			}
+			
+			if(handler.equals(BeanListValueOfType))
+			{
+				log.debug(parameter.getName() + " " + Arrays.toString(args) + " " + handler);
+			}
 
 			builder.addStatement(handler.statement, args);
 		}
@@ -274,16 +292,27 @@ public class HandlerGenerator
 		 */
 		public static void addStatement(MethodSpec.Builder builder, Parameter parameter) throws Exception
 		{
-			TypeHandler handler = forType(parameter.getParameterizedType());
+			BeanParam beanParam = parameter.getAnnotation(BeanParam.class);
+			
+			boolean isBeanParameter = beanParam != null;
+			
+			TypeHandler handler = TypeHandler.forType(parameter.getParameterizedType(), isBeanParameter);
+			 
 
 			addStatement(builder, parameter, handler);
 
+		}
+		
+		
+		public static TypeHandler forType(Type type)
+		{
+			return forType(type, false);
 		}
 
 		/**
 		 * Lookup the <code>TypeHandler</code> for a {@link Type}
 		 */
-		public static TypeHandler forType(Type type)
+		public static TypeHandler forType(Type type, Boolean isBeanParam)
 		{
  
 			boolean hasValueOf = false;
@@ -315,12 +344,27 @@ public class HandlerGenerator
 
 					if (hasValueOfMethod(erasedType))
 					{
-						return ListValueOfType;
+						if(!isBeanParam)
+						{
+							return QueryListValueOfType;
 
+						}
+						else
+						{
+							return BeanListValueOfType;
+						} 
 					}
 					else if (hasFromStringMethod(erasedType))
-					{
-						return ListFromStringType;
+					{ 
+						if(!isBeanParam)
+						{
+							return QueryListFromStringType;
+
+						}
+						else
+						{
+							return BeanListFromStringType;
+						} 
 					}
 					else
 					{
@@ -348,12 +392,28 @@ public class HandlerGenerator
 
 					if (hasValueOfMethod(erasedType))
 					{
-						return OptionalListValueOfType;
+						if(!isBeanParam)
+						{
+							return QueryOptionalListValueOfType;
+
+						}
+						else
+						{
+							return OptionalBeanListValueOfType;
+						}  
 
 					}
 					else if (hasFromStringMethod(erasedType))
 					{
-						return OptionalListFromStringType;
+ 						if(!isBeanParam)
+						{
+							return QueryOptionalListFromStringType;
+
+						}
+						else
+						{
+							return OptionalBeanListFromStringType;
+						}  
 					}
 					else
 					{
@@ -627,9 +687,43 @@ public class HandlerGenerator
 
 		final Map<Type, String> parameterizedLiteralsNameMap = Arrays.stream(clazz.getDeclaredMethods()).filter( m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType).filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
 				.distinct().filter(t -> {
+					
+					
 					TypeHandler handler = TypeHandler.forType(t);
 					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
+					
 				}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForParameterizedType));
+		
+		
+		Arrays.stream(clazz.getDeclaredMethods()).filter( m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters())).forEach( p -> {
+			
+			BeanParam beanParam = p.getAnnotation(BeanParam.class);
+			
+			boolean isBeanParameter = beanParam != null;
+			
+			if(isBeanParameter)
+			{
+				TypeHandler handler = TypeHandler.forType(p.getParameterizedType(),true);
+				
+				if( handler.equals(TypeHandler.BeanListValueOfType) || handler.equals(TypeHandler.BeanListFromStringType) || handler.equals(TypeHandler.OptionalBeanListValueOfType) || handler.equals(TypeHandler.OptionalBeanListFromStringType))
+				{
+					parameterizedLiteralsNameMap.put(p.getParameterizedType(),HandlerGenerator.typeLiteralNameForParameterizedType(p.getParameterizedType()));
+				}
+			}
+			
+			
+		});
+		
+		
+		
+//		final Map<Type, String> parameterizedLiteralsNameMap2 = Arrays.stream(clazz.getDeclaredMethods()).filter( m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType).filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
+//				.distinct().filter(t -> {
+//					
+//					
+//					TypeHandler handler = TypeHandler.forType(t);
+//					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
+					
+			//	}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForParameterizedType));
 
 		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods()).filter( m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)).filter(t -> {
 
@@ -749,6 +843,11 @@ public class HandlerGenerator
 			} 
 		}
 
+		log.debug("Scanning methods for class " + clazz.getName());
+		
+
+		int nameIndex = 1;
+		
 		for (Method m : clazz.getDeclaredMethods())
 		{
 
@@ -756,6 +855,8 @@ public class HandlerGenerator
 			{
 				continue;
 			}
+
+			log.debug("Scanning method " + m.getName() + "\n");
 
 			EndpointInfo endpointInfo = new EndpointInfo();
 
@@ -842,14 +943,14 @@ public class HandlerGenerator
 
 			endpointInfo.setControllerMethod(m.getName());
 
-			String handlerName = String.format("%c%s%sHandler", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName().substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()));
 			
-			int nameIndex = 1;
+			String handlerName = String.format("%c%s%sHandler_%s", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName().substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()),String.valueOf(nameIndex++));
+			 
 			
-			while(handlerNameSet.contains(handlerName))
-			{
-				handlerName = handlerName + "_" + nameIndex++;
-			}
+//			while(handlerNameSet.contains(handlerName))
+//			{
+//				handlerName = handlerName + "_" + nameIndex++;
+//			}
 			
 			handlerNameSet.add(handlerName);
 
@@ -863,6 +964,7 @@ public class HandlerGenerator
 			for (Parameter p : m.getParameters())
 			{
 
+ 
 				if (p.getParameterizedType().equals(ServerRequest.class) || p.getParameterizedType().equals(HttpServerExchange.class) || p.getParameterizedType().equals(HttpHandler.class))
 				{
 					continue;
@@ -870,7 +972,11 @@ public class HandlerGenerator
 
 				try
 				{
-					TypeHandler t = TypeHandler.forType(p.getParameterizedType());
+					BeanParam beanParam = p.getAnnotation(BeanParam.class);
+					
+					boolean isBeanParameter = beanParam != null;
+					
+					TypeHandler t = TypeHandler.forType(p.getParameterizedType(),isBeanParameter);
 
 					if (t.isBlocking())
 					{
@@ -894,9 +1000,13 @@ public class HandlerGenerator
 			Arrays.stream(m.getParameters()).forEachOrdered(p -> {
 
 				Type type = p.getParameterizedType();
+				
+				
 
 				try
 				{
+
+					log.debug("Parameter " + p.getName() + " of type " + type );
 
 					if (p.getType().equals(ServerRequest.class))
 					{
@@ -969,9 +1079,22 @@ public class HandlerGenerator
 						}
 						else
 						{
-							TypeHandler t = TypeHandler.forType(type);
-
+							BeanParam beanParam = p.getAnnotation(BeanParam.class);
+							
+							boolean isBeanParameter = beanParam != null;
+							
+							TypeHandler t = TypeHandler.forType(type, isBeanParameter);
+							 
 							if (t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType))
+							{
+								String interfaceType = parameterizedLiteralsNameMap.get(type);
+
+								String pType = interfaceType != null ? interfaceType + "TypeLiteral" : type.getTypeName() + ".class";
+
+								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
+
+							}
+							else if (t.equals(TypeHandler.BeanListFromStringType) || t.equals(TypeHandler.BeanListValueOfType))
 							{
 								String interfaceType = parameterizedLiteralsNameMap.get(type);
 
@@ -985,7 +1108,24 @@ public class HandlerGenerator
 
 								TypeHandler.addStatement(methodBuilder, p);
 							}
-							else if (t.equals(TypeHandler.OptionalListFromStringType) || t.equals(TypeHandler.OptionalListValueOfType))
+							else if (t.equals(TypeHandler.QueryOptionalListFromStringType) || t.equals(TypeHandler.QueryOptionalListValueOfType))
+							{
+								// $T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map($T
+
+								ParameterizedType pType = (ParameterizedType) type;
+
+								if (type instanceof ParameterizedType)
+								{
+									pType = (ParameterizedType) type;
+									type = pType.getActualTypeArguments()[0];
+								}
+
+								Class<?> erasedType = (Class<?>) extractErasedType(type);
+
+								methodBuilder.addStatement(t.statement, pType, p.getName(), p.getName(), erasedType);
+
+							}
+							else if (t.equals(TypeHandler.OptionalBeanListFromStringType) || t.equals(TypeHandler.OptionalBeanListValueOfType))
 							{
 								// $T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map($T
 

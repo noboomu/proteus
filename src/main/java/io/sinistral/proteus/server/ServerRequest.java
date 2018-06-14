@@ -11,6 +11,8 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xnio.channels.StreamSourceChannel;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
@@ -35,6 +37,8 @@ public class ServerRequest
 {    
     public static final AttachmentKey<ByteBuffer> BYTE_BUFFER_KEY = AttachmentKey.create(ByteBuffer.class);
  
+    private static Logger log = LoggerFactory.getLogger(ServerRequest.class.getCanonicalName());
+
 	protected static final String CHARSET = "UTF-8";
 	protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
@@ -69,11 +73,11 @@ public class ServerRequest
 		if (this.contentType != null )
 		{
 			if ( ServerPredicates.URL_ENCODED_FORM_PREDICATE.resolve(exchange) )
-			{
+			{ 
  				this.parseEncodedForm();
 			}
 			else if ( ServerPredicates.MULTIPART_PREDICATE.resolve(exchange) )
-			{
+			{ 
 				this.parseMultipartForm();
 			}
 			else if ( ServerPredicates.STRING_BODY_PREDICATE.resolve(exchange) )
@@ -143,6 +147,7 @@ public class ServerRequest
 	
 	private void extractBytes() throws IOException
 	{  
+		 //log.debug("start extracting bytes!");
 		 
 			this.exchange.startBlocking();
  
@@ -164,6 +169,10 @@ public class ServerRequest
 	 	                    ByteBuffer buffer = ByteBuffer.allocate(pos);
 
 	                    	System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
+	                    	
+	                    	buffer.rewind();
+	                    	
+	                    	//log.debug("buffer " + new String(buffer.array()));
 	                    	
 	    	                exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
 	    	                

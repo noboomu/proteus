@@ -87,7 +87,7 @@ if(!hasDefaultTheme)
 window.onload = function() {
   // Build a system
   const ui = SwaggerUIBundle({
-    url: "{{ swaggerFullPath }}",
+    url: window.location.origin + window.location.pathname + '.json',
     dom_id: '#swagger-ui',
     presets: [
       SwaggerUIBundle.presets.apis,

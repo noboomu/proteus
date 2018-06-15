@@ -172,7 +172,7 @@ public class ServerRequest
 	                    	
 	                    	buffer.rewind();
 	                    	
-	                    	//log.debug("buffer " + new String(buffer.array()));
+	                    	log.debug("buffer " + new String(buffer.array()));
 	                    	
 	    	                exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
 	    	                

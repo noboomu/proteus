@@ -1201,6 +1201,11 @@ public class MediaType  {
 			return MediaType.DEFAULT;
 		}
 	}
+	
+	public String withCharset(String charset)
+	{
+		return charset != null ? String.format("%s; charset=%s", this.contentType , charset.toUpperCase()) : this.contentType;
+	}
 
 	public static MediaType of(String contentType) {
 		return new MediaType(contentType);

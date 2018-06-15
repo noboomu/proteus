@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import org.xnio.channels.StreamSourceChannel;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
+import io.undertow.attribute.BytesSentAttribute;
+import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.connector.PooledByteBuffer;
 import io.undertow.security.api.SecurityContext;
 import io.undertow.server.HttpServerExchange;
@@ -80,7 +82,7 @@ public class ServerRequest
 			{ 
 				this.parseMultipartForm();
 			}
-			else if ( ServerPredicates.STRING_BODY_PREDICATE.resolve(exchange) )
+			else if ( exchange.getRequestContentLength() > 0 )
 			{ 
 				this.extractBytes();
 			}   

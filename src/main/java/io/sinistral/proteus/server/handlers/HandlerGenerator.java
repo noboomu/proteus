@@ -65,6 +65,7 @@ import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.handlers.RequestBufferingHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import net.openhft.compiler.CompilerUtils;
@@ -1283,7 +1284,7 @@ public class HandlerGenerator
 
 			if(isBlocking)
 			{
-				handlerName = "new io.undertow.server.handlers.BlockingHandler(" + handlerName + ")";
+				handlerName = "new io.undertow.server.handlers.BlockingHandler(new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(1).wrap(" + handlerName + "))";
 			}
 			
 			if (wrapAnnotation.isPresent() || typeLevelHandlerWrapperMap.size() > 0 || securityDefinitions.size() > 0)

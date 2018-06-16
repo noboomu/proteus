@@ -39,6 +39,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.RequestBufferingHandler;
 
 /**
  * @author jbauer
@@ -65,6 +66,8 @@ public class Tests
 	@ApiOperation(value = "Json serialization endpoint",   httpMethod = "GET" )
 	public void exchangeJsonSerialize(HttpServerExchange exchange)
 	{ 
+	     
+		
 		response( JsonStream.serialize(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
 	}
 	

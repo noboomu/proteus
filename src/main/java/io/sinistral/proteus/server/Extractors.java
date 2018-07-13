@@ -17,14 +17,17 @@ import java.util.Deque;
 import java.util.Objects;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.jsoniter.JsonIterator;
-import com.jsoniter.any.Any;
-import com.jsoniter.spi.TypeLiteral;
+import com.google.inject.Inject;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.server.handlers.form.FormData.FormValue;
 import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
@@ -34,8 +37,24 @@ import io.undertow.util.Methods;
  */
 public class Extractors
 {
-  
-	protected static final XmlMapper XML_MAPPER = new XmlMapper();
+	private static Logger log = LoggerFactory.getLogger(Extractors.class.getCanonicalName());
+
+    @Inject
+	public static XmlMapper XML_MAPPER;
+    
+    @Inject
+	public static ObjectMapper OBJECT_MAPPER;
+    
+    public static Function<byte[],JsonNode> parseJson = (bytes) -> {
+    	try
+		{
+			return OBJECT_MAPPER.readTree(bytes);
+		} catch (Exception e)
+		{
+			log.error(e.getMessage(),e);
+			return null;
+		}
+    };
 	
 	public static class Optional
 	{
@@ -45,12 +64,12 @@ public class Extractors
 			return string(exchange, name).map(function);
 		} 
 		
-		public static java.util.Optional<JsonIterator> jsonIterator(final HttpServerExchange exchange)
+		public static java.util.Optional<JsonNode> jsonNode(final HttpServerExchange exchange)
 		{
-			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(JsonIterator::parse); 
+			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(parseJson); 
 		}
 
-		public static  <T> java.util.Optional<T> model(final HttpServerExchange exchange, final TypeLiteral<T> type )
+		public static  <T> java.util.Optional<T> model(final HttpServerExchange exchange, final TypeReference<T> type )
 		{
 			if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 			{
@@ -77,14 +96,15 @@ public class Extractors
 		}
 		
 		
-		public static  <T> java.util.Optional<T> jsonModel(final HttpServerExchange exchange, final TypeLiteral<T> type )
+		public static  <T> java.util.Optional<T> jsonModel(final HttpServerExchange exchange, final TypeReference<T> type )
 		{
-			return jsonIterator(exchange).map(i -> {
+			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map( b -> {
 				try
 				{
-					return i.read(type);
+					return OBJECT_MAPPER.readValue(b, type);
 				} catch (Exception e)
 				{
+					//log.error(e.getMessage(),e);
 					return null;
 				}
 			});
@@ -92,18 +112,19 @@ public class Extractors
 		
 		public static  <T> java.util.Optional<T> jsonModel(final HttpServerExchange exchange, final Class<T> type )
 		{
-			return jsonIterator(exchange).map(i -> {
+			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map( b -> {
 				try
 				{
-					return i.read(type);
+					return OBJECT_MAPPER.readValue(b, type);
 				} catch (Exception e)
 				{
+					//log.error(e.getMessage(),e);
 					return null;
 				}
 			});
 		}
 		
-		public static  <T> java.util.Optional<T> xmlModel(final HttpServerExchange exchange, final TypeLiteral<T> type )
+		public static  <T> java.util.Optional<T> xmlModel(final HttpServerExchange exchange, final TypeReference<T> type )
 		{
 			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map( b -> {
 				try
@@ -111,6 +132,7 @@ public class Extractors
 					 return XML_MAPPER.readValue(b,XML_MAPPER.getTypeFactory().constructType(type.getType()));
 				} catch (Exception e)
 				{
+					//log.error(e.getMessage(),e);
 					return null;
 				}
 			});
@@ -124,6 +146,7 @@ public class Extractors
 					 return XML_MAPPER.readValue(b,type);
 				} catch (Exception e)
 				{
+					//log.error(e.getMessage(),e);
 					return null;
 				}
 			});
@@ -150,9 +173,9 @@ public class Extractors
 		}
 		 
 
-		public static java.util.Optional<Any> any(final HttpServerExchange exchange )
+		public static java.util.Optional<JsonNode> any(final HttpServerExchange exchange )
 		{
-			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(t -> JsonIterator.deserialize(t.array()));
+			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map( b -> parseJson.apply(b.array()));
 		}
 
 		public static  java.util.Optional<Integer> integerValue(final HttpServerExchange exchange, final String name)
@@ -267,11 +290,11 @@ public class Extractors
 		 
 	}
 
-	public static  <T> T jsonModel(final HttpServerExchange exchange, final TypeLiteral<T> type ) throws IllegalArgumentException
+	public static  <T> T jsonModel(final HttpServerExchange exchange, final TypeReference<T> type ) throws IllegalArgumentException
 	{
 		try
 		{
-			return jsonIterator(exchange).read(type);
+			return OBJECT_MAPPER.readValue(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array(), type);
 		}
 		catch( Exception e )
 		{
@@ -283,7 +306,7 @@ public class Extractors
 	{
 		try
 		{
-			return jsonIterator(exchange).read(type);
+			return OBJECT_MAPPER.readValue(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array(), type);
 		}
 		catch( Exception e )
 		{
@@ -306,7 +329,7 @@ public class Extractors
 		}
 	}
 	
-	public static  <T> T xmlModel(final HttpServerExchange exchange, final TypeLiteral<T> type )   throws IllegalArgumentException
+	public static  <T> T xmlModel(final HttpServerExchange exchange, final TypeReference<T> type )   throws IllegalArgumentException
 	{
 		try
 		{
@@ -319,20 +342,21 @@ public class Extractors
 		}
 	}
 
-	public static  Any any(final HttpServerExchange exchange )
+	public static  JsonNode any(final HttpServerExchange exchange )
 	{
 		try
 		{
-			return JsonIterator.parse( exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array() ).readAny();
-		} catch (IOException e)
+			return parseJson.apply( exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array() );
+		} catch (Exception e)
 		{
-			return Any.wrapNull();
+			log.warn(e.getMessage(),e);
+			return OBJECT_MAPPER.createObjectNode();
 		}
 	}
 
-	public static  JsonIterator jsonIterator(final HttpServerExchange exchange )
+	public static  JsonNode jsonNode(final HttpServerExchange exchange )
 	{
-		return JsonIterator.parse(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
+		return parseJson.apply(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
 	}
 
 	public static  Path filePath(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
@@ -413,7 +437,7 @@ public class Extractors
 		return Boolean.parseBoolean(string(exchange, name));
 	}
 	 
-	public static <T>  T model(final HttpServerExchange exchange, final TypeLiteral<T> type )   throws IllegalArgumentException
+	public static <T>  T model(final HttpServerExchange exchange, final TypeReference<T> type )   throws IllegalArgumentException
 	{
 		if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 		{

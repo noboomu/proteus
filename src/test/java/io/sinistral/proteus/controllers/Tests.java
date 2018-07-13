@@ -26,10 +26,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.jsoniter.output.JsonStream;
 
 import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.models.User;
@@ -39,7 +40,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.server.handlers.RequestBufferingHandler;
 
 /**
  * @author jbauer
@@ -61,14 +61,22 @@ public class Tests
 	    buffer.flip();
 	  }
 	  
+	@Inject
+	protected ObjectMapper objectMapper;
+	 
+	  
 	@GET
 	@Path("/exchange/json/serialize")
 	@ApiOperation(value = "Json serialization endpoint",   httpMethod = "GET" )
-	public void exchangeJsonSerialize(HttpServerExchange exchange)
-	{ 
-	     
-		
-		response( JsonStream.serialize(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+	public void exchangeJsonSerialize(HttpServerExchange exchange) 
+	{  
+		try
+		{
+			response( objectMapper.writeValueAsString(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+		} catch(Exception e)
+		{
+			response().badRequest(e);
+		}
 	}
 	
 	@GET
@@ -76,7 +84,13 @@ public class Tests
 	@ApiOperation(value = "Json serialization with bytes endpoint",   httpMethod = "GET" )
 	public void exchangeJsonSerializeToBytes(HttpServerExchange exchange)
 	{ 
-		response( JsonStream.serializeToBytes(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+		try
+		{
+			response( objectMapper.writeValueAsString(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+		} catch(Exception e)
+		{
+			response().badRequest(e);
+		}
 	}
 	
 

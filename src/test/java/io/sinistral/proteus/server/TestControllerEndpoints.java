@@ -27,9 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.jsoniter.JsonIterator;
-import com.jsoniter.output.JsonStream;
-
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.models.User.UserType;

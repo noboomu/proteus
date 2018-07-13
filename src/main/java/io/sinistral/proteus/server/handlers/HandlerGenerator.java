@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.jsoniter.spi.TypeLiteral;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -99,8 +99,8 @@ public class HandlerGenerator
 		StringType("String $L =  $T.string(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		BooleanType("Boolean $L =  $T.booleanValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		FilePathType("$T $L = $T.filePath(exchange,$S)", true, java.nio.file.Path.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		AnyType("$T $L = $T.any(exchange)", true, com.jsoniter.any.Any.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
-		JsonIteratorType("$T $L = $T.jsonIterator(exchange)", true, com.jsoniter.JsonIterator.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
+		AnyType("$T $L = $T.any(exchange)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
+		JsonNodeType("$T $L = $T.jsonNode(exchange)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
 		ModelType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
 
 		// EnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class, StatementParameterType.TYPE, StatementParameterType.STRING),
@@ -139,8 +139,8 @@ public class HandlerGenerator
 		OptionalBeanListFromStringType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
 		
-		OptionalJsonIteratorType("$T<$T> $L = $T.jsonIterator(exchange)", true, Optional.class, com.jsoniter.JsonIterator.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
-		OptionalAnyType("$T<$T> $L = $T.any(exchange)", true, Optional.class, com.jsoniter.any.Any.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
+		OptionalJsonNodeType("$T<$T> $L = $T.jsonNode(exchange)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
+		OptionalAnyType("$T<$T> $L = $T.any(exchange)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
 		OptionalStringType("$T<String> $L = $T.string(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalLongType("$T<Long> $L = $T.longValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalIntegerType("$T<Integer> $L = $T.integerValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
@@ -182,7 +182,7 @@ public class HandlerGenerator
 		final private String statement;
 
 		/**
-		 * If the <code>TypeLiteral</code> requires the {@link io.undertow.server.HttpHandler} to block
+		 * If the <code>TypeReference</code> requires the {@link io.undertow.server.HttpHandler} to block
 		 */
 		final private boolean isBlocking;
 
@@ -211,7 +211,7 @@ public class HandlerGenerator
 			Object[] args = new Object[handler.parameterTypes.length];
 			
 			 
-///typeLiteralNameForParameterizedType
+///typeReferenceNameForParameterizedType
 			for (int i = 0; i < handler.parameterTypes.length; i++)
 			{
 				if (handler.parameterTypes[i] instanceof StatementParameterType)
@@ -474,13 +474,13 @@ public class HandlerGenerator
 			{
 				return OffsetDateTimeType;
 			}
-			else if (type.equals(com.jsoniter.any.Any.class))
+			else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class))
 			{
 				return AnyType;
 			}
-			else if (type.equals(com.jsoniter.JsonIterator.class))
+			else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class))
 			{
-				return JsonIteratorType;
+				return JsonNodeType;
 			}
 			else if (isOptional)
 			{
@@ -693,7 +693,7 @@ public class HandlerGenerator
 					TypeHandler handler = TypeHandler.forType(t);
 					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
 					
-				}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForParameterizedType));
+				}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
 		
 		
 		Arrays.stream(clazz.getDeclaredMethods()).filter( m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters())).forEach( p -> {
@@ -708,7 +708,7 @@ public class HandlerGenerator
 				
 				if( handler.equals(TypeHandler.BeanListValueOfType) || handler.equals(TypeHandler.BeanListFromStringType) || handler.equals(TypeHandler.OptionalBeanListValueOfType) || handler.equals(TypeHandler.OptionalBeanListFromStringType))
 				{
-					parameterizedLiteralsNameMap.put(p.getParameterizedType(),HandlerGenerator.typeLiteralNameForParameterizedType(p.getParameterizedType()));
+					parameterizedLiteralsNameMap.put(p.getParameterizedType(),HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
 				}
 			}
 			
@@ -724,7 +724,7 @@ public class HandlerGenerator
 //					TypeHandler handler = TypeHandler.forType(t);
 //					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
 					
-			//	}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForParameterizedType));
+			//	}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
 
 		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods()).filter( m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)).filter(t -> {
 
@@ -784,11 +784,11 @@ public class HandlerGenerator
 
 			return true;
 
-		}).distinct().collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeLiteralNameForType));
+		}).distinct().collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForType));
 
-		parameterizedLiteralsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeLiteral = new $T<$L>(){}", TypeLiteral.class, t, n, TypeLiteral.class, t));
+		parameterizedLiteralsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeReference = new $T<$L>(){}", TypeReference.class, t, n, TypeReference.class, t));
 
-		literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeLiteral = new $T<$T>(){}", TypeLiteral.class, t, n, TypeLiteral.class, t));
+		literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeReference = new $T<$T>(){}", TypeReference.class, t, n, TypeReference.class, t));
 
 		Optional<io.sinistral.proteus.annotations.Chain> typeLevelWrapAnnotation = Optional.ofNullable(clazz.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
 		Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<Class<? extends HandlerWrapper>, String>();
@@ -1090,7 +1090,7 @@ public class HandlerGenerator
 							{
 								String interfaceType = parameterizedLiteralsNameMap.get(type);
 
-								String pType = interfaceType != null ? interfaceType + "TypeLiteral" : type.getTypeName() + ".class";
+								String pType = interfaceType != null ? interfaceType + "TypeReference" : type.getTypeName() + ".class";
 
 								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 
@@ -1099,7 +1099,7 @@ public class HandlerGenerator
 							{
 								String interfaceType = parameterizedLiteralsNameMap.get(type);
 
-								String pType = interfaceType != null ? interfaceType + "TypeLiteral" : type.getTypeName() + ".class";
+								String pType = interfaceType != null ? interfaceType + "TypeReference" : type.getTypeName() + ".class";
 
 								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 
@@ -1506,7 +1506,7 @@ public class HandlerGenerator
 		return null;
 	}
 
-	protected static String typeLiteralNameForParameterizedType(Type type)
+	protected static String typeReferenceNameForParameterizedType(Type type)
 	{
 		String typeName = type.getTypeName();
 
@@ -1586,7 +1586,7 @@ public class HandlerGenerator
 		return typeName;
 	}
 
-	protected static String typeLiteralNameForType(Type type)
+	protected static String typeReferenceNameForType(Type type)
 	{
 		String typeName = type.getTypeName();
 
@@ -1631,10 +1631,10 @@ public class HandlerGenerator
 		return sb.toString();
 	}
 
-	protected static void generateTypeLiteral(MethodSpec.Builder builder, Type type, String name)
+	protected static void generateTypeReference(MethodSpec.Builder builder, Type type, String name)
 	{
 
-		builder.addCode(CodeBlock.of("\n\ncom.jsoniter.spi.TypeLiteral<$T> $L = new com.jsoniter.spi.TypeLiteral<$L>(){};\n\n", type, name, type));
+		builder.addCode(CodeBlock.of("\n\ncom.fasterxml.jackson.core.type.TypeReference<$T> $L = new com.fasterxml.jackson.core.type.TypeReference<$L>(){};\n\n", type, name, type));
 
 	}
 

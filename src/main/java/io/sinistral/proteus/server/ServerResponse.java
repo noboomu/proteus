@@ -203,6 +203,18 @@ public class ServerResponse<T>
 		this.setContentType(contentType);
 		return this;
 	}
+	
+	public ServerResponse<T> contentType(javax.ws.rs.core.MediaType mediaType)
+	{
+		this.setContentType(mediaType.toString());
+		return this;
+	}
+	
+	public ServerResponse<T> contentType(MediaType mediaType)
+	{
+		this.setContentType(mediaType.contentType());
+		return this;
+	}
 
 	public ServerResponse<T> applicationJson()
 	{
@@ -272,7 +284,11 @@ public class ServerResponse<T>
 		this.throwable = t;
 		return this;
 	}
-
+	public ServerResponse<T> badRequest(String message)
+	{ 
+		return this.badRequest(new Throwable(message));
+	}
+	
 	public ServerResponse<T> internalServerError()
 	{
 		this.status = StatusCodes.INTERNAL_SERVER_ERROR;
@@ -284,6 +300,11 @@ public class ServerResponse<T>
 		this.status = StatusCodes.INTERNAL_SERVER_ERROR;
 		this.throwable = t;
 		return this;
+	}
+	
+	public ServerResponse<T> internalServerError(String message)
+	{ 
+		return this.internalServerError(new Throwable(message));
 	}
 
 	public ServerResponse<T> created()
@@ -304,6 +325,12 @@ public class ServerResponse<T>
 		this.throwable = t;
 		return this;
 	}
+	
+	public ServerResponse<T> notFound(String message)
+	{ 
+		return this.notFound(new Throwable(message));
+	}
+	 
 
 	public ServerResponse<T> forbidden()
 	{
@@ -317,6 +344,12 @@ public class ServerResponse<T>
 		this.throwable = t;
 		return this;
 	}
+	
+	public ServerResponse<T> forbidden(String message)
+	{ 
+		return this.forbidden(new Throwable(message));
+	}
+	 
 
 	public ServerResponse<T> found()
 	{
@@ -337,6 +370,12 @@ public class ServerResponse<T>
 		return this;
 	}
 
+	
+	public ServerResponse<T> noContent(String message)
+	{ 
+		return this.noContent(new Throwable(message));
+	}
+	
 	public ServerResponse<T> withIoCallback(IoCallback ioCallback)
 	{
 		this.ioCallback = ioCallback;

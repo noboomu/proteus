@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  
 public class MediaType  {
 
-	private static final Map<String, MediaType> FILE_EXTENSISONS = new LinkedHashMap<>();
+	private static final Map<String, MediaType> FILE_EXTENSIONS = new LinkedHashMap<>();
 	private static final String[] NO_ATTR = new String[0];
 	private static final String[] UTF8_ATTR = {"charset=utf-8"};
 
@@ -1178,7 +1178,7 @@ public class MediaType  {
 		MediaType mt = new MediaType(type, attributes);
 
 		for (String ext : fileExtensisons) {
-			FILE_EXTENSISONS.put(ext, mt);
+			FILE_EXTENSIONS.put(ext, mt);
 		}
 
 		return mt;
@@ -1189,7 +1189,7 @@ public class MediaType  {
 	}
 
 	public static synchronized MediaType getByFileExtension(String fileExtension) {
-		return FILE_EXTENSISONS.get(fileExtension);
+		return FILE_EXTENSIONS.get(fileExtension);
 	}
 
 	public static synchronized MediaType getByFileName(String filename) {

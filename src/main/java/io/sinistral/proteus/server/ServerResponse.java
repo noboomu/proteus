@@ -10,10 +10,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.jsoniter.output.JsonContext;
-import com.jsoniter.output.JsonStream;
+import com.google.inject.Inject;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.io.IoCallback;
@@ -34,7 +33,11 @@ public class ServerResponse<T>
 {
 	private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
 
-	protected static final XmlMapper XML_MAPPER = new XmlMapper();
+	@Inject
+	protected static XmlMapper XML_MAPPER;
+
+	@Inject
+	protected static ObjectMapper OBJECT_MAPPER;
 
 	protected ByteBuffer body;
 
@@ -44,7 +47,7 @@ public class ServerResponse<T>
 	protected String contentType = null;
 	protected T entity;
 	protected Throwable throwable;
-	protected Class<? extends JsonContext> jsonContext;
+//	protected Class<? extends JsonContext> jsonContext;
 	protected IoCallback ioCallback;
 	protected boolean hasCookies = false;
 	protected boolean hasHeaders = false;
@@ -239,11 +242,11 @@ public class ServerResponse<T>
 		return this;
 	}
 
-	public ServerResponse<T> jsonContext(Class<? extends JsonContext> context)
-	{
-		this.jsonContext = context;
-		return this;
-	}
+//	public ServerResponse<T> jsonContext(Class<? extends JsonContext> context)
+//	{
+//		this.jsonContext = context;
+//		return this;
+//	}
 
 	public ServerResponse<T> ok()
 	{
@@ -420,7 +423,7 @@ public class ServerResponse<T>
 				else
 				{
 
-					exchange.getResponseSender().send(JsonStream.serializeToBytes(this.entity, this.jsonContext));
+					exchange.getResponseSender().send(ByteBuffer.wrap(OBJECT_MAPPER.writeValueAsBytes(this.entity)));
 				}
 
 			} catch (Exception e)

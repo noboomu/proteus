@@ -224,7 +224,15 @@ public class Tests
 			return response( ids.get() ).applicationJson(); 
 		 
 	}
+
 	
+	@GET
+	@Path("/redirect/permanent")
+	@ApiOperation(value = "Permanent redirect endpoint",   httpMethod = "GET" )
+	public ServerResponse<?> testPermanentRedirect()
+	{ 
+		return response().redirectPermanently("https://google.com");
+	}
 	
 	@GET
 	@Path("/redirect")

@@ -174,6 +174,18 @@ public class TestControllerEndpoints
 	{
 		given().log().uri().when().get("tests/redirect").then().statusCode(200).and().header("Server", "gws");
 	}
+	
+	@Test
+	public void testRedirectFoundCode()
+	{
+		given().log().uri().when().redirects().follow(false).get("tests/redirect").then().statusCode(302);
+	}
+	
+	@Test
+	public void testRedirectMovedPermanentlyCode()
+	{
+		given().log().uri().when().redirects().follow(false).get("tests/redirect/permanent").then().statusCode(301);
+	}
 
 	@SuppressWarnings("resource")
 	@Test

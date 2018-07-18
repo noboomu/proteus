@@ -271,6 +271,14 @@ public class ServerResponse<T>
 	public ServerResponse<T> redirect(String location)
 	{
 		this.redirectLocation = location;
+		this.status = StatusCodes.FOUND;
+		return this;
+	}
+	
+	public ServerResponse<T> redirectPermanently(String location)
+	{
+		this.redirectLocation = location;
+		this.status = StatusCodes.MOVED_PERMANENTLY;;
 		return this;
 	}
 
@@ -400,13 +408,9 @@ public class ServerResponse<T>
 	{
 		if(this.redirectLocation != null)
 		{ 
-			try
-			{
-				Handlers.redirect(redirectLocation).handleRequest(exchange);
-			} catch (Exception e)
-			{
-				throw new RuntimeException(e);
-			}
+			exchange.setStatusCode(this.status);
+		    exchange.getResponseHeaders().put(Headers.LOCATION, this.redirectLocation);
+		    exchange.endExchange();
 			return;
 		}
 		

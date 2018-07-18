@@ -11,9 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -25,11 +27,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.jsoniter.output.JsonStream;
 
+import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
@@ -58,12 +62,22 @@ public class Tests
 	    buffer.flip();
 	  }
 	  
+	@Inject
+	protected ObjectMapper objectMapper;
+	 
+	  
 	@GET
 	@Path("/exchange/json/serialize")
 	@ApiOperation(value = "Json serialization endpoint",   httpMethod = "GET" )
-	public void exchangeJsonSerialize(HttpServerExchange exchange)
-	{ 
-		response( JsonStream.serialize(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+	public void exchangeJsonSerialize(HttpServerExchange exchange) 
+	{  
+		try
+		{
+			response( objectMapper.writeValueAsString(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+		} catch(Exception e)
+		{
+			response().badRequest(e);
+		}
 	}
 	
 	@GET
@@ -71,7 +85,13 @@ public class Tests
 	@ApiOperation(value = "Json serialization with bytes endpoint",   httpMethod = "GET" )
 	public void exchangeJsonSerializeToBytes(HttpServerExchange exchange)
 	{ 
-		response( JsonStream.serializeToBytes(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+		try
+		{
+			response( objectMapper.writeValueAsString(ImmutableMap.of("message", "Hello, World!")) ).applicationJson().send(exchange);
+		} catch(Exception e)
+		{
+			response().badRequest(e);
+		}
 	}
 	
 
@@ -174,6 +194,52 @@ public class Tests
 	}
 	
 	@POST
+	@Path("/response/json/innerClass")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
+ 	@Consumes("*/*")
+	@ApiOperation(value = "Echo json inner class endpoint",   httpMethod = "POST" )
+	public ServerResponse<User.InnerUserModel> responseInnerClassTest(ServerRequest request, @BeanParam User.InnerUserModel userInnerModel ) throws Exception
+	{  
+		return response(userInnerModel).applicationJson();
+	}
+	
+	  
+	@GET
+	@Path("/generic/set")
+	@ApiOperation(value = "Generic set endpoint",   httpMethod = "GET" )
+	public ServerResponse<Set<Long>>  genericSet( ServerRequest request, @QueryParam("ids") Set<Long> ids )  throws Exception
+	{  
+		 
+			return response( ids ).applicationJson(); 
+		 
+	}
+	
+	  
+	@GET
+	@Path("/optional/set")
+	@ApiOperation(value = "Generic optional set endpoint",   httpMethod = "GET" )
+	public ServerResponse<Set<Long>>  genericOptionalSet( ServerRequest request, @QueryParam("ids") Optional<Set<Long>> ids )  throws Exception
+	{  
+		 
+			return response( ids.get() ).applicationJson(); 
+		 
+	}
+	
+	@POST
+	@Path("/response/parse/ids")
+	@Blocking
+	@Produces(MediaType.APPLICATION_JSON) 
+ 	@Consumes(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Convert ids",   httpMethod = "POST" )
+	public ServerResponse<List<Long>> listConversion( ServerRequest request, @BeanParam List<Long> ids ) throws Exception
+	{ 
+		 
+		return response( ids ).applicationJson(); 
+		 
+
+	}
+	
+	@POST
 	@Path("/response/file/bytebuffer")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
@@ -185,6 +251,7 @@ public class Tests
 		 
 
 	}
+	
 	
 	@GET
 	@Path("/response/future/user")

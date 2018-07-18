@@ -12,19 +12,20 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
-import com.jsoniter.DecodingMode;
-import com.jsoniter.JsonIterator;
-import com.jsoniter.annotation.JsoniterAnnotationSupport;
-import com.jsoniter.output.EncodingMode;
-import com.jsoniter.output.JsonStream;
 import com.typesafe.config.Config;
 
+import io.sinistral.proteus.server.Extractors;
+import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HandlerWrapper;
@@ -102,12 +103,38 @@ public class ApplicationModule extends AbstractModule
 		{
 		}).annotatedWith(Names.named("registeredHandlerWrappers")).toInstance(registeredHandlerWrappers);
 
+		
+		this.bindMappers();
+
+	}
+	
+	/**
+	 * Override for customizing XmlMapper and ObjectMapper
+	 */
+	public void bindMappers()
+	{
 		this.bind(XmlMapper.class).toInstance(new XmlMapper());
 
-		JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
-		JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
-		JsoniterAnnotationSupport.enable();
+//		JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
+//		JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
+//		JsoniterAnnotationSupport.enable();
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
+		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		objectMapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
+		objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+		objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
 
+		objectMapper.registerModule(new AfterburnerModule());
+		objectMapper.registerModule(new Jdk8Module());
+		
+		this.bind(ObjectMapper.class).toInstance(objectMapper);
+		
+		this.requestStaticInjection(Extractors.class);
+		
+		this.requestStaticInjection(ServerResponse.class);
 	}
 
 }

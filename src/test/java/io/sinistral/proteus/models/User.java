@@ -11,6 +11,10 @@ package io.sinistral.proteus.models;
 public class User
 {
  
+	public static class InnerUserModel {
+		public Long id;
+	}
+	
 	public enum UserType
 	{
 		GUEST,MEMBER,ADMIN

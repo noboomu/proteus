@@ -20,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
@@ -204,7 +205,10 @@ public class Reader {
 
     @SuppressWarnings("deprecation")
 	private Swagger read(Class<?> cls, String parentPath, String parentMethod, boolean isSubresource, String[] parentConsumes, String[] parentProduces, Map<String, Tag> parentTags, List<Parameter> parentParameters, Set<Class<?>> scannedResources) {
-        Map<String, Tag> tags = new LinkedHashMap<String, Tag>();
+        
+    	Map<String, Tag> tags = new TreeMap<String, Tag>();
+        
+        
         List<SecurityRequirement> securities = new ArrayList<SecurityRequirement>();
 
         String[] consumes = new String[0];
@@ -453,6 +457,14 @@ public class Reader {
                 }
             }
         }
+        
+        List<Tag> swaggerTags = new ArrayList<Tag>(swagger.getTags());
+        
+        swaggerTags.sort( (a,b) -> { 
+        	return a.getName().compareTo(b.getName());
+        });
+        
+        swagger.setTags(swaggerTags);
 
         return swagger;
     }

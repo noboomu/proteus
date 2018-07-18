@@ -12,10 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.jsoniter.output.JsonStream;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.DefaultResponseListener;
@@ -36,6 +36,8 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 	@Inject
 	protected XmlMapper xmlMapper;
 	 
+	@Inject
+	protected ObjectMapper objectMapper;
 	
 	@Override
 	public boolean handleDefaultResponse(HttpServerExchange exchange)
@@ -88,7 +90,15 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
         	 }
         	 else 
         	 { 
-	        	 final String jsonBody = JsonStream.serialize(errorMap);
+	        	 String jsonBody;
+	        	 
+	        	try
+				{
+	        		jsonBody = objectMapper.writeValueAsString(errorMap);
+				} catch (Exception e)
+				{
+					jsonBody = errorMap.toString();
+				}
 	        	 
 	             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 	             exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, jsonBody.length());

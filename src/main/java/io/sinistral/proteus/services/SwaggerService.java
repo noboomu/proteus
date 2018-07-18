@@ -112,7 +112,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	protected String redocPath;
 	
 	@Inject
-	@Named("application.host")
+	@Named("swagger.host")
 	protected String host;
 	
 	@Inject
@@ -324,15 +324,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 
 		
-		try
-		{
-			
-			this.swaggerSpec = writer.writeValueAsString(this.swagger);
-			
-		} catch (Exception e)
-		{
-			log.error(e.getMessage(),e);
-		}
+		
  		
  		
 	}
@@ -371,7 +363,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 				templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
 				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", swaggerBasePath);
 				templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");
-				templateString = templateString.replaceAll("\\{\\{ swaggerFullPath \\}\\}","//" + host + ((port != 80 && port != 443) ? ":" + port : "") + swaggerBasePath + ".json");
+				templateString = templateString.replaceAll("\\{\\{ swaggerFilePath \\}\\}", swaggerBasePath + ".json");
 	
 				this.swaggerIndexHTML = templateString;   
 			}
@@ -467,14 +459,33 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		FileResourceManager resourceManager = new FileResourceManager(this.swaggerResourcePath.toFile(),1024);
  		
+		final Swagger swaggerCopy = this.swagger;
+		
 		router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
 
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
+				
  
 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_JSON); 
-				exchange.getResponseSender().send(swaggerSpec);
+				
+				String spec = null;
+				
+				try
+				{
+					
+					swaggerCopy.setHost(exchange.getHostAndPort());
+					
+					
+					spec = writer.writeValueAsString(swaggerCopy);
+					
+				} catch (Exception e)
+				{
+					log.error(e.getMessage(),e);
+				}
+				
+				exchange.getResponseSender().send(spec);
 				
 			}
 			

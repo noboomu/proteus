@@ -126,9 +126,24 @@ public class ProteusApplication
 			return;
 		}
 
-		log.info("Configuring modules...");
+		log.info("Configuring modules: " + registeredModules);
 
 		Set<Module> modules = registeredModules.stream().map(mc -> injector.getInstance(mc)).collect(Collectors.toSet());
+		
+		//boolean needsMappingModule = true;
+		
+//		for(Module m : modules)
+//		{
+//			if(m.getClass().getSuperclass().equals(MappingModule.class))
+//			{
+//				needsMappingModule = false;
+//			}
+//		}
+//		
+//		if(needsMappingModule)
+//		{
+//			modules.add(injector.getInstance(MappingModule.class));
+//		}
 
 		injector = injector.createChildInjector(modules);
 

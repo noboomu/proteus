@@ -20,9 +20,9 @@
 	<logger name="io.netty" level="ERROR" />
 	<logger name="io.netty.handler" level="ERROR" />
 	 
-	<logger name="io.sinistral.proteus.server.swagger" level="INFO" />
-	<logger name="io.sinistral.proteus.server.handlers" level="INFO" />
-	<logger name="io.sinistral.proteus.services" level="INFO" />
+	<logger name="io.sinistral.proteus.server.swagger" level="ERROR" />
+	<logger name="io.sinistral.proteus.server.handlers" level="ERROR" />
+	<logger name="io.sinistral.proteus.services" level="ERROR" />
 	
 	io.sinistral.proteus.services
 	<logger name="com.relayrides" level="ERROR" />

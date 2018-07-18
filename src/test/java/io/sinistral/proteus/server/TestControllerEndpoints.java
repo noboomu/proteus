@@ -14,10 +14,15 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.CoreMatchers;
@@ -41,6 +46,8 @@ public class TestControllerEndpoints
 {
  
 	private File file = null;
+	
+	private Set<Long> idSet = new HashSet<>();
 
 	@Before
 	public void setUp()
@@ -52,6 +59,11 @@ public class TestControllerEndpoints
 			random.nextBytes(bytes);
 
 			file = Files.createTempFile("test-asset", ".mp4").toFile();
+			
+			LongStream.range(1L,10L).forEach( l -> {
+				
+				idSet.add(l);
+			});
 
 		} catch (Exception e)
 		{
@@ -71,6 +83,18 @@ public class TestControllerEndpoints
 	{
 		User user = given().accept(ContentType.JSON).log().uri().when().get("tests/exchange/user/json").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
+	}
+	
+	@Test
+	public void genericSet()
+	{
+		given().accept(ContentType.JSON).log().uri().when().queryParam("ids", idSet).get("tests/generic/set").then().statusCode(200).body(containsString("1"));
+	}
+	
+	@Test
+	public void optionalGenericSet()
+	{
+		given().accept(ContentType.JSON).log().uri().when().queryParam("ids",idSet).get("tests/optional/set").then().statusCode(200).body(containsString("1"));
 	}
 
 	@Test
@@ -113,13 +137,24 @@ public class TestControllerEndpoints
 	}
 	
 	@Test
-	public void responseEchoUser()
+	public void responseEchoModel()
 	{
-		User user = new User(101L,UserType.ADMIN);
+		User model = new User(101L,UserType.ADMIN);
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(user).log().uri().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().all().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
 
 	}
+	
+	@Test
+	public void responseInnerClassModel()
+	{
+		User.InnerUserModel model = new User.InnerUserModel();
+		model.id = 101L;
+		  
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().all().when().post("tests/response/json/innerClass").then().statusCode(200).and().body(containsString("101"));
+
+	}
+	 
 
 	@Test
 	public void responseFutureUser()
@@ -150,6 +185,28 @@ public class TestControllerEndpoints
 			IOUtils.closeQuietly(is);
 
 			assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	
+	@Test
+	public void responseParseListParameter()
+	{
+
+		try
+		{
+			
+			List<Long> values = new Random().longs(10, 0L, 20L).boxed().collect(Collectors.toList());
+			
+			  
+			
+			given().contentType(ContentType.JSON).accept(ContentType.JSON).body(values).log().all().when().post("tests/response/parse/ids").then().statusCode(200);
+
 
 		} catch (Exception e)
 		{

@@ -1,10 +1,10 @@
 
 ![Alt logo](https://cdn.rawgit.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/proteus-logo.svg)
 
-* An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first REST API framework atop [Undertow](http://undertow.io). 
+* An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first MVC REST framework atop [Undertow](http://undertow.io). 
 * Inspired by: [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
-* Verifiably [fast AF](https://www.techempower.com/benchmarks/previews/round15/#section=data-r15&hw=ph&test=db).
-* Waaaaaaaay faster than Play and Spring, checkout the latest Techempower benchmarks.
+* Verifiably [FAST AF](https://www.techempower.com/benchmarks/).
+* [Latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus at least 6x faster than Spring and Play across the board. 
 
 ## Motivation
 
@@ -34,7 +34,7 @@ Prior to calling `start` on the `ProteusApplication` instance:
 
 Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/swagger` and [Redoc](https://github.com/Rebilly/ReDoc) at `/swagger/redoc`.
 
-> A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.servicesBaseService`.
+> A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.services.BaseService`.
 
 > A `Module` implements `com.google.inject.Module`.
 
@@ -102,9 +102,10 @@ public class Examples
 ```
 
 
-## Controller Classes
-### Annotations
-##### Class
+# Controllers
+
+### Controller Class Annotations
+---
 Controller classes respect standard Swagger / JAX-RS annotations:
 ```java
 @Api(tags="benchmarks")
@@ -112,7 +113,9 @@ Controller classes respect standard Swagger / JAX-RS annotations:
 @Produces((MediaType.APPLICATION_JSON)) 
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD))
 ```
-##### Method
+
+### Controller Method Annotations
+---
 Controller class methods also respect standard Swagger / JAX-RS annotations:
 ```java
 @GET
@@ -124,9 +127,10 @@ public void plaintext(HttpServerExchange exchange)
 	response("Hello, World!").contentType(PLAINTEXT_TYPE).send(exchange);
 }
 ```
+In addition, the `io.sinistral.proteus.annotations.Blocking` annotation can be used to explicitly mark a method for blocked request handling. 
 
 ### Return Types
-
+---
 ##### HttpServerExchange = Total Control
 
 For total control and maximum performance the raw `HttpServerExchange` can be passed to the controller method.
@@ -198,6 +202,7 @@ public void handleRequest(final io.undertow.server.HttpServerExchange exchange) 
 ```
 
 ### Arguments
+---
 A ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint argument if the user wishes to access request properties that are not included in the argument list.
 
 Proteus is capable of parsing most types of endpoint arguments automatically so long as the type has a ```fromString```, ```valueOf```, or can be deserialized from JSON.
@@ -243,9 +248,11 @@ public ServerResponse<Map<String,Object>> complexParameters(
 		return response(responseMap).applicationJson(); 
 	}
 ```
-## Services
+### Services
+---
 Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
-##### AssetsService
+#### AssetsService
+---
 The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
 
 The default configuration:
@@ -261,7 +268,8 @@ assets {
     }
 }
 ```
-##### SwaggerService   
+#### SwaggerService   
+---
 The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
 
 The service is configured in your ```application.conf``` file.
@@ -294,13 +302,16 @@ swagger {
     schemes = ["http"]
     }
 ```
-
+---
 ## Getting Started
 COMING SOON
- 
+
+---
+
 ## Examples
 COMING SOON
 
+---
  
 ### Dependencies
 

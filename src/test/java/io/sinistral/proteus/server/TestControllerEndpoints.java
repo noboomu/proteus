@@ -137,13 +137,24 @@ public class TestControllerEndpoints
 	}
 	
 	@Test
-	public void responseEchoUser()
+	public void responseEchoModel()
 	{
-		User user = new User(101L,UserType.ADMIN);
+		User model = new User(101L,UserType.ADMIN);
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(user).log().all().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().all().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
 
 	}
+	
+	@Test
+	public void responseInnerClassModel()
+	{
+		User.InnerUserModel model = new User.InnerUserModel();
+		model.id = 101L;
+		  
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().all().when().post("tests/response/json/innerClass").then().statusCode(200).and().body(containsString("101"));
+
+	}
+	 
 
 	@Test
 	public void responseFutureUser()

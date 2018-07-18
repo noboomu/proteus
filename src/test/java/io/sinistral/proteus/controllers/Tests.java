@@ -193,6 +193,16 @@ public class Tests
 		return response(user).applicationJson();
 	}
 	
+	@POST
+	@Path("/response/json/innerClass")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
+ 	@Consumes("*/*")
+	@ApiOperation(value = "Echo json inner class endpoint",   httpMethod = "POST" )
+	public ServerResponse<User.InnerUserModel> responseInnerClassTest(ServerRequest request, @BeanParam User.InnerUserModel userInnerModel ) throws Exception
+	{  
+		return response(userInnerModel).applicationJson();
+	}
+	
 	  
 	@GET
 	@Path("/generic/set")

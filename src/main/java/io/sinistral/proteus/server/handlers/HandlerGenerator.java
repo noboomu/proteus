@@ -890,7 +890,6 @@ public class HandlerGenerator
 
 		}).distinct().collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForType));
 
-		log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 		parameterizedLiteralsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeReference = new $T<$L>(){}", TypeReference.class, t, n, TypeReference.class, t));
 
 		literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeReference = new $T<$T>(){}", TypeReference.class, t, n, TypeReference.class, t));
@@ -1103,6 +1102,8 @@ public class HandlerGenerator
 				}
 			}
 
+			log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
+
 			Arrays.stream(m.getParameters()).forEachOrdered(p -> {
 
 				Type type = p.getParameterizedType();
@@ -1191,24 +1192,36 @@ public class HandlerGenerator
 							
 							TypeHandler t = TypeHandler.forType(type, isBeanParameter);
 							 
+							log.debug("beanParam handler: " + t);
+
 							if (t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType))
 							{
 								String interfaceType = parameterizedLiteralsNameMap.get(type);
 
-								String pType = interfaceType != null ? interfaceType + "TypeReference" : type.getTypeName() + ".class";
+								String typeName = type.getTypeName();
+								
+								if(typeName.indexOf("$") > -1)
+								{
+									typeName = typeName.replace("$", ".");
+								}
+								
+								String pType = interfaceType != null ? interfaceType + "TypeReference" : typeName + ".class";
 
 								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 
 							}
-							
-						 
-							
-							 
 							else if (t.equals(TypeHandler.BeanListFromStringType) || t.equals(TypeHandler.BeanListValueOfType))
 							{
 								String interfaceType = parameterizedLiteralsNameMap.get(type);
 
-								String pType = interfaceType != null ? interfaceType + "TypeReference" : type.getTypeName() + ".class";
+								String typeName = type.getTypeName();
+
+								if(typeName.indexOf("$") > -1)
+								{
+									typeName = typeName.replace("$", ".");
+								}
+								
+								String pType = interfaceType != null ? interfaceType + "TypeReference" : typeName + ".class";
 
 								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 

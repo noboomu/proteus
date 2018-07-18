@@ -141,7 +141,7 @@ public class TestControllerEndpoints
 	{
 		User model = new User(101L,UserType.ADMIN);
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().all().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().uri().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
 
 	}
 	
@@ -151,7 +151,7 @@ public class TestControllerEndpoints
 		User.InnerUserModel model = new User.InnerUserModel();
 		model.id = 101L;
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().all().when().post("tests/response/json/innerClass").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().uri().when().post("tests/response/json/innerClass").then().statusCode(200).and().body(containsString("101"));
 
 	}
 	 
@@ -167,6 +167,12 @@ public class TestControllerEndpoints
 	public void responseMap()
 	{
 		given().accept(ContentType.JSON).log().uri().when().get("tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
+	}
+	
+	@Test
+	public void testRedirect()
+	{
+		given().log().uri().when().get("tests/redirect").then().statusCode(200).and().header("Server", "gws");
 	}
 
 	@SuppressWarnings("resource")

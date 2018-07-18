@@ -225,6 +225,15 @@ public class Tests
 		 
 	}
 	
+	
+	@GET
+	@Path("/redirect")
+	@ApiOperation(value = "Redirect endpoint",   httpMethod = "GET" )
+	public ServerResponse<?> testRedirect()
+	{ 
+		return response().redirect("https://google.com");
+	}
+	
 	@POST
 	@Path("/response/parse/ids")
 	@Blocking

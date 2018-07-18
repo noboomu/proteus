@@ -15,6 +15,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
+import io.undertow.Handlers;
 import io.undertow.io.IoCallback;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
@@ -55,6 +56,7 @@ public class ServerResponse<T>
 	protected boolean processXml = false;
 	protected boolean processJson = false;
 	protected boolean preprocessed = false;
+	protected String redirectLocation = null;
 
 	public ServerResponse()
 	{
@@ -265,6 +267,12 @@ public class ServerResponse<T>
 		this.status = StatusCodes.OK;
 		return this;
 	}
+	
+	public ServerResponse<T> redirect(String location)
+	{
+		this.redirectLocation = location;
+		return this;
+	}
 
 	public ServerResponse<T> accepted()
 	{
@@ -390,6 +398,18 @@ public class ServerResponse<T>
 
 	public void send(final HttpHandler handler, final HttpServerExchange exchange) throws RuntimeException
 	{
+		if(this.redirectLocation != null)
+		{ 
+			try
+			{
+				Handlers.redirect(redirectLocation).handleRequest(exchange);
+			} catch (Exception e)
+			{
+				throw new RuntimeException(e);
+			}
+			return;
+		}
+		
 		final boolean hasBody = this.body != null;
 		final boolean hasEntity = this.entity != null;
 		final boolean hasError = this.throwable != null;

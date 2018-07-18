@@ -3,6 +3,8 @@
  */
 package io.sinistral.proteus.server.handlers;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,14 +59,23 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
         
         	 Map<String, String> errorMap = new HashMap<>();
         	 
+		 	 errorMap.put("exceptionClass", throwable.getClass().getName()); 
+
         	 errorMap.put("message", throwable.getMessage());
-        	 
+        	  
         	 if( throwable.getStackTrace() != null )
      		{
      			if( throwable.getStackTrace().length > 0 )
      			{
-     				errorMap.put("exceptionClass", throwable.getStackTrace()[0].getClassName()); 
+     				errorMap.put("className", throwable.getStackTrace()[0].getClassName()); 
      			}
+     			
+     			StringWriter sw = new StringWriter();
+     			throwable.printStackTrace(new PrintWriter(sw));
+     			String exceptionAsString = sw.toString();
+     			
+     			errorMap.put("stackTrace", exceptionAsString);
+
      		} 
         	 
         	 if(throwable instanceof IllegalArgumentException )

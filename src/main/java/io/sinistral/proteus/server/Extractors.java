@@ -104,7 +104,7 @@ public class Extractors
 					return OBJECT_MAPPER.readValue(b, type);
 				} catch (Exception e)
 				{
-					//log.error(e.getMessage(),e);
+					log.error(e.getMessage(),e);
 					return null;
 				}
 			});
@@ -118,7 +118,7 @@ public class Extractors
 					return OBJECT_MAPPER.readValue(b, type);
 				} catch (Exception e)
 				{
-					//log.error(e.getMessage(),e);
+					log.error(e.getMessage(),e);
 					return null;
 				}
 			});
@@ -132,7 +132,7 @@ public class Extractors
 					 return XML_MAPPER.readValue(b,XML_MAPPER.getTypeFactory().constructType(type.getType()));
 				} catch (Exception e)
 				{
-					//log.error(e.getMessage(),e);
+					log.error(e.getMessage(),e);
 					return null;
 				}
 			});
@@ -146,7 +146,7 @@ public class Extractors
 					 return XML_MAPPER.readValue(b,type);
 				} catch (Exception e)
 				{
-					//log.error(e.getMessage(),e);
+					log.error(e.getMessage(),e);
 					return null;
 				}
 			});

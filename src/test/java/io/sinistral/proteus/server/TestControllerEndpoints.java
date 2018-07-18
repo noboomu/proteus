@@ -14,11 +14,15 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.CoreMatchers;
@@ -42,6 +46,8 @@ public class TestControllerEndpoints
 {
  
 	private File file = null;
+	
+	private Set<Long> idSet = new HashSet<>();
 
 	@Before
 	public void setUp()
@@ -53,6 +59,11 @@ public class TestControllerEndpoints
 			random.nextBytes(bytes);
 
 			file = Files.createTempFile("test-asset", ".mp4").toFile();
+			
+			LongStream.range(1L,10L).forEach( l -> {
+				
+				idSet.add(l);
+			});
 
 		} catch (Exception e)
 		{
@@ -72,6 +83,18 @@ public class TestControllerEndpoints
 	{
 		User user = given().accept(ContentType.JSON).log().uri().when().get("tests/exchange/user/json").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
+	}
+	
+	@Test
+	public void genericSet()
+	{
+		given().accept(ContentType.JSON).log().uri().when().queryParam("ids", idSet).get("tests/generic/set").then().statusCode(200).body(containsString("1"));
+	}
+	
+	@Test
+	public void optionalGenericSet()
+	{
+		given().accept(ContentType.JSON).log().uri().when().queryParam("ids",idSet).get("tests/optional/set").then().statusCode(200).body(containsString("1"));
 	}
 
 	@Test

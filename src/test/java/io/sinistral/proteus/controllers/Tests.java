@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -190,6 +191,28 @@ public class Tests
 	public ServerResponse<User> responseEchoJson(ServerRequest request, @FormParam("user") User user ) throws Exception
 	{  
 		return response(user).applicationJson();
+	}
+	
+	  
+	@GET
+	@Path("/generic/set")
+	@ApiOperation(value = "Generic set endpoint",   httpMethod = "GET" )
+	public ServerResponse<Set<Long>>  genericSet( ServerRequest request, @QueryParam("ids") Set<Long> ids )  throws Exception
+	{  
+		 
+			return response( ids ).applicationJson(); 
+		 
+	}
+	
+	  
+	@GET
+	@Path("/optional/set")
+	@ApiOperation(value = "Generic optional set endpoint",   httpMethod = "GET" )
+	public ServerResponse<Set<Long>>  genericOptionalSet( ServerRequest request, @QueryParam("ids") Optional<Set<Long>> ids )  throws Exception
+	{  
+		 
+			return response( ids.get() ).applicationJson(); 
+		 
 	}
 	
 	@POST

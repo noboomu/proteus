@@ -118,6 +118,10 @@ public class HandlerGenerator
 		QueryListValueOfType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toList())", false, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
 		QueryListFromStringType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toList())", false, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
  
+		QuerySetValueOfType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toSet())", false, java.util.Set.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+		QuerySetFromStringType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toSet())", false, java.util.Set.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+ 
+		
 		//BeanListValueOfType("$T<$T> $L = $T.string(exchange,$S).map($T::valueOf).collect(java.util.stream.Collectors.toList())", true, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class,  StatementParameterType.LITERAL,  StatementParameterType.RAW),
 		BeanListValueOfType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
 		BeanListFromStringType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
@@ -134,11 +138,14 @@ public class HandlerGenerator
 		QueryOptionalListValueOfType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toList()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
 		QueryOptionalListFromStringType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toList()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
 
+		QueryOptionalSetValueOfType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toSet()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+		QueryOptionalSetFromStringType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toSet()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
+
  
 		OptionalBeanListValueOfType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 		OptionalBeanListFromStringType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
-		
+
 		OptionalJsonNodeType("$T<$T> $L = $T.jsonNode(exchange)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
 		OptionalAnyType("$T<$T> $L = $T.any(exchange)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
 		OptionalStringType("$T<String> $L = $T.string(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
@@ -152,6 +159,8 @@ public class HandlerGenerator
 		OptionalFloatType("$T<Long> $L = $T.floatValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalDoubleType("$T<Integer> $L = $T.doubleValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 
+
+		
 		OptionalDateType("$T<$T> $L = $T.date(exchange,$S)", false, Optional.class, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalInstantType("$T<$T> $L = $T.instant(exchange,$S)", false, Optional.class, java.time.Instant.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalZonedDateTimeType("$T<$T> $L = $T.zonedDateTime(exchange,$S)", false, Optional.class, java.time.ZonedDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
@@ -320,8 +329,10 @@ public class HandlerGenerator
 			boolean hasFromString = false;
 			boolean isOptional = type.getTypeName().contains("java.util.Optional");
 			boolean isArray = type.getTypeName().contains("java.util.List");
+			boolean isSet = type.getTypeName().contains("java.util.Set");
+			boolean isMap = type.getTypeName().contains("java.util.Map");
 
-			if (!isOptional && !isArray)
+			if (!isOptional && !isArray && !isSet)
 			{
 				try
 				{
@@ -378,6 +389,47 @@ public class HandlerGenerator
 
 				}
 			}
+			if (isSet && !isOptional)
+			{
+				try
+				{
+					Class<?> erasedType = (Class<?>) extractErasedType(type);
+
+					if (hasValueOfMethod(erasedType))
+					{
+						if(!isBeanParam)
+						{
+							return QuerySetValueOfType;
+
+						}
+						else
+						{
+							return BeanListValueOfType;
+						} 
+					}
+					else if (hasFromStringMethod(erasedType))
+					{ 
+						if(!isBeanParam)
+						{
+							return QuerySetFromStringType;
+
+						}
+						else
+						{
+							return BeanListFromStringType;
+						} 
+					}
+					else
+					{
+						return ModelType;
+					}
+
+				} catch (Exception e)
+				{
+					log.error(e.getMessage(), e);
+
+				}
+			}
 			else if (isArray && isOptional)
 			{
 				try
@@ -409,6 +461,55 @@ public class HandlerGenerator
  						if(!isBeanParam)
 						{
 							return QueryOptionalListFromStringType;
+
+						}
+						else
+						{
+							return OptionalBeanListFromStringType;
+						}  
+					}
+					else
+					{
+						return ModelType;
+					}
+
+				} catch (Exception e)
+				{
+					log.error(e.getMessage(), e);
+
+				}
+			}
+			else if (isSet && isOptional)
+			{
+				try
+				{
+
+					if (type instanceof ParameterizedType)
+					{
+						ParameterizedType pType = (ParameterizedType) type;
+						type = pType.getActualTypeArguments()[0];
+					}
+
+					Class<?> erasedType = (Class<?>) extractErasedType(type);
+
+					if (hasValueOfMethod(erasedType))
+					{
+						if(!isBeanParam)
+						{
+							return QueryOptionalSetValueOfType;
+
+						}
+						else
+						{
+							return OptionalBeanListValueOfType;
+						}  
+
+					}
+					else if (hasFromStringMethod(erasedType))
+					{
+ 						if(!isBeanParam)
+						{
+							return QueryOptionalSetFromStringType;
 
 						}
 						else
@@ -691,9 +792,12 @@ public class HandlerGenerator
 					
 					
 					TypeHandler handler = TypeHandler.forType(t);
-					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
+					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType)  );
 					
 				}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
+		
+		
+		
 		
 		
 		Arrays.stream(clazz.getDeclaredMethods()).filter( m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters())).forEach( p -> {
@@ -706,7 +810,7 @@ public class HandlerGenerator
 			{
 				TypeHandler handler = TypeHandler.forType(p.getParameterizedType(),true);
 				
-				if( handler.equals(TypeHandler.BeanListValueOfType) || handler.equals(TypeHandler.BeanListFromStringType) || handler.equals(TypeHandler.OptionalBeanListValueOfType) || handler.equals(TypeHandler.OptionalBeanListFromStringType))
+				if( handler.equals(TypeHandler.BeanListValueOfType) ||  handler.equals(TypeHandler.BeanListFromStringType) || handler.equals(TypeHandler.OptionalBeanListValueOfType) || handler.equals(TypeHandler.OptionalBeanListFromStringType))
 				{
 					parameterizedLiteralsNameMap.put(p.getParameterizedType(),HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
 				}
@@ -786,6 +890,7 @@ public class HandlerGenerator
 
 		}).distinct().collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForType));
 
+		log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 		parameterizedLiteralsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeReference = new $T<$L>(){}", TypeReference.class, t, n, TypeReference.class, t));
 
 		literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeReference = new $T<$T>(){}", TypeReference.class, t, n, TypeReference.class, t));
@@ -1095,6 +1200,10 @@ public class HandlerGenerator
 								methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 
 							}
+							
+						 
+							
+							 
 							else if (t.equals(TypeHandler.BeanListFromStringType) || t.equals(TypeHandler.BeanListValueOfType))
 							{
 								String interfaceType = parameterizedLiteralsNameMap.get(type);
@@ -1109,7 +1218,7 @@ public class HandlerGenerator
 
 								TypeHandler.addStatement(methodBuilder, p);
 							}
-							else if (t.equals(TypeHandler.QueryOptionalListFromStringType) || t.equals(TypeHandler.QueryOptionalListValueOfType))
+							else if (t.equals(TypeHandler.QueryOptionalListFromStringType) || t.equals(TypeHandler.QueryOptionalListValueOfType) ||  t.equals(TypeHandler.QueryOptionalSetValueOfType) ||   t.equals(TypeHandler.QueryOptionalSetValueOfType))
 							{
 								// $T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map($T
 
@@ -1140,7 +1249,16 @@ public class HandlerGenerator
 
 								Class<?> erasedType = (Class<?>) extractErasedType(type);
 
+								try
+								{
+									
+							 
 								methodBuilder.addStatement(t.statement, pType, p.getName(), p.getName(), erasedType);
+								
+								} catch (Exception e)
+								{
+									log.error( "method builder: \nstatement: " + t.statement + "\npType: "+ pType + "\np.name(): " + p.getName() + "\nerasedType: " + erasedType);
+								}
 
 							}
 							else
@@ -1508,7 +1626,13 @@ public class HandlerGenerator
 
 	protected static String typeReferenceNameForParameterizedType(Type type)
 	{
+		
 		String typeName = type.getTypeName();
+		
+		if(typeName.contains("Optional"))
+		{
+			log.warn("For an optional named: " + typeName);
+		}
 
 		Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
 

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.sinistral</groupId>
 	<artifactId>proteus-core</artifactId>
-	<version>0.3.0-SNAPSHOT</version>
+	<version>0.3.1-SNAPSHOT</version>
 	<name>proteus core</name>
     <description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
     <url>http://github.com/noboomu/proteus</url>

@@ -130,7 +130,7 @@ public class ServerResponse<T>
 	 * @param contentType
 	 *            the contentType to set
 	 */
-	public void setContentType(String contentType)
+	protected void setContentType(String contentType)
 	{
 		this.contentType = contentType;
 
@@ -281,6 +281,13 @@ public class ServerResponse<T>
 		this.status = StatusCodes.MOVED_PERMANENTLY;;
 		return this;
 	}
+	
+	public ServerResponse<T> found()
+	{
+		this.status = StatusCodes.FOUND;
+		return this;
+	}
+
 
 	public ServerResponse<T> accepted()
 	{
@@ -296,13 +303,12 @@ public class ServerResponse<T>
 	
 	public ServerResponse<T> badRequest(Throwable t)
 	{
-		this.status = StatusCodes.BAD_REQUEST;
 		this.throwable = t;
-		return this;
+		return this.badRequest();
 	}
 	public ServerResponse<T> badRequest(String message)
 	{ 
-		return this.badRequest(new Throwable(message));
+		return this.errorMessage(message).badRequest();
 	}
 	
 	public ServerResponse<T> internalServerError()
@@ -313,14 +319,13 @@ public class ServerResponse<T>
 	
 	public ServerResponse<T> internalServerError(Throwable t)
 	{
-		this.status = StatusCodes.INTERNAL_SERVER_ERROR;
 		this.throwable = t;
-		return this;
+		return this.internalServerError();
 	}
 	
 	public ServerResponse<T> internalServerError(String message)
 	{ 
-		return this.internalServerError(new Throwable(message));
+		return this.errorMessage(message).internalServerError();
 	}
 
 	public ServerResponse<T> created()
@@ -337,14 +342,13 @@ public class ServerResponse<T>
 	
 	public ServerResponse<T> notFound(Throwable t)
 	{
-		this.status = StatusCodes.NOT_FOUND;
 		this.throwable = t;
-		return this;
+		return this.notFound();
 	}
 	
 	public ServerResponse<T> notFound(String message)
 	{ 
-		return this.notFound(new Throwable(message));
+		return this.errorMessage(message).notFound();
 	}
 	 
 
@@ -355,24 +359,16 @@ public class ServerResponse<T>
 	}
 	
 	public ServerResponse<T> forbidden(Throwable t)
-	{
-		this.status = StatusCodes.FORBIDDEN;
+	{ 
 		this.throwable = t;
-		return this;
+		return this.forbidden();
 	}
 	
 	public ServerResponse<T> forbidden(String message)
 	{ 
-		return this.forbidden(new Throwable(message));
+		return this.errorMessage(message).forbidden();
 	}
 	 
-
-	public ServerResponse<T> found()
-	{
-		this.status = StatusCodes.FOUND;
-		return this;
-	}
-
 	public ServerResponse<T> noContent()
 	{
 		this.status = StatusCodes.NO_CONTENT;
@@ -381,15 +377,56 @@ public class ServerResponse<T>
 	
 	public ServerResponse<T> noContent(Throwable t)
 	{
-		this.status = StatusCodes.NO_CONTENT;
 		this.throwable = t;
-		return this;
+		return this.noContent();
 	}
 
 	
 	public ServerResponse<T> noContent(String message)
 	{ 
-		return this.noContent(new Throwable(message));
+		return this.errorMessage(message).noContent();
+	}
+	
+	public ServerResponse<T> serviceUnavailable()
+	{
+		this.status = StatusCodes.SERVICE_UNAVAILABLE;
+		return this;
+	}
+	
+	public ServerResponse<T> serviceUnavailable(Throwable t)
+	{
+		this.throwable = t;
+		return this.serviceUnavailable();
+	}
+
+	
+	public ServerResponse<T> serviceUnavailable(String message)
+	{ 
+		return this.errorMessage(message).serviceUnavailable();
+	}
+	
+	public ServerResponse<T> unauthorized()
+	{
+		this.status = StatusCodes.UNAUTHORIZED;
+		return this;
+	}
+	
+	public ServerResponse<T> unauthorized(Throwable t)
+	{
+		this.throwable = t;
+		return this.unauthorized();
+	}
+
+	
+	public ServerResponse<T> unauthorized(String message)
+	{ 
+		return this.errorMessage(message).unauthorized();
+	}
+	
+	public ServerResponse<T> errorMessage(String message)
+	{ 
+		this.throwable = new Throwable(message);
+		return this;
 	}
 	
 	public ServerResponse<T> withIoCallback(IoCallback ioCallback)

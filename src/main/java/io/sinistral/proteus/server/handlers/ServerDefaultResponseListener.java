@@ -5,8 +5,11 @@ package io.sinistral.proteus.server.handlers;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 
@@ -63,6 +66,8 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 
         	 errorMap.put("message", throwable.getMessage());
         	  
+        	 log.error(throwable.getMessage(),throwable);
+
         	 if( throwable.getStackTrace() != null )
      		{
      			if( throwable.getStackTrace().length > 0 )
@@ -74,10 +79,19 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
      			throwable.printStackTrace(new PrintWriter(sw));
      			String exceptionAsString = sw.toString();
      			
-     			errorMap.put("stackTrace", exceptionAsString);
+     			List<String> stringList = Arrays.stream(exceptionAsString.split("\n")).collect(Collectors.toList());
+     			 
+     			try
+				{
+					errorMap.put("stackTrace", objectMapper.writeValueAsString(stringList));
+				} catch (JsonProcessingException e)
+				{
+					log.error(e.getMessage());
+				}
 
      		} 
         	 
+         	 
         	 if(throwable instanceof IllegalArgumentException )
         	 {
         		 exchange.setStatusCode(StatusCodes.BAD_REQUEST);

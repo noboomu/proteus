@@ -101,6 +101,9 @@ import io.undertow.server.HttpServerExchange;
  *
  */
 public class Reader {
+	
+	private static Logger log = LoggerFactory.getLogger(Reader.class.getCanonicalName());
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Reader.class);
     private static final String SUCCESSFUL_OPERATION = "successful operation";
     private static final String PATH_DELIMITER = "/";
@@ -1395,8 +1398,11 @@ public class Reader {
         String operationIdToFind = null;
         int counter = 0;
         while (operationIdUsed) {
+        	
+            log.debug("duplicate operation id: " + operationIdUsed);
+
             operationIdToFind = String.format("%s_%d", operationId, ++counter);
-            operationIdUsed = existOperationId(operationIdToFind);
+             operationIdUsed = existOperationId(operationIdToFind);
         }
         if (operationIdToFind != null) {
             operationId = operationIdToFind;

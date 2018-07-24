@@ -158,6 +158,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	
 	protected String redocHTML = null;
 
+	@SuppressWarnings("deprecation")
 	public SwaggerService( )
 	{ 
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

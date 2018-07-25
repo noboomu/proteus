@@ -3,9 +3,14 @@
  */
 package io.sinistral.proteus.server;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+
+import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +20,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
-import io.undertow.Handlers;
 import io.undertow.io.IoCallback;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
@@ -29,7 +33,10 @@ import io.undertow.util.StatusCodes;
 
 /**
  * @author jbauer
+ * Base server response. Friendlier interface to underlying exchange.
+ * @TODO extend javax.ws.rs.core.Response
  */
+
 public class ServerResponse<T>
 {
 	private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
@@ -56,7 +63,7 @@ public class ServerResponse<T>
 	protected boolean processXml = false;
 	protected boolean processJson = false;
 	protected boolean preprocessed = false;
-	protected String redirectLocation = null;
+	protected String location = null;
 
 	public ServerResponse()
 	{
@@ -125,6 +132,15 @@ public class ServerResponse<T>
 	{
 		this.status = status;
 	}
+	
+	/**
+	 * @param status
+	 *            the status to set
+	 */
+	public void setStatus(Response.Status status)
+	{
+		this.status = status.getStatusCode();
+	}
 
 	/**
 	 * @param contentType
@@ -167,6 +183,24 @@ public class ServerResponse<T>
 		this.entity = entity;
 		this.preprocessed = false;
 
+		return this;
+	}
+	
+	public ServerResponse<T> lastModified(Date date)
+	{
+		this.headers.add(Headers.LAST_MODIFIED, date.getTime());
+		return this;
+	}
+	
+	public ServerResponse<T> contentLanguage(Locale locale)
+	{
+		this.headers.add(Headers.CONTENT_LANGUAGE, locale.toLanguageTag());
+		return this;
+	}
+	
+	public ServerResponse<T> contentLanguage(String language)
+	{
+		this.headers.add(Headers.CONTENT_LANGUAGE, language);
 		return this;
 	}
 
@@ -270,14 +304,14 @@ public class ServerResponse<T>
 	
 	public ServerResponse<T> redirect(String location)
 	{
-		this.redirectLocation = location;
+		this.location = location;
 		this.status = StatusCodes.FOUND;
 		return this;
 	}
 	
 	public ServerResponse<T> redirectPermanently(String location)
 	{
-		this.redirectLocation = location;
+		this.location = location;
 		this.status = StatusCodes.MOVED_PERMANENTLY;;
 		return this;
 	}
@@ -333,6 +367,27 @@ public class ServerResponse<T>
 		this.status = StatusCodes.CREATED;
 		return this;
 	}
+	
+	public ServerResponse<T> created(String location)
+	{
+		this.status = StatusCodes.CREATED;
+		this.location = location;
+		return this;
+	}
+	
+	public ServerResponse<T> created(URI uri)
+	{
+		this.status = StatusCodes.CREATED;
+		this.location = uri.toString();
+		return this;
+	}
+	
+	public ServerResponse<T> notModified()
+	{
+		this.status = StatusCodes.NOT_MODIFIED; 
+		return this;
+	}
+	 
 
 	public ServerResponse<T> notFound()
 	{
@@ -443,10 +498,16 @@ public class ServerResponse<T>
 
 	public void send(final HttpHandler handler, final HttpServerExchange exchange) throws RuntimeException
 	{
-		if(this.redirectLocation != null)
-		{ 
-			exchange.setStatusCode(this.status);
-		    exchange.getResponseHeaders().put(Headers.LOCATION, this.redirectLocation);
+
+		exchange.setStatusCode(this.status);
+		
+		if(this.location != null)
+		{  
+		    exchange.getResponseHeaders().put(Headers.LOCATION, this.location);
+		}
+		
+		if(this.status == StatusCodes.TEMPORARY_REDIRECT || this.status == StatusCodes.PERMANENT_REDIRECT)
+		{
 		    exchange.endExchange();
 			return;
 		}
@@ -474,7 +535,6 @@ public class ServerResponse<T>
 			exchange.getResponseCookies().putAll(this.cookies);
 		}
 
-		exchange.setStatusCode(this.status);
 
 		if (this.contentType != null)
 		{

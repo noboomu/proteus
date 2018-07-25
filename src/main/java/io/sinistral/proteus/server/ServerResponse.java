@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
@@ -88,6 +89,42 @@ public class ServerResponse<T>
 	public HeaderMap getHeaders()
 	{
 		return this.headers;
+	}
+	
+	public ServerResponse<T> addHeader(HttpString headerName, String headerValue)
+	{
+		this.headers.add(headerName, headerValue);
+		this.hasHeaders = true;
+		
+		return this;
+	}
+	
+	public ServerResponse<T> addHeader(String headerString, String headerValue)
+	{
+		HttpString headerName = HttpString.tryFromString(headerString);
+		
+		this.headers.add(headerName, headerValue);
+		this.hasHeaders = true;
+		
+		return this;
+	}
+	
+	public ServerResponse<T> setHeader(HttpString headerName, String headerValue)
+	{
+		this.headers.put(headerName, headerValue);
+		this.hasHeaders = true;
+		
+		return this;
+	}
+	
+	public ServerResponse<T> setHeader(String headerString, String headerValue)
+	{
+		HttpString headerName = HttpString.tryFromString(headerString);
+		
+		this.headers.put(headerName, headerValue);
+		this.hasHeaders = true;
+		
+		return this;
 	}
 
 	/**
@@ -188,29 +225,31 @@ public class ServerResponse<T>
 	
 	public ServerResponse<T> lastModified(Date date)
 	{
-		this.headers.add(Headers.LAST_MODIFIED, date.getTime());
+		this.headers.put(Headers.LAST_MODIFIED, date.getTime());
 		return this;
 	}
 	
 	public ServerResponse<T> contentLanguage(Locale locale)
 	{
-		this.headers.add(Headers.CONTENT_LANGUAGE, locale.toLanguageTag());
+		this.headers.put(Headers.CONTENT_LANGUAGE, locale.toLanguageTag());
 		return this;
 	}
 	
 	public ServerResponse<T> contentLanguage(String language)
 	{
-		this.headers.add(Headers.CONTENT_LANGUAGE, language);
+		this.headers.put(Headers.CONTENT_LANGUAGE, language);
 		return this;
 	}
 
 	public ServerResponse<T> throwable(Throwable throwable)
 	{
 		this.throwable = throwable;
+		
 		if (this.status == StatusCodes.ACCEPTED)
 		{
-			badRequest();
+			return badRequest(throwable);
 		}
+		
 		return this;
 	}
 

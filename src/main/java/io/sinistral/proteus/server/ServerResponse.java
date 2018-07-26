@@ -538,7 +538,22 @@ public class ServerResponse<T>
 	public void send(final HttpHandler handler, final HttpServerExchange exchange) throws RuntimeException
 	{
 
+		 
+		
+		final boolean hasBody = this.body != null;
+		final boolean hasEntity = this.entity != null;
+		final boolean hasError = this.throwable != null;
+
 		exchange.setStatusCode(this.status);
+		
+	 
+		
+		if (hasError)
+		{
+			exchange.putAttachment(DefaultResponseListener.EXCEPTION, throwable);
+			exchange.endExchange();
+			return;
+		}
 		
 		if(this.location != null)
 		{  
@@ -551,10 +566,6 @@ public class ServerResponse<T>
 			return;
 		}
 		
-		final boolean hasBody = this.body != null;
-		final boolean hasEntity = this.entity != null;
-		final boolean hasError = this.throwable != null;
-
 		if (this.hasHeaders)
 		{
 			long itr = this.headers.fastIterateNonEmpty();
@@ -593,12 +604,7 @@ public class ServerResponse<T>
 			}
 		}
 
-		if (hasError)
-		{
-			exchange.putAttachment(DefaultResponseListener.EXCEPTION, throwable);
-			
-			return;
-		}
+		
 
 		if (hasBody)
 		{

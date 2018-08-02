@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.io.Receiver;
 import io.undertow.security.api.SecurityContext;
+import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
@@ -34,19 +35,17 @@ import io.undertow.util.Headers;
  */
 public class ServerRequest
 {    
-    private static final LinkedBlockingDeque<IOException> EXCEPTIONS = new LinkedBlockingDeque<>();
-
-	 public static final Receiver.ErrorCallback ERROR_CALLBACK = new Receiver.ErrorCallback() {
+	 protected static final Receiver.ErrorCallback ERROR_CALLBACK = new Receiver.ErrorCallback() {
 	        @Override
 	        public void error(HttpServerExchange exchange, IOException e) {
-	            EXCEPTIONS.add(e);
+	            
+				exchange.putAttachment(DefaultResponseListener.EXCEPTION, e);
+
 	            exchange.endExchange();
 	        }
 	    };
 	    
     public static final AttachmentKey<ByteBuffer> BYTE_BUFFER_KEY = AttachmentKey.create(ByteBuffer.class);
- 
-    private static Logger log = LoggerFactory.getLogger(ServerRequest.class.getCanonicalName());
 
 	protected static final String CHARSET = "UTF-8";
 	protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
@@ -157,10 +156,7 @@ public class ServerRequest
 	
 	private void extractBytes() throws IOException
 	{  
-		 log.debug("start extracting bytes!");
-		 
-			//this.exchange.startBlocking();
-			
+
 			this.exchange.getRequestReceiver().receiveFullBytes(new Receiver.FullBytesCallback() {
                 @Override
                 public void handle(HttpServerExchange exchange, byte[] message) {
@@ -172,72 +168,6 @@ public class ServerRequest
                 }
             }, ERROR_CALLBACK);
 			
-			
-//			long contentLength;
-//		    final ByteArrayOutputStream sb;
-//		        
-//	        String contentLengthString = exchange.getRequestHeaders().getFirst(Headers.CONTENT_LENGTH);
-//
-//	        if (contentLengthString != null) {
-//	            contentLength = Long.parseLong(contentLengthString);
-//	            sb = new ByteArrayOutputStream((int) contentLength);
-//	        }
-//	        else {
-//	            contentLength = -1;
-//	            sb = new ByteArrayOutputStream();
-//	        }
-//	        
-//	        int s;
-//	        
-//            final InputStream is = this.exchange.getInputStream();
-//
-//	        try (PooledByteBuffer pooled = exchange.getConnection().getByteBufferPool().getArrayBackedPool().allocate()) {
-//	            while ((s = is.read(pooled.getBuffer().array(), pooled.getBuffer().arrayOffset(), pooled.getBuffer().remaining())) > 0) {
-//	                sb.write(pooled.getBuffer().array(), pooled.getBuffer().arrayOffset(), s);
-//	            }
-//	        }
-//	        
-//	        ByteBuffer buffer = ByteBuffer.wrap(sb.toByteArray());
-//	        
-//	        exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
-	        
-//			 try (PooledByteBuffer pooled = exchange.getConnection().getByteBufferPool().getArrayBackedPool().allocate()){
-//	                ByteBuffer buf = pooled.getBuffer();
-//	                 
-//	                log.debug("buf: " + buf);
-//	                
-//                    final StreamSourceChannel channel = this.exchange.getRequestChannel(); 
-//                  
-//	                while (true) {
-//	                	 
-//	                	buf.clear();
-//	                	
-// 	                    int c = channel.read(buf); 
-// 	                      
-//	                    if (c == -1) {
-//	                      
-//	                    	int pos = buf.limit();
-//	                    	
-//	 	                    ByteBuffer buffer = ByteBuffer.allocate(pos);
-//
-//	                    	System.arraycopy(buf.array(), 0, buffer.array(), 0, pos);
-//	                    	
-//	                    	buffer.rewind();
-//	                    	
-//	                    	log.debug("buffer " + buffer + "\n" + new String(buffer.array()));
-//	                    	
-//	    	                exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
-//	    	                
-//	    	                break;
-//	    	                
-//	                    } else if (c != 0) {
-//	                        buf.limit(c);
-//	                    }
-//	                }
-// 	            } catch (MalformedMessageException e) {
-//	                throw new IOException(e);
-//	            } 
- 		
 	}
 
 	private void parseMultipartForm() throws IOException

@@ -159,7 +159,7 @@ public class ServerRequest
 	{  
 		 log.debug("start extracting bytes!");
 		 
-			this.exchange.startBlocking();
+			//this.exchange.startBlocking();
 			
 			this.exchange.getRequestReceiver().receiveFullBytes(new Receiver.FullBytesCallback() {
                 @Override

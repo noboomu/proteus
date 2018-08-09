@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -360,7 +361,17 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 				{
 					themePath= "themes/theme-" + swaggerTheme + ".css"; 
 				} 
-				 
+				
+//				ObjectNode specNode = mapper.createObjectNode();
+//				
+//				String specString = mapper.writeValueAsString(this.swagger);
+//				
+//				specNode.set("spec",mapper.readTree(specString));
+//				
+//				specNode.put("url",this.swaggerBasePath + ".json");
+//
+//				templateString = templateString.replace("{{ swaggerSpec }}", specNode.toString());
+
 				templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
 				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", swaggerBasePath);
 				templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");

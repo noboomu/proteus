@@ -6,6 +6,7 @@ package io.sinistral.proteus.server.swagger;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -108,6 +109,17 @@ public class AnnotationHelper
 			@Override
 			public String defaultValue()
 			{
+				try
+				{ 
+					DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
+					
+					return defaultValue.value();
+					
+				} catch (NullPointerException e)
+				{
+					
+				}
+				
 				// TODO Auto-generated method stub
 				return null;
 			}

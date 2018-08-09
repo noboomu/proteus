@@ -27,12 +27,8 @@ import java.util.stream.Stream;
 
 import javax.lang.model.element.Modifier;
 import javax.ws.rs.BeanParam;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +75,7 @@ import net.openhft.compiler.CompilerUtils;
 public class HandlerGenerator
 {
 
-	private static Logger log = LoggerFactory.getLogger(HandlerGenerator.class.getCanonicalName());
+	static Logger log = LoggerFactory.getLogger(HandlerGenerator.class.getCanonicalName());
 
 	private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
 	private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
@@ -87,596 +83,6 @@ public class HandlerGenerator
 	public enum StatementParameterType
 	{
 		STRING, LITERAL, TYPE, RAW
-	}
-
-	/**
-	 * Enum class that assists in code generation for different method parameter
-	 * types
-	 */
-	public enum TypeHandler
-	{
-
-		LongType("Long $L = $T.longValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		IntegerType("Integer $L = $T.integerValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		StringType("String $L =  $T.string(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		BooleanType("Boolean $L =  $T.booleanValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		FilePathType("$T $L = $T.filePath(exchange,$S)", true, java.nio.file.Path.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		AnyType("$T $L = $T.any(exchange)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
-		JsonNodeType("$T $L = $T.jsonNode(exchange)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
-		ModelType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
-
-		// EnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true,
-		// StatementParameterType.TYPE,
-		// StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class,
-		// StatementParameterType.TYPE, StatementParameterType.STRING),
-		ByteBufferType("$T $L =  $T.byteBuffer(exchange,$S)", true, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		DateType("$T $L =  $T.date(exchange,$S)", false, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		ZonedDateTimeType("$T $L = $T.zonedDateTime(exchange,$S)", false, java.time.ZonedDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		OffsetDateTimeType("$T $L = $T.offsetDateTime(exchange,$S)", false, java.time.OffsetDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-
-		FloatType("Integer $L = $T.floatValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		DoubleType("Integer $L = $T.doubleValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-
-		ValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-		FromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-
-		QueryListValueOfType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toList())", false, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-		QueryListFromStringType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toList())", false, java.util.List.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-
-		QuerySetValueOfType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toSet())", false, java.util.Set.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-		QuerySetFromStringType("$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toSet())", false, java.util.Set.class, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-
-		// BeanListValueOfType("$T<$T> $L =
-		// $T.string(exchange,$S).map($T::valueOf).collect(java.util.stream.Collectors.toList())",
-		// true, java.util.List.class, StatementParameterType.RAW,
-		// StatementParameterType.LITERAL,
-		// io.sinistral.proteus.server.Extractors.class,
-		// StatementParameterType.LITERAL, StatementParameterType.RAW),
-		BeanListValueOfType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
-		BeanListFromStringType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
-
-		HeaderValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
-		HeaderFromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
-		HeaderStringType("$T $L = $T.string(exchange,$S)", false, java.lang.String.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
-
-		OptionalHeaderValueOfType("$T<$T> $L = $T.string(exchange,$S).map($T::valueOf)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Header.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
-		OptionalHeaderFromStringType("$T<$T> $L = $T.string(exchange,$S).map($T::fromString)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Header.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
-		OptionalHeaderStringType("$T<$T> $L = $T.string(exchange,$S)", false, Optional.class, java.lang.String.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Header.Optional.class, StatementParameterType.STRING),
-
-		QueryOptionalListValueOfType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toList()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-		QueryOptionalListFromStringType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toList()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-
-		QueryOptionalSetValueOfType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toSet()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-		QueryOptionalSetFromStringType("$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toSet()))", false, StatementParameterType.RAW, StatementParameterType.LITERAL, StatementParameterType.STRING, StatementParameterType.RAW),
-
-		OptionalBeanListValueOfType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
-		OptionalBeanListFromStringType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
-
-		OptionalJsonNodeType("$T<$T> $L = $T.jsonNode(exchange)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
-		OptionalAnyType("$T<$T> $L = $T.any(exchange)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
-		OptionalStringType("$T<String> $L = $T.string(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalLongType("$T<Long> $L = $T.longValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalIntegerType("$T<Integer> $L = $T.integerValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalBooleanType("$T<Boolean> $L = $T.booleanValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalFilePathType("$T<$T> $L = $T.filePath(exchange,$S)", true, Optional.class, java.nio.file.Path.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-
-		OptionalByteBufferType("$T<$T> $L = $T.byteBuffer(exchange,$S)", true, Optional.class, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-
-		OptionalFloatType("$T<Long> $L = $T.floatValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalDoubleType("$T<Integer> $L = $T.doubleValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-
-		OptionalDateType("$T<$T> $L = $T.date(exchange,$S)", false, Optional.class, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalInstantType("$T<$T> $L = $T.instant(exchange,$S)", false, Optional.class, java.time.Instant.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalZonedDateTimeType("$T<$T> $L = $T.zonedDateTime(exchange,$S)", false, Optional.class, java.time.ZonedDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-		OptionalOffsetDateTimeType("$T<$T> $L = $T.offsetDateTime(exchange,$S)", false, Optional.class, java.time.OffsetDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-
-		OptionalModelType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
-
-		OptionalValueOfType("$T<$T> $L = $T.string(exchange,$S).map($T::valueOf)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
-		OptionalFromStringType("$T<$T> $L = $T.string(exchange,$S).map($T::fromString)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
-
-		// OptionalEnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true,
-		// StatementParameterType.TYPE, StatementParameterType.LITERAL,
-		// io.sinistral.proteus.server.Extractors.Optional.class,
-		// StatementParameterType.RAW, StatementParameterType.STRING),
-
-		;
-
-		public boolean isBlocking()
-		{
-			return this.isBlocking;
-		}
-
-		public String statement()
-		{
-			return this.statement;
-		}
-
-		/**
-		 * The template statement for the
-		 * {@link com.squareup.javapoet.MethodSpec.Builder} to use
-		 */
-		final private String statement;
-
-		/**
-		 * If the <code>TypeReference</code> requires the
-		 * {@link io.undertow.server.HttpHandler} to block
-		 */
-		final private boolean isBlocking;
-
-		/**
-		 * An {@code Object} array that is passed to the {@code statement}
-		 */
-		final private Object[] parameterTypes;
-
-		TypeHandler(String statement, boolean isBlocking, Object... types)
-		{
-			this.statement = statement;
-			this.isBlocking = isBlocking;
-			this.parameterTypes = types;
-		}
-
-		/**
-		 * Helper function to bind values to a
-		 * {@link com.squareup.javapoet.MethodSpec.Builder}
-		 * @param builder
-		 * @param parameter
-		 * @param handler
-		 * @throws Exception
-		 */
-		public static void addStatement(MethodSpec.Builder builder, Parameter parameter, TypeHandler handler) throws Exception
-		{
-			Object[] args = new Object[handler.parameterTypes.length];
-
-/// typeReferenceNameForParameterizedType
-			for (int i = 0; i < handler.parameterTypes.length; i++)
-			{
-				if (handler.parameterTypes[i] instanceof StatementParameterType)
-				{
-					String pName = parameter.getName();
-
-					if (parameter.isAnnotationPresent(QueryParam.class))
-					{
-						QueryParam qp = parameter.getAnnotation(QueryParam.class);
-						pName = qp.value();
-					}
-					else if (parameter.isAnnotationPresent(HeaderParam.class))
-					{
-						HeaderParam hp = parameter.getAnnotation(HeaderParam.class);
-						pName = hp.value();
-					}
-					else if (parameter.isAnnotationPresent(PathParam.class))
-					{
-						PathParam pp = parameter.getAnnotation(PathParam.class);
-						pName = pp.value();
-					}
-					else if (parameter.isAnnotationPresent(CookieParam.class))
-					{
-						CookieParam cp = parameter.getAnnotation(CookieParam.class);
-						pName = cp.value();
-					}
-					else if (parameter.isAnnotationPresent(FormParam.class))
-					{
-						FormParam fp = parameter.getAnnotation(FormParam.class);
-						pName = fp.value();
-					}
-
-					StatementParameterType pType = (StatementParameterType) handler.parameterTypes[i];
-					switch (pType)
-					{
-						case LITERAL:
-							args[i] = parameter.getName();
-							break;
-						case STRING:
-							args[i] = pName;
-							break;
-						case TYPE:
-							args[i] = parameter.getParameterizedType();
-							break;
-						case RAW:
-						{
-							Type type = parameter.getParameterizedType();
-							type = extractErasedType(type);
-							args[i] = type;
-							break;
-						}
-						default:
-							break;
-					}
-				}
-				else if (handler.parameterTypes[i] instanceof Class)
-				{
-					Class<?> clazz = (Class<?>) handler.parameterTypes[i];
-
-					args[i] = clazz;
-
-				}
-			}
-
-			if (handler.equals(BeanListValueOfType))
-			{
-				log.debug(parameter.getName() + " " + Arrays.toString(args) + " " + handler);
-			}
-
-			builder.addStatement(handler.statement, args);
-		}
-
-		/**
-		 * Helper function to bind a {@link Parameter} to a
-		 * {@link com.squareup.javapoet.MethodSpec.Builder}
-		 * @param builder
-		 * @param parameter
-		 * @throws Exception
-		 */
-		public static void addStatement(MethodSpec.Builder builder, Parameter parameter) throws Exception
-		{
-			BeanParam beanParam = parameter.getAnnotation(BeanParam.class);
-
-			boolean isBeanParameter = beanParam != null;
-
-			TypeHandler handler = TypeHandler.forType(parameter.getParameterizedType(), isBeanParameter);
-
-			addStatement(builder, parameter, handler);
-
-		}
-
-		public static TypeHandler forType(Type type)
-		{
-			return forType(type, false);
-		}
-
-		/**
-		 * Lookup the <code>TypeHandler</code> for a {@link Type}
-		 */
-		public static TypeHandler forType(Type type, Boolean isBeanParam)
-		{
-
-			boolean hasValueOf = false;
-			boolean hasFromString = false;
-			boolean isOptional = type.getTypeName().contains("java.util.Optional");
-			boolean isArray = type.getTypeName().contains("java.util.List");
-			boolean isSet = type.getTypeName().contains("java.util.Set");
-			boolean isMap = type.getTypeName().contains("java.util.Map");
-
-			if (!isOptional && !isArray && !isSet)
-			{
-				try
-				{
-					Class<?> clazz = Class.forName(type.getTypeName());
-
-					hasValueOf = hasValueOfMethod(clazz);
-
-					hasFromString = hasFromStringMethod(clazz);
-
-				} catch (Exception e)
-				{
-					log.error(e.getMessage(), e);
-				}
-			}
-
-			if (isArray && !isOptional)
-			{
-				try
-				{
-					Class<?> erasedType = (Class<?>) extractErasedType(type);
-
-					if (hasValueOfMethod(erasedType))
-					{
-						if (!isBeanParam)
-						{
-							return QueryListValueOfType;
-
-						}
-						else
-						{
-							return BeanListValueOfType;
-						}
-					}
-					else if (hasFromStringMethod(erasedType))
-					{
-						if (!isBeanParam)
-						{
-							return QueryListFromStringType;
-
-						}
-						else
-						{
-							return BeanListFromStringType;
-						}
-					}
-					else
-					{
-						return ModelType;
-					}
-
-				} catch (Exception e)
-				{
-					log.error(e.getMessage(), e);
-
-				}
-			}
-			if (isSet && !isOptional)
-			{
-				try
-				{
-					Class<?> erasedType = (Class<?>) extractErasedType(type);
-
-					if (hasValueOfMethod(erasedType))
-					{
-						if (!isBeanParam)
-						{
-							return QuerySetValueOfType;
-
-						}
-						else
-						{
-							return BeanListValueOfType;
-						}
-					}
-					else if (hasFromStringMethod(erasedType))
-					{
-						if (!isBeanParam)
-						{
-							return QuerySetFromStringType;
-
-						}
-						else
-						{
-							return BeanListFromStringType;
-						}
-					}
-					else
-					{
-						return ModelType;
-					}
-
-				} catch (Exception e)
-				{
-					log.error(e.getMessage(), e);
-
-				}
-			}
-			else if (isArray && isOptional)
-			{
-				try
-				{
-
-					if (type instanceof ParameterizedType)
-					{
-						ParameterizedType pType = (ParameterizedType) type;
-						type = pType.getActualTypeArguments()[0];
-					}
-
-					Class<?> erasedType = (Class<?>) extractErasedType(type);
-
-					if (hasValueOfMethod(erasedType))
-					{
-						if (!isBeanParam)
-						{
-							return QueryOptionalListValueOfType;
-
-						}
-						else
-						{
-							return OptionalBeanListValueOfType;
-						}
-
-					}
-					else if (hasFromStringMethod(erasedType))
-					{
-						if (!isBeanParam)
-						{
-							return QueryOptionalListFromStringType;
-
-						}
-						else
-						{
-							return OptionalBeanListFromStringType;
-						}
-					}
-					else
-					{
-						return ModelType;
-					}
-
-				} catch (Exception e)
-				{
-					log.error(e.getMessage(), e);
-
-				}
-			}
-			else if (isSet && isOptional)
-			{
-				try
-				{
-
-					if (type instanceof ParameterizedType)
-					{
-						ParameterizedType pType = (ParameterizedType) type;
-						type = pType.getActualTypeArguments()[0];
-					}
-
-					Class<?> erasedType = (Class<?>) extractErasedType(type);
-
-					if (hasValueOfMethod(erasedType))
-					{
-						if (!isBeanParam)
-						{
-							return QueryOptionalSetValueOfType;
-
-						}
-						else
-						{
-							return OptionalBeanListValueOfType;
-						}
-
-					}
-					else if (hasFromStringMethod(erasedType))
-					{
-						if (!isBeanParam)
-						{
-							return QueryOptionalSetFromStringType;
-
-						}
-						else
-						{
-							return OptionalBeanListFromStringType;
-						}
-					}
-					else
-					{
-						return ModelType;
-					}
-
-				} catch (Exception e)
-				{
-					log.error(e.getMessage(), e);
-
-				}
-			}
-
-			// log.debug("type: " + type.getTypeName() + " valueOf: " +
-			// hasValueOf + " fromString: " + hasFromString);
-
-			if (type.equals(Long.class))
-			{
-				return LongType;
-			}
-			else if (type.equals(Integer.class))
-			{
-				return IntegerType;
-			}
-			else if (type.equals(Float.class))
-			{
-				return FloatType;
-			}
-			else if (type.equals(Double.class))
-			{
-				return DoubleType;
-			}
-			else if (type.equals(java.nio.ByteBuffer.class))
-			{
-				return ByteBufferType;
-			}
-			else if (type.equals(Boolean.class))
-			{
-				return BooleanType;
-			}
-			else if (type.equals(String.class))
-			{
-				return StringType;
-			}
-			else if (type.equals(java.nio.file.Path.class))
-			{
-				return FilePathType;
-			}
-			else if (type.equals(java.util.Date.class))
-			{
-				return DateType;
-			}
-			else if (type.equals(java.time.ZonedDateTime.class))
-			{
-				return ZonedDateTimeType;
-			}
-			else if (type.equals(java.time.OffsetDateTime.class))
-			{
-				return OffsetDateTimeType;
-			}
-			else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class))
-			{
-				return AnyType;
-			}
-			else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class))
-			{
-				return JsonNodeType;
-			}
-			else if (isOptional)
-			{
-				if (type.getTypeName().contains("java.lang.Long"))
-				{
-					return OptionalLongType;
-				}
-				else if (type.getTypeName().contains("java.lang.String"))
-				{
-					return OptionalStringType;
-				}
-				else if (type.getTypeName().contains("java.util.Date"))
-				{
-					return OptionalDateType;
-				}
-				else if (type.getTypeName().contains("java.time.OffsetDateTime"))
-				{
-					return OptionalOffsetDateTimeType;
-				}
-				else if (type.getTypeName().contains("java.time.ZonedDateTime"))
-				{
-					return ZonedDateTimeType;
-				}
-				else if (type.getTypeName().contains("java.lang.Boolean"))
-				{
-					return OptionalBooleanType;
-				}
-				else if (type.getTypeName().contains("java.lang.Float"))
-				{
-					return OptionalFloatType;
-				}
-				else if (type.getTypeName().contains("java.lang.Double"))
-				{
-					return OptionalDoubleType;
-				}
-				else if (type.getTypeName().contains("java.lang.Integer"))
-				{
-					return OptionalIntegerType;
-				}
-				else if (type.getTypeName().contains("java.nio.file.Path"))
-				{
-					return OptionalFilePathType;
-				}
-				else if (type.getTypeName().contains("java.nio.ByteBuffer"))
-				{
-					return OptionalByteBufferType;
-				}
-				else
-				{
-					try
-					{
-
-						Class<?> erasedType = (Class<?>) extractErasedType(type);
-
-						if (hasValueOfMethod(erasedType))
-						{
-							return OptionalValueOfType;
-
-						}
-						else if (hasFromStringMethod(erasedType))
-						{
-							return OptionalFromStringType;
-
-						}
-
-					} catch (Exception e)
-					{
-						log.error("error : " + e.getMessage(), e);
-						return OptionalStringType;
-					}
-
-					return OptionalStringType;
-				}
-			}
-
-			else if (hasValueOf)
-			{
-				return ValueOfType;
-			}
-			else if (hasFromString)
-			{
-				return FromStringType;
-			}
-			else
-			{
-				return ModelType;
-			}
-		}
 	}
 
 	@Inject
@@ -737,7 +143,8 @@ public class HandlerGenerator
 		try
 		{
 
-			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC).addSuperinterface(ParameterizedTypeName.get(Supplier.class, RoutingHandler.class));
+			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
+					.addSuperinterface(ParameterizedTypeName.get(Supplier.class, RoutingHandler.class));
 
 			ClassName extractorClass = ClassName.get("io.sinistral.proteus.server", "Extractors");
 
@@ -752,9 +159,11 @@ public class HandlerGenerator
 			ClassName wrapperClass = ClassName.get("io.undertow.server", "HandlerWrapper");
 			ClassName stringClass = ClassName.get("java.lang", "String");
 			ClassName mapClass = ClassName.get("java.util", "Map");
+
 			TypeName mapOfWrappers = ParameterizedTypeName.get(mapClass, stringClass, wrapperClass);
 
-			TypeName annotatedMapOfWrappers = mapOfWrappers.annotated(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S", "registeredHandlerWrappers").build());
+			TypeName annotatedMapOfWrappers = mapOfWrappers
+					.annotated(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S", "registeredHandlerWrappers").build());
 
 			typeBuilder.addField(mapOfWrappers, "registeredHandlerWrappers", Modifier.PROTECTED, Modifier.FINAL);
 
@@ -789,100 +198,119 @@ public class HandlerGenerator
 
 		HashSet<String> handlerNameSet = new HashSet<>();
 
-		MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("get").addModifiers(Modifier.PUBLIC).returns(RoutingHandler.class).addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
+		MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("get").addModifiers(Modifier.PUBLIC).returns(RoutingHandler.class)
+				.addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
 
-		final Map<Type, String> parameterizedLiteralsNameMap = Arrays.stream(clazz.getDeclaredMethods()).filter(m -> m.getAnnotation(ApiOperation.class) != null)
-				.flatMap(m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType).filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent"))).distinct().filter(t -> {
+		final Map<Type, String> parameterizedLiteralsNameMap = Arrays.stream(clazz.getDeclaredMethods())
+				.filter(m -> m.getAnnotation(ApiOperation.class) != null)
+				.flatMap(
+							m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)
+									.filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
+				.distinct().filter(t ->
+				{
 
 					TypeHandler handler = TypeHandler.forType(t);
 					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
 
 				}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
 
-		Arrays.stream(clazz.getDeclaredMethods()).filter(m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters())).forEach(p -> {
-
-			BeanParam beanParam = p.getAnnotation(BeanParam.class);
-
-			boolean isBeanParameter = beanParam != null;
-
-			if (isBeanParameter)
+		Arrays.stream(clazz.getDeclaredMethods())
+			.filter(m -> m.getAnnotation(ApiOperation.class) != null)
+			.flatMap(m -> Arrays.stream(m.getParameters()))
+			.forEach(p ->
 			{
-				TypeHandler handler = TypeHandler.forType(p.getParameterizedType(), true);
-
-				if (handler.equals(TypeHandler.BeanListValueOfType) || handler.equals(TypeHandler.BeanListFromStringType) || handler.equals(TypeHandler.OptionalBeanListValueOfType) || handler.equals(TypeHandler.OptionalBeanListFromStringType))
+	
+				BeanParam beanParam = p.getAnnotation(BeanParam.class);
+	
+				boolean isBeanParameter = beanParam != null;
+	
+				if (isBeanParameter)
 				{
-					parameterizedLiteralsNameMap.put(p.getParameterizedType(), HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
+					TypeHandler handler = TypeHandler.forType(p.getParameterizedType(), true);
+	
+					if (handler.equals(TypeHandler.BeanListValueOfType) || handler.equals(TypeHandler.BeanListFromStringType) || handler.equals(TypeHandler.OptionalBeanListValueOfType)
+							|| handler.equals(TypeHandler.OptionalBeanListFromStringType))
+					{
+						parameterizedLiteralsNameMap.put(p.getParameterizedType(), HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
+					}
 				}
-			}
+	
+			});
 
-		});
-
-
-		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods()).filter(m -> m.getAnnotation(ApiOperation.class) != null).flatMap(m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)).filter(t -> {
-
-			if (t.getTypeName().contains("java.util"))
-			{
-				return false;
-			}
-
-			try
-			{
-				Class<?> optionalType = (Class<?>) extractErasedType(t);
-
-				if (optionalType != null)
+		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods())
+				.filter(m -> m.getAnnotation(ApiOperation.class) != null)
+				.flatMap(m -> Arrays.stream(
+																																												m.getParameters())
+				.map(Parameter::getParameterizedType)).filter(t ->
 				{
-					t = optionalType;
-				}
 
-			} catch (Exception e)
-			{
+					if (t.getTypeName().contains("java.util"))
+					{
+						return false;
+					}
 
-			}
+					try
+					{
+						Class<?> optionalType = (Class<?>) extractErasedType(t);
 
-			if (t.getTypeName().contains("java.lang"))
-			{
-				return false;
-			}
-			else if (t.getTypeName().contains("java.nio"))
-			{
-				return false;
-			}
-			else if (t.getTypeName().contains("java.io"))
-			{
-				return false;
-			}
-			else if (t.getTypeName().contains("java.util"))
-			{
-				return false;
-			}
-			else if (t.equals(HttpServerExchange.class) || t.equals(ServerRequest.class))
-			{
-				return false;
-			}
+						if (optionalType != null)
+						{
+							t = optionalType;
+						}
 
-			if (t instanceof Class)
-			{
-				Class<?> pClazz = (Class<?>) t;
-				if (pClazz.isPrimitive())
-				{
-					return false;
-				}
-				if (pClazz.isEnum())
-				{
-					return false;
-				}
+					} catch (Exception e)
+					{
 
-			}
+					}
 
-			return true;
+					if (t.getTypeName().contains("java.lang"))
+					{
+						return false;
+					}
+					else if (t.getTypeName().contains("java.nio"))
+					{
+						return false;
+					}
+					else if (t.getTypeName().contains("java.io"))
+					{
+						return false;
+					}
+					else if (t.getTypeName().contains("java.util"))
+					{
+						return false;
+					}
+					else if (t.equals(HttpServerExchange.class) || t.equals(ServerRequest.class))
+					{
+						return false;
+					}
 
-		}).distinct().collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForType));
+					if (t instanceof Class)
+					{
+						Class<?> pClazz = (Class<?>) t;
+						if (pClazz.isPrimitive())
+						{
+							return false;
+						}
+						if (pClazz.isEnum())
+						{
+							return false;
+						}
 
-		parameterizedLiteralsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeReference = new $T<$L>(){}", TypeReference.class, t, n, TypeReference.class, t));
+					}
+
+					return true;
+
+				})
+				.distinct()
+				.collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForType));
+
+		parameterizedLiteralsNameMap
+				.forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeReference = new $T<$L>(){}", TypeReference.class, t, n, TypeReference.class, t));
 
 		literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeReference = new $T<$T>(){}", TypeReference.class, t, n, TypeReference.class, t));
 
 		Optional<io.sinistral.proteus.annotations.Chain> typeLevelWrapAnnotation = Optional.ofNullable(clazz.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
+		
 		Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<Class<? extends HandlerWrapper>, String>();
 
 		if (typeLevelWrapAnnotation.isPresent())
@@ -1032,26 +460,21 @@ public class HandlerGenerator
 			endpointInfo.setControllerMethod(m.getName());
 
 			String handlerName = String.format("%c%s%sHandler_%s", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName()
-			                                   .substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()), String.valueOf(nameIndex++));
-
-// while(handlerNameSet.contains(handlerName))
-// {
-// handlerName = handlerName + "_" + nameIndex++;
-// }
+					.substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()), String.valueOf(nameIndex++));
 
 			handlerNameSet.add(handlerName);
 
 			TypeSpec.Builder handlerClassBuilder = TypeSpec.anonymousClassBuilder("").addSuperinterface(httpHandlerClass);
 
-			// handlerClassBuilder.addModifiers(Modifier.PUBLIC);
-
-			MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("handleRequest").addModifiers(Modifier.PUBLIC).addException(ClassName.get("java.lang", "Exception")).addAnnotation(Override.class)
+			MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("handleRequest").addModifiers(Modifier.PUBLIC).addException(ClassName.get("java.lang", "Exception"))
+					.addAnnotation(Override.class)
 					.addParameter(ParameterSpec.builder(HttpServerExchange.class, "exchange", Modifier.FINAL).build());
 
 			for (Parameter p : m.getParameters())
 			{
 
-				if (p.getParameterizedType().equals(ServerRequest.class) || p.getParameterizedType().equals(HttpServerExchange.class) || p.getParameterizedType().equals(HttpHandler.class))
+				if (p.getParameterizedType().equals(ServerRequest.class) || p.getParameterizedType().equals(HttpServerExchange.class)
+						|| p.getParameterizedType().equals(HttpHandler.class))
 				{
 					continue;
 				}
@@ -1067,13 +490,6 @@ public class HandlerGenerator
 					if (t.isBlocking())
 					{
 						isBlocking = true;
-
-// methodBuilder.beginControlFlow("if(exchange.isInIoThread())");
-// methodBuilder.addStatement("exchange.dispatch(this)");
-// methodBuilder.addStatement("return");
-//
-// methodBuilder.endControlFlow();
-
 						break;
 					}
 
@@ -1085,7 +501,8 @@ public class HandlerGenerator
 
 			log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 
-			Arrays.stream(m.getParameters()).forEachOrdered(p -> {
+			Arrays.stream(m.getParameters()).forEachOrdered(p ->
+			{
 
 				Type type = p.getParameterizedType();
 
@@ -1210,8 +627,9 @@ public class HandlerGenerator
 
 								TypeHandler.addStatement(methodBuilder, p);
 							}
-							else if (t.equals(TypeHandler.QueryOptionalListFromStringType) || t.equals(TypeHandler.QueryOptionalListValueOfType) || t.equals(TypeHandler.QueryOptionalSetValueOfType) || t.equals(TypeHandler.QueryOptionalSetValueOfType))
-							{ 
+							else if (t.equals(TypeHandler.QueryOptionalListFromStringType) || t.equals(TypeHandler.QueryOptionalListValueOfType)
+									|| t.equals(TypeHandler.QueryOptionalSetValueOfType) || t.equals(TypeHandler.QueryOptionalSetValueOfType))
+							{
 								ParameterizedType pType = (ParameterizedType) type;
 
 								if (type instanceof ParameterizedType)
@@ -1226,7 +644,7 @@ public class HandlerGenerator
 
 							}
 							else if (t.equals(TypeHandler.OptionalBeanListFromStringType) || t.equals(TypeHandler.OptionalBeanListValueOfType))
-							{ 
+							{
 								ParameterizedType pType = (ParameterizedType) type;
 
 								if (type instanceof ParameterizedType)
@@ -1270,7 +688,8 @@ public class HandlerGenerator
 
 			if (!m.getReturnType().toString().equals("void"))
 			{
-				if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage") || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
+				if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
+						|| m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
 				{
 					Type futureType = m.getGenericReturnType();
 
@@ -1291,7 +710,8 @@ public class HandlerGenerator
 					methodBuilder.addStatement("$L.send(this,$L)", "response", "exchange");
 
 				}
-				else if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage") || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
+				else if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
+						|| m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
 				{
 					String postProcess = ".";
 
@@ -1311,7 +731,9 @@ public class HandlerGenerator
 						}
 					}
 
-					methodBuilder.addCode("$L.thenAcceptAsync( r ->  r" + postProcess + "send(this,$L), io.undertow.util.SameThreadExecutor.INSTANCE )\n\t.exceptionally( ex -> ", "response", "exchange");
+					methodBuilder.addCode(
+											"$L.thenAcceptAsync( r ->  r" + postProcess + "send(this,$L), io.undertow.util.SameThreadExecutor.INSTANCE )\n\t.exceptionally( ex -> ",
+											"response", "exchange");
 					methodBuilder.beginControlFlow("", "");
 					methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
 					methodBuilder.endControlFlow(")", "");
@@ -1522,7 +944,8 @@ public class HandlerGenerator
 
 		if (pathPredicate != null)
 		{
-			stream = stream.filter(clazz -> {
+			stream = stream.filter(clazz ->
+			{
 
 				Path annotation = clazz.getDeclaredAnnotation(Path.class);
 
@@ -1744,7 +1167,9 @@ public class HandlerGenerator
 	protected static void generateTypeReference(MethodSpec.Builder builder, Type type, String name)
 	{
 
-		builder.addCode(CodeBlock.of("\n\ncom.fasterxml.jackson.core.type.TypeReference<$T> $L = new com.fasterxml.jackson.core.type.TypeReference<$L>(){};\n\n", type, name, type));
+		builder.addCode(
+						CodeBlock
+								.of("\n\ncom.fasterxml.jackson.core.type.TypeReference<$T> $L = new com.fasterxml.jackson.core.type.TypeReference<$L>(){};\n\n", type, name, type));
 
 	}
 

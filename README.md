@@ -2,6 +2,7 @@
 ![Alt logo](https://cdn.rawgit.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/proteus-logo.svg)
 
 * An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first MVC REST framework atop [Undertow](http://undertow.io). 
+* JAX-RS API compatible.
 * Inspired by: [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
 * Verifiably [FAST AF](https://www.techempower.com/benchmarks/).
 * [Latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus at least 6x faster than Spring and Play across the board. 

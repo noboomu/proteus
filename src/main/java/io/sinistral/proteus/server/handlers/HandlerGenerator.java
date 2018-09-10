@@ -30,6 +30,8 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
+ 
+
 
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
@@ -195,6 +197,8 @@ public class HandlerGenerator
 		ClassName httpHandlerClass = ClassName.get("io.undertow.server", "HttpHandler");
 
 		String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
+		
+		Integer handlerWrapperIndex = 1;
 
 		HashSet<String> handlerNameSet = new HashSet<>();
 
@@ -262,6 +266,13 @@ public class HandlerGenerator
 					{
 
 					}
+					
+					/*
+					 * 	if (t.getTypeName().matches("java\\.lang|java\\.nio|java\\.io|java\\.util"))
+					{
+						return false;
+					}
+					 */
 
 					if (t.getTypeName().contains("java.lang"))
 					{
@@ -500,7 +511,8 @@ public class HandlerGenerator
 			}
 
 			log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
-
+			
+			
 			Arrays.stream(m.getParameters()).forEachOrdered(p ->
 			{
 
@@ -585,6 +597,7 @@ public class HandlerGenerator
 							BeanParam beanParam = p.getAnnotation(BeanParam.class);
 
 							boolean isBeanParameter = beanParam != null;
+							
 
 							TypeHandler t = TypeHandler.forType(type, isBeanParameter);
 
@@ -831,7 +844,7 @@ public class HandlerGenerator
 
 						if (wrapperName == null)
 						{
-							wrapperName = generateFieldName(wrapperClass.getCanonicalName());
+							wrapperName = String.format("%s_%d",generateFieldName(wrapperClass.getCanonicalName()),handlerWrapperIndex++) ;
 
 							initBuilder.addStatement("final $T $L = new $T()", wrapperClass, wrapperName, wrapperClass);
 						}

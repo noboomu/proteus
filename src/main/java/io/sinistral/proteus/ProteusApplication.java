@@ -129,21 +129,6 @@ public class ProteusApplication
 		log.info("Configuring modules: " + registeredModules);
 
 		Set<Module> modules = registeredModules.stream().map(mc -> injector.getInstance(mc)).collect(Collectors.toSet());
-		
-		//boolean needsMappingModule = true;
-		
-//		for(Module m : modules)
-//		{
-//			if(m.getClass().getSuperclass().equals(MappingModule.class))
-//			{
-//				needsMappingModule = false;
-//			}
-//		}
-//		
-//		if(needsMappingModule)
-//		{
-//			modules.add(injector.getInstance(MappingModule.class));
-//		}
 
 		injector = injector.createChildInjector(modules);
 
@@ -286,11 +271,11 @@ public class ProteusApplication
 		Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
 				.setBufferSize(16 * 1024)
 				.setIoThreads(Runtime.getRuntime().availableProcessors() * 2)
-				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.enableHttp2"))
-				.setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
+				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
+				.setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
 				.setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
-				.setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false)
-				.setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
+				.setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
+				.setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
 				.setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
 				.setWorkerThreads(config.getInt("undertow.workerThreads"))
 				.setHandler(handler);

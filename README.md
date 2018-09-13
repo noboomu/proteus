@@ -1,25 +1,24 @@
 
 ![Alt logo](https://cdn.rawgit.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/proteus-logo.svg)
 
-* An extremely lightweight, flexible, and fast [Swagger](http://swagger.io/) first MVC REST framework atop [Undertow](http://undertow.io). 
-* Inspired by: [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
-* Verifiably [FAST AF](https://www.techempower.com/benchmarks/).
-* [Latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus at least 6x faster than Spring and Play across the board. 
+An extremely lightweight, flexible, and high performance [Undertow](http://undertow.io) based Java framework for developing and running microservices.
 
-## Motivation
+JAX-RS compliant.
 
-* Several years of working with the [Play](http://playframework.com) framework convinced us there had to be a better way.
-* We faced a Goldilocks Crisis with the existing alternatives: [Jooby](http://jooby.org) did too much, [light-4j](https://github.com/networknt/light-4j) didn't do quite enough.
-* We needed a framework that enabled us to write clean MVC REST controllers that created Swagger docs we could plug directly into the existing [codegen](https://github.com/swagger-api/swagger-codegen) solutions.
-* We needed a framework with minimal overhead and performance at or near that of raw [Undertow](http://undertow.io).
+Verifiably [FAST](https://www.techempower.com/benchmarks/): [The latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus ranks faster than 99% of other Java frameworks. 
+
+Inspired by [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
+
+
+
+## Getting Started
+COMING SOON
+
 
 ## Under the Hood
 
 Proteus takes your MVC controller classes and methods decorated with Swagger / JAX-RS annotations and generates native Undertow handler classes at runtime. 
 
-You can review the generated code by setting the ```io.sinistral.proteus.server``` log level to `DEBUG`.
-
-## Setup
 
 By default, the configuration is loaded into a `com.typesafe.config.Config` from a file at `conf/application.conf`.
 
@@ -38,7 +37,7 @@ Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui)
 
 > A `Module` implements `com.google.inject.Module`.
 
-##### Example Application Class
+#### Example Application Class
 
 ```java
 public class ExampleApplication extends ProteusApplication
@@ -53,7 +52,7 @@ public class ExampleApplication extends ProteusApplication
     }
 }
 ```
-##### Example Controller Class
+#### Example Controller Class
 ```java
 import java.nio.ByteBuffer;
 import javax.ws.rs.*;
@@ -104,8 +103,8 @@ public class Examples
 
 # Controllers
 
-### Controller Class Annotations
----
+### Supported Controller Annotations
+
 Controller classes respect standard Swagger / JAX-RS annotations:
 ```java
 @Api(tags="benchmarks")
@@ -114,9 +113,9 @@ Controller classes respect standard Swagger / JAX-RS annotations:
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD))
 ```
 
-### Controller Method Annotations
----
-Controller class methods also respect standard Swagger / JAX-RS annotations:
+### Supported Method Annotations
+
+Controller class methods respect standard Swagger / JAX-RS annotations:
 ```java
 @GET
 @Path("/plaintext")
@@ -129,17 +128,16 @@ public void plaintext(HttpServerExchange exchange)
 ```
 In addition, the `io.sinistral.proteus.annotations.Blocking` annotation can be used to explicitly mark a method for blocked request handling. 
 
-### Return Types
----
-##### HttpServerExchange = Total Control
+## Return Types
 
+##### Performance
 For total control and maximum performance the raw `HttpServerExchange` can be passed to the controller method.
 
 Methods that take an `HttpServerExchange` as an argument should __not__ return a value.
 
 In this case the method takes on __full responsibility__ for completing the exchange.
  
-##### ServerResponse = Convenience
+##### Convenience
 The static method ```io.sinistral.proteus.server.ServerResponse.response``` helps create ```ServerResponse<T>``` instances that are the preferred return type for controller methods.
 
 If the response object's `contentType` is not explicitly set, the `@Produces` annotation is used in combination with the `Accept` headers to determine the `Content-Type`.
@@ -201,15 +199,15 @@ public void handleRequest(final io.undertow.server.HttpServerExchange exchange) 
 }
 ```
 
-### Arguments
----
-A ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint argument if the user wishes to access request properties that are not included in the argument list.
+## Controller Parameters
 
-Proteus is capable of parsing most types of endpoint arguments automatically so long as the type has a ```fromString```, ```valueOf```, or can be deserialized from JSON.
+A ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint parameter if the user wishes to access request properties that are not included in the parameter list.
+
+Proteus is capable of parsing most types of endpoint parameters automatically so long as the type has a ```fromString```, ```valueOf```, or can be deserialized from JSON.
 
 Multipart/Form file uploads can be passed to the endpoint methods as a ```java.io.File```, a ```java.nio.Files.Path```, or a ```java.nio.ByteBuffer```.
 
-Optional arguments are also supported, here is a more complex endpoint demonstrating several argument types:
+Optional parameters are also supported, here is a more complex endpoint demonstrating several parameter types:
 ```java
 @GET
 @Path("/response/parameters/complex/{pathLong}")
@@ -248,11 +246,11 @@ public ServerResponse<Map<String,Object>> complexParameters(
 		return response(responseMap).applicationJson(); 
 	}
 ```
-### Services
----
+# Services
+
 Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
-#### AssetsService
----
+## AssetsService
+
 The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
 
 The default configuration:
@@ -268,8 +266,8 @@ assets {
     }
 }
 ```
-#### SwaggerService   
----
+## SwaggerService   
+
 The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
 
 The service is configured in your ```application.conf``` file.
@@ -302,9 +300,7 @@ swagger {
     schemes = ["http"]
     }
 ```
----
-## Getting Started
-COMING SOON
+ 
 
 ---
 
@@ -312,7 +308,15 @@ COMING SOON
 COMING SOON
 
 ---
- 
+
+## Motivation
+
+* Several years of working with the [Play](http://playframework.com) framework convinced us there had to be a better way.
+* We faced a Goldilocks Crisis with the existing alternatives: [Jooby](http://jooby.org) did too much, [light-4j](https://github.com/networknt/light-4j) didn't do quite enough.
+* We needed a framework that enabled us to write clean MVC REST controllers that created Swagger docs we could plug directly into the existing [codegen](https://github.com/swagger-api/swagger-codegen) solutions.
+* We needed a framework with minimal overhead and performance at or near that of raw [Undertow](http://undertow.io).
+
+
 ### Dependencies
 
 * [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)

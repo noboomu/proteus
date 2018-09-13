@@ -63,19 +63,24 @@ public class ConfigModule extends AbstractModule
 	
 	@Override
 	protected void configure()
-	{ 
-		if(configFile == null && configURL == null)
-		{
-			this.bindConfig(ConfigFactory.defaultApplication());
-		}
-		else if(configURL != null)
-		{
-			this.bindConfig( ConfigFactory.load(ConfigFactory.parseURL(configURL)));
+	{  
+		Config config = ConfigFactory.defaultApplication();
+		
+		Config referenceConfig = ConfigFactory.load(ConfigFactory.defaultReference());
+		
+		config = ConfigFactory.load(config).withFallback(referenceConfig);
+		
+		if(configURL != null)
+		{  
+			config = ConfigFactory.load(ConfigFactory.parseURL(configURL)).withFallback(config); 
 		}
 		else if(configFile != null)
-		{
-			this.bindConfig(fileConfig(configFile));
+		{ 
+			
+			config = fileConfig(configFile).withFallback(config); 
 		}
+
+		this.bindConfig(config);
 		
         install(new ApplicationModule(this.config)); 
 	}
@@ -84,6 +89,7 @@ public class ConfigModule extends AbstractModule
 	@SuppressWarnings("unchecked")
 	private void bindConfig(final Config config)
 	{ 
+
 		traverse(this.binder(), "", config.root());
  
 		for (Entry<String, ConfigValue> entry : config.entrySet())
@@ -102,6 +108,7 @@ public class ConfigModule extends AbstractModule
 				
 				Key<Object> key = (Key<Object>) Key.get(listType, Names.named(name));
 				 
+				
 				this.binder().bind(key).toInstance(values);
 			}
 			else
@@ -126,6 +133,7 @@ public class ConfigModule extends AbstractModule
 	{
 		rootConfig.forEach((key, value) -> 
 		{
+
 			if (value instanceof ConfigObject)
 			{
 				ConfigObject child = (ConfigObject) value;
@@ -133,7 +141,7 @@ public class ConfigModule extends AbstractModule
 				String path = nextPath + key;
 				
 				Named named = Names.named(path);
-				
+
 				binder.bind(Config.class).annotatedWith(named).toInstance(child.toConfig());
 				
 				traverse(binder, path + ".", child);

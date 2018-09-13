@@ -45,7 +45,7 @@ public class Extractors
     @Inject
 	public static ObjectMapper OBJECT_MAPPER;
     
-    public static Function<byte[],JsonNode> parseJson = (bytes) -> {
+    public static JsonNode  parseJson(byte[] bytes)  {
     	try
 		{
 			return OBJECT_MAPPER.readTree(bytes);
@@ -66,7 +66,7 @@ public class Extractors
 		
 		public static java.util.Optional<JsonNode> jsonNode(final HttpServerExchange exchange)
 		{
-			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(parseJson); 
+			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map( o -> parseJson(o)); 
 		}
 
 		public static  <T> java.util.Optional<T> model(final HttpServerExchange exchange, final TypeReference<T> type )
@@ -175,7 +175,7 @@ public class Extractors
 
 		public static java.util.Optional<JsonNode> any(final HttpServerExchange exchange )
 		{
-			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map( b -> parseJson.apply(b.array()));
+			return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map( b -> parseJson(b.array()));
 		}
 
 		public static  java.util.Optional<Integer> integerValue(final HttpServerExchange exchange, final String name)
@@ -346,7 +346,7 @@ public class Extractors
 	{
 		try
 		{
-			return parseJson.apply( exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array() );
+			return parseJson( exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array() );
 		} catch (Exception e)
 		{
 			log.warn(e.getMessage(),e);
@@ -356,7 +356,7 @@ public class Extractors
 
 	public static  JsonNode jsonNode(final HttpServerExchange exchange )
 	{
-		return parseJson.apply(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
+		return parseJson(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
 	}
 
 	public static  Path filePath(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 

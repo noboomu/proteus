@@ -1,7 +1,9 @@
 
 ![Alt logo](https://cdn.rawgit.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/proteus-logo.svg)
 
-An extremely lightweight, flexible, and high performance [Undertow](http://undertow.io) based Java framework for developing and running microservices.
+An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing and running microservices.
+
+__NO MAGIC.__
 
 JAX-RS compliant.
 

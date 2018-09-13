@@ -3,6 +3,8 @@
 
 An extremely lightweight, flexible, and high performance [Undertow](http://undertow.io) based Java framework for developing and running microservices.
 
+JAX-RS compliant.
+
 Verifiably [FAST](https://www.techempower.com/benchmarks/): [The latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus ranks faster than 99% of other Java frameworks. 
 
 Inspired by [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).

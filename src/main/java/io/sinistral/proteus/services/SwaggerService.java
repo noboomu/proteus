@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
@@ -74,7 +75,7 @@ import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 
 
- 
+@Singleton
 public class SwaggerService   extends BaseService implements Supplier<RoutingHandler>
 {
 	  

@@ -22,74 +22,12 @@ Getting Started
 /bin/bash -e <(curl -fsSL https://raw.githubusercontent.com/noboomu/proteus-example/master/scripts/quickStart.sh)
 ```
 
-#### Example Application Class
-
-```java
-public class ExampleApplication extends ProteusApplication
-{
-    public static void main( String[] args )
-    {
-        ExampleApplication app = new ExampleApplication(); 
-        app.addService(io.sinistral.proteus.services.SwaggerService.class); 
-        app.addService(io.sinistral.proteus.services.AssetsService.class); 
-        app.addController(Examples.class);   
-        app.start(); 
-    }
-}
-```
-
-#### Example Controller Class
-
-```java
-import java.nio.ByteBuffer;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import io.swagger.annotations.*; 
-import io.sinistral.proteus.server.*;
-import java.util.*;
-import com.google.inject.Singleton;
-import com.jsoniter.output.JsonStream;
-import io.undertow.server.HttpServerExchange;
-import static io.sinistral.proteus.server.ServerResponse.response;
- 
-@Api(tags="examples")
-@Path("/examples")
-@Produces((MediaType.APPLICATION_JSON)) 
-@Consumes((MediaType.WILDCARD)) 
-@Singleton 
-public class Examples
-{  
-	@GET
-	@Path("/echo")
-	@Produces((MediaType.TEXT_PLAIN)) 
-	@ApiOperation(value = "Echo a message",   httpMethod = "GET", response=String.class )
-	public ServerResponse<ByteBuffer> echo(String message)
-	{ 
-		return response("Hello, World!").contentType(MediaType.TEXT_PLAIN);
-	}
-	
-	@GET
-	@Path("/world")
-	@Produces((MediaType.APPLICATION_JSON)) 
-	@ApiOperation(value = "Return a random world instance", httpMethod = "GET", response=World.class )
-	public ServerResponse<World> randomWorld(Integer id,  Integer randomNumber )
-	{ 
-		return response().entity(new World(id,randomNumber));
-	}
-	
-	@GET
-	@Path("/future/user")
-	@ApiOperation(value = "Future user endpoint",   httpMethod = "GET" )
-	public CompletableFuture<ServerResponse<User>> responseFutureUser()
-	{ 
-		return CompletableFuture.completedFuture(response( new User(123L) ).applicationJson() );
-	}
-}
-```
+- Open [http://localhost:8090/v1/swagger](http://localhost:8090/v1/swagger) in your browser.
+- Open [http://localhost:8090/v1/swagger/redoc](http://localhost:8090/v1/swagger/redoc) for a pretty version of your API.
 
 
 Controllers
--------------
+---------------
 
 ### Supported Controller Annotations
 

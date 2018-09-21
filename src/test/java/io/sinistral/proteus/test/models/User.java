@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.models;
+package io.sinistral.proteus.test.models;
 
  
 /**

@@ -602,6 +602,11 @@ public class ServerResponse<T>
 				this.applicationXml();
 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
 			}
+			else if (ServerPredicates.ACCEPT_TEXT_PREDICATE.resolve(exchange))
+			{
+				this.textPlain();
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
+			}
 		}
 
 		

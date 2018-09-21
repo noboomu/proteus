@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.controllers;
+package io.sinistral.proteus.test.controllers;
 
 import static io.sinistral.proteus.server.ServerResponse.response;
 
@@ -34,9 +34,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import io.sinistral.proteus.annotations.Blocking;
-import io.sinistral.proteus.models.User;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
+import io.sinistral.proteus.test.models.User;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -176,7 +176,7 @@ public class Tests
 	@POST
 	@Path("/response/file/path")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
- 	@Consumes("*/*")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@ApiOperation(value = "Upload file path endpoint",   httpMethod = "POST" )
 	public ServerResponse<ByteBuffer> responseUploadFilePath(ServerRequest request, @FormParam("file") java.nio.file.Path file ) throws Exception
 	{  

@@ -31,6 +31,8 @@ public class MediaType  {
 
 	/*******************************************************/
 
+	public static final MediaType TEXT_YAML = create("text/yaml","yaml");
+
 	public static final MediaType APPLICATION_ANDREW_INSET = create("application/andrew-inset", "ez");
 	public static final MediaType APPLICATION_ANNODEX = create("application/annodex", "anx");
 	public static final MediaType APPLICATION_APPLIXWARE = create("application/applixware", "aw");

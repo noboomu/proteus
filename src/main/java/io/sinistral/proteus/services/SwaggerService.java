@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -148,6 +148,8 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	
 	protected ObjectWriter writer = null; 
 	
+	protected YAMLMapper yamlMapper = new YAMLMapper();
+	
 	protected Path swaggerResourcePath = null;
 	
 	protected ClassLoader serviceClassLoader = null;
@@ -175,6 +177,13 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		writer = mapper.writerWithDefaultPrettyPrinter();
 		writer = writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
+		
+		yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		yamlMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
+		yamlMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		yamlMapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
+		yamlMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+		yamlMapper.setSerializationInclusion(Include.NON_NULL);
 	}
 
 	 
@@ -362,16 +371,6 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 				{
 					themePath= "themes/theme-" + swaggerTheme + ".css"; 
 				} 
-				
-//				ObjectNode specNode = mapper.createObjectNode();
-//				
-//				String specString = mapper.writeValueAsString(this.swagger);
-//				
-//				specNode.set("spec",mapper.readTree(specString));
-//				
-//				specNode.put("url",this.swaggerBasePath + ".json");
-//
-//				templateString = templateString.replace("{{ swaggerSpec }}", specNode.toString());
 
 				templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
 				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", swaggerBasePath);
@@ -468,6 +467,10 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		RoutingHandler router = new RoutingHandler();
 		
+		/*
+		 * JSON path 
+		 */
+		
 		String pathTemplate = this.swaggerBasePath + ".json";
 		
 		FileResourceManager resourceManager = new FileResourceManager(this.swaggerResourcePath.toFile(),1024);
@@ -490,7 +493,6 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 					
 					swaggerCopy.setHost(exchange.getHostAndPort());
 					
-					
 					spec = writer.writeValueAsString(swaggerCopy);
 					
 				} catch (Exception e)
@@ -505,6 +507,41 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		});
 		
 		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MediaType.APPLICATION_JSON).build());
+		
+		/*
+		 * YAML path 
+		 */
+		
+		pathTemplate = this.swaggerBasePath + ".yaml";
+		
+		router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
+
+			@Override
+			public void handleRequest(HttpServerExchange exchange) throws Exception
+			{ 
+ 
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()); 
+				
+				String spec = null;
+				
+				try
+				{ 
+					swaggerCopy.setHost(exchange.getHostAndPort());
+					
+					spec = yamlMapper.writeValueAsString(swaggerCopy);
+					
+				} catch (Exception e)
+				{
+					log.error(e.getMessage(),e);
+				}
+				
+				exchange.getResponseSender().send(spec);
+				
+			}
+			
+		});
+		
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()).build());
 		
 		pathTemplate = this.swaggerBasePath + "/" + this.redocPath;
 				 

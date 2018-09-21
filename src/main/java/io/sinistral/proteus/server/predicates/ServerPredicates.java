@@ -24,6 +24,8 @@ public class ServerPredicates
 	
 	public static final String XML_REGEX = "^(application\\/(xml|xhtml\\+xml)|text\\/xml)(;.*)?$";
 	
+	public static final String TEXT_REGEX = "^(text\\/plain)(;.*)?$";
+
 	public static final Predicate JSON_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), JSON_REGEX);
 	public static final Predicate XML_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), XML_REGEX);
 
@@ -35,7 +37,8 @@ public class ServerPredicates
 	//public static final Predicate ACCEPT_JSON_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MediaType.APPLICATION_JSON.contentType(),MediaType.APPLICATION_JSON.withCharset("UTF-8").toString());
 	public static final Predicate ACCEPT_JSON_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.ACCEPT), JSON_REGEX);
 	public static final Predicate ACCEPT_XML_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.ACCEPT), XML_REGEX);; 
-	//public static final Predicate ACCEPT_XML_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MediaType.APPLICATION_XML.contentType(),MediaType.APPLICATION_XML.withCharset("UTF-8").toString()); 
+	public static final Predicate ACCEPT_TEXT_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.ACCEPT), TEXT_REGEX);; 
+//public static final Predicate ACCEPT_XML_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MediaType.APPLICATION_XML.contentType(),MediaType.APPLICATION_XML.withCharset("UTF-8").toString()); 
     public static final Predicate ACCEPT_XML_EXCLUSIVE_PREDICATE = Predicates.and(ACCEPT_XML_PREDICATE, NO_WILDCARD_PREDICATE ); 
  	public static final Predicate MAX_CONTENT_SIZE_PREDICATE = new MaxRequestContentLengthPredicate.Builder().build(Collections.singletonMap("value", 0L));
     public static final Predicate STRING_BODY_PREDICATE = Predicates.and(Predicates.or(JSON_PREDICATE,XML_PREDICATE), MAX_CONTENT_SIZE_PREDICATE );

@@ -2,63 +2,63 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.sinistral</groupId>
-	<artifactId>proteus-core</artifactId> 
-	<version>0.3.3-SNAPSHOT</version> 
+	<artifactId>proteus-core</artifactId>
+	<version>0.3.3-SNAPSHOT</version>
 	<name>proteus core</name>
-    <description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
-    <url>http://github.com/noboomu/proteus</url>
-    <packaging>jar</packaging>
+	<description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
+	<url>http://github.com/noboomu/proteus</url>
+	<packaging>jar</packaging>
 
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
-        </license>
-    </licenses>
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+		</license>
+	</licenses>
 
-    <developers>
-        <developer>
-            <name>Joshua Lee Bauer</name>
-            <email>bauer.j@gmail.com</email>
-        </developer>
-    </developers>
+	<developers>
+		<developer>
+			<name>Joshua Lee Bauer</name>
+			<email>bauer.j@gmail.com</email>
+		</developer>
+	</developers>
 
-    <scm>
-        <connection>scm:git:git://github.com/noboomu/proteus.git</connection>
-        <developerConnection>scm:git:ssh://github.com:noboomu/proteus.git</developerConnection>
-        <url>http://github.com/noboomu/proteus/tree/master</url>
-    </scm>
+	<scm>
+		<connection>scm:git:git://github.com/noboomu/proteus.git</connection>
+		<developerConnection>scm:git:ssh://github.com:noboomu/proteus.git</developerConnection>
+		<url>http://github.com/noboomu/proteus/tree/master</url>
+	</scm>
 
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.maven-shade-plugin>3.0.0</version.maven-shade-plugin> 
-    <version.undertow>2.0.13.Final</version.undertow>
-    <version.jackson>2.9.6</version.jackson>
-  </properties>
-    
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<version.maven-shade-plugin>3.0.0</version.maven-shade-plugin>
+		<version.undertow>2.0.13.Final</version.undertow>
+		<version.jackson>2.9.6</version.jackson>
+	</properties>
+
 	<build>
-	 <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-            <testResource>
-                <directory>src/test/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </testResource>
-        </testResources>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>src/test/java</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
 		<pluginManagement>
 			<plugins>
-			
+
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -87,125 +87,125 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
-		 <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin> 
-            <plugin> 
-			     <artifactId>maven-surefire-plugin</artifactId>
-			     <version>2.20.1</version>
-			     
-			     <dependencies>
-				      <dependency>
-				        <groupId>org.apache.maven.surefire</groupId>
-				        <artifactId>surefire-junit47</artifactId>
-				        <version>2.20.1</version>
-				      </dependency>
-				    </dependencies>
-			     <configuration> 
-			        <argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
-			     </configuration>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                	<executable>gpg</executable>
-                </configuration>
-            </plugin>
-             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin> 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.3</version>
-                <configuration>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>ossrh</releaseProfiles>
-                    <goals>deploy</goals>
-                </configuration>
-            </plugin>
-            
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.20.1</version>
+
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.surefire</groupId>
+						<artifactId>surefire-junit47</artifactId>
+						<version>2.20.1</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>gpg</executable>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+					<useReleaseProfile>false</useReleaseProfile>
+					<releaseProfiles>ossrh</releaseProfiles>
+					<goals>deploy</goals>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.5.1</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-					<compilerArgument>-parameters</compilerArgument> 
+					<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+					<compilerArgument>-parameters</compilerArgument>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
 			<version>3.0.2</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
-	 
-	   
-        
-	 <dependency>
+
+
+
+		<dependency>
 			<groupId>io.undertow</groupId>
 			<artifactId>undertow-core</artifactId>
 			<version>${version.undertow}</version>
-		</dependency> 
+		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey</groupId>
 			<artifactId>jax-rs-ri</artifactId>
@@ -232,7 +232,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
@@ -255,12 +255,19 @@
 			<artifactId>jackson-core</artifactId>
 			<version>${version.jackson}</version>
 		</dependency>
- 
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
 			<version>${version.jackson}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+			<version>${version.jackson}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.module</groupId>
 			<artifactId>jackson-module-afterburner</artifactId>
@@ -303,8 +310,8 @@
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency> 
-		 
+		</dependency>
+
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-parser</artifactId>
@@ -340,23 +347,23 @@
 			<groupId>org.fusesource.jansi</groupId>
 			<artifactId>jansi</artifactId>
 			<version>1.15</version>
-		</dependency> 
+		</dependency>
 		<dependency>
 			<groupId>org.reactivestreams</groupId>
 			<artifactId>reactive-streams</artifactId>
 			<version>1.0.0.final</version>
 		</dependency>
 	</dependencies>
-	   <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-		     <repository>
-		    <id>ossrh</id>
-		    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		  </repository>
-		      <downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-core</downloadUrl>
-    </distributionManagement> 
- 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+		<downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-core</downloadUrl>
+	</distributionManagement>
+
 </project>

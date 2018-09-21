@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.server;
+package io.sinistral.proteus.test.server;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
@@ -32,8 +32,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.restassured.http.ContentType;
-import io.sinistral.proteus.models.User;
-import io.sinistral.proteus.models.User.UserType;
+import io.sinistral.proteus.test.models.User;
+import io.sinistral.proteus.test.models.User.UserType;
  
 /*
  * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;

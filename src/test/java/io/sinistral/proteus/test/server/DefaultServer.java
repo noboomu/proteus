@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.server;
+package io.sinistral.proteus.test.server;
 
 import java.util.List;
 
@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import io.restassured.RestAssured;
 import io.sinistral.proteus.ProteusApplication;
-import io.sinistral.proteus.controllers.Tests;
 import io.sinistral.proteus.services.AssetsService;
 import io.sinistral.proteus.services.SwaggerService;
+import io.sinistral.proteus.test.controllers.Tests;
 
 /**
  * @author jbauer

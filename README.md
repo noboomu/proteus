@@ -7,37 +7,20 @@ __NO MAGIC.__
 
 JAX-RS compliant.
 
-Verifiably [FAST](https://www.techempower.com/benchmarks/): [The latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus ranks faster than 99% of other Java frameworks. 
+Verifiably [FAST](https://www.techempower.com/benchmarks/): [The latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus outperforming 99% of other web frameworks. 
 
 Inspired by [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
 
 
 
-## Getting Started
-COMING SOON
+Getting Started
+---------------
 
-
-## Under the Hood
-
-Proteus takes your MVC controller classes and methods decorated with Swagger / JAX-RS annotations and generates native Undertow handler classes at runtime. 
-
-
-By default, the configuration is loaded into a `com.typesafe.config.Config` from a file at `conf/application.conf`.
-
-`@Named` annotated properties of `Module`, `Service` and controller classes are bound to values found in the configuration.
-
-Proteus applications generally have a main method that creates an instance of `io.sinistral.proteus.ProteusApplication`. 
-
-Prior to calling `start` on the `ProteusApplication` instance:
-* Register `Service` classes via `addService`  
-* Register `Module` classes via `addModule`  
-* Register classes annotated with `io.swagger.annotations.Api` via `addController`  
-
-Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/swagger` and [Redoc](https://github.com/Rebilly/ReDoc) at `/swagger/redoc`.
-
-> A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.services.BaseService`.
-
-> A `Module` implements `com.google.inject.Module`.
+- Make sure you have a JDK >= 8 and a current version of Maven installed.
+- Copy and paste into your terminal:
+```
+/bin/bash -e <(curl -fsSL https://raw.githubusercontent.com/noboomu/proteus-example/master/scripts/quickStart.sh)
+```
 
 #### Example Application Class
 
@@ -54,7 +37,9 @@ public class ExampleApplication extends ProteusApplication
     }
 }
 ```
+
 #### Example Controller Class
+
 ```java
 import java.nio.ByteBuffer;
 import javax.ws.rs.*;
@@ -103,7 +88,8 @@ public class Examples
 ```
 
 
-# Controllers
+Controllers
+-------------
 
 ### Supported Controller Annotations
 
@@ -201,7 +187,8 @@ public void handleRequest(final io.undertow.server.HttpServerExchange exchange) 
 }
 ```
 
-## Controller Parameters
+Controller Parameters
+--------------
 
 A ```io.sinistral.proteus.server.ServerRequest``` can be added as an endpoint parameter if the user wishes to access request properties that are not included in the parameter list.
 
@@ -248,7 +235,8 @@ public ServerResponse<Map<String,Object>> complexParameters(
 		return response(responseMap).applicationJson(); 
 	}
 ```
-# Services
+Services
+-------------
 
 Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
 ## AssetsService
@@ -303,30 +291,50 @@ swagger {
     }
 ```
  
+Under the Hood
+---------------
 
----
+Proteus takes your MVC controller classes and methods decorated with Swagger / JAX-RS annotations and generates native Undertow handler classes at runtime. 
 
-## Examples
-COMING SOON
 
----
+By default, the configuration is loaded into a `com.typesafe.config.Config` from a file at `conf/application.conf`.
 
-## Motivation
+`@Named` annotated properties of `Module`, `Service` and controller classes are bound to values found in the configuration.
 
+Proteus applications generally have a main method that creates an instance of `io.sinistral.proteus.ProteusApplication`. 
+
+Prior to calling `start` on the `ProteusApplication` instance:
+* Register `Service` classes via `addService`  
+* Register `Module` classes via `addModule`  
+* Register classes annotated with `io.swagger.annotations.Api` via `addController`  
+
+Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/swagger` and [Redoc](https://github.com/Rebilly/ReDoc) at `/swagger/redoc`.
+
+> A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.services.BaseService`.
+
+> A `Module` implements `com.google.inject.Module`.
+
+Examples
+----------
+Check out [this example](https://github.com/noboomu/proteus-example).
+ 
+
+Motivation
+----------
 * Several years of working with the [Play](http://playframework.com) framework convinced us there had to be a better way.
 * We faced a Goldilocks Crisis with the existing alternatives: [Jooby](http://jooby.org) did too much, [light-4j](https://github.com/networknt/light-4j) didn't do quite enough.
 * We needed a framework that enabled us to write clean MVC REST controllers that created Swagger docs we could plug directly into the existing [codegen](https://github.com/swagger-api/swagger-codegen) solutions.
 * We needed a framework with minimal overhead and performance at or near that of raw [Undertow](http://undertow.io).
 
 
-### Dependencies
-
+Dependencies
+----------
 * [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Maven 3](http://maven.apache.org/)
 
 
-### Built With
-
+Built With
+----------
  - [Undertow](http://undertow.io) (server)
  - [Guice](https://github.com/google/guice) (di)
  - [Java Runtime Compiler](https://github.com/OpenHFT/Java-Runtime-Compiler) (runtime generated class compilation)

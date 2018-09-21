@@ -4,6 +4,7 @@
 An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing and running microservices.
 
 __NO MAGIC.__
+__LIMITED DEPENDENCIES.__ 
 
 JAX-RS compliant.
 

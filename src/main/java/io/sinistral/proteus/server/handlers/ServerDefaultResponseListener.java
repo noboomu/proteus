@@ -51,22 +51,32 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
              return false;
          }
 		   
-         if (exchange.getStatusCode() >= 400) {
+		 final int statusCode = exchange.getStatusCode();
+		 
+         if (statusCode >= 400) {
               
+        	 final Map<String, String> errorMap = new HashMap<>();
+
+        	 final String path = exchange.getRelativePath();
+        	 
         	 Throwable throwable = exchange.getAttachment(DefaultResponseListener.EXCEPTION);
         	 
         	 if( throwable == null )
         	 {
-        		 throwable = new Exception("An unknown error occured");
+        		 final String reason = StatusCodes.getReason(statusCode);
+        		 
+        		 throwable = new Exception(reason);
         	 }
-        
-        	 Map<String, String> errorMap = new HashMap<>();
-        	 
+                	 
 		 	 errorMap.put("exceptionClass", throwable.getClass().getName()); 
 
         	 errorMap.put("message", throwable.getMessage());
         	  
-        	 log.error(throwable.getMessage(),throwable);
+        	 errorMap.put("path", path);
+
+        	 errorMap.put("code", Integer.toString(statusCode));
+
+        	 log.error(throwable.getMessage() + " at " + path,throwable);
 
         	 if( throwable.getStackTrace() != null )
      		{

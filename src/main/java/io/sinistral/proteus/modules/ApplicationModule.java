@@ -14,7 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.util.concurrent.Service;
@@ -58,23 +60,10 @@ public class ApplicationModule extends AbstractModule
 	{
 
 		this.binder().requestInjection(this);
-
+ 
+		this.bindMappers();
+		
 		RoutingHandler router = new RoutingHandler();
-
-		try
-		{
-			String className = config.getString("application.fallbackHandler");
-			log.info("Installing FallbackListener " + className);
-			Class<? extends HttpHandler> clazz = (Class<? extends HttpHandler>) Class.forName(className);
-			router.setFallbackHandler(clazz.newInstance());
-		} catch (Exception e)
-		{
-			log.error(e.getMessage(), e);
-		}
-
-		this.bind(RoutingHandler.class).toInstance(router);
-
-		this.bind(ApplicationModule.class).toInstance(this);
 
 		try
 		{
@@ -84,8 +73,34 @@ public class ApplicationModule extends AbstractModule
 			this.bind(DefaultResponseListener.class).to(clazz).in(Singleton.class);
 		} catch (Exception e)
 		{
+			this.binder().addError(e);
 			log.error(e.getMessage(), e);
 		}
+		
+		try
+		{
+			String className = config.getString("application.fallbackHandler");
+			log.info("Installing FallbackListener " + className);
+			
+			Class<? extends HttpHandler> clazz = (Class<? extends HttpHandler>) Class.forName(className);
+			
+			HttpHandler fallbackHandler = clazz.newInstance();
+			
+			this.binder().requestInjection(fallbackHandler);
+			
+			router.setFallbackHandler(fallbackHandler);
+			
+		} catch (Exception e)
+		{
+			this.binder().addError(e);
+			log.error(e.getMessage(), e);
+		}
+
+		this.bind(RoutingHandler.class).toInstance(router);
+
+		this.bind(ApplicationModule.class).toInstance(this);
+
+	 
 
 		this.bind(new TypeLiteral<Set<Class<?>>>()
 		{
@@ -103,8 +118,7 @@ public class ApplicationModule extends AbstractModule
 		{
 		}).annotatedWith(Names.named("registeredHandlerWrappers")).toInstance(registeredHandlerWrappers);
 
-		
-		this.bindMappers();
+		 
 
 	}
 	
@@ -113,12 +127,15 @@ public class ApplicationModule extends AbstractModule
 	 */
 	public void bindMappers()
 	{
-		this.bind(XmlMapper.class).toInstance(new XmlMapper());
-
-//		JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
-//		JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
-//		JsoniterAnnotationSupport.enable();
 		
+		JacksonXmlModule xmlModule = new JacksonXmlModule(); 
+		xmlModule.setDefaultUseWrapper(false);
+		
+		XmlMapper xmlMapper = new XmlMapper(xmlModule);
+		xmlMapper.enable(ToXmlGenerator.Feature.WRITE_XML_DECLARATION);
+
+		this.bind(XmlMapper.class).toInstance(xmlMapper);
+ 
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);

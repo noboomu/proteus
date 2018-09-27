@@ -24,3 +24,4 @@ bin
 .cache-tests
 /proteus/
 /pom.xml.versionsBackup
+.factorypath

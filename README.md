@@ -178,57 +178,57 @@ Services
 -------------
 
 Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
-## AssetsService
+- __AssetsService__
 
-The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
+	The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
 
-The default configuration:
-```
-assets {
-    # the base path assets will be server from
-    path = "/public"
-    # the directory to load the assets from
-    dir = "./assets"
-    cache {
-    # cache timeout for the assets
-        time = 500
-    }
-}
-```
-## SwaggerService   
+	The default configuration:
+	```
+	assets {
+ 	   # the base path assets will be server from
+  	  path = "/public"
+  	  # the directory to load the assets from
+   	 dir = "./assets"
+   	 cache {
+   	 # cache timeout for the assets
+   	     time = 500
+  	  }
+	}
+	```
+- __SwaggerService__   
 
-The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
+	The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
 
-The service is configured in your ```application.conf``` file.
+	The service is configured in your ```application.conf``` file.
 
-The default configuration:
-```
-swagger {
-    # the path that has an index.html template and theme css files
-    resourcePrefix="io/sinistral/proteus/swagger"
-    # swagger version
-    swagger: "2.0"
-    info {
-        # swagger info title
-        title = ${application.name}
-        # swagger info version
-        version = ${application.version}
-    }
-    # swagger-ui theme from ostranmes swagger-ui-themes, the following are built-in 
-    # [feeling-blue, flattop, material, monokai, muted, newspaper, outline]
-    # specifying a different name causes the SwaggerService to search in 
-    # {swagger.resourcePrefix}/themes for a file named "theme-{swagger.theme}.css"
-    theme="default"
-    # where the swagger endpoints will be mounted
-    basePath= ${application.path}"/swagger"
-    #the name of the spec file
-    specFilename="swagger.json"
-    consumes = ["application/json"]
-    produces = ["application/json"]
-    # supported schemes
-    schemes = ["http"]
-    }
-```
+	The default configuration:
+	```
+	swagger {
+   	 # the path that has an index.html template and theme css files
+   	 resourcePrefix="io/sinistral/proteus/swagger"
+   	 # swagger version
+    	swagger: "2.0"
+   	 info {
+   	     # swagger info title
+   	     title = ${application.name}
+   	     # swagger info version
+    	    version = ${application.version}
+  	  }
+  	  # swagger-ui theme from ostranmes swagger-ui-themes, the following are built-in 
+  	  # [feeling-blue, flattop, material, monokai, muted, newspaper, outline]
+  	  # specifying a different name causes the SwaggerService to search in 
+  	  # {swagger.resourcePrefix}/themes for a file named "theme-{swagger.theme}.css"
+  	  theme="default"
+  	  # where the swagger endpoints will be mounted
+  	  basePath= ${application.path}"/swagger"
+  	  #the name of the spec file
+   	 specFilename="swagger.json"
+   	 consumes = ["application/json"]
+   	 produces = ["application/json"]
+   	 # supported schemes
+   	 schemes = ["http"]
+   	 }
+	```
  
 Under the Hood
 ---------------

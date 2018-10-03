@@ -466,6 +466,12 @@ public class HandlerGenerator
 
 			endpointInfo.setConsumes(consumesContentType);
 
+            //The handler for these two inputs types is blocking, so we set the flag
+            if (endpointInfo.getConsumes().equals("application/x-www-form-urlencoded")
+                    || endpointInfo.getConsumes().equals("multipart/form-data")) {
+                isBlocking = true;
+            }
+
 			endpointInfo.setPathTemplate(methodPath);
 
 			endpointInfo.setControllerMethod(m.getName());

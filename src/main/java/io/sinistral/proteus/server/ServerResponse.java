@@ -253,6 +253,12 @@ public class ServerResponse<T>
 		return this;
 	}
 
+        public ServerResponse<T> status(Response.Status status)
+	{
+		this.status = status.getStatusCode();
+                return this;
+        }
+        
 	public ServerResponse<T> status(int status)
 	{
 		this.status = status;

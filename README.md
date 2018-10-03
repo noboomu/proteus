@@ -13,13 +13,11 @@ JAX-RS compliant.
 
 Verifiably [FAST](https://www.techempower.com/benchmarks/): [The latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus outperforming 99% of other web frameworks. 
 
-Inspired by [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
-
-
 
 Getting Started
 ---------------
 
+### Quick Start
 - Make sure you have a JDK >= 8 and a current version of Maven installed.
 - Copy and paste into your terminal:
 ```
@@ -29,6 +27,15 @@ Getting Started
 - Open [http://localhost:8090/v1/swagger](http://localhost:8090/v1/swagger) in your browser.
 - Open [http://localhost:8090/v1/swagger/redoc](http://localhost:8090/v1/swagger/redoc) for a pretty version of your API.
 
+### As a dependency
+
+```xml
+<dependency>
+    <groupId>io.sinistral</groupId>
+    <artifactId>proteus-core</artifactId>
+    <version>0.3.4-SNAPSHOT</version>
+</dependency>
+```
 
 Controllers
 ---------------
@@ -177,6 +184,24 @@ public ServerResponse<Map<String,Object>> complexParameters(
 		return response(responseMap).applicationJson(); 
 	}
 ```
+
+Annotations
+-------------
+
+Proteus has three built in annotations:
+
+* @Blocking
+    * ```io.sinistral.proteus.annotations.Blocking```
+    * Forces the request processing to block.
+
+* @Debug
+    * ```io.sinistral.proteus.annotations.Debug```
+    * Dumps the request and response details to the log.
+
+* @Chain
+    * ```io.sinistral.proteus.annotations.Chain```
+    * Wraps the endpoint handler in the provided array of ```io.undertow.server.HttpHandler``` classes.
+
 Services
 -------------
 
@@ -268,6 +293,8 @@ Motivation
 * We needed a framework that enabled us to write clean MVC REST controllers that created Swagger docs we could plug directly into the existing [codegen](https://github.com/swagger-api/swagger-codegen) solutions.
 * We needed a framework with minimal overhead and performance at or near that of raw [Undertow](http://undertow.io).
 
+
+Inspired by [Play](http://playframework.com), [Jooby](http://jooby.org), and [light-4j](https://github.com/networknt/light-4j).
 
 Dependencies
 ----------

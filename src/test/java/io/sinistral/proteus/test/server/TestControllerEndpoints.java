@@ -77,7 +77,20 @@ public class TestControllerEndpoints
 	{
 		given().accept(ContentType.JSON).log().uri().when().get("swagger.json").then().statusCode(200).and().body("basePath", is("/v1"));
 	}
+	
+	@Test
+	public void testDebugEndpoint()
+	{
+		given().accept(ContentType.JSON).log().uri().when().get("tests/response/debug").then().statusCode(200);
+	}
 
+	@Test
+	public void testDebugBlockingEndpoint()
+	{
+		given().accept(ContentType.JSON).log().uri().when().get("tests/response/debug/blocking").then().statusCode(200);
+	}
+
+	
 	@Test
 	public void exchangeUserJson()
 	{

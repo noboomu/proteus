@@ -34,6 +34,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import io.sinistral.proteus.annotations.Blocking;
+import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.test.models.User;
@@ -269,6 +270,41 @@ public class Tests
 
 	}
 	
+	@GET
+	@Path("/response/debug")
+	@Debug
+	@ApiOperation(value = "Debug endpoint",   httpMethod = "GET" )
+	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request) 
+	{  
+		try
+		{
+			Map<String,String> map = ImmutableMap.of("message", "Hello, World!");
+			
+			return response( map ).applicationJson();
+		} catch(Exception e)
+		{
+			return response().badRequest(e);
+		}
+	}
+	
+
+	@GET
+	@Path("/response/debug/blocking")
+	@Debug
+	@Blocking
+	@ApiOperation(value = "Debug blocking endpoint",   httpMethod = "GET" )
+	public ServerResponse<Map<String,String>> debugBlockingEndpoint(ServerRequest request) 
+	{  
+		try
+		{
+			Map<String,String> map = ImmutableMap.of("message", "Hello, World!");
+			
+			return response( map ).applicationJson();
+		} catch(Exception e)
+		{
+			return response().badRequest(e);
+		}
+	}
 	
 	@GET
 	@Path("/response/future/user")

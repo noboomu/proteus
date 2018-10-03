@@ -30,17 +30,15 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
- 
-
 
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -53,6 +51,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import io.sinistral.proteus.annotations.Blocking;
+import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
@@ -63,7 +62,8 @@ import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
-import io.undertow.server.handlers.RequestBufferingHandler;
+import io.undertow.server.handlers.form.FormEncodedDataDefinition;
+import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import net.openhft.compiler.CompilerUtils;
@@ -393,12 +393,20 @@ public class HandlerGenerator
 			String consumesContentType = "*/*";
 
 			Boolean isBlocking = false;
+			Boolean isDebug = false;
 
 			Optional<Blocking> blockingAnnotation = Optional.ofNullable(m.getAnnotation(Blocking.class));
 
 			if (blockingAnnotation.isPresent())
 			{
 				isBlocking = blockingAnnotation.get().value();
+			}
+			
+			Optional<Debug> debugAnnotation = Optional.ofNullable(m.getAnnotation(Debug.class));
+
+			if (debugAnnotation.isPresent())
+			{
+				isDebug = debugAnnotation.get().value();
 			}
 
 			Optional<javax.ws.rs.Produces> producesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Produces.class));
@@ -467,8 +475,8 @@ public class HandlerGenerator
 			endpointInfo.setConsumes(consumesContentType);
 
             //The handler for these two inputs types is blocking, so we set the flag
-            if (endpointInfo.getConsumes().equals("application/x-www-form-urlencoded")
-                    || endpointInfo.getConsumes().equals("multipart/form-data")) {
+            if (endpointInfo.getConsumes().contains(FormEncodedDataDefinition.APPLICATION_X_WWW_FORM_URLENCODED)
+                    || endpointInfo.getConsumes().contains(MultiPartParserDefinition.MULTIPART_FORM_DATA)) {
                 isBlocking = true;
             }
 
@@ -768,7 +776,7 @@ public class HandlerGenerator
 					}
 					else
 					{
-						methodBuilder.addStatement("exchange.getResponseSender().send(com.jsoniter.output.JsonStream.serialize($L))", "response");
+						methodBuilder.addStatement("exchange.getResponseSender().send($L.toString())", "response");
 					}
 
 				}
@@ -827,9 +835,19 @@ public class HandlerGenerator
 				securityDefinitions.addAll(typeLevelSecurityDefinitions);
 			}
 
-			if (isBlocking)
+			if (isBlocking && isDebug)
 			{
-				handlerName = "new io.undertow.server.handlers.BlockingHandler(new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(1).wrap(" + handlerName + "))";
+				handlerName = "new io.undertow.server.handlers.RequestDumpingHandler(new io.undertow.server.handlers.BlockingHandler(new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(8).wrap(" + handlerName + ")))";
+			}
+			else if( isBlocking )
+			{
+				handlerName = "new io.undertow.server.handlers.BlockingHandler(new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(8).wrap(" + handlerName + "))";
+
+			}
+			else if( isDebug )
+			{
+				handlerName = "new io.undertow.server.handlers.RequestDumpingHandler(" + handlerName + ")";
+
 			}
 
 			if (wrapAnnotation.isPresent() || typeLevelHandlerWrapperMap.size() > 0 || securityDefinitions.size() > 0)

@@ -63,7 +63,19 @@ public void plaintext(HttpServerExchange exchange)
 	response("Hello, World!").contentType(PLAINTEXT_TYPE).send(exchange);
 }
 ```
-In addition, the `io.sinistral.proteus.annotations.Blocking` annotation can be used to explicitly mark a method for blocked request handling. 
+Proteus has three built in annotations:
+
+* @Blocking
+    * ```io.sinistral.proteus.annotations.Blocking```
+    * Forces the request processing to block.
+
+* @Debug
+    * ```io.sinistral.proteus.annotations.Debug```
+    * Dumps the request and response details to the log.
+
+* @Chain
+    * ```io.sinistral.proteus.annotations.Chain```
+    * Wraps the endpoint handler in the provided array of ```io.undertow.server.HttpHandler``` classes.
 
 ## Return Types
 
@@ -185,22 +197,6 @@ public ServerResponse<Map<String,Object>> complexParameters(
 	}
 ```
 
-Annotations
--------------
-
-Proteus has three built in annotations:
-
-* @Blocking
-    * ```io.sinistral.proteus.annotations.Blocking```
-    * Forces the request processing to block.
-
-* @Debug
-    * ```io.sinistral.proteus.annotations.Debug```
-    * Dumps the request and response details to the log.
-
-* @Chain
-    * ```io.sinistral.proteus.annotations.Chain```
-    * Wraps the endpoint handler in the provided array of ```io.undertow.server.HttpHandler``` classes.
 
 Services
 -------------

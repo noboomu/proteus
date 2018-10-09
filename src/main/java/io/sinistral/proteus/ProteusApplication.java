@@ -48,12 +48,14 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.utilities.SecurityOps;
 import io.sinistral.proteus.utilities.TablePrinter;
+import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.protocol.http2.Http2UpgradeHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 
@@ -250,7 +252,7 @@ public class ProteusApplication
 
 		this.addDefaultRoutes(router);
 
-		final HttpHandler handler;
+		HttpHandler handler;
 
 		if (rootHandlerClass != null)
 		{
@@ -267,7 +269,7 @@ public class ProteusApplication
 		{
 			httpPort = Integer.parseInt(System.getProperty("http.port"));
 		}
-		
+
 		Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
 				.setBufferSize(16 * 1024)
 				.setIoThreads(Runtime.getRuntime().availableProcessors() * 2)
@@ -277,6 +279,7 @@ public class ProteusApplication
 				.setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
 				.setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
 				.setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
+                .setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
 				.setWorkerThreads(config.getInt("undertow.workerThreads"))
 				.setHandler(handler);
 

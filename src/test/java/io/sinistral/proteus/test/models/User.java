@@ -58,13 +58,7 @@ public class User
 		this.id = id;
 	}
 
-//	/**
-//	 * @return the type
-//	 */
-//	public UserType getType()
-//	{
-//		return type;
-//	}
+
 
 	/**
 	 * @param type the type to set

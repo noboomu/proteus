@@ -5,14 +5,19 @@ An extremely __lightweight, flexible, and high performance__ [Undertow](http://u
 
 __NO MAGIC.__
 
-__LIMITED DEPENDENCIES.__ 
+Limited dependencies.
 
-__< 400kb__
+< 400kb.
 
 JAX-RS compliant.
 
-Verifiably [FAST](https://www.techempower.com/benchmarks/): [The latest benchmarks](https://www.techempower.com/benchmarks/) show Proteus outperforming 99% of other web frameworks. 
+Blazing fast!!!
+[The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate Proteus outperforming 99% of all other web frameworks. 
 
+TL;DR
+---------------
+Proteus rewrites your user friendly MVC controller methods into blazing fast Undertow response handlers at run time.
+Easy on the developer and the metal.
 
 Getting Started
 ---------------
@@ -57,10 +62,10 @@ Controller class methods respect standard Swagger / JAX-RS annotations:
 @GET
 @Path("/plaintext")
 @Produces((MediaType.TEXT_PLAIN)) 
-@ApiOperation(value = "Plaintext endpoint",   httpMethod = "GET" )
-public void plaintext(HttpServerExchange exchange)
+@ApiOperation(value = "Plaintext endpoint" )
+public ServerResponse<ByteBuffer> plaintext(ServerRequest request)
 { 
-	response("Hello, World!").contentType(PLAINTEXT_TYPE).send(exchange);
+	return response("Hello, World!").textPlain();
 }
 ```
 Proteus has three built in annotations:
@@ -77,16 +82,43 @@ Proteus has three built in annotations:
     * ```io.sinistral.proteus.annotations.Chain```
     * Wraps the endpoint handler in the provided array of ```io.undertow.server.HttpHandler``` classes.
 
+Controller methods arguments support the following [JAX-RS annotations](https://docs.oracle.com/javaee/7/api/index.html?javax/ws/rs/PathParam.html):
+
+* @PathParam
+    * ```javax.ws.rs.PathParam```
+    * Binds a url template parameter to the method parameter.
+    * i.e. if the path is `/dogs/{id}`, @PathParam("id") binds the path segment value to the method parameter.
+
+* @QueryParam
+    * ```javax.ws.rs.QueryParam```
+    * Binds a HTTP query parameter to the method parameter.
+
+* @FormParam
+    * ```javax.ws.rs.FormParam```
+    * Binds the form parameter within a request body to the method parameter.
+
+* @HeaderParam
+    * ```javax.ws.rs.HeaderParam```
+    * Binds the value of a HTTP header to the method parameter.
+    
+* @CookieParam
+    * ```javax.ws.rs.CookieParam```
+    * Binds the value of a HTTP cookie to the method parameter.
+    
+ * @BeanParam
+    * ```javax.ws.rs.BeanParam```
+    * Binds and attempts to convert the request body to an instance of the method parameter.
+
 ## Return Types
 
-##### Performance
+#### Performance
 For total control and maximum performance the raw `HttpServerExchange` can be passed to the controller method.
 
 Methods that take an `HttpServerExchange` as an argument should __not__ return a value.
 
 In this case the method takes on __full responsibility__ for completing the exchange.
  
-##### Convenience
+#### Convenience
 The static method ```io.sinistral.proteus.server.ServerResponse.response``` helps create ```ServerResponse<T>``` instances that are the preferred return type for controller methods.
 
 If the response object's `contentType` is not explicitly set, the `@Produces` annotation is used in combination with the `Accept` headers to determine the `Content-Type`.
@@ -97,9 +129,9 @@ For methods that should return a `String` or `ByteBuffer` to the client users ca
 @Path("/hello-world")
 @Produces((MediaType.TEXT_PLAIN)) 
 @ApiOperation(value = "Serve a plaintext message using a ServerResponse")
-public ServerResponse<ByteBuffer> plaintext(String message)
+public ServerResponse<ByteBuffer> plaintext(ServerRequest request, @QueryParam("message") String message)
 { 
-	return ServerResponse.response("Hello, World!").contentType(PLAINTEXT_TYPE);
+	return ServerResponse.response("Hello, World!").textPlain();
 }
 ```
 By default, passing a `String` to the static `ServerResponse.response` helper function will convert it into a `ByteBuffer`.
@@ -110,13 +142,14 @@ For other types of responses the following demonstrates the preferred style:
 @Path("/world")
 @Produces((MediaType.APPLICATION_JSON)) 
 @ApiOperation(value = "Return a world JSON object",   httpMethod = "GET", response=World.class )
-public io.sinistral.proteus.server.ServerResponse<World> getWorld(Integer id,  Integer randomNumber )
+public ServerResponse<World> getWorld(ServerRequest request, @QueryParam("id") Integer id,  @QueryParam("randomNumber") Integer randomNumber )
 { 
-	return io.sinistral.proteus.server.ServerResponse.response(new World(id,randomNumber));
+	return response(new World(id,randomNumber)).applicationJson();
 }
 ```
 The entity can be set separately as well:
 > this disables static type checking!
+
 ```java
 @GET
 @Path("/world")
@@ -126,18 +159,22 @@ public io.sinistral.proteus.server.ServerResponse getWorld(Integer id,  Integer 
 { 
 	return io.sinistral.proteus.server.ServerResponse.response().entity(new World(id,randomNumber));
 }
+
 ```
 `CompletableFuture<ServerResponse<T>>` can also be used as a response type:
+
 ```java
 @GET
 @Path("/future/user")
 @ApiOperation(value = "Future user endpoint",   httpMethod = "GET" )
-public CompletableFuture<ServerResponse<User>> futureUser()
+public CompletableFuture<ServerResponse<User>> futureUser( ServerRequest request )
 { 
 	return CompletableFuture.completedFuture(response( new User(123L) ).applicationJson() );
 }
 ```
+
 In this case a handler will be generated with the following source code:
+
 ```java
 public void handleRequest(final io.undertow.server.HttpServerExchange exchange) throws java.lang.Exception { 
     CompletableFuture<ServerResponse<User>> response = examplesController.futureUser();
@@ -163,7 +200,7 @@ Optional parameters are also supported, here is a more complex endpoint demonstr
 @Path("/response/parameters/complex/{pathLong}")
 @ApiOperation(value = "Complex parameters", httpMethod = "GET")
 public ServerResponse<Map<String,Object>> complexParameters(
-        final ServerRequest serverRequest, 
+        ServerRequest serverRequest, 
         @PathParam("pathLong") final Long pathLong, 
         @QueryParam("optionalQueryString") Optional<String> optionalQueryString, 
         @QueryParam("optionalQueryLong") Optional<Long> optionalQueryLong, 

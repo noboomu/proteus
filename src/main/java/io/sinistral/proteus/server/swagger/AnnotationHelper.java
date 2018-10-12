@@ -28,6 +28,13 @@ public class AnnotationHelper
 			@Override
 			public String value()
 			{
+				FormParam annotation = parameter.getAnnotation(FormParam.class);
+				
+				if(annotation != null)
+				{
+					return annotation.value();
+				}
+				
 				return parameter.getName();
 			}
 
@@ -49,6 +56,13 @@ public class AnnotationHelper
 			@Override
 			public String value()
 			{
+				QueryParam annotation = parameter.getAnnotation(QueryParam.class);
+				
+				if(annotation != null)
+				{
+					return annotation.value();
+				}
+				
 				return parameter.getName();
 			}
 
@@ -69,6 +83,13 @@ public class AnnotationHelper
 			@Override
 			public String value()
 			{
+				PathParam annotation = parameter.getAnnotation(PathParam.class);
+				
+				if(annotation != null)
+				{
+					return annotation.value();
+				}
+				
 				return parameter.getName();
 			}
 
@@ -96,8 +117,27 @@ public class AnnotationHelper
 			@Override
 			public String name()
 			{
-				return parameter.getName();
-			}
+				QueryParam queryParam = parameter.getAnnotation(QueryParam.class);
+				FormParam formParam = parameter.getAnnotation(FormParam.class);
+				PathParam pathParam = parameter.getAnnotation(PathParam.class);
+ 
+				if(queryParam != null)
+				{
+					return queryParam.value();
+				} else if( pathParam != null )
+				{
+					return pathParam.value();
+				}
+				else if( formParam != null )
+				{
+					return formParam.value();
+				}
+				else
+				{
+					return parameter.getName(); 
+				}
+				 
+ 			}
 
 			@Override
 			public String value()

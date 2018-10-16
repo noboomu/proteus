@@ -29,6 +29,7 @@ import com.typesafe.config.Config;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
+import io.sinistral.proteus.services.BaseService;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
@@ -44,7 +45,7 @@ public class ApplicationModule extends AbstractModule
 
 	protected Set<EndpointInfo> registeredEndpoints = new TreeSet<>();
 	protected Set<Class<?>> registeredControllers = new HashSet<>();
-	protected Set<Class<? extends Service>> registeredServices = new HashSet<>();
+	protected Set<Class<? extends BaseService>> registeredServices = new HashSet<>();
 	protected Map<String,HandlerWrapper> registeredHandlerWrappers = new HashMap<>();
 
 	protected Config config;
@@ -110,7 +111,7 @@ public class ApplicationModule extends AbstractModule
 		{
 		}).annotatedWith(Names.named("registeredEndpoints")).toInstance(registeredEndpoints);
 		
-		this.bind(new TypeLiteral<Set<Class<? extends Service>>>()
+		this.bind(new TypeLiteral<Set<Class<? extends BaseService>>>()
 		{
 		}).annotatedWith(Names.named("registeredServices")).toInstance(registeredServices);
 		

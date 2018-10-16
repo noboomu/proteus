@@ -111,6 +111,10 @@ Controller methods arguments support the following [JAX-RS annotations](https://
     * ```javax.ws.rs.BeanParam```
     * Binds and attempts to convert the request body to an instance of the method parameter.
 
+* @DefaultParam
+    * ```javax.ws.rs.DefaultParam```
+    * Sets the default value of a method parameter.
+    
 ## Return Types
 
 #### Performance

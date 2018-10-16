@@ -46,16 +46,15 @@ import io.sinistral.proteus.modules.ConfigModule;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
+import io.sinistral.proteus.services.BaseService;
 import io.sinistral.proteus.utilities.SecurityOps;
 import io.sinistral.proteus.utilities.TablePrinter;
-import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
-import io.undertow.server.protocol.http2.Http2UpgradeHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 
@@ -77,7 +76,7 @@ public class ProteusApplication
 
 	@Inject
 	@Named("registeredServices")
-	protected Set<Class<? extends Service>> registeredServices;
+	protected Set<Class<? extends BaseService>> registeredServices;
 
 	@Inject
 	protected RoutingHandler router;
@@ -142,7 +141,9 @@ public class ProteusApplication
 
 		log.info("Starting services...");
 
-		Set<Service> services = registeredServices.stream().map(sc -> injector.getInstance(sc)).collect(Collectors.toSet());
+		Set<BaseService> services = registeredServices.stream().map(sc -> injector.getInstance(sc)).collect(Collectors.toSet());
+
+		injector = injector.createChildInjector(services);
 
 		serviceManager = new ServiceManager(services);
 
@@ -316,7 +317,7 @@ public class ProteusApplication
 
 	}
 
-	public ProteusApplication addService(Class<? extends Service> serviceClass)
+	public ProteusApplication addService(Class<? extends BaseService> serviceClass)
 	{
 		registeredServices.add(serviceClass);
 		return this;

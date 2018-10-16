@@ -30,6 +30,7 @@ import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
+import io.undertow.util.Methods;
 import io.undertow.util.StatusCodes;
 
 /**
@@ -57,6 +58,7 @@ public class ServerResponse<T>
 	protected T entity;
 	protected Throwable throwable;
 //	protected Class<? extends JsonContext> jsonContext;
+	protected HttpString method = null;
 	protected IoCallback ioCallback;
 	protected boolean hasCookies = false;
 	protected boolean hasHeaders = false;
@@ -179,29 +181,7 @@ public class ServerResponse<T>
 		this.status = status.getStatusCode();
 	}
 
-	/**
-	 * @param contentType
-	 *            the contentType to set
-	 */
-	protected void setContentType(String contentType)
-	{
-		this.contentType = contentType;
-
-		if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_JSON))
-		{
-			if (!this.preprocessed)
-			{
-				this.processJson = true;
-			}
-		}
-		else if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_XML))
-		{
-			if (!this.preprocessed)
-			{
-				this.processXml = true;
-			}
-		}
-	}
+ 
 
 	public ServerResponse<T> body(ByteBuffer body)
 	{
@@ -220,6 +200,18 @@ public class ServerResponse<T>
 		this.entity = entity;
 		this.preprocessed = false;
 
+		return this;
+	}
+	
+	public ServerResponse<T> method(HttpString method)
+	{
+		this.method = method; 
+		return this;
+	}
+	
+	public ServerResponse<T> method(String method)
+	{
+		this.method = Methods.fromString(method); 
 		return this;
 	}
 	
@@ -279,21 +271,47 @@ public class ServerResponse<T>
 		return this;
 	}
 
+	 
+	/**
+	 * @param contentType
+	 *            the contentType to set
+	 */
+	protected void setContentType(String contentType)
+	{
+		this.contentType = contentType;
+		 
+		if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_JSON))
+		{
+			if (!this.preprocessed)
+			{
+				this.processJson = true;
+			}
+		}
+		else if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_XML))
+		{
+			if (!this.preprocessed)
+			{
+				this.processXml = true;
+			}
+		}
+	}
+	
 	public ServerResponse<T> contentType(String contentType)
 	{
-		this.setContentType(contentType);
+		this.setContentType(contentType); 
 		return this;
 	}
 	
+	
 	public ServerResponse<T> contentType(javax.ws.rs.core.MediaType mediaType)
 	{
-		this.setContentType(mediaType.toString());
+		this.setContentType(mediaType.toString()); 
 		return this;
 	}
 	
 	public ServerResponse<T> contentType(MediaType mediaType)
 	{
-		this.setContentType(mediaType.contentType());
+		this.setContentType(mediaType.contentType()); 
 		return this;
 	}
 
@@ -357,7 +375,7 @@ public class ServerResponse<T>
 	public ServerResponse<T> redirectPermanently(String location)
 	{
 		this.location = location;
-		this.status = StatusCodes.MOVED_PERMANENTLY;;
+		this.status = StatusCodes.MOVED_PERMANENTLY;
 		return this;
 	}
 	
@@ -543,16 +561,13 @@ public class ServerResponse<T>
 
 	public void send(final HttpHandler handler, final HttpServerExchange exchange) throws RuntimeException
 	{
-
-		 
-		
+ 
 		final boolean hasBody = this.body != null;
 		final boolean hasEntity = this.entity != null;
 		final boolean hasError = this.throwable != null;
 
 		exchange.setStatusCode(this.status);
 		
-	 
 		
 		if (hasError)
 		{
@@ -562,15 +577,26 @@ public class ServerResponse<T>
 		}
 		
 		if(this.location != null)
-		{  
-		    exchange.getResponseHeaders().put(Headers.LOCATION, this.location);
+		{ 			
+		    exchange.getResponseHeaders().put(Headers.LOCATION, this.location); 
 		}
 		
-		if(this.status == StatusCodes.TEMPORARY_REDIRECT || this.status == StatusCodes.PERMANENT_REDIRECT)
+		if(this.status == StatusCodes.FOUND || this.status == StatusCodes.MOVED_PERMANENTLY || this.status == StatusCodes.TEMPORARY_REDIRECT || this.status == StatusCodes.PERMANENT_REDIRECT )
 		{
-		    exchange.endExchange();
+			if( (this.status == StatusCodes.FOUND || this.status == StatusCodes.MOVED_PERMANENTLY) && (this.method != null) )
+			{
+				exchange.setRequestMethod(this.method);
+			}
+			
+			exchange.endExchange();
 			return;
+		} 
+		
+		if (this.contentType != null)
+		{ 
+			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
 		}
+		 
 		
 		if (this.hasHeaders)
 		{
@@ -591,11 +617,9 @@ public class ServerResponse<T>
 			exchange.getResponseCookies().putAll(this.cookies);
 		}
 
+	 
 
-		if (this.contentType != null)
-		{
-			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, this.contentType);
-		}
+		 
 		else if (!this.processJson && !this.processXml)
 		{
 			if (ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange))

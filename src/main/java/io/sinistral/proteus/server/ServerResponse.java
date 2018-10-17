@@ -372,6 +372,13 @@ public class ServerResponse<T>
 		return this;
 	}
 	
+	public ServerResponse<T> redirect(String location, int status)
+	{
+		this.location = location;
+		this.status = status;
+		return this;
+	}
+	
 	public ServerResponse<T> redirectPermanently(String location)
 	{
 		this.location = location;
@@ -581,7 +588,7 @@ public class ServerResponse<T>
 		    exchange.getResponseHeaders().put(Headers.LOCATION, this.location); 
 		}
 		
-		if(this.status == StatusCodes.FOUND || this.status == StatusCodes.MOVED_PERMANENTLY || this.status == StatusCodes.TEMPORARY_REDIRECT || this.status == StatusCodes.PERMANENT_REDIRECT )
+		if(this.status == StatusCodes.FOUND || this.status == StatusCodes.MOVED_PERMANENTLY || this.status == StatusCodes.TEMPORARY_REDIRECT || this.status == StatusCodes.SEE_OTHER || this.status == StatusCodes.PERMANENT_REDIRECT )
 		{
 			if( (this.status == StatusCodes.FOUND || this.status == StatusCodes.MOVED_PERMANENTLY) && (this.method != null) )
 			{

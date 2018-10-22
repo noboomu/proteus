@@ -33,9 +33,11 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<version.maven-shade-plugin>3.0.0</version.maven-shade-plugin>
-		<version.undertow>2.0.13.Final</version.undertow>
-		<version.jackson>2.9.6</version.jackson>
+		<maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
+		<undertow.version>2.0.13.Final</undertow.version>
+		<jackson.version>2.9.6</jackson.version>
+		<openapi.version>2.0.6-SNAPSHOT</openapi.version>
+		<swagger.version>1.5.21</swagger.version>
 	</properties>
 
 	<build>
@@ -119,7 +121,6 @@
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.20.1</version>
-
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.surefire</groupId>
@@ -188,7 +189,7 @@
 		<dependency>
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
-			<version>3.0.2</version>
+			<version>3.1.1</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -199,16 +200,26 @@
 			<scope>test</scope>
 		</dependency>
 
-
-
 		<dependency>
 			<groupId>io.undertow</groupId>
 			<artifactId>undertow-core</artifactId>
-			<version>${version.undertow}</version>
+			<version>${undertow.version}</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.glassfish.jersey</groupId> <artifactId>jax-rs-ri</artifactId> 
-			<version>2.0-rc1</version> </dependency> -->
-		<!-- https://mvnrepository.com/artifact/javax.ws.rs/javax.ws.rs-api -->
+
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+ 
+ 
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
@@ -216,21 +227,11 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.fasterxml.woodstox</groupId>
-			<artifactId>woodstox-core</artifactId>
-			<version>5.1.0</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.squareup</groupId>
-			<artifactId>javapoet</artifactId>
-			<version>1.8.0</version>
-		</dependency>
-		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
 			<version>4.1.0</version>
 		</dependency>
+
 		<dependency>
 			<groupId>net.openhft</groupId>
 			<artifactId>compiler</artifactId>
@@ -244,6 +245,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.squareup</groupId>
+			<artifactId>javapoet</artifactId>
+			<version>1.8.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>21.0</version>
@@ -254,107 +261,25 @@
 			<artifactId>config</artifactId>
 			<version>1.3.1</version>
 		</dependency>
+
+	   <dependency>
+	      <groupId>org.yaml</groupId>
+	      <artifactId>snakeyaml</artifactId>
+	      <version>1.23</version> 
+	    </dependency>
+     
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-			<version>${version.jackson}</version>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>${version.jackson}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-xml</artifactId>
-			<version>${version.jackson}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-yaml</artifactId>
-			<version>${version.jackson}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.fasterxml.jackson.module</groupId>
-			<artifactId>jackson-module-afterburner</artifactId>
-			<version>${version.jackson}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.datatype</groupId>
-			<artifactId>jackson-datatype-jdk8</artifactId>
-			<version>${version.jackson}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>${version.jackson}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.2.3</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-
-		<!-- <dependency> <groupId>io.swagger.core.v3</groupId> <artifactId>swagger-annotations</artifactId> 
-			<version>2.0.5</version> </dependency> <dependency> <groupId>io.swagger.core.v3</groupId> 
-			<artifactId>swagger-core</artifactId> <version>2.0.5</version> <exclusions> 
-			<exclusion> <groupId>org.slf4j</groupId> <artifactId>slf4j-api</artifactId> 
-			</exclusion> </exclusions> </dependency> <dependency> <groupId>io.swagger.parser.v3</groupId> 
-			<artifactId>swagger-parser</artifactId> <version>2.0.5</version> <exclusions> 
-			<exclusion> <groupId>org.slf4j</groupId> <artifactId>slf4j-api</artifactId> 
-			</exclusion> </exclusions> </dependency> <dependency> <groupId>io.swagger.core.v3</groupId> 
-			<artifactId>swagger-jaxrs2</artifactId> <version>2.0.5</version> </dependency> -->
-
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-annotations</artifactId>
-			<version>1.5.12</version>
-		</dependency>
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-core</artifactId>
-			<version>1.5.12</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-parser</artifactId>
-			<version>1.0.28</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-jaxrs</artifactId>
-			<version>1.5.12</version>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
 			<version>4.4.6</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -370,12 +295,114 @@
 			<artifactId>jansi</artifactId>
 			<version>1.15</version>
 		</dependency>
+		
 		<dependency>
-			<groupId>org.reactivestreams</groupId>
-			<artifactId>reactive-streams</artifactId>
-			<version>1.0.0.final</version>
+			<groupId>com.fasterxml.woodstox</groupId>
+			<artifactId>woodstox-core</artifactId>
+			<version>5.1.0</version>
 		</dependency>
+    
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-afterburner</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-core</artifactId>
+			<version>${swagger.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-jaxrs</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>${openapi.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-models</artifactId>
+			<version>${openapi.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2</artifactId>
+			<version>${openapi.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-integration</artifactId>
+			<version>${openapi.version}</version>
+		</dependency>
+
+
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>sonatype-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+	</repositories>
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
@@ -385,6 +412,7 @@
 			<id>ossrh</id>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
+
 		<downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-core</downloadUrl>
 	</distributionManagement>
 

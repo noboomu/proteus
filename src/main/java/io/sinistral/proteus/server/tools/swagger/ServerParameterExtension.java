@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.server.swagger;
+package io.sinistral.proteus.server.tools.swagger;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;

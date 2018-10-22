@@ -169,9 +169,19 @@ public class Tests
 	@GET
 	@Path("/response/future/map")
 	@ApiOperation(value = "Future map endpoint",   httpMethod = "GET" )
-	public CompletableFuture<ServerResponse<ImmutableMap<String,String>>> responseFutureMap()
+	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureMap( ServerRequest request )
 	{ 
-		return CompletableFuture.completedFuture(response( ImmutableMap.of("message", "success") ).applicationJson());
+		Map<String,String> map = ImmutableMap.of("message", "success");
+		return CompletableFuture.completedFuture(response( map ).applicationJson());
+	}
+	
+	@GET
+	@Path("/response/map")
+	@ApiOperation(value = "Map endpoint",   httpMethod = "GET" )
+	public ServerResponse<Map<String,String>> futureMap( ServerRequest request )
+	{ 
+		Map<String,String> map = ImmutableMap.of("message", "success");
+		return  response( map ).applicationJson();
 	}
 	
 	@POST
@@ -199,9 +209,9 @@ public class Tests
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
 	@ApiOperation(value = "Echo json inner class endpoint",   httpMethod = "POST" )
-	public ServerResponse<User.InnerUserModel> responseInnerClassTest(ServerRequest request, @BeanParam User.InnerUserModel userInnerModel ) throws Exception
+	public ServerResponse<User> responseInnerClassTest(ServerRequest request, @BeanParam User user ) throws Exception
 	{  
-		return response(userInnerModel).applicationJson();
+		return response(user).applicationJson();
 	}
 	
 	  
@@ -210,9 +220,7 @@ public class Tests
 	@ApiOperation(value = "Generic set endpoint",   httpMethod = "GET" )
 	public ServerResponse<Set<Long>>  genericSet( ServerRequest request, @QueryParam("ids") Set<Long> ids )  throws Exception
 	{  
-		 
-			return response( ids ).applicationJson(); 
-		 
+		return response( ids ).applicationJson(); 
 	}
 	
 	  
@@ -221,16 +229,15 @@ public class Tests
 	@ApiOperation(value = "Generic optional set endpoint",   httpMethod = "GET" )
 	public ServerResponse<Set<Long>>  genericOptionalSet( ServerRequest request, @QueryParam("ids") Optional<Set<Long>> ids )  throws Exception
 	{  
-		 
-			return response( ids.get() ).applicationJson(); 
-		 
+		return response( ids.get() ).applicationJson();  
 	}
 
 	
 	@GET
 	@Path("/redirect/permanent")
 	@ApiOperation(value = "Permanent redirect endpoint",   httpMethod = "GET" )
-	public ServerResponse<?> testPermanentRedirect()
+	@Produces(MediaType.WILDCARD) 
+	public ServerResponse<Void> testPermanentRedirect()
 	{ 
 		return response().redirectPermanently("https://google.com");
 	}
@@ -238,7 +245,8 @@ public class Tests
 	@GET
 	@Path("/redirect")
 	@ApiOperation(value = "Redirect endpoint",   httpMethod = "GET" )
-	public ServerResponse<?> testRedirect()
+	@Produces(MediaType.WILDCARD) 
+	public ServerResponse<Void> testRedirect()
 	{ 
 		return response().redirect("https://google.com");
 	}
@@ -272,7 +280,6 @@ public class Tests
 	
 	@GET
 	@Path("/response/debug")
-	@Debug
 	@ApiOperation(value = "Debug endpoint",   httpMethod = "GET" )
 	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request) 
 	{  
@@ -290,7 +297,6 @@ public class Tests
 
 	@GET
 	@Path("/response/debug/blocking")
-	@Debug
 	@Blocking
 	@ApiOperation(value = "Debug blocking endpoint",   httpMethod = "GET" )
 	public ServerResponse<Map<String,String>> debugBlockingEndpoint(ServerRequest request) 

@@ -4,6 +4,8 @@
 package io.sinistral.proteus.test.server;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -75,6 +77,12 @@ public class TestControllerEndpoints
 	public void testSwaggerDocs()
 	{
 		given().accept(ContentType.JSON).log().uri().when().get("swagger.json").then().statusCode(200).and().body("basePath", is("/v1"));
+	}
+	
+	@Test
+	public void testOpenAPIDocs()
+	{
+		when().get("openapi.yaml").then().statusCode(200);
 	}
 	
 	@Test

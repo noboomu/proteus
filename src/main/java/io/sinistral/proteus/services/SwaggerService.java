@@ -42,7 +42,7 @@ import com.typesafe.config.ConfigObject;
 
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.security.MapIdentityManager;
-import io.sinistral.proteus.server.swagger.ServerParameterExtension;
+import io.sinistral.proteus.server.tools.swagger.ServerParameterExtension;
 import io.swagger.jaxrs.ext.SwaggerExtension;
 import io.swagger.jaxrs.ext.SwaggerExtensions;
 import io.swagger.models.Info;
@@ -81,33 +81,33 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	  
 	private static Logger log = LoggerFactory.getLogger(SwaggerService.class.getCanonicalName());
 
-	protected io.sinistral.proteus.server.swagger.Reader reader = null;
+	protected io.sinistral.proteus.server.tools.swagger.Reader reader = null;
 	
-	protected final String swaggerResourcePathPrefix = "swagger";
+	protected final String resourcePathPrefix = "swagger";
 
 	@Inject
 	@Named("swagger.resourcePrefix")
-	protected String swaggerResourcePrefix;
+	protected String resourcePrefix;
 	
 	@Inject
 	@Named("swagger.basePath")
-	protected String swaggerBasePath;
+	protected String basePath;
 	
 	@Inject
 	@Named("swagger.theme")
-	protected String swaggerTheme;
+	protected String theme;
 	
 	@Inject
 	@Named("swagger.specFilename")
 	protected String specFilename;
-	
+	 
 	@Inject
-	@Named("swagger.info")
-	protected Config swaggerInfo;
+	@Named("swagger")
+	protected Config swaggerConfig;
 	
 	@Inject
 	@Named("swagger.security")
-	protected Config swaggerSecurity;
+	protected Config securityConfig;
 	
 	@Inject
 	@Named("swagger.redocPath")
@@ -206,28 +206,13 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		swagger.setHost(host+((port != 80 && port != 443) ? ":" + port : ""));
 		
-		Info info = new Info();
-		
-		if(swaggerInfo.hasPath("title"))
-		{
-			info.title(swaggerInfo.getString("title"));
-		}
-		
-		if(swaggerInfo.hasPath("version"))
-		{
-			info.version(swaggerInfo.getString("version"));
-		}
-		
-		if(swaggerInfo.hasPath("description"))
-		{
-			info.description(swaggerInfo.getString("description"));
-		}
+		Info info = mapper.convertValue(swaggerConfig.getValue("info").unwrapped(), Info.class);
 		
 		swagger.setInfo(info);
 		
-		if(swaggerSecurity.hasPath("apiKeys"))
+		if(securityConfig.hasPath("apiKeys"))
 		{
-			List<? extends ConfigObject> apiKeys = swaggerSecurity.getObjectList("apiKeys");
+			List<? extends ConfigObject> apiKeys = securityConfig.getObjectList("apiKeys");
 			
 			for(ConfigObject apiKey : apiKeys)
 			{
@@ -280,9 +265,9 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			}
 		}
 		
-		if(swaggerSecurity.hasPath("basicRealms"))
+		if(securityConfig.hasPath("basicRealms"))
 		{
-			List<? extends ConfigObject> realms = swaggerSecurity.getObjectList("basicRealms");
+			List<? extends ConfigObject> realms = securityConfig.getObjectList("basicRealms");
 			
 			for(ConfigObject realm : realms)
 			{
@@ -328,7 +313,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		}
 
 
-		this.reader = new io.sinistral.proteus.server.swagger.Reader(swagger);
+		this.reader = new io.sinistral.proteus.server.tools.swagger.Reader(swagger);
  
 		classes.forEach( c -> this.reader.read(c));
 		
@@ -359,7 +344,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		{  
   
 			
-			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(swaggerResourcePrefix + "/index.html"))
+			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/index.html"))
 			{
 				byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
 				
@@ -367,32 +352,32 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 				 
 				String themePath = "swagger-ui.css";
 				 
-				if(!swaggerTheme.equals("default"))
+				if(!theme.equals("default"))
 				{
-					themePath= "themes/theme-" + swaggerTheme + ".css"; 
+					themePath= "themes/theme-" + theme + ".css"; 
 				} 
 
 				templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
-				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", swaggerBasePath);
+				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", basePath);
 				templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");
-				templateString = templateString.replaceAll("\\{\\{ swaggerFilePath \\}\\}", swaggerBasePath + ".json");
+				templateString = templateString.replaceAll("\\{\\{ swaggerFilePath \\}\\}", basePath + ".json");
 	
 				this.swaggerIndexHTML = templateString;   
 			}
 			
-			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(swaggerResourcePrefix + "/redoc.html"))
+			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/redoc.html"))
 			{
 				byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
 				
 				String templateString = new String(templateBytes,Charset.defaultCharset());
 				
-				templateString = templateString.replaceAll("\\{\\{ swaggerSpecPath \\}\\}", this.swaggerBasePath + ".json");
+				templateString = templateString.replaceAll("\\{\\{ swaggerSpecPath \\}\\}", this.basePath + ".json");
 				templateString = templateString.replaceAll("\\{\\{ applicationName \\}\\}", applicationName);
 	
 				this.redocHTML = templateString;   
 			}
   
-			URL url = this.getClass().getClassLoader().getResource(swaggerResourcePrefix);
+			URL url = this.getClass().getClassLoader().getResource(resourcePrefix);
 			
 			if( url.toExternalForm().contains("!") )
 			{
@@ -435,7 +420,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 						{
 							final InputStream entryInputStream = jarFile.getInputStream(ze);
 							
-							String filename = ze.getName().substring(swaggerResourcePrefix.length() + 1); 
+							String filename = ze.getName().substring(resourcePrefix.length() + 1); 
 							
 							Path entryFilePath = swaggerTmpDir.resolve(filename); 
 
@@ -452,7 +437,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			}
 			else
 			{
-				this.swaggerResourcePath = Paths.get(this.getClass().getClassLoader().getResource(this.swaggerResourcePrefix).toURI());
+				this.swaggerResourcePath = Paths.get(this.getClass().getClassLoader().getResource(this.resourcePrefix).toURI());
 				this.serviceClassLoader = this.getClass().getClassLoader();
 			}
 		
@@ -471,7 +456,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		 * JSON path 
 		 */
 		
-		String pathTemplate = this.swaggerBasePath + ".json";
+		String pathTemplate = this.basePath + ".json";
 		
 		FileResourceManager resourceManager = new FileResourceManager(this.swaggerResourcePath.toFile(),1024);
  		
@@ -512,7 +497,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		 * YAML path 
 		 */
 		
-		pathTemplate = this.swaggerBasePath + ".yaml";
+		pathTemplate = this.basePath + ".yaml";
 		
 		router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
 
@@ -543,7 +528,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		
 		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()).build());
 		
-		pathTemplate = this.swaggerBasePath + "/" + this.redocPath;
+		pathTemplate = this.basePath + "/" + this.redocPath;
 				 
 		router.add(HttpMethod.GET,pathTemplate, new HttpHandler(){
 
@@ -561,7 +546,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
    
 		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MediaType.TEXT_HTML).build());
 		 
-		pathTemplate =  this.swaggerBasePath;
+		pathTemplate =  this.basePath;
 		 
 		router.add(HttpMethod.GET, pathTemplate , new HttpHandler(){
 
@@ -584,7 +569,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		{
 	 
 
-			 pathTemplate =  this.swaggerBasePath + "/*";
+			 pathTemplate =  this.basePath + "/*";
 			 
 			 router.add(HttpMethod.GET, pathTemplate, new ResourceHandler(resourceManager){
 
@@ -594,7 +579,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 						 
 						String canonicalPath = CanonicalPathUtils.canonicalize((exchange.getRelativePath()));
 					 
-						canonicalPath =  canonicalPath.split(swaggerBasePath)[1];  
+						canonicalPath =  canonicalPath.split(basePath)[1];  
 						
 						exchange.setRelativePath(canonicalPath);
 						
@@ -604,7 +589,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 						}
 						else
 						{
-							canonicalPath = swaggerResourcePrefix + canonicalPath;
+							canonicalPath = resourcePrefix + canonicalPath;
 							
 							try(final InputStream resourceInputStream = serviceClassLoader.getResourceAsStream(  canonicalPath))
 							{

@@ -11,36 +11,32 @@
 		</encoder>
 	</appender>
 
-	<logger name="org.apache.http" level="ERROR" />
-
+	<logger name="org.apache.http" level="ERROR" /> 
 	<logger name="javax.activation" level="ERROR" />
 
 	<logger name="io.netty" level="ERROR" />
 	<logger name="io.netty.handler" level="ERROR" />
 
-	<logger name="io.sinistral.proteus.server.swagger" level="ERROR" />
-	<logger name="io.sinistral.proteus.server.handlers" level="ERROR" />
+	<logger name="io.sinistral.proteus.server.tools.swagger" level="ERROR" />
+	<logger name="io.sinistral.proteus.server.tools.handlers" level="ERROR" />
 	<logger name="io.sinistral.proteus.services" level="ERROR" />
+	<logger name="io.sinistral.proteus.server.oas" level="ERROR" />
 
 	<logger name="com.sun.jersey" level="ERROR" />
 
-	<logger name="org.xnio.nio" level="ERROR" />
+	<logger name="org.xnio" level="ERROR" />
 	<logger name="io.undertow" level="ERROR" />
-
-
 	<logger name="org.reflections" level="OFF" />
-
 	<logger name="io.swagger.converter" level="ERROR" />
 	<logger name="io.swagger.jackson" level="ERROR" />
-
+	<logger name="io.swagger.v3" level="ERROR" /> 
 	<logger name="swagger" level="ERROR" />
 
 	<logger name="javax.management" level="ERROR" />
 	<logger name="javax.management.mbeanserver" level="OFF" />
 	<logger name="java.jmx" level="ERROR" />
 
-	<logger name="org.apache.http.wire" level="ERROR" />
-
+	<logger name="org.apache.http.wire" level="ERROR" /> 
 	<logger name="com.wordnik" level="OFF" />
 
 	<logger name="sun.net" level="ERROR" />

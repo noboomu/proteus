@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import io.restassured.RestAssured;
 import io.sinistral.proteus.ProteusApplication;
 import io.sinistral.proteus.services.AssetsService;
+import io.sinistral.proteus.services.OpenAPIService;
 import io.sinistral.proteus.services.SwaggerService;
 import io.sinistral.proteus.test.controllers.Tests;
 
@@ -75,6 +76,8 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			 
 			app.addService(SwaggerService.class);
 			app.addService(AssetsService.class);
+			app.addService(OpenAPIService.class);
+
 			app.addController(Tests.class);
 
 			app.start();
@@ -84,6 +87,8 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			try
 			{
 				Thread.sleep(2000);
+				
+				System.out.println(app.getPorts());
 				
 				List<Integer> ports = app.getPorts();
 				

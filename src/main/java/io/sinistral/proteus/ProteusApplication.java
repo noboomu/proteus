@@ -165,6 +165,7 @@ public class ProteusApplication
 				
 				for(ListenerInfo info : undertow.getListenerInfo())
 				{
+					log.debug("listener info: " + info);
 					SocketAddress address = info.getAddress();
 					
 					if(address != null)

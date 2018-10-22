@@ -41,6 +41,8 @@ import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.tools.oas.Reader;
 import io.sinistral.proteus.server.tools.oas.ServerModelResolver;
 import io.sinistral.proteus.server.tools.oas.ServerParameterExtension;
+import io.swagger.util.Yaml;
+import io.swagger.v3.core.util.Json;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
 import io.swagger.v3.jaxrs2.integration.JaxrsApplicationAndAnnotationScanner;
 import io.swagger.v3.oas.integration.GenericOpenApiContext;
@@ -111,11 +113,11 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 	@Named("registeredHandlerWrappers")
 	protected Map<String,HandlerWrapper> registeredHandlerWrappers;
  
-	protected ObjectMapper mapper = new ObjectMapper();
+	protected ObjectMapper mapper = null;
 	
 	protected ObjectWriter writer = null; 
 	
-	protected YAMLMapper yamlMapper = new YAMLMapper();
+	protected ObjectMapper yamlMapper = null;
 	
 	protected Path resourcePath = null;
 	
@@ -127,28 +129,16 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 	
 	protected String indexHTML = null; 
 
-	@SuppressWarnings("deprecation")
+ 
 	public OpenAPIService( )
 	{ 
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		mapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
-		mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-		mapper.setSerializationInclusion(Include.NON_NULL);
-
+		mapper = Json.mapper();
 		mapper.registerModule(new Jdk8Module()); 
 		 
+		yamlMapper = Yaml.mapper();
 		
-		yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		yamlMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-		yamlMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		yamlMapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
-		yamlMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-		yamlMapper.setSerializationInclusion(Include.NON_NULL);
 		
-		writer = yamlMapper.writerWithDefaultPrettyPrinter();
-		writer = writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
+		writer = Yaml.pretty();
 	}
 
 	 

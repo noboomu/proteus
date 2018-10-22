@@ -318,12 +318,6 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		classes.forEach( c -> this.reader.read(c));
 		
 		this.swagger = this.reader.getSwagger();
-		
-
-		
-		
- 		
- 		
 	}
 
  

@@ -592,6 +592,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 							
 //							LOGGER.warn(i + " Arrays.asList(paramAnnotations[i]): " + Arrays.asList(paramAnnotations[i]));
 						 
+							boolean isOptional = isOptionalType(TypeFactory.defaultInstance().constructType(paramType));
+
 							ResolvedParameter resolvedParameter = getParameters(
 																				paramType, Arrays.asList(paramAnnotations[i]), operation, classConsumes, methodConsumes,
 																				jsonViewAnnotation);
@@ -603,7 +605,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 							}
 							if (resolvedParameter.requestBody != null)
 							{
-//								LOGGER.warn("Found request body param for " + paramType);
+// 								LOGGER.warn("Found request body param for " + paramType + " isOptional: " + isOptional);
 								processRequestBody(
 													resolvedParameter.requestBody,
 													operation,
@@ -616,10 +618,11 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 							}
 							else if (resolvedParameter.formParameter != null)
 							{
-//								LOGGER.warn("Found request form param for " + paramType);
+// 								LOGGER.warn("Found request form param for " + paramType + " isOptional: " + isOptional);
 
 								// collect params to use together as request
 								// Body
+ 								resolvedParameter.formParameter.setRequired(!isOptional);
 								formParameters.add(resolvedParameter.formParameter);
 							}
 						}
@@ -635,6 +638,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 							io.swagger.v3.oas.annotations.Parameter paramAnnotation = AnnotationsUtils
 									.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class, paramAnnotations[i]);
 							Type paramType = ParameterProcessor.getParameterType(paramAnnotation, true);
+							
+							
 							if (paramType == null)
 							{
 								paramType = type;
@@ -647,6 +652,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 								}
 							}
 							
+							boolean isOptional = isOptionalType(TypeFactory.defaultInstance().constructType(paramType));
+							
 							ResolvedParameter resolvedParameter = getParameters(
 																				paramType, Arrays.asList(paramAnnotations[i]), operation, classConsumes, methodConsumes,
 																				jsonViewAnnotation);
@@ -656,6 +663,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 							}
 							if (resolvedParameter.requestBody != null)
 							{
+// 								LOGGER.warn("Found annotated param request body param for " + paramType + " isOptional: " + isOptional);
+
 								processRequestBody(
 													resolvedParameter.requestBody,
 													operation,
@@ -668,6 +677,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 							}
 							else if (resolvedParameter.formParameter != null)
 							{
+// 								LOGGER.warn("Found annotated param request form param for " + paramType + " isOptional: " + isOptional);
+
 								// collect params to use together as request
 								// Body
 								formParameters.add(resolvedParameter.formParameter);
@@ -679,11 +690,23 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 					if (formParameters.size() > 0)
 					{
 						Schema mergedSchema = new ObjectSchema();
+						
+						boolean isRequired = false;
+						
 						for (Parameter formParam : formParameters)
-						{
+						{							
+							if(formParam.getRequired())
+							{
+								isRequired = true;
+							}
+
 							mergedSchema.addProperties(formParam.getName(), formParam.getSchema());
 						}
+						
 						Parameter merged = new Parameter().schema(mergedSchema);
+						
+						merged.setRequired(isRequired);
+												
 						processRequestBody(
 											merged,
 											operation,
@@ -814,7 +837,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 		Annotation[][] methodAnnotations = method.getParameterAnnotations();
 		
-		LOGGER.warn("methodAnnotations length at start: " + methodAnnotations.length);
+//		LOGGER.warn("methodAnnotations length at start: " + methodAnnotations.length);
 
 		java.lang.reflect.Parameter[] params = method.getParameters();
 		
@@ -934,9 +957,9 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 										JsonView jsonViewAnnotation)
 	{
 
-		boolean isOptional = false;
+		boolean isOptional = !(requestBodyParameter.getRequired() != null ? requestBodyParameter.getRequired() : true);
 		
-		if(type != null)
+		if(type != null && !isOptional)
 		{ 
  			JavaType classType = TypeFactory.defaultInstance().constructType(type);
 

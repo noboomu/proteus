@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.BeanDescription;
@@ -65,6 +66,8 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
 		if (rawClass != null && !resolvedType.isPrimitive())
 		{
+			//log.debug("resolvedType in " + resolvedType);
+
  			if (rawClass.isAssignableFrom(ServerResponse.class))
 			{
 				resolvedType = classType.containedType(0);
@@ -75,44 +78,61 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
 				if (futureCls.isAssignableFrom(ServerResponse.class))
 				{
-					log.debug("class is assignable from ServerResponse");
+					//log.debug("class is assignable from ServerResponse");
 					final JavaType futureType = TypeFactory.defaultInstance().constructType(classType.containedType(0));
 					resolvedType = futureType.containedType(0);
 				}
 				else
 				{
-					log.debug("class is NOT assignable from ServerResponse");
+					//log.debug("class is NOT assignable from ServerResponse");
 					resolvedType = classType.containedType(0);
 				}
 			}
  			
  			if(resolvedType != null)
  			{
-				if (resolvedType.getTypeName().contains("ByteBuffer"))
+				 
+
+				if (resolvedType.getTypeName().contains("java.lang.Void"))
 				{
-					resolvedType = TypeFactory.defaultInstance().constructFromCanonical(java.io.File.class.getName());
+					resolvedType = TypeFactory.defaultInstance().constructFromCanonical(java.lang.Void.class.getName());
 				}
-	
-				if (resolvedType.getTypeName().contains("java.nio.file.Path"))
+				else if(resolvedType.getTypeName().contains("Optional"))
 				{
-					resolvedType = TypeFactory.defaultInstance().constructFromCanonical(java.io.File.class.getName());
+				   if (resolvedType.getTypeName().contains("java.nio.file.Path"))
+					{
+ 						resolvedType = TypeFactory.defaultInstance().constructParametricType(Optional.class, File.class);
+					}
+				   
+				   if (resolvedType.getTypeName().contains("ByteBuffer"))
+					{
+						resolvedType = TypeFactory.defaultInstance().constructParametricType(Optional.class, File.class);
+					}
 				}
-	
-//				if (resolvedType.getTypeName().contains("java.lang.Void"))
-//				{
-//					resolvedType = TypeFactory.defaultInstance().constructFromCanonical(java.lang.Void.class.getName());
-//				}
+				else
+				{
+					if (resolvedType.getTypeName().contains("java.nio.file.Path"))
+					{
+						resolvedType = TypeFactory.defaultInstance().constructFromCanonical(java.io.File.class.getName());
+					}
+		
+					if (resolvedType.getTypeName().contains("ByteBuffer"))
+					{
+						resolvedType = TypeFactory.defaultInstance().constructFromCanonical(java.io.File.class.getName());
+					}
+					
+				}
 				
 				annotatedType.setType(resolvedType);
 				
-				log.debug("resolvedType out " + resolvedType);
+				//log.debug("resolvedType out " + resolvedType);
  			}
 
 		}
 
 		try
 		{
-			log.info("Processing " + annotatedType + " " + classType + " " + annotatedType.getName());
+			//log.info("Processing " + annotatedType + " " + classType + " " + annotatedType.getName());
 
 			return super.resolve(annotatedType, context, next);
 

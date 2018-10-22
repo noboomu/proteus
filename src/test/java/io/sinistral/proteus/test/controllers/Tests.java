@@ -213,8 +213,8 @@ public class Tests
 	
 	@POST
 	@Path("/response/json/echo")
-	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
- 	@Consumes("*/*")
+	@Produces(MediaType.APPLICATION_JSON) 
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@ApiOperation(value = "Echo json endpoint",   httpMethod = "POST" )
 	public ServerResponse<User> responseEchoJson(ServerRequest request, @FormParam("user") User user ) throws Exception
 	{  

@@ -1348,12 +1348,14 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		}
 		if (operation.getResponses() == null || operation.getResponses().isEmpty())
 		{
-			Content content = new Content();
-			MediaType mediaType = new MediaType();
-			AnnotationsUtils.applyTypes(classProduces == null ? new String[0] : classProduces.value(),
-										methodProduces == null ? new String[0] : methodProduces.value(), content, mediaType);
+			LOGGER.debug("responses are null or empty");
+			
+			//Content content = new Content();
+			//MediaType mediaType = new MediaType();
+			//AnnotationsUtils.applyTypes(classProduces == null ? new String[0] : classProduces.value(),
+			//							methodProduces == null ? new String[0] : methodProduces.value(), content, mediaType);
 
-			ApiResponse apiResponseObject = new ApiResponse().description(DEFAULT_DESCRIPTION).content(content);
+			ApiResponse apiResponseObject = new ApiResponse().description(DEFAULT_DESCRIPTION);//.content(content);
 			operation.setResponses(new ApiResponses()._default(apiResponseObject));
 		}
 
@@ -1495,7 +1497,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 				operation.setResponses(responses);
 			}
 			else
-			{
+			{ 
 				responses.forEach(operation.getResponses()::addApiResponse);
 			}
 		});

@@ -74,7 +74,7 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
     	
     	boolean isRequired = true;
 
-        if(_isOptionalType(javaType))
+        if(isOptionalType(javaType))
         {
         	isRequired = false;
         }
@@ -161,7 +161,6 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
         }
         for (Parameter p : parameters) {
         	
-         	
             Parameter processedParameter = ParameterProcessor.applyAnnotations(
                     p,
                     type,
@@ -172,14 +171,16 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
                     jsonViewAnnotation);
             
             if (processedParameter != null) {
-            	processedParameter.setRequired(isRequired);
+            
                 extractParametersResult.parameters.add(processedParameter);
             }
         }
+        
+        
         return extractParametersResult;
     }
     
-    protected boolean _isOptionalType(JavaType propType) {
+    public boolean isOptionalType(JavaType propType) {
         return Arrays.asList("com.google.common.base.Optional", "java.util.Optional")
                 .contains(propType.getRawClass().getCanonicalName());
     }

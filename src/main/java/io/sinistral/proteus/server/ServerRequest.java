@@ -10,10 +10,6 @@ import java.nio.ByteBuffer;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingDeque;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.io.Receiver;
@@ -33,6 +29,8 @@ import io.undertow.util.Headers;
  * @author jbauer
  *
  */
+
+
 public class ServerRequest
 {    
 	 protected static final Receiver.ErrorCallback ERROR_CALLBACK = new Receiver.ErrorCallback() {

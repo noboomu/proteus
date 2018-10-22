@@ -485,7 +485,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			
 		});
 		
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MediaType.APPLICATION_JSON).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).withProduces(MediaType.APPLICATION_JSON).build());
 		
 		/*
 		 * YAML path 
@@ -520,7 +520,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			
 		});
 		
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()).build());
 		
 		pathTemplate = this.basePath + "/" + this.redocPath;
 				 
@@ -538,7 +538,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		});
 		
    
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).withProduces(MediaType.TEXT_HTML).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).withProduces(MediaType.TEXT_HTML).build());
 		 
 		pathTemplate =  this.basePath;
 		 
@@ -556,7 +556,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			
 		});
  
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.TEXT_HTML).withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.TEXT_HTML).withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).build());
  
  		
 		try
@@ -610,7 +610,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			
 
 				
-			 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.WILDCARD).withPathTemplate(pathTemplate).withControllerName("Swagger").withMethod(Methods.GET).build());
+			 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.WILDCARD).withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).build());
 
  
 

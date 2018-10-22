@@ -46,6 +46,7 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
+import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
@@ -96,7 +97,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 	public static final String DEFAULT_DESCRIPTION = "default response";
 
 	protected OpenAPIConfiguration config;
-
+	 
 	private Application application;
 	private OpenAPI openAPI;
 	private Components components;
@@ -114,6 +115,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 	public Reader()
 	{
+//		Json.mapper().addMixIn(ServerRequest.class, ServerRequestMixIn.class);
+
 		this.openAPI = new OpenAPI();
 		paths = new Paths();
 		openApiTags = new LinkedHashSet<>();
@@ -124,6 +127,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 	public Reader(OpenAPI openAPI)
 	{
 		this();
+		
 		setConfiguration(new SwaggerConfiguration().openAPI(openAPI));
 	}
 
@@ -448,6 +452,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		Optional<io.swagger.v3.oas.models.ExternalDocumentation> classExternalDocumentation = AnnotationsUtils.getExternalDocumentation(apiExternalDocs);
 
 		JavaType classType = TypeFactory.defaultInstance().constructType(cls);
+		
+				
 		BeanDescription bd = Json.mapper().getSerializationConfig().introspect(classType);
 
 		final List<Parameter> globalParameters = new ArrayList<>();
@@ -466,7 +472,13 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 			{
 				continue;
 			}
-			AnnotatedMethod annotatedMethod = bd.findMethod(method.getName(), method.getParameterTypes());
+			
+			Class<?>[] parameterTypes = Arrays.stream(method.getParameterTypes()).filter( p -> !p.isAssignableFrom(ServerRequest.class) ).toArray(Class<?>[]::new);
+			
+			
+			AnnotatedMethod annotatedMethod = bd.findMethod(method.getName(), parameterTypes);
+			 
+			
 			javax.ws.rs.Produces methodProduces = ReflectionUtils.getAnnotation(method, javax.ws.rs.Produces.class);
 			javax.ws.rs.Consumes methodConsumes = ReflectionUtils.getAnnotation(method, javax.ws.rs.Consumes.class);
 
@@ -539,7 +551,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 													classResponses);
 				if (operation != null)
 				{
-
+					//LOGGER.debug("operation is not null");
+					
 					List<Parameter> operationParameters = new ArrayList<>();
 					List<Parameter> formParameters = new ArrayList<>();
 					Annotation[][] paramAnnotations = getParameterAnnotations(method);
@@ -547,12 +560,24 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 					{ // annotatedMethod not null only when method with 0-2
 						// parameters
 						Type[] genericParameterTypes = method.getGenericParameterTypes();
+						 
+						genericParameterTypes = Arrays.stream(genericParameterTypes).filter( t -> !t.getTypeName().contains("ServerRequest")).toArray(Type[]::new);
+// 
+//						for( Type t : genericParameterTypes )
+//						{
+//							LOGGER.warn("Generic parameter type: " + t);
+//						}
+//						
+//						LOGGER.warn("paramAnnotations length: " + paramAnnotations.length + " genericParameterTypes length: " + genericParameterTypes.length);
+						
 						for (int i = 0; i < genericParameterTypes.length; i++)
 						{
 							final Type type = TypeFactory.defaultInstance().constructType(genericParameterTypes[i], cls);
 							io.swagger.v3.oas.annotations.Parameter paramAnnotation = AnnotationsUtils
 									.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class, paramAnnotations[i]);
+							
 							Type paramType = ParameterProcessor.getParameterType(paramAnnotation, true);
+							
 							if (paramType == null)
 							{
 								paramType = type;
@@ -564,15 +589,21 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 									paramType = type;
 								}
 							}
+							
+//							LOGGER.warn(i + " Arrays.asList(paramAnnotations[i]): " + Arrays.asList(paramAnnotations[i]));
+						 
 							ResolvedParameter resolvedParameter = getParameters(
 																				paramType, Arrays.asList(paramAnnotations[i]), operation, classConsumes, methodConsumes,
 																				jsonViewAnnotation);
+							
+							 
 							for (Parameter p : resolvedParameter.parameters)
 							{
 								operationParameters.add(p);
 							}
 							if (resolvedParameter.requestBody != null)
 							{
+//								LOGGER.warn("Found request body param for " + paramType);
 								processRequestBody(
 													resolvedParameter.requestBody,
 													operation,
@@ -585,6 +616,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 							}
 							else if (resolvedParameter.formParameter != null)
 							{
+//								LOGGER.warn("Found request form param for " + paramType);
+
 								// collect params to use together as request
 								// Body
 								formParameters.add(resolvedParameter.formParameter);
@@ -596,7 +629,9 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 						for (int i = 0; i < annotatedMethod.getParameterCount(); i++)
 						{
 							AnnotatedParameter param = annotatedMethod.getParameter(i);
+							 
 							final Type type = TypeFactory.defaultInstance().constructType(param.getParameterType(), cls);
+							
 							io.swagger.v3.oas.annotations.Parameter paramAnnotation = AnnotationsUtils
 									.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class, paramAnnotations[i]);
 							Type paramType = ParameterProcessor.getParameterType(paramAnnotation, true);
@@ -611,6 +646,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 									paramType = type;
 								}
 							}
+							
 							ResolvedParameter resolvedParameter = getParameters(
 																				paramType, Arrays.asList(paramAnnotations[i]), operation, classConsumes, methodConsumes,
 																				jsonViewAnnotation);
@@ -766,13 +802,23 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 		return openAPI;
 	}
+	
+	   public boolean isOptionalType(JavaType propType) {
+	        return Arrays.asList("com.google.common.base.Optional", "java.util.Optional")
+	                .contains(propType.getRawClass().getCanonicalName());
+	    }
+
 
 	public static Annotation[][] getParameterAnnotations(Method method)
 	{
 
 		Annotation[][] methodAnnotations = method.getParameterAnnotations();
+		
+		LOGGER.warn("methodAnnotations length at start: " + methodAnnotations.length);
 
 		java.lang.reflect.Parameter[] params = method.getParameters();
+		
+		List<Integer> filteredParameterIndices = new ArrayList<>();
 
 		for (int i = 0; i < params.length; i++)
 		{
@@ -780,15 +826,15 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 			if (!params[i].getType().isAssignableFrom(io.sinistral.proteus.server.ServerRequest.class) && !params[i].getType().getName().startsWith("io.undertow"))
 			{
-				String annotationStrings = Arrays.stream(paramAnnotations).map(a -> a.annotationType().getName()).collect(Collectors.joining(" "));
+			//	String annotationStrings = Arrays.stream(paramAnnotations).map(a -> a.annotationType().getName()).collect(Collectors.joining(" "));
 
-				LOGGER.debug("\nparameter: " + params[i] + " | name: " + params[i].getName() + " type: " + params[i].getType() + " -> " + annotationStrings);
+//				LOGGER.debug("\nparameter: " + params[i] + " | name: " + params[i].getName() + " type: " + params[i].getType() + " -> " + annotationStrings);
 
 				if (paramAnnotations.length == 0)
 				{
 					final String parameterName = params[i].getName();
 
-					LOGGER.debug("creating query parameter for " + parameterName);
+			//		LOGGER.debug("creating query parameter for " + parameterName);
 
 					QueryParam queryParam = new QueryParam()
 					{
@@ -809,8 +855,20 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 					methodAnnotations[i] = new Annotation[] { queryParam };
 				}
 			}
-
+			else
+			{
+				filteredParameterIndices.add(i); 
+			} 
 		}
+		 
+		ArrayList<Annotation[]> annotations = Arrays.stream(methodAnnotations).collect(Collectors.toCollection(ArrayList::new));
+		
+		for( int index : filteredParameterIndices )
+		{
+			annotations.remove(index);
+		}
+		
+		methodAnnotations = annotations.stream().toArray(Annotation[][]::new);
 
 		Method overriddenmethod = ReflectionUtils.getOverriddenMethod(method);
 
@@ -876,6 +934,20 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 										JsonView jsonViewAnnotation)
 	{
 
+		boolean isOptional = false;
+		
+		if(type != null)
+		{ 
+ 			JavaType classType = TypeFactory.defaultInstance().constructType(type);
+
+			if(classType != null)
+			{
+				isOptional = isOptionalType(classType);
+				type = classType;
+			}
+		}
+		
+
 		io.swagger.v3.oas.annotations.parameters.RequestBody requestBodyAnnotation = getRequestBody(Arrays.asList(paramAnnotations));
 		if (requestBodyAnnotation != null)
 		{
@@ -918,6 +990,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 						}
 					}
 				}
+				requestBody.setRequired(!isOptional);
 				operation.setRequestBody(requestBody);
 			}
 		}
@@ -952,6 +1025,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 				if (!isRequestBodyEmpty)
 				{
 					// requestBody.setExtensions(extensions);
+					requestBody.setRequired(!isOptional);
 					operation.setRequestBody(requestBody);
 				}
 			}
@@ -1154,7 +1228,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		}
 		if (apiParameters != null)
 		{
-
+ 
 			getParametersListFromAnnotation(
 											apiParameters.toArray(new io.swagger.v3.oas.annotations.Parameter[apiParameters.size()]),
 											classConsumes,
@@ -1166,6 +1240,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		// RequestBody in Method
 		if (apiRequestBody != null && operation.getRequestBody() == null)
 		{
+ 
 			OperationParser.getRequestBody(apiRequestBody, classConsumes, methodConsumes, components, jsonViewAnnotation).ifPresent(
 																																	operation::setRequestBody);
 		}
@@ -1179,6 +1254,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		// classResponses
 		if (classResponses != null && classResponses.length > 0)
 		{
+ 			
 			OperationParser.getApiResponses(
 											classResponses,
 											classProduces,

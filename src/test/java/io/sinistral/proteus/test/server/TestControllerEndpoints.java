@@ -5,7 +5,6 @@ package io.sinistral.proteus.test.server;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
-
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -15,7 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.Arrays; 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +75,7 @@ public class TestControllerEndpoints
 	@Test
 	public void testSwaggerDocs()
 	{
-		given().accept(ContentType.JSON).log().uri().when().get("swagger.json").then().statusCode(200).and().body("basePath", is("/v1"));
+		given().accept(ContentType.JSON).when().get("swagger.json").then().statusCode(200).and().body("basePath", is("/v1"));
 	}
 	
 	@Test
@@ -88,72 +87,72 @@ public class TestControllerEndpoints
 	@Test
 	public void testDebugEndpoint()
 	{
-		given().accept(ContentType.JSON).log().uri().when().get("tests/response/debug").then().statusCode(200);
+		given().accept(ContentType.JSON).when().get("tests/response/debug").then().statusCode(200);
 	}
 
 	@Test
 	public void testDebugBlockingEndpoint()
 	{
-		given().accept(ContentType.JSON).log().uri().when().get("tests/response/debug/blocking").then().statusCode(200);
+		given().accept(ContentType.JSON).when().get("tests/response/debug/blocking").then().statusCode(200);
 	}
 
 	
 	@Test
 	public void exchangeUserJson()
 	{
-		User user = given().accept(ContentType.JSON).log().uri().when().get("tests/exchange/user/json").as(User.class);
+		User user = given().accept(ContentType.JSON).when().get("tests/exchange/user/json").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
 	}
 	
 	@Test
 	public void genericSet()
 	{
-		given().accept(ContentType.JSON).log().uri().when().queryParam("ids", idSet).get("tests/generic/set").then().statusCode(200).body(containsString("1"));
+		given().accept(ContentType.JSON).when().queryParam("ids", idSet).get("tests/generic/set").then().statusCode(200).body(containsString("1"));
 	}
 	
 	@Test
 	public void optionalGenericSet()
 	{
-		given().accept(ContentType.JSON).log().uri().when().queryParam("ids",idSet).get("tests/optional/set").then().statusCode(200).body(containsString("1"));
+		given().accept(ContentType.JSON).when().queryParam("ids",idSet).get("tests/optional/set").then().statusCode(200).body(containsString("1"));
 	}
 
 	@Test
 	public void exchangeUserXml()
 	{
-		User user = given().accept(ContentType.XML).log().uri().when().get("tests/exchange/user/xml").as(User.class);
+		User user = given().accept(ContentType.XML).when().get("tests/exchange/user/xml").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
 	}
 
 	@Test
 	public void responseUserJson()
 	{
-		User user = given().accept(ContentType.JSON).log().uri().when().get("tests/response/user/json").as(User.class);
+		User user = given().accept(ContentType.JSON).when().get("tests/response/user/json").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
 	}
 
 	@Test
 	public void responseUserXml()
 	{
-		User user = given().accept(ContentType.XML).log().uri().when().get("tests/response/user/xml").as(User.class);
+		User user = given().accept(ContentType.XML).when().get("tests/response/user/xml").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
 	}
 
 	@Test
 	public void exchangePlaintext()
 	{
-		given().accept(ContentType.TEXT).log().uri().when().get("tests/exchange/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
+		given().accept(ContentType.TEXT).when().get("tests/exchange/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
 	}
 	
 	@Test
 	public void exchangePlaintext2()
 	{
-		given().accept(ContentType.TEXT).log().uri().when().get("tests/exchange/plaintext2").then().statusCode(200).and().body(containsString("Hello, World!"));
+		given().accept(ContentType.TEXT).when().get("tests/exchange/plaintext2").then().statusCode(200).and().body(containsString("Hello, World!"));
 	}
 
 	@Test
 	public void responsePlaintext()
 	{
-		given().accept(ContentType.TEXT).log().uri().when().get("tests/response/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
+		given().accept(ContentType.TEXT).when().get("tests/response/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
 	}
 	
 	@Test
@@ -161,17 +160,17 @@ public class TestControllerEndpoints
 	{
 		User model = new User(101L,UserType.ADMIN);
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().uri().when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
 
 	}
 	
 	@Test
-	public void responseInnerClassModel()
+	public void responseBeanParam()
 	{
-		User.InnerUserModel model = new User.InnerUserModel();
-		model.id = 101L;
+		User model = new User();
+		model.setId(101L);
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).log().uri().when().post("tests/response/json/innerClass").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("tests/response/json/beanparam").then().statusCode(200).and().body(containsString("101"));
 
 	}
 	 
@@ -179,50 +178,80 @@ public class TestControllerEndpoints
 	@Test
 	public void responseFutureUser()
 	{
-		given().accept(ContentType.JSON).log().uri().when().get("tests/response/future/user").then().statusCode(200).and().body(containsString("123"));
+		given().accept(ContentType.JSON).when().get("tests/response/future/user").then().statusCode(200).and().body(containsString("123"));
 
 	}
 
 	@Test
 	public void responseMap()
 	{
-		given().accept(ContentType.JSON).log().uri().when().get("tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
+		given().accept(ContentType.JSON).when().get("tests/response/map").then().statusCode(200).and().body("message", is("success"));
+	}
+	
+
+	@Test
+	public void responseFutureMap()
+	{
+		given().accept(ContentType.JSON).when().get("tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
 	}
 	
 	@Test
 	public void testRedirect()
 	{
-		given().log().uri().when().get("tests/redirect").then().statusCode(200).and().header("Server", "gws");
+		given().when().get("tests/redirect").then().statusCode(200).and().header("Server", "gws");
 	}
 	
 	@Test
 	public void testRedirectFoundCode()
 	{
-		given().log().uri().when().redirects().follow(false).get("tests/redirect").then().statusCode(302);
+		given().when().redirects().follow(false).get("tests/redirect").then().statusCode(302);
 	}
 	
 	@Test
 	public void testRedirectMovedPermanentlyCode()
 	{
-		given().log().uri().when().redirects().follow(false).get("tests/redirect/permanent").then().statusCode(301);
+		given().when().redirects().follow(false).get("tests/redirect/permanent").then().statusCode(301);
 	}
 
-	@SuppressWarnings("resource")
-	@Test
+ 	@Test
 	public void responseUploadFilePathParameter()
 	{
 
 		try
 		{
 
-			final InputStream is = given().log().uri().multiPart("file", file).accept(ContentType.ANY).when().post("tests/response/file/path").asInputStream();
+			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("tests/response/file/path").asInputStream();
 
-			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-			IOUtils.copy(is, byteArrayOutputStream);
-			IOUtils.closeQuietly(byteArrayOutputStream);
-			IOUtils.closeQuietly(is);
+			try(final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
+			{
+				IOUtils.copy(is, byteArrayOutputStream);
+			  
+				assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+			}
 
-			assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	
+ 	@Test
+	public void responseUploadOptionalFilePathParameter()
+	{
+
+		try
+		{
+
+			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("tests/response/file/path/optional").asInputStream();
+
+			try(final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
+			{
+				IOUtils.copy(is, byteArrayOutputStream); 
+
+				assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+			}
 
 		} catch (Exception e)
 		{
@@ -235,15 +264,11 @@ public class TestControllerEndpoints
 	@Test
 	public void responseParseListParameter()
 	{
-
 		try
 		{
-			
 			List<Long> values = new Random().longs(10, 0L, 20L).boxed().collect(Collectors.toList());
-			
-			  
-			
-			given().contentType(ContentType.JSON).accept(ContentType.JSON).body(values).log().all().when().post("tests/response/parse/ids").then().statusCode(200);
+			 
+			given().contentType(ContentType.JSON).accept(ContentType.JSON).body(values).when().post("tests/response/parse/ids").then().statusCode(200);
 
 
 		} catch (Exception e)
@@ -262,7 +287,7 @@ public class TestControllerEndpoints
 		try
 		{
 
-			final InputStream is = given().multiPart("file", file).log().uri().accept(ContentType.ANY).when().post("tests/response/file/bytebuffer").asInputStream();
+			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("tests/response/file/bytebuffer").asInputStream();
 
 			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			IOUtils.copy(is, byteArrayOutputStream);
@@ -290,7 +315,7 @@ public class TestControllerEndpoints
 
 		Map<String, Object> map = given()
 
-				.log().uri()
+				
 				
 				.accept(ContentType.JSON)
 

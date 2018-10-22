@@ -34,13 +34,13 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import io.sinistral.proteus.annotations.Blocking;
-import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.test.models.User;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
 import io.undertow.server.HttpServerExchange;
 
 /**
@@ -195,6 +195,23 @@ public class Tests
 	}
 	
 	@POST
+	@Path("/response/file/path/optional")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@ApiOperation(value = "Upload optional file path endpoint",   httpMethod = "POST" )
+	public ServerResponse<ByteBuffer> responseUploadOptionalFilePath(ServerRequest request, @FormParam("file") Optional<java.nio.file.Path> file ) throws Exception
+	{  
+		if(file.isPresent())
+		{
+			return response(ByteBuffer.wrap(Files.toByteArray(file.get().toFile()))).applicationOctetStream(); 
+		}
+		else
+		{
+			return response().noContent(); 
+		}
+	}
+	
+	@POST
 	@Path("/response/json/echo")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
@@ -205,9 +222,9 @@ public class Tests
 	}
 	
 	@POST
-	@Path("/response/json/innerClass")
+	@Path("/response/json/beanparam")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
- 	@Consumes("*/*")
+ 	@Consumes(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Echo json inner class endpoint",   httpMethod = "POST" )
 	public ServerResponse<User> responseInnerClassTest(ServerRequest request, @BeanParam User user ) throws Exception
 	{  
@@ -217,6 +234,7 @@ public class Tests
 	  
 	@GET
 	@Path("/generic/set")
+	@Produces((MediaType.APPLICATION_JSON)) 
 	@ApiOperation(value = "Generic set endpoint",   httpMethod = "GET" )
 	public ServerResponse<Set<Long>>  genericSet( ServerRequest request, @QueryParam("ids") Set<Long> ids )  throws Exception
 	{  
@@ -226,6 +244,7 @@ public class Tests
 	  
 	@GET
 	@Path("/optional/set")
+	@Produces((MediaType.APPLICATION_JSON)) 
 	@ApiOperation(value = "Generic optional set endpoint",   httpMethod = "GET" )
 	public ServerResponse<Set<Long>>  genericOptionalSet( ServerRequest request, @QueryParam("ids") Optional<Set<Long>> ids )  throws Exception
 	{  
@@ -256,7 +275,8 @@ public class Tests
 	@Blocking
 	@Produces(MediaType.APPLICATION_JSON) 
  	@Consumes(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Convert ids",   httpMethod = "POST" )
+	@ApiOperation(value = "Convert ids" )
+	@Operation(description = "Convert ids") 
 	public ServerResponse<List<Long>> listConversion( ServerRequest request, @BeanParam List<Long> ids ) throws Exception
 	{ 
 		 
@@ -269,7 +289,8 @@ public class Tests
 	@Path("/response/file/bytebuffer")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
-	@ApiOperation(value = "Upload file path endpoint",   httpMethod = "POST" )
+	@ApiOperation(value = "Upload file path endpoint"  )
+	@Operation(description = "Upload file path endpoint")
 	public ServerResponse<ByteBuffer> responseUploadByteBuffer(ServerRequest request, @FormParam("file") ByteBuffer file ) throws Exception
 	{ 
 		 
@@ -280,7 +301,8 @@ public class Tests
 	
 	@GET
 	@Path("/response/debug")
-	@ApiOperation(value = "Debug endpoint",   httpMethod = "GET" )
+	@ApiOperation(value = "Debug endpoint"  )
+	@Operation(description = "Debug endpoint")
 	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request) 
 	{  
 		try
@@ -298,7 +320,8 @@ public class Tests
 	@GET
 	@Path("/response/debug/blocking")
 	@Blocking
-	@ApiOperation(value = "Debug blocking endpoint",   httpMethod = "GET" )
+	@ApiOperation(value = "Debug blocking endpoint"  )
+	@Operation(description="Debug blocking endpoint")
 	public ServerResponse<Map<String,String>> debugBlockingEndpoint(ServerRequest request) 
 	{  
 		try
@@ -314,7 +337,9 @@ public class Tests
 	
 	@GET
 	@Path("/response/future/user")
-	@ApiOperation(value = "Future user endpoint",   httpMethod = "GET" )
+	@ApiOperation(value = "Future user endpoint" )
+	@Operation(description="Future user endpoint")
+	@Produces((MediaType.APPLICATION_JSON)) 
 	public CompletableFuture<ServerResponse<User>> responseFutureUser()
 	{ 
 		return CompletableFuture.completedFuture(response( new User(123L) ).applicationJson() );
@@ -323,9 +348,10 @@ public class Tests
 	@GET
 	@Path("/response/parameters/complex/{pathLong}")
 	@ApiOperation(value = "Complex parameters", httpMethod = "GET")
+	@Produces((MediaType.APPLICATION_JSON)) 
 	public ServerResponse<Map<String,Object>> complexParameters(
-	                    final ServerRequest serverRequest, 
-	                    @PathParam("pathLong") final Long pathLong, 
+	                    ServerRequest serverRequest, 
+	                    @PathParam("pathLong")   Long pathLong, 
 	                    @QueryParam("optionalQueryString")  Optional<String> optionalQueryString, 
 	                    @QueryParam("optionalQueryLong")  Optional<Long> optionalQueryLong, 
 	                    @QueryParam("optionalQueryDate") @ApiParam(format="date")  Optional<OffsetDateTime>  optionalQueryDate, 

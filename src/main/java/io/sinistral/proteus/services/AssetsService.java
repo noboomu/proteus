@@ -58,7 +58,7 @@ public class AssetsService extends BaseService implements Supplier<RoutingHandle
 		.setCacheTime(assetsCacheTime)
 		));
 		
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("*/*").withPathTemplate(assetsPath).withControllerName("Assets").withMethod(Methods.GET).build());
+		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("*/*").withPathTemplate(assetsPath).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).build());
 
 		return router;
 	}

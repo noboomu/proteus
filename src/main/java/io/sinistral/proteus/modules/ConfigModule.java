@@ -68,15 +68,14 @@ public class ConfigModule extends AbstractModule
 		
 		Config referenceConfig = ConfigFactory.load(ConfigFactory.defaultReference());
 		
-		config = ConfigFactory.load(config).withFallback(referenceConfig);
+		config = ConfigFactory.load(config).withFallback(referenceConfig); 
 		
 		if(configURL != null)
 		{  
 			config = ConfigFactory.load(ConfigFactory.parseURL(configURL)).withFallback(config); 
 		}
 		else if(configFile != null)
-		{ 
-			
+		{  
 			config = fileConfig(configFile).withFallback(config); 
 		}
 

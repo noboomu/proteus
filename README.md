@@ -318,6 +318,12 @@ Proteus comes with two standard services that extend the ```io.sinistral.proteus
  	 openapi="3.0.1"
 
  	 # openapi info
+  info {
+    title = ${application.name}
+    version = ${application.version}
+    description="Proteus Server"
+  }
+  
   	securitySchemes {
    	 ApiKeyAuth = {
     	 type="apiKey"

@@ -44,6 +44,9 @@ import io.swagger.v3.oas.models.parameters.Parameter;
  */
 
 public class ServerParameterExtension extends AbstractOpenAPIExtension {
+	
+	private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ServerParameterExtension.class.getCanonicalName());
+
     private static String QUERY_PARAM = "query";
     private static String HEADER_PARAM = "header";
     private static String COOKIE_PARAM = "cookie";
@@ -304,7 +307,7 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
                             jsonViewAnnotation);
                     if (processedParam != null) {
                     	
-                    	System.out.println("added new parameters: " + processedParam);
+                    	log.debug("added new parameters: " + processedParam);
                         parameters.add(processedParam);
                     }
                 }

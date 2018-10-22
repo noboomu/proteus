@@ -297,6 +297,44 @@ Proteus comes with two standard services that extend the ```io.sinistral.proteus
    	 }
 	```
  
+- __OpenAPIService__   
+
+	The OpenAPIService generates an openapi-spec file from your endpoints and serves the spec.
+
+	The service is configured in your ```application.conf``` file.
+
+	The default configuration:
+	```
+	openapi {
+
+ 	 resourcePrefix="io/sinistral/proteus/server/tools/oas"
+
+ 	 basePath= ${application.path}"/oas"
+
+ 	 port = ${application.ports.http}
+
+ 	 specFilename="openapi.yaml"
+
+ 	 openapi="3.0.1"
+
+ 	 # openapi info
+  	securitySchemes {
+   	 ApiKeyAuth = {
+    	 type="apiKey"
+     	 in="header"
+     	 name="X-API-KEY" 
+   	 }
+  	}	
+
+  	servers = [
+  	  { 
+  	    url=${application.path}
+   	   description="Default Server"  
+  	  }
+ 	 ]
+	} 
+	```
+	
 Under the Hood
 ---------------
 

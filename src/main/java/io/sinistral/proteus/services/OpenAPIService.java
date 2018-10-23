@@ -4,6 +4,7 @@ package io.sinistral.proteus.services;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -34,9 +36,9 @@ import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.sinistral.proteus.server.tools.oas.Reader;
-import io.sinistral.proteus.server.tools.oas.ServerModelResolver;
-import io.sinistral.proteus.server.tools.oas.ServerParameterExtension;
+import io.sinistral.proteus.server.tools.openapi.Reader;
+import io.sinistral.proteus.server.tools.openapi.ServerModelResolver;
+import io.sinistral.proteus.server.tools.openapi.ServerParameterExtension;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
@@ -53,6 +55,10 @@ import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.handlers.ResponseCodeHandler;
+import io.undertow.server.handlers.resource.FileResourceManager;
+import io.undertow.server.handlers.resource.ResourceHandler;
+import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 
@@ -63,7 +69,7 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 	  
 	private static Logger log = LoggerFactory.getLogger(OpenAPIService.class.getCanonicalName());
 	
-	protected final String resourcePathPrefix = "oas";
+	protected final String resourcePathPrefix = "openapi";
  
 	
 	@Inject
@@ -200,7 +206,6 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 				
 				templateString = templateString.replaceAll("\\{\\{ basePath \\}\\}", basePath);
 				templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");
-				templateString = templateString.replaceAll("\\{\\{ filePath \\}\\}", basePath + ".yaml");
 	
 				this.indexHTML = templateString;   
 			}
@@ -222,7 +227,7 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
  					
 					Path tmpDirParent = Files.createTempDirectory(appName);
 					
-					Path tmpDir = tmpDirParent.resolve("oas/");
+					Path tmpDir = tmpDirParent.resolve("openapi/");
 					
 					if(tmpDir.toFile().exists())
 					{
@@ -287,7 +292,7 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 		
 		String pathTemplate = this.applicationPath + File.separator + this.specFilename ;
 		
-		//FileResourceManager resourceManager = new FileResourceManager(this.resourcePath.toFile(),1024);
+		FileResourceManager resourceManager = new FileResourceManager(this.resourcePath.toFile(),1024);
  				
 		router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
 
@@ -316,7 +321,7 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 		
 		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()).build());
 		
-	  /*
+ 
 		pathTemplate =  this.basePath;
 		 
 		router.add(HttpMethod.GET, pathTemplate , new HttpHandler(){
@@ -324,7 +329,6 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
- 
  
  				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
  				exchange.getResponseSender().send(indexHTML);
@@ -335,6 +339,7 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
  
 		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.TEXT_HTML).withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).build());
  
+	
  		
 		try
 		{
@@ -393,7 +398,7 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 			log.error(e.getMessage(),e);
 		}
  		  
- 		*/
+ 		
 		
 		return router; 
 	}
@@ -410,7 +415,7 @@ public class OpenAPIService   extends BaseService implements Supplier<RoutingHan
 		
 		
 		this.generateSpec();
-		//this.generateHTML();
+		this.generateHTML();
  
 		log.debug("\nOpenAPI Spec:\n" +  writer.writeValueAsString(this.openApi));
 

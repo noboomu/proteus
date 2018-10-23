@@ -336,7 +336,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 	{
 		try
 		{  
-  
+			 
 			
 			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/index.html"))
 			{
@@ -376,6 +376,12 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			if( url.toExternalForm().contains("!") )
 			{
 				log.debug("Copying Swagger resources...");
+				
+				String appName = config.getString("application.name").replaceAll(" ", "_");
+					
+				Path tmpDirParent = Files.createTempDirectory(appName);
+				
+				Path swaggerTmpDir = tmpDirParent.resolve("swagger/");
 
 				String jarPathString = url.toExternalForm().substring(0, url.toExternalForm().indexOf("!") ).replaceAll("file:", "").replaceAll("jar:", "");
 		 
@@ -383,11 +389,6 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 			
 				try(JarFile jarFile = new JarFile(srcFile, false))
 				{ 
-					String appName = config.getString("application.name").replaceAll(" ", "_");
- 					
-					Path tmpDirParent = Files.createTempDirectory(appName);
-					
-					Path swaggerTmpDir = tmpDirParent.resolve("swagger/");
 					
 					if(swaggerTmpDir.toFile().exists())
 					{
@@ -421,6 +422,17 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 							java.nio.file.Files.createDirectories(entryFilePath.getParent());
 							
 							java.nio.file.Files.copy(entryInputStream, entryFilePath,StandardCopyOption.REPLACE_EXISTING);
+							
+							System.out.println("copying file to " + entryFilePath);
+							
+//							String sharedCSS = null;
+//							  
+//							try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + File.separator + ".." + File.separator + "/swagger-ui.css"))
+//							{
+//								byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
+//								
+//								sharedCSS = new String(templateBytes,Charset.defaultCharset()); 
+//							}
 							
 						} catch (Exception e)
 						{

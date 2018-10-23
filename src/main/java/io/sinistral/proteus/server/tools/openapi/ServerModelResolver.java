@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.server.tools.oas;
+package io.sinistral.proteus.server.tools.openapi;
 
 import java.io.File;
 import java.lang.annotation.Annotation;

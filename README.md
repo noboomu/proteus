@@ -31,8 +31,9 @@ Getting Started
 /bin/bash -e <(curl -fsSL https://raw.githubusercontent.com/noboomu/proteus-example/master/scripts/quickStart.sh)
 ```
 
-- Open [http://localhost:8090/v1/swagger](http://localhost:8090/v1/swagger) in your browser.
+- Open [http://localhost:8090/v1/swagger](http://localhost:8090/v1/swagger) for a v2 Swagger UI.
 - Open [http://localhost:8090/v1/swagger/redoc](http://localhost:8090/v1/swagger/redoc) for a pretty version of your API.
+- Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for an OpenAPI UI.
 
 ### As a dependency
 
@@ -307,9 +308,9 @@ Proteus comes with two standard services that extend the ```io.sinistral.proteus
 	```
 	openapi {
 
- 	 resourcePrefix="io/sinistral/proteus/server/tools/oas"
+ 	 resourcePrefix="io/sinistral/proteus/server/tools/openapi"
 
- 	 basePath= ${application.path}"/oas"
+ 	 basePath= ${application.path}"/openapi"
 
  	 port = ${application.ports.http}
 
@@ -340,6 +341,94 @@ Proteus comes with two standard services that extend the ```io.sinistral.proteus
  	 ]
 	} 
 	```
+	
+Plugins / Modules
+-------------
+
+_Where are all of the plugins for everything?!?!_
+
+Proteus's design philosophy is a minimal one, so from our perspective managing a long list of plug and play plugins does not make that much sense.
+
+Our experience with other frameworks has been that plugins are swiftly out-dated or hide too much of the underlying implementation to be useful.
+
+However, making your own "plugin" is simple and much more gratifying.
+
+Here is an example ```AWSModule``` that provides AWS S3 and SES support.
+
+This example assumes you have defined the relevant aws properties in your config file:
+
+```java
+public class AWSModule extends AbstractModule
+{ 
+	private static Logger log = LoggerFactory.getLogger(AWSModule.class.getCanonicalName());
+
+	@Inject
+	@Named("aws.accessKey")
+	protected String accessKey;
+	
+	@Inject
+	@Named("aws.secretKey")
+	protected String secretKey;
+
+	public void configure()
+	{
+
+		AWSCredentials credentials = new BasicAWSCredentials(accessKey,  secretKey);
+		
+		AWSStaticCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(credentials);
+
+		bind(AWSStaticCredentialsProvider.class).toInstance(credentialsProvider);
+ 
+		AmazonS3Client s3Client = (AmazonS3Client) AmazonS3ClientBuilder.standard().withCredentials(credentialsProvider).withRegion("us-west-2").build();
+ 		
+		TransferManager transferManager = TransferManagerBuilder.standard().withMultipartUploadThreshold(8000000L).withS3Client(s3Client).withExecutorFactory(new ExecutorFactory()
+		{
+
+			@Override
+			public ExecutorService newExecutor()
+			{
+				ThreadFactory threadFactory = new ThreadFactory()
+				{
+					private int threadCount = 1;
+
+					public Thread newThread(Runnable r)
+					{
+						Thread thread = new Thread(r);
+						thread.setName("s3-transfer-manager-worker-" + threadCount++);
+						return thread;
+					}
+				};
+				return (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2, threadFactory);
+			}
+
+		}).build();
+		 
+		AmazonSimpleEmailServiceAsyncClient sesClient = (AmazonSimpleEmailServiceAsyncClient) AmazonSimpleEmailServiceAsyncClientBuilder.standard().withCredentials(credentialsProvider).withRegion("us-west-2").build();
+ 
+		bind(AmazonSimpleEmailServiceAsyncClient.class).toInstance(sesClient); 
+		bind(AmazonS3Client.class).toInstance(s3Client);
+		bind(TransferManager.class).toInstance(transferManager); 
+	}  
+}
+``` 
+
+Now you can simply inject these in any controller by adding the following lines to the top of the controller:
+```java
+	@Inject
+	protected TransferManager transferManager;
+	
+	@Inject
+	protected AmazonS3Client s3Client;
+	
+	@Inject
+	protected  AmazonSimpleEmailServiceAsyncClient sesClient;
+```
+
+Also, please note that the implementation of ```ProteusApplication``` you are using would also need to add the following line before starting:
+```java
+	app.addModule(AWSModule.class);
+```
+
 	
 Under the Hood
 ---------------

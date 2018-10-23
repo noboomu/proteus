@@ -40,288 +40,352 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 
 /**
  * @author jbauer
- *
  */
 
-public class ServerParameterExtension extends AbstractOpenAPIExtension {
-	
+public class ServerParameterExtension extends AbstractOpenAPIExtension
+{
+
 	private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ServerParameterExtension.class.getCanonicalName());
 
-    private static String QUERY_PARAM = "query";
-    private static String HEADER_PARAM = "header";
-    private static String COOKIE_PARAM = "cookie";
-    private static String PATH_PARAM = "path";
-    private static String FORM_PARAM = "form";
+	private static String QUERY_PARAM = "query";
+	private static String HEADER_PARAM = "header";
+	private static String COOKIE_PARAM = "cookie";
+	private static String PATH_PARAM = "path";
+	private static String FORM_PARAM = "form";
 
-    final ObjectMapper mapper = Json.mapper();
+	final ObjectMapper mapper = Json.mapper();
 
-    @Override
-    public ResolvedParameter extractParameters(List<Annotation> annotations,
-                                               Type type,
-                                               Set<Type> typesToSkip,
-                                               Components components,
-                                               javax.ws.rs.Consumes classConsumes,
-                                               javax.ws.rs.Consumes methodConsumes,
-                                               boolean includeRequestBody,
-                                               JsonView jsonViewAnnotation,
-                                               Iterator<OpenAPIExtension> chain) {
-    	
-        if (shouldIgnoreType(type, typesToSkip)) {
-            return new ResolvedParameter();
-        }
+	@Override
+	public ResolvedParameter extractParameters(	List<Annotation> annotations,
+												Type type,
+												Set<Type> typesToSkip,
+												Components components,
+												javax.ws.rs.Consumes classConsumes,
+												javax.ws.rs.Consumes methodConsumes,
+												boolean includeRequestBody,
+												JsonView jsonViewAnnotation,
+												Iterator<OpenAPIExtension> chain)
+	{
 
-    	JavaType javaType = constructType(type);
-    	
-    	boolean isRequired = true;
+		if (shouldIgnoreType(type, typesToSkip))
+		{
+			return new ResolvedParameter();
+		}
 
-        if(isOptionalType(javaType))
-        {
-        	isRequired = false;
-        }
-        
-        List<Parameter> parameters = new ArrayList<>();
-        Parameter parameter = null;
-        ResolvedParameter extractParametersResult = new ResolvedParameter();
-   
-        
-        for (Annotation annotation : annotations) {
-            if (annotation instanceof QueryParam) {
-                QueryParam param = (QueryParam) annotation;
-                Parameter qp = new Parameter();
-                qp.setIn(QUERY_PARAM);
-                qp.setName(param.value());
-                parameter = qp;
-            } else if (annotation instanceof PathParam) {
-                PathParam param = (PathParam) annotation;
-                Parameter pp = new Parameter();
-                pp.setIn(PATH_PARAM);
-                pp.setName(param.value());
-                parameter = pp;
-            } else if (annotation instanceof MatrixParam) {
-                MatrixParam param = (MatrixParam) annotation;
-                Parameter pp = new Parameter();
-                pp.setIn(PATH_PARAM);
-                pp.setStyle(Parameter.StyleEnum.MATRIX);
-                pp.setName(param.value());
-                parameter = pp;
-            } else if (annotation instanceof HeaderParam) {
-                HeaderParam param = (HeaderParam) annotation;
-                Parameter pp = new Parameter();
-                pp.setIn(HEADER_PARAM);
-                pp.setName(param.value());
-                parameter = pp;
-            } else if (annotation instanceof CookieParam) {
-                CookieParam param = (CookieParam) annotation;
-                Parameter pp = new Parameter();
-                pp.setIn(COOKIE_PARAM);
-                pp.setName(param.value());
-                parameter = pp;
-            } else if (annotation instanceof io.swagger.v3.oas.annotations.Parameter) {
-                if (((io.swagger.v3.oas.annotations.Parameter) annotation).hidden()) {
-                    extractParametersResult.parameters = parameters;
-                    return extractParametersResult;
-                }
-                if (parameter == null) {
-                    Parameter pp = new Parameter();
-                    parameter = pp;
-                }
-            } else {
-                if (handleAdditionalAnnotation(parameters, annotation, type, typesToSkip, classConsumes, methodConsumes, components, includeRequestBody, jsonViewAnnotation)) {
-                     
-                	extractParametersResult.parameters.addAll(parameters);
-                 }
-            }
-        }
-        
-     
+		JavaType javaType = constructType(type);
 
-        if (parameter != null && StringUtils.isNotBlank(parameter.getIn())) {
-        	parameter.setRequired(isRequired);
-             parameters.add(parameter);
-        } else if (includeRequestBody) {
-            Parameter unknownParameter = ParameterProcessor.applyAnnotations(
-                    null,
-                    type,
-                    annotations,
-                    components,
-                    classConsumes == null ? new String[0] : classConsumes.value(),
-                    methodConsumes == null ? new String[0] : methodConsumes.value(), jsonViewAnnotation);
-            if (unknownParameter != null) {
- 
-                if (StringUtils.isNotBlank(unknownParameter.getIn()) && !"form".equals(unknownParameter.getIn())) {
-                    extractParametersResult.parameters.add(unknownParameter);
-                } else if ("form".equals(unknownParameter.getIn())) {
-                    unknownParameter.setIn(null);
-                    extractParametersResult.formParameter = unknownParameter; 
-                } else {            // return as request body
-                    extractParametersResult.requestBody = unknownParameter; 
+		boolean isRequired = true;
 
-                }
-            }
-        }
-        for (Parameter p : parameters) {
-        	
-            Parameter processedParameter = ParameterProcessor.applyAnnotations(
-                    p,
-                    type,
-                    annotations,
-                    components,
-                    classConsumes == null ? new String[0] : classConsumes.value(),
-                    methodConsumes == null ? new String[0] : methodConsumes.value(),
-                    jsonViewAnnotation);
-            
-            if (processedParameter != null) {
-            
-                extractParametersResult.parameters.add(processedParameter);
-            }
-        }
-        
-        
-        return extractParametersResult;
-    }
-    
-    public boolean isOptionalType(JavaType propType) {
-        return Arrays.asList("com.google.common.base.Optional", "java.util.Optional")
-                .contains(propType.getRawClass().getCanonicalName());
-    }
+		if (isOptionalType(javaType))
+		{
+			isRequired = false;
+		}
 
+		Parameter parameter = null;
 
-    /**
-     * Adds additional annotation processing support
-     *
-     * @param parameters
-     * @param annotation
-     * @param type
-     * @param typesToSkip
-     */
+		for (Annotation annotation : annotations)
+		{
+			if (annotation instanceof QueryParam)
+			{
+				QueryParam param = (QueryParam) annotation;
+				Parameter qp = new Parameter();
+				qp.setIn(QUERY_PARAM);
+				qp.setName(param.value());
+				parameter = qp;
+			}
+			else if (annotation instanceof PathParam)
+			{
+				PathParam param = (PathParam) annotation;
+				Parameter pp = new Parameter();
+				pp.setIn(PATH_PARAM);
+				pp.setName(param.value());
+				parameter = pp;
+			}
+			else if (annotation instanceof MatrixParam)
+			{
+				MatrixParam param = (MatrixParam) annotation;
+				Parameter pp = new Parameter();
+				pp.setIn(PATH_PARAM);
+				pp.setStyle(Parameter.StyleEnum.MATRIX);
+				pp.setName(param.value());
+				parameter = pp;
+			}
+			else if (annotation instanceof HeaderParam)
+			{
+				HeaderParam param = (HeaderParam) annotation;
+				Parameter pp = new Parameter();
+				pp.setIn(HEADER_PARAM);
+				pp.setName(param.value());
+				parameter = pp;
+			}
+			else if (annotation instanceof CookieParam)
+			{
+				CookieParam param = (CookieParam) annotation;
+				Parameter pp = new Parameter();
+				pp.setIn(COOKIE_PARAM);
+				pp.setName(param.value());
+				parameter = pp;
+			}
+			else if (annotation instanceof io.swagger.v3.oas.annotations.Parameter)
+			{
+				if (((io.swagger.v3.oas.annotations.Parameter) annotation).hidden())
+				{
 
-    private boolean handleAdditionalAnnotation(List<Parameter> parameters, Annotation annotation,
-                                               final Type type, Set<Type> typesToSkip, javax.ws.rs.Consumes classConsumes,
-                                               javax.ws.rs.Consumes methodConsumes, Components components, boolean includeRequestBody, JsonView jsonViewAnnotation) {
-        boolean processed = false;
-        if (BeanParam.class.isAssignableFrom(annotation.getClass())) {
-        	
-         	
-            // Use Jackson's logic for processing Beans
-        	JavaType javaType = constructType(type);
-        	
-            final BeanDescription beanDesc = mapper.getSerializationConfig().introspect(javaType);
-            final List<BeanPropertyDefinition> properties = beanDesc.findProperties();
+					return new ResolvedParameter();
+				}
+				if (parameter == null)
+				{
+					parameter = new Parameter();
+				}
+			}
+			else
+			{
 
-//        	if(extracted.size() == 0)
-//        	{
-//        		System.out.println("Unable to find parameters...");
-//        		
-//        		 Parameter processedParam = ParameterProcessor.applyAnnotations(
-//        		                                                                p,
-//        		                                                                paramType,
-//        		                                                                paramAnnotations,
-//        		                                                                components,
-//        		                                                                classConsumes == null ? new String[0] : classConsumes.value(),
-//        		                                                                methodConsumes == null ? new String[0] : methodConsumes.value(),
-//        		                                                                jsonViewAnnotation);
-//        	}
-            
-            for (final BeanPropertyDefinition propDef : properties) {
-                final AnnotatedField field = propDef.getField();
-                final AnnotatedMethod setter = propDef.getSetter();
-                final AnnotatedMethod getter = propDef.getGetter();
-                final List<Annotation> paramAnnotations = new ArrayList<Annotation>();
-                final Iterator<OpenAPIExtension> extensions = OpenAPIExtensions.chain();
-                Type paramType = null;
+				List<Parameter> formParameters = new ArrayList<>();
+				List<Parameter> parameters = new ArrayList<>();
+				if (handleAdditionalAnnotation(
+												parameters, formParameters, annotation, type, typesToSkip, classConsumes, methodConsumes, components, includeRequestBody,
+												jsonViewAnnotation))
+				{
+					ResolvedParameter extractParametersResult = new ResolvedParameter();
+					extractParametersResult.parameters.addAll(parameters);
+					extractParametersResult.formParameters.addAll(formParameters);
+				}
 
-                // Gather the field's details
-                if (field != null) {
-                    paramType = field.getType();
+			}
+		}
 
-                    AnnotationMap annotationMap = field.getAllAnnotations();
-                    
-                    for (final Annotation fieldAnnotation : annotationMap.annotations()) {
-                        if (!paramAnnotations.contains(fieldAnnotation)) {
-                            paramAnnotations.add(fieldAnnotation);
-                        }
-                    }
-                }
+		List<Parameter> parameters = new ArrayList<>();
+		ResolvedParameter extractParametersResult = new ResolvedParameter();
 
-                // Gather the setter's details but only the ones we need
-                if (setter != null) {
-                    // Do not set the param class/type from the setter if the values are already identified
-                    if (paramType == null) {
-                        // paramType will stay null if there is no parameter
-                        paramType = setter.getParameterType(0);
-                    }
+		if (parameter != null && StringUtils.isNotBlank(parameter.getIn()))
+		{
+			parameter.setRequired(isRequired);
+			parameters.add(parameter);
+		}
+		else if (includeRequestBody)
+		{
+			Parameter unknownParameter = ParameterProcessor.applyAnnotations(
+																				null,
+																				type,
+																				annotations,
+																				components,
+																				classConsumes == null ? new String[0] : classConsumes.value(),
+																				methodConsumes == null ? new String[0] : methodConsumes.value(), jsonViewAnnotation);
+			if (unknownParameter != null)
+			{
 
-                    AnnotationMap annotationMap = setter.getAllAnnotations();
+				if (StringUtils.isNotBlank(unknownParameter.getIn()) && !"form".equals(unknownParameter.getIn()))
+				{
+					extractParametersResult.parameters.add(unknownParameter);
+				}
+				else if ("form".equals(unknownParameter.getIn()))
+				{
+					unknownParameter.setIn(null);
+					extractParametersResult.formParameters.add(unknownParameter);
+				}
+				else
+				{ // return as request body
+					extractParametersResult.requestBody = unknownParameter;
 
-                    for (final Annotation fieldAnnotation : annotationMap.annotations()) {
-                        if (!paramAnnotations.contains(fieldAnnotation)) {
-                            paramAnnotations.add(fieldAnnotation);
-                        }
-                    }
-                }
+				}
+			}
+		}
+		for (Parameter p : parameters)
+		{
 
-                // Gather the getter's details but only the ones we need
-                if (getter != null) {
-                    // Do not set the param class/type from the getter if the values are already identified
-                    if (paramType == null) {
-                        paramType = getter.getType();
-                    }
+			Parameter processedParameter = ParameterProcessor.applyAnnotations(
+																				p,
+																				type,
+																				annotations,
+																				components,
+																				classConsumes == null ? new String[0] : classConsumes.value(),
+																				methodConsumes == null ? new String[0] : methodConsumes.value(),
+																				jsonViewAnnotation);
 
-                    AnnotationMap annotationMap = getter.getAllAnnotations();
+			if (processedParameter != null)
+			{
 
-                    for (final Annotation fieldAnnotation : annotationMap.annotations()) {
-                        if (!paramAnnotations.contains(fieldAnnotation)) {
-                            paramAnnotations.add(fieldAnnotation);
-                        }
-                    }
-                }
+				extractParametersResult.parameters.add(processedParameter);
+			}
+		}
 
-                if (paramType == null) {
-                    continue;
-                }
-                
- 
-                // Re-process all Bean fields and let the default swagger-jaxrs/swagger-jersey-jaxrs processors do their thing
-                List<Parameter> extracted =
-                        extensions.next().extractParameters(
-                                paramAnnotations,
-                                paramType,
-                                typesToSkip,
-                                components,
-                                classConsumes,
-                                methodConsumes,
-                                includeRequestBody,
-                                jsonViewAnnotation,
-                                extensions).parameters;
+		return extractParametersResult;
+	}
 
-             	
+	public boolean isOptionalType(JavaType propType)
+	{
+		return Arrays.asList("com.google.common.base.Optional", "java.util.Optional")
+				.contains(propType.getRawClass().getCanonicalName());
+	}
 
+	/**
+	 * Adds additional annotation processing support
+	 * @param parameters
+	 * @param annotation
+	 * @param type
+	 * @param typesToSkip
+	 */
 
-                for (Parameter p : extracted) {
-                    Parameter processedParam = ParameterProcessor.applyAnnotations(
-                            p,
-                            paramType,
-                            paramAnnotations,
-                            components,
-                            classConsumes == null ? new String[0] : classConsumes.value(),
-                            methodConsumes == null ? new String[0] : methodConsumes.value(),
-                            jsonViewAnnotation);
-                    if (processedParam != null) {
-                    	
-                    	log.debug("added new parameters: " + processedParam);
-                        parameters.add(processedParam);
-                    }
-                }
+	private boolean handleAdditionalAnnotation(	List<Parameter> parameters, List<Parameter> formParameters, Annotation annotation,
+												final Type type, Set<Type> typesToSkip, javax.ws.rs.Consumes classConsumes,
+												javax.ws.rs.Consumes methodConsumes, Components components, boolean includeRequestBody, JsonView jsonViewAnnotation)
+	{
+		boolean processed = false;
+		if (BeanParam.class.isAssignableFrom(annotation.getClass()))
+		{
 
-                processed = true;
-            }
-        }
-        return processed;
-    }
+			// Use Jackson's logic for processing Beans
+			JavaType javaType = constructType(type);
 
-    @Override
-    protected boolean shouldIgnoreClass(Class<?> cls) {
-        return cls.getName().startsWith("javax.ws.rs.") || cls.getName().startsWith("io.undertow");
-    
-    }
+			final BeanDescription beanDesc = mapper.getSerializationConfig().introspect(javaType);
+			final List<BeanPropertyDefinition> properties = beanDesc.findProperties();
+
+// if(extracted.size() == 0)
+// {
+// System.out.println("Unable to find parameters...");
+//
+// Parameter processedParam = ParameterProcessor.applyAnnotations(
+// p,
+// paramType,
+// paramAnnotations,
+// components,
+// classConsumes == null ? new String[0] : classConsumes.value(),
+// methodConsumes == null ? new String[0] : methodConsumes.value(),
+// jsonViewAnnotation);
+// }
+
+			for (final BeanPropertyDefinition propDef : properties)
+			{
+				final AnnotatedField field = propDef.getField();
+				final AnnotatedMethod setter = propDef.getSetter();
+				final AnnotatedMethod getter = propDef.getGetter();
+				final List<Annotation> paramAnnotations = new ArrayList<Annotation>();
+				final Iterator<OpenAPIExtension> extensions = OpenAPIExtensions.chain();
+				Type paramType = null;
+
+				// Gather the field's details
+				if (field != null)
+				{
+					paramType = field.getType();
+
+					AnnotationMap annotationMap = field.getAllAnnotations();
+
+					for (final Annotation fieldAnnotation : annotationMap.annotations())
+					{
+						if (!paramAnnotations.contains(fieldAnnotation))
+						{
+							paramAnnotations.add(fieldAnnotation);
+						}
+					}
+				}
+
+				// Gather the setter's details but only the ones we need
+				if (setter != null)
+				{
+					// Do not set the param class/type from the setter if the
+					// values are already identified
+					if (paramType == null)
+					{
+						// paramType will stay null if there is no parameter
+						paramType = setter.getParameterType(0);
+					}
+
+					AnnotationMap annotationMap = setter.getAllAnnotations();
+
+					for (final Annotation fieldAnnotation : annotationMap.annotations())
+					{
+						if (!paramAnnotations.contains(fieldAnnotation))
+						{
+							paramAnnotations.add(fieldAnnotation);
+						}
+					}
+				}
+
+				// Gather the getter's details but only the ones we need
+				if (getter != null)
+				{
+					// Do not set the param class/type from the getter if the
+					// values are already identified
+					if (paramType == null)
+					{
+						paramType = getter.getType();
+					}
+
+					AnnotationMap annotationMap = getter.getAllAnnotations();
+
+					for (final Annotation fieldAnnotation : annotationMap.annotations())
+					{
+						if (!paramAnnotations.contains(fieldAnnotation))
+						{
+							paramAnnotations.add(fieldAnnotation);
+						}
+					}
+				}
+
+				if (paramType == null)
+				{
+					continue;
+				}
+
+				// Re-process all Bean fields and let the default
+				// swagger-jaxrs/swagger-jersey-jaxrs processors do their thing
+				ResolvedParameter resolvedParameter = extensions.next().extractParameters(
+																							paramAnnotations,
+																							paramType,
+																							typesToSkip,
+																							components,
+																							classConsumes,
+																							methodConsumes,
+																							includeRequestBody,
+																							jsonViewAnnotation,
+																							extensions);
+				List<Parameter> extractedParameters = resolvedParameter.parameters;
+				for (Parameter p : extractedParameters)
+				{
+					Parameter processedParam = ParameterProcessor.applyAnnotations(
+																					p,
+																					paramType,
+																					paramAnnotations,
+																					components,
+																					classConsumes == null ? new String[0] : classConsumes.value(),
+																					methodConsumes == null ? new String[0] : methodConsumes.value(),
+																					jsonViewAnnotation);
+					if (processedParam != null)
+					{
+
+						log.debug("added new parameters: " + processedParam);
+						parameters.add(processedParam);
+					}
+				}
+
+				List<Parameter> extractedFormParameters = resolvedParameter.formParameters;
+				for (Parameter p : extractedFormParameters)
+				{
+					Parameter processedParam = ParameterProcessor.applyAnnotations(
+																					p,
+																					paramType,
+																					paramAnnotations,
+																					components,
+																					classConsumes == null ? new String[0] : classConsumes.value(),
+																					methodConsumes == null ? new String[0] : methodConsumes.value(),
+																					jsonViewAnnotation);
+					if (processedParam != null)
+					{
+						formParameters.add(processedParam);
+					}
+				}
+
+				processed = true;
+			}
+		}
+		return processed;
+	}
+
+	@Override
+	protected boolean shouldIgnoreClass(Class<?> cls)
+	{
+		return cls.getName().startsWith("javax.ws.rs.") || cls.getName().startsWith("io.undertow");
+
+	}
 }

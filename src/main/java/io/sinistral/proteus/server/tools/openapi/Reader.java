@@ -97,7 +97,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 	public static final String DEFAULT_DESCRIPTION = "default response";
 
 	protected OpenAPIConfiguration config;
-	 
+
 	private Application application;
 	private OpenAPI openAPI;
 	private Components components;
@@ -115,7 +115,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 	public Reader()
 	{
-//		Json.mapper().addMixIn(ServerRequest.class, ServerRequestMixIn.class);
+// Json.mapper().addMixIn(ServerRequest.class, ServerRequestMixIn.class);
 
 		this.openAPI = new OpenAPI();
 		paths = new Paths();
@@ -127,7 +127,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 	public Reader(OpenAPI openAPI)
 	{
 		this();
-		
+
 		setConfiguration(new SwaggerConfiguration().openAPI(openAPI));
 	}
 
@@ -452,8 +452,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		Optional<io.swagger.v3.oas.models.ExternalDocumentation> classExternalDocumentation = AnnotationsUtils.getExternalDocumentation(apiExternalDocs);
 
 		JavaType classType = TypeFactory.defaultInstance().constructType(cls);
-		
-				
+
 		BeanDescription bd = Json.mapper().getSerializationConfig().introspect(classType);
 
 		final List<Parameter> globalParameters = new ArrayList<>();
@@ -472,13 +471,11 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 			{
 				continue;
 			}
-			
-			Class<?>[] parameterTypes = Arrays.stream(method.getParameterTypes()).filter( p -> !p.isAssignableFrom(ServerRequest.class) ).toArray(Class<?>[]::new);
-			
-			
+
+			Class<?>[] parameterTypes = Arrays.stream(method.getParameterTypes()).filter(p -> !p.isAssignableFrom(ServerRequest.class)).toArray(Class<?>[]::new);
+
 			AnnotatedMethod annotatedMethod = bd.findMethod(method.getName(), parameterTypes);
-			 
-			
+
 			javax.ws.rs.Produces methodProduces = ReflectionUtils.getAnnotation(method, javax.ws.rs.Produces.class);
 			javax.ws.rs.Consumes methodConsumes = ReflectionUtils.getAnnotation(method, javax.ws.rs.Consumes.class);
 
@@ -551,8 +548,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 													classResponses);
 				if (operation != null)
 				{
-					//LOGGER.debug("operation is not null");
-					
+					// LOGGER.debug("operation is not null");
+
 					List<Parameter> operationParameters = new ArrayList<>();
 					List<Parameter> formParameters = new ArrayList<>();
 					Annotation[][] paramAnnotations = getParameterAnnotations(method);
@@ -560,24 +557,25 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 					{ // annotatedMethod not null only when method with 0-2
 						// parameters
 						Type[] genericParameterTypes = method.getGenericParameterTypes();
-						 
-						genericParameterTypes = Arrays.stream(genericParameterTypes).filter( t -> !t.getTypeName().contains("ServerRequest")).toArray(Type[]::new);
-// 
-//						for( Type t : genericParameterTypes )
-//						{
-//							LOGGER.warn("Generic parameter type: " + t);
-//						}
-//						
-//						LOGGER.warn("paramAnnotations length: " + paramAnnotations.length + " genericParameterTypes length: " + genericParameterTypes.length);
-						
+
+						genericParameterTypes = Arrays.stream(genericParameterTypes).filter(t -> !t.getTypeName().contains("ServerRequest")).toArray(Type[]::new);
+//
+// for( Type t : genericParameterTypes )
+// {
+// LOGGER.warn("Generic parameter type: " + t);
+// }
+//
+// LOGGER.warn("paramAnnotations length: " + paramAnnotations.length + "
+// genericParameterTypes length: " + genericParameterTypes.length);
+
 						for (int i = 0; i < genericParameterTypes.length; i++)
 						{
 							final Type type = TypeFactory.defaultInstance().constructType(genericParameterTypes[i], cls);
 							io.swagger.v3.oas.annotations.Parameter paramAnnotation = AnnotationsUtils
 									.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class, paramAnnotations[i]);
-							
+
 							Type paramType = ParameterProcessor.getParameterType(paramAnnotation, true);
-							
+
 							if (paramType == null)
 							{
 								paramType = type;
@@ -589,23 +587,21 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 									paramType = type;
 								}
 							}
-							
-//							LOGGER.warn(i + " Arrays.asList(paramAnnotations[i]): " + Arrays.asList(paramAnnotations[i]));
-						 
+
 							boolean isOptional = isOptionalType(TypeFactory.defaultInstance().constructType(paramType));
 
 							ResolvedParameter resolvedParameter = getParameters(
 																				paramType, Arrays.asList(paramAnnotations[i]), operation, classConsumes, methodConsumes,
 																				jsonViewAnnotation);
-							
-							 
-							for (Parameter p : resolvedParameter.parameters)
-							{
-								operationParameters.add(p);
-							}
+
+							operationParameters.addAll(resolvedParameter.parameters);
+
+							resolvedParameter.formParameters.stream().forEach(fp -> fp.setRequired(!isOptional));
+
+							formParameters.addAll(resolvedParameter.formParameters);
+
 							if (resolvedParameter.requestBody != null)
 							{
-// 								LOGGER.warn("Found request body param for " + paramType + " isOptional: " + isOptional);
 								processRequestBody(
 													resolvedParameter.requestBody,
 													operation,
@@ -615,15 +611,6 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 													paramAnnotations[i],
 													type,
 													jsonViewAnnotation);
-							}
-							else if (resolvedParameter.formParameter != null)
-							{
-// 								LOGGER.warn("Found request form param for " + paramType + " isOptional: " + isOptional);
-
-								// collect params to use together as request
-								// Body
- 								resolvedParameter.formParameter.setRequired(!isOptional);
-								formParameters.add(resolvedParameter.formParameter);
 							}
 						}
 					}
@@ -632,14 +619,13 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 						for (int i = 0; i < annotatedMethod.getParameterCount(); i++)
 						{
 							AnnotatedParameter param = annotatedMethod.getParameter(i);
-							 
+
 							final Type type = TypeFactory.defaultInstance().constructType(param.getParameterType(), cls);
-							
+
 							io.swagger.v3.oas.annotations.Parameter paramAnnotation = AnnotationsUtils
 									.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class, paramAnnotations[i]);
 							Type paramType = ParameterProcessor.getParameterType(paramAnnotation, true);
-							
-							
+
 							if (paramType == null)
 							{
 								paramType = type;
@@ -651,20 +637,21 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 									paramType = type;
 								}
 							}
-							
+
 							boolean isOptional = isOptionalType(TypeFactory.defaultInstance().constructType(paramType));
-							
+
 							ResolvedParameter resolvedParameter = getParameters(
 																				paramType, Arrays.asList(paramAnnotations[i]), operation, classConsumes, methodConsumes,
 																				jsonViewAnnotation);
-							for (Parameter p : resolvedParameter.parameters)
-							{
-								operationParameters.add(p);
-							}
+
+							operationParameters.addAll(resolvedParameter.parameters);
+
+							resolvedParameter.formParameters.stream().forEach(fp -> fp.setRequired(!isOptional));
+
+							formParameters.addAll(resolvedParameter.formParameters);
+
 							if (resolvedParameter.requestBody != null)
 							{
-// 								LOGGER.warn("Found annotated param request body param for " + paramType + " isOptional: " + isOptional);
-
 								processRequestBody(
 													resolvedParameter.requestBody,
 													operation,
@@ -675,14 +662,6 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 													type,
 													jsonViewAnnotation);
 							}
-							else if (resolvedParameter.formParameter != null)
-							{
-// 								LOGGER.warn("Found annotated param request form param for " + paramType + " isOptional: " + isOptional);
-
-								// collect params to use together as request
-								// Body
-								formParameters.add(resolvedParameter.formParameter);
-							}
 						}
 					}
 					// if we have form parameters, need to merge them into
@@ -690,23 +669,23 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 					if (formParameters.size() > 0)
 					{
 						Schema mergedSchema = new ObjectSchema();
-						
+
 						boolean isRequired = false;
-						
+
 						for (Parameter formParam : formParameters)
-						{							
-							if(formParam.getRequired())
+						{
+							if (formParam.getRequired() != null && formParam.getRequired())
 							{
 								isRequired = true;
 							}
 
 							mergedSchema.addProperties(formParam.getName(), formParam.getSchema());
 						}
-						
+
 						Parameter merged = new Parameter().schema(mergedSchema);
-						
+
 						merged.setRequired(isRequired);
-												
+
 						processRequestBody(
 											merged,
 											operation,
@@ -825,22 +804,23 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 		return openAPI;
 	}
-	
-	   public boolean isOptionalType(JavaType propType) {
-	        return Arrays.asList("com.google.common.base.Optional", "java.util.Optional")
-	                .contains(propType.getRawClass().getCanonicalName());
-	    }
 
+	public boolean isOptionalType(JavaType propType)
+	{
+		return Arrays.asList("com.google.common.base.Optional", "java.util.Optional")
+				.contains(propType.getRawClass().getCanonicalName());
+	}
 
 	public static Annotation[][] getParameterAnnotations(Method method)
 	{
 
 		Annotation[][] methodAnnotations = method.getParameterAnnotations();
-		
-//		LOGGER.warn("methodAnnotations length at start: " + methodAnnotations.length);
+
+// LOGGER.warn("methodAnnotations length at start: " +
+// methodAnnotations.length);
 
 		java.lang.reflect.Parameter[] params = method.getParameters();
-		
+
 		List<Integer> filteredParameterIndices = new ArrayList<>();
 
 		for (int i = 0; i < params.length; i++)
@@ -849,15 +829,20 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 			if (!params[i].getType().isAssignableFrom(io.sinistral.proteus.server.ServerRequest.class) && !params[i].getType().getName().startsWith("io.undertow"))
 			{
-			//	String annotationStrings = Arrays.stream(paramAnnotations).map(a -> a.annotationType().getName()).collect(Collectors.joining(" "));
+				// String annotationStrings =
+				// Arrays.stream(paramAnnotations).map(a ->
+				// a.annotationType().getName()).collect(Collectors.joining("
+				// "));
 
-//				LOGGER.debug("\nparameter: " + params[i] + " | name: " + params[i].getName() + " type: " + params[i].getType() + " -> " + annotationStrings);
+// LOGGER.debug("\nparameter: " + params[i] + " | name: " + params[i].getName()
+// + " type: " + params[i].getType() + " -> " + annotationStrings);
 
 				if (paramAnnotations.length == 0)
 				{
 					final String parameterName = params[i].getName();
 
-			//		LOGGER.debug("creating query parameter for " + parameterName);
+					// LOGGER.debug("creating query parameter for " +
+					// parameterName);
 
 					QueryParam queryParam = new QueryParam()
 					{
@@ -880,17 +865,17 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 			}
 			else
 			{
-				filteredParameterIndices.add(i); 
-			} 
+				filteredParameterIndices.add(i);
+			}
 		}
-		 
+
 		ArrayList<Annotation[]> annotations = Arrays.stream(methodAnnotations).collect(Collectors.toCollection(ArrayList::new));
-		
-		for( int index : filteredParameterIndices )
+
+		for (int index : filteredParameterIndices)
 		{
 			annotations.remove(index);
 		}
-		
+
 		methodAnnotations = annotations.stream().toArray(Annotation[][]::new);
 
 		Method overriddenmethod = ReflectionUtils.getOverriddenMethod(method);
@@ -958,18 +943,17 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 	{
 
 		boolean isOptional = !(requestBodyParameter.getRequired() != null ? requestBodyParameter.getRequired() : true);
-		
-		if(type != null && !isOptional)
-		{ 
- 			JavaType classType = TypeFactory.defaultInstance().constructType(type);
 
-			if(classType != null)
+		if (type != null && !isOptional)
+		{
+			JavaType classType = TypeFactory.defaultInstance().constructType(type);
+
+			if (classType != null)
 			{
 				isOptional = isOptionalType(classType);
 				type = classType;
 			}
 		}
-		
 
 		io.swagger.v3.oas.annotations.parameters.RequestBody requestBodyAnnotation = getRequestBody(Arrays.asList(paramAnnotations));
 		if (requestBodyAnnotation != null)
@@ -1251,7 +1235,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		}
 		if (apiParameters != null)
 		{
- 
+
 			getParametersListFromAnnotation(
 											apiParameters.toArray(new io.swagger.v3.oas.annotations.Parameter[apiParameters.size()]),
 											classConsumes,
@@ -1263,7 +1247,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		// RequestBody in Method
 		if (apiRequestBody != null && operation.getRequestBody() == null)
 		{
- 
+
 			OperationParser.getRequestBody(apiRequestBody, classConsumes, methodConsumes, components, jsonViewAnnotation).ifPresent(
 																																	operation::setRequestBody);
 		}
@@ -1277,7 +1261,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		// classResponses
 		if (classResponses != null && classResponses.length > 0)
 		{
- 			
+
 			OperationParser.getApiResponses(
 											classResponses,
 											classProduces,
@@ -1370,7 +1354,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		// handle return type, add as response in case.
 		Type returnType = method.getGenericReturnType();
 		final Class<?> subResource = getSubResourceWithJaxRsSubresourceLocatorSpecs(method);
-		
+
 		if (!shouldIgnoreClass(returnType.getTypeName()) && !returnType.equals(subResource))
 		{
 			LOGGER.debug("processing class " + returnType + " " + returnType.getTypeName());
@@ -1381,7 +1365,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 			{
 				if (classType.getRawClass().isAssignableFrom(ServerResponse.class))
 				{
-					if(classType.containedType(0) != null)
+					if (classType.containedType(0) != null)
 					{
 						returnType = classType.containedType(0);
 					}
@@ -1404,7 +1388,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 			ResolvedSchema resolvedSchema = ModelConverters.getInstance()
 					.resolveAsResolvedSchema(new AnnotatedType(returnType).resolveAsRef(true).jsonViewAnnotation(jsonViewAnnotation));
-			
+
 			if (resolvedSchema.schema != null)
 			{
 				Schema returnTypeSchema = resolvedSchema.schema;
@@ -1448,13 +1432,15 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		if (operation.getResponses() == null || operation.getResponses().isEmpty())
 		{
 			LOGGER.debug("responses are null or empty");
-			
-			//Content content = new Content();
-			//MediaType mediaType = new MediaType();
-			//AnnotationsUtils.applyTypes(classProduces == null ? new String[0] : classProduces.value(),
-			//							methodProduces == null ? new String[0] : methodProduces.value(), content, mediaType);
 
-			ApiResponse apiResponseObject = new ApiResponse().description(DEFAULT_DESCRIPTION);//.content(content);
+			// Content content = new Content();
+			// MediaType mediaType = new MediaType();
+			// AnnotationsUtils.applyTypes(classProduces == null ? new String[0]
+			// : classProduces.value(),
+			// methodProduces == null ? new String[0] : methodProduces.value(),
+			// content, mediaType);
+
+			ApiResponse apiResponseObject = new ApiResponse().description(DEFAULT_DESCRIPTION);// .content(content);
 			operation.setResponses(new ApiResponses()._default(apiResponseObject));
 		}
 
@@ -1471,7 +1457,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		ignore = ignore || className.startsWith("javax.ws.rs.");
 		ignore = ignore || className.equalsIgnoreCase("void");
 		ignore = ignore || className.startsWith("io.undertow");
-		ignore = ignore || className.startsWith("java.lang.Void"); 
+		ignore = ignore || className.startsWith("java.lang.Void");
 		return ignore;
 	}
 
@@ -1596,7 +1582,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 				operation.setResponses(responses);
 			}
 			else
-			{ 
+			{
 				responses.forEach(operation.getResponses()::addApiResponse);
 			}
 		});
@@ -1707,7 +1693,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 												javax.ws.rs.Consumes methodConsumes, JsonView jsonViewAnnotation)
 	{
 
- 		final Iterator<OpenAPIExtension> chain = OpenAPIExtensions.chain();
+		final Iterator<OpenAPIExtension> chain = OpenAPIExtensions.chain();
 		if (!chain.hasNext())
 		{
 			return new ResolvedParameter();

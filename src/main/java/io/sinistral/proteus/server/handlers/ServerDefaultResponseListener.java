@@ -76,7 +76,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 
         	 errorMap.put("code", Integer.toString(statusCode));
 
-        	 log.error(throwable.getMessage() + " at " + path,throwable);
+        	 log.error("\ntmessage: " + throwable.getMessage() + "\ntpath: " + path,throwable);
 
         	 if( throwable.getStackTrace() != null )
      		{

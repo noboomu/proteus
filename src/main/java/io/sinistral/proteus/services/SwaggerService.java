@@ -423,8 +423,6 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 							
 							java.nio.file.Files.copy(entryInputStream, entryFilePath,StandardCopyOption.REPLACE_EXISTING);
 							
-							System.out.println("copying file to " + entryFilePath);
-							
 //							String sharedCSS = null;
 //							  
 //							try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + File.separator + ".." + File.separator + "/swagger-ui.css"))

@@ -410,6 +410,7 @@ public class ServerResponse<T>
 		this.throwable = t;
 		return this.badRequest();
 	}
+	
 	public ServerResponse<T> badRequest(String message)
 	{ 
 		return this.errorMessage(message).badRequest();

@@ -1,5 +1,5 @@
 
-![Alt logo](https://cdn.rawgit.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/proteus-logo.svg)
+![Alt logo](https://raw.githubusercontent.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/server/tools/swagger/proteus-logo.svg?sanitize=true)
 
 An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing and running microservices.
 

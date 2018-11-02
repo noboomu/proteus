@@ -27,9 +27,11 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
@@ -176,6 +178,7 @@ public class ProteusApplication
 				}
 
 				printStatus();
+				
 
 				running.set(true); 
 			}
@@ -281,8 +284,9 @@ public class ProteusApplication
 		}
 
 		Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
-				.setBufferSize(16 * 1024)
-				.setIoThreads(Runtime.getRuntime().availableProcessors() * 2)
+				
+				.setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
+				.setIoThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.ioThreadsMultiplier"))
 				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
 				.setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
 				.setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
@@ -426,12 +430,15 @@ public class ProteusApplication
 
 		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();
 
-		tableHeaders = Arrays.asList("Service","State");
+		ImmutableMap<Service, Long> serviceStartupTimeMap = this.serviceManager.startupTimes();
+
+		tableHeaders = Arrays.asList("Service","State","Startup Time");
 		
 		tableRows = serviceStateMap.asMap().entrySet().stream().flatMap(e -> {
 
-			return e.getValue().stream().map(s -> {
-				return Arrays.asList(s.getClass().getSimpleName() , e.getKey().toString() );
+			return e.getValue().stream().map(s -> { 
+				
+				return Arrays.asList(s.getClass().getSimpleName() , e.getKey().toString(), DurationFormatUtils.formatDurationHMS(serviceStartupTimeMap.get(s))  );
 			});
 
 		}).collect(Collectors.toList());
@@ -440,9 +447,9 @@ public class ProteusApplication
 		
 		sb.append(printer.toString());
 
-		sb.append("\nListening on: " + this.ports ); 
+		sb.append("\nListening On: " + this.ports ); 
 		
-		sb.append("\nStartup duration: " + this.startupDuration + "\n");
+		sb.append("\nApplication Startup Time: " + DurationFormatUtils.formatDurationHMS(this.startupDuration.toMillis()) + "\n");
 
 		log.info(sb.toString());
 	}

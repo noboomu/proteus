@@ -135,6 +135,9 @@ public class ConfigModule extends AbstractModule
 
 			if (value instanceof ConfigObject)
 			{
+				try
+				{
+					 
 				ConfigObject child = (ConfigObject) value;
 				
 				String path = nextPath + key;
@@ -144,6 +147,11 @@ public class ConfigModule extends AbstractModule
 				binder.bind(Config.class).annotatedWith(named).toInstance(child.toConfig());
 				
 				traverse(binder, path + ".", child);
+				
+				} catch (Exception e)
+				{
+					log.error("Error binding " + value,e);
+				}
 			}
 		});
 	}

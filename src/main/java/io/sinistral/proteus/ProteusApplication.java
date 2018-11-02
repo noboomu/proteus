@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,32 +69,34 @@ public class ProteusApplication
 
 	@Inject
 	@Named("registeredControllers")
-	protected Set<Class<?>> registeredControllers;
+	public Set<Class<?>> registeredControllers;
 
 	@Inject
 	@Named("registeredEndpoints")
-	protected Set<EndpointInfo> registeredEndpoints;
+	public Set<EndpointInfo> registeredEndpoints;
 
 	@Inject
 	@Named("registeredServices")
-	protected Set<Class<? extends BaseService>> registeredServices;
+	public Set<Class<? extends BaseService>> registeredServices;
 
 	@Inject
-	protected RoutingHandler router;
+	public RoutingHandler router;
 
 	@Inject
-	protected Config config;
+	public Config config;
 
-	protected List<Class<? extends Module>> registeredModules = new ArrayList<>();
+	public List<Class<? extends Module>> registeredModules = new ArrayList<>();
 
-	protected Injector injector = null;
-	protected ServiceManager serviceManager = null;
-	protected Undertow undertow = null;
-	protected Class<? extends HttpHandler> rootHandlerClass;
-	protected HttpHandler rootHandler;
-	protected AtomicBoolean running = new AtomicBoolean(false);
-	protected List<Integer> ports = new ArrayList<>();
-	protected Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction = null;
+	public Injector injector = null;
+	public ServiceManager serviceManager = null;
+	public Undertow undertow = null;
+	public Class<? extends HttpHandler> rootHandlerClass;
+	public HttpHandler rootHandler;
+	public AtomicBoolean running = new AtomicBoolean(false);
+	public List<Integer> ports = new ArrayList<>();
+	public Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction = null;
+	
+	public Duration startupDuration; 
 
 	public ProteusApplication()
 	{
@@ -126,6 +129,8 @@ public class ProteusApplication
 			log.warn("Server has already started...");
 			return;
 		}
+		
+		final long startTime = System.currentTimeMillis();
 
 		log.info("Configuring modules: " + registeredModules);
 
@@ -157,12 +162,8 @@ public class ProteusApplication
 
 			public void healthy()
 			{
-				log.info("Services are healthy...");
-
-				buildServer();
-
-				undertow.start();
-				
+				startupDuration = Duration.ofMillis(System.currentTimeMillis() - startTime);
+ 
 				for(ListenerInfo info : undertow.getListenerInfo())
 				{
 					log.debug("listener info: " + info);
@@ -176,7 +177,7 @@ public class ProteusApplication
 
 				printStatus();
 
-				running.set(true);
+				running.set(true); 
 			}
 
 			public void failure(Service service)
@@ -201,7 +202,14 @@ public class ProteusApplication
 			}
 		});
 
+		buildServer();
+
+		undertow.start();
+		
 		serviceManager.startAsync();
+		
+	 
+		
 
 	}
 
@@ -432,9 +440,9 @@ public class ProteusApplication
 		
 		sb.append(printer.toString());
 
-		sb.append("\nListening on: " + this.ports);
-
-		sb.append("\n");
+		sb.append("\nListening on: " + this.ports ); 
+		
+		sb.append("\nStartup duration: " + this.startupDuration + "\n");
 
 		log.info(sb.toString());
 	}

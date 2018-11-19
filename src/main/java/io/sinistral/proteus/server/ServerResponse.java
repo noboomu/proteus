@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
@@ -37,7 +36,7 @@ import io.undertow.util.StatusCodes;
  * @author jbauer
  * Base server response. Friendlier interface to underlying exchange.
  * @TODO extend javax.ws.rs.core.Response
- */
+ */ 
 
 public class ServerResponse<T>
 {
@@ -70,7 +69,7 @@ public class ServerResponse<T>
 
 	public ServerResponse()
 	{
-
+	
 	}
 
 	public ByteBuffer getBody()

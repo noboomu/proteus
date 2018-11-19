@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.sinistral</groupId>
 	<artifactId>proteus-core</artifactId>
-	<version>0.3.5-SNAPSHOT</version>
+	<version>0.3.5</version>
 	<name>proteus core</name>
 	<description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
 	<url>http://github.com/noboomu/proteus</url>
@@ -238,7 +238,7 @@
 			<version>2.1.1</version>
 		</dependency>
 
- 
+
 
 		<dependency>
 			<groupId>net.openhft</groupId>
@@ -263,7 +263,7 @@
 			<artifactId>guice</artifactId>
 			<version>4.1.0</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
@@ -304,6 +304,7 @@
 			<artifactId>slf4j-ext</artifactId>
 			<version>1.7.25</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.fusesource.jansi</groupId>
 			<artifactId>jansi</artifactId>
@@ -403,6 +404,23 @@
 			<version>${openapi.version}</version>
 		</dependency>
 
+<!-- 		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.10.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.10.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.10.5</version>
+			<scope>runtime</scope>
+		</dependency> -->
 
 	</dependencies>
 	<repositories>

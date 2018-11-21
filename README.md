@@ -18,7 +18,7 @@ Blazing fast!!!
 
 TL;DR
 ---------------
-Proteus rewrites your user friendly MVC controller methods into blazing fast Undertow response handlers at run time.
+Proteus rewrites your user friendly MVC controller methods into high performance Undertow response handlers at run time.
 Easy on the developer and the metal.
 
 Getting Started
@@ -41,7 +41,7 @@ Getting Started
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-core</artifactId>
-    <version>0.3.4-SNAPSHOT</version>
+    <version>0.3.5</version>
 </dependency>
 ```
 

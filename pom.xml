@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.sinistral</groupId>
 	<artifactId>proteus-core</artifactId>
-	<version>0.3.5</version>
+	<version>0.3.6-SNAPSHOT</version>
 	<name>proteus core</name>
 	<description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
 	<url>http://github.com/noboomu/proteus</url>
@@ -231,7 +231,17 @@
 			</exclusions>
 		</dependency>
 
-
+	<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-ext</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
@@ -294,16 +304,7 @@
 			<version>4.4.10</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-ext</artifactId>
-			<version>1.7.25</version>
-		</dependency>
+	 
 
 		<dependency>
 			<groupId>org.fusesource.jansi</groupId>

@@ -243,8 +243,7 @@ public class HandlerGenerator
 
 		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods())
 				.filter(m -> m.getAnnotation(ApiOperation.class) != null)
-				.flatMap(m -> Arrays.stream(
-																																												m.getParameters())
+				.flatMap(m -> Arrays.stream(m.getParameters())
 				.map(Parameter::getParameterizedType)).filter(t ->
 				{
 
@@ -818,6 +817,7 @@ public class HandlerGenerator
 				io.swagger.annotations.ApiOperation apiOperationAnnotation = m.getAnnotation(io.swagger.annotations.ApiOperation.class);
 
 				io.swagger.annotations.Authorization[] authorizationAnnotations = apiOperationAnnotation.authorizations();
+				
 				if (authorizationAnnotations.length > 0)
 				{
 					for (io.swagger.annotations.Authorization authorizationAnnotation : authorizationAnnotations)

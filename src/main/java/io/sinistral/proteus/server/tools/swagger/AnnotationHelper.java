@@ -1,5 +1,6 @@
+
 /**
- * 
+ *
  */
 package io.sinistral.proteus.server.tools.swagger;
 
@@ -19,233 +20,204 @@ import io.swagger.annotations.Example;
  */
 public class AnnotationHelper
 {
-	public static FormParam createFormParam(Parameter parameter)
-	{
+    public static ApiParam createApiParam(Parameter parameter)
+    {
+        return new ApiParam()
+        {
+            @Override
+            public Class<? extends Annotation> annotationType()
+            {
+                return ApiParam.class;
+            }
+            @Override
+            public String name()
+            {
+                QueryParam queryParam = parameter.getAnnotation(QueryParam.class);
+                FormParam formParam = parameter.getAnnotation(FormParam.class);
+                PathParam pathParam = parameter.getAnnotation(PathParam.class);
 
-		return new FormParam()
-		{
+                if (queryParam != null)
+                {
+                    return queryParam.value();
+                }
+                else if (pathParam != null)
+                {
+                    return pathParam.value();
+                }
+                else if (formParam != null)
+                {
+                    return formParam.value();
+                }
+                else
+                {
+                    return parameter.getName();
+                }
+            }
+            @Override
+            public String value()
+            {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            @Override
+            public String defaultValue()
+            {
+                try {
 
-			@Override
-			public String value()
-			{
-				FormParam annotation = parameter.getAnnotation(FormParam.class);
-				
-				if(annotation != null)
-				{
-					return annotation.value();
-				}
-				
-				return parameter.getName();
-			}
+                    DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
 
-			@Override
-			public Class<? extends Annotation> annotationType()
-			{
-				return FormParam.class;
-			}
+                    return defaultValue.value();
 
-		};
-	}
+                } catch (NullPointerException e) {}
 
-	public static QueryParam createQueryParam(Parameter parameter)
-	{
+                // TODO Auto-generated method stub
+                return null;
+            }
+            @Override
+            public String allowableValues()
+            {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            @Override
+            public boolean required()
+            {
+                return !parameter.getParameterizedType().getTypeName().contains("java.util.Optional");
+            }
+            @Override
+            public String access()
+            {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            @Override
+            public boolean allowMultiple()
+            {
+                // TODO Auto-generated method stub
+                return false;
+            }
+            @Override
+            public boolean hidden()
+            {
+                // TODO Auto-generated method stub
+                return false;
+            }
+            @Override
+            public String example()
+            {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            @Override
+            public Example examples()
+            {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            @Override
+            public String type()
+            {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            @Override
+            public String format()
+            {
+                return null;
+            }
+            @Override
+            public boolean allowEmptyValue()
+            {
+                // TODO Auto-generated method stub
+                return false;
+            }
+            @Override
+            public boolean readOnly()
+            {
+                // TODO Auto-generated method stub
+                return false;
+            }
+            @Override
+            public String collectionFormat()
+            {
+                // TODO Auto-generated method stub
+                return null;
+            }
+        };
+    }
 
-		return new QueryParam()
-		{
+    public static FormParam createFormParam(Parameter parameter)
+    {
+        return new FormParam()
+        {
+            @Override
+            public String value()
+            {
+                FormParam annotation = parameter.getAnnotation(FormParam.class);
 
-			@Override
-			public String value()
-			{
-				QueryParam annotation = parameter.getAnnotation(QueryParam.class);
-				
-				if(annotation != null)
-				{
-					return annotation.value();
-				}
-				
-				return parameter.getName();
-			}
+                if (annotation != null)
+                {
+                    return annotation.value();
+                }
 
-			@Override
-			public Class<? extends Annotation> annotationType()
-			{
-				return QueryParam.class;
-			}
-		};
-	}
+                return parameter.getName();
+            }
+            @Override
+            public Class<? extends Annotation> annotationType()
+            {
+                return FormParam.class;
+            }
+        };
+    }
 
-	public static PathParam createPathParam(Parameter parameter)
-	{
+    public static PathParam createPathParam(Parameter parameter)
+    {
+        return new PathParam()
+        {
+            @Override
+            public String value()
+            {
+                PathParam annotation = parameter.getAnnotation(PathParam.class);
 
-		return new PathParam()
-		{
+                if (annotation != null)
+                {
+                    return annotation.value();
+                }
 
-			@Override
-			public String value()
-			{
-				PathParam annotation = parameter.getAnnotation(PathParam.class);
-				
-				if(annotation != null)
-				{
-					return annotation.value();
-				}
-				
-				return parameter.getName();
-			}
+                return parameter.getName();
+            }
+            @Override
+            public Class<? extends Annotation> annotationType()
+            {
+                return PathParam.class;
+            }
+        };
+    }
 
-			@Override
-			public Class<? extends Annotation> annotationType()
-			{
-				return PathParam.class;
-			}
-		};
-	}
+    public static QueryParam createQueryParam(Parameter parameter)
+    {
+        return new QueryParam()
+        {
+            @Override
+            public String value()
+            {
+                QueryParam annotation = parameter.getAnnotation(QueryParam.class);
 
-	public static ApiParam createApiParam(Parameter parameter)
-	{
+                if (annotation != null)
+                {
+                    return annotation.value();
+                }
 
-		return new ApiParam()
-		{
-
-			@Override
-			public Class<? extends Annotation> annotationType()
-			{
-				// TODO Auto-generated method stub
-				return ApiParam.class;
-			}
-
-			@Override
-			public String name()
-			{
-				QueryParam queryParam = parameter.getAnnotation(QueryParam.class);
-				FormParam formParam = parameter.getAnnotation(FormParam.class);
-				PathParam pathParam = parameter.getAnnotation(PathParam.class);
- 
-				if(queryParam != null)
-				{
-					return queryParam.value();
-				} else if( pathParam != null )
-				{
-					return pathParam.value();
-				}
-				else if( formParam != null )
-				{
-					return formParam.value();
-				}
-				else
-				{
-					return parameter.getName(); 
-				}
- 			}
-
-			@Override
-			public String value()
-			{
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public String defaultValue()
-			{
-				try
-				{ 
-					DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
-					
-					return defaultValue.value();
-					
-				} catch (NullPointerException e)
-				{
-					
-				}
-				
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public String allowableValues()
-			{
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public boolean required()
-			{
-				return !parameter.getParameterizedType().getTypeName().contains("java.util.Optional");
-			}
-
-			@Override
-			public String access()
-			{
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public boolean allowMultiple()
-			{
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public boolean hidden()
-			{
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public String example()
-			{
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public Example examples()
-			{
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public String type()
-			{
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public String format()
-			{
-				
-				return null;
-			}
-
-			@Override
-			public boolean allowEmptyValue()
-			{
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public boolean readOnly()
-			{
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public String collectionFormat()
-			{
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-		};
-	}
+                return parameter.getName();
+            }
+            @Override
+            public Class<? extends Annotation> annotationType()
+            {
+                return QueryParam.class;
+            }
+        };
+    }
 }
+
+
+

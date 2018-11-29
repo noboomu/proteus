@@ -1,5 +1,6 @@
+
 /**
- * 
+ *
  */
 package io.sinistral.proteus.server.handlers;
 
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.inject.Inject;
+
 import com.typesafe.config.Config;
 
 import io.undertow.server.DefaultResponseListener;
@@ -22,53 +24,52 @@ import io.undertow.util.HttpString;
  */
 public class ServerDefaultHttpHandler implements HttpHandler
 {
+    protected final HeaderMap headers = new HeaderMap();
+    
+    @Inject(optional = true)
+    protected DefaultResponseListener defaultResponseListener;
+    
+    @Inject
+    protected volatile RoutingHandler next;
 
-	@Inject(optional=true)
-	protected DefaultResponseListener defaultResponseListener;
-	
-	@Inject
-	protected volatile RoutingHandler next;
-	
-	protected final HeaderMap headers = new HeaderMap();
+    @Inject
+    public ServerDefaultHttpHandler(Config config)
+    {
+        Config globalHeaders = config.getConfig("globalHeaders");
+        Map<HttpString, String> globalHeaderParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(e -> HttpString.tryFromString(e.getKey()), e -> e.getValue().unwrapped() + ""));
 
- 
-	@Inject
-	public ServerDefaultHttpHandler(Config config)
-	{
-		Config globalHeaders = config.getConfig("globalHeaders");
+        for (Map.Entry<HttpString, String> e : globalHeaderParameters.entrySet())
+        {
+            headers.add(e.getKey(), e.getValue());
+        }
+    }
 
-		Map<HttpString,String> globalHeaderParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(e -> HttpString.tryFromString(e.getKey()), e ->e.getValue().unwrapped()+""));
-		   
-		for( Map.Entry<HttpString,String> e : globalHeaderParameters.entrySet()  )
-		{
-			headers.add(e.getKey(), e.getValue());
-		}
-		
-	}
+    /*
+     * (non-Javadoc)
+     * @see io.undertow.server.HttpHandler#handleRequest(io.undertow.server.HttpServerExchange)
+     */
+    @Override
+    public void handleRequest(final HttpServerExchange exchange) throws Exception
+    {
+        if (this.defaultResponseListener != null)
+        {
+            exchange.addDefaultResponseListener(defaultResponseListener);
+        }
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.undertow.server.HttpHandler#handleRequest(io.undertow.server.HttpServerExchange)
-	 */
-	@Override
-	public void handleRequest(final HttpServerExchange exchange) throws Exception
-	{
+        long fiGlobal = this.headers.fastIterateNonEmpty();
 
- 		if(this.defaultResponseListener != null)
-		{
-			exchange.addDefaultResponseListener(defaultResponseListener);
-		}
+        while (fiGlobal != -1)
+        {
+            final HeaderValues headerValues = headers.fiCurrent(fiGlobal);
 
-		long fiGlobal = this.headers.fastIterateNonEmpty();
-        while (fiGlobal != -1) {
-      	  
-      	  final HeaderValues headerValues = headers.fiCurrent(fiGlobal);
             exchange.getResponseHeaders().addAll(headerValues.getHeaderName(), headerValues);
+
             fiGlobal = headers.fiNextNonEmpty(fiGlobal);
         }
-        
-		next.handleRequest(exchange); 
 
-	}
-
+        next.handleRequest(exchange);
+    }
 }
+
+
+

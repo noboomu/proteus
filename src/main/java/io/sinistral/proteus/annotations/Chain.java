@@ -1,14 +1,15 @@
+
 /**
- * 
+ *
  */
 package io.sinistral.proteus.annotations;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
 
 import io.undertow.server.HandlerWrapper;
 
@@ -19,7 +20,8 @@ import io.undertow.server.HandlerWrapper;
 @Target({ TYPE, METHOD })
 public @interface Chain
 {
-	 Class<? extends HandlerWrapper>[] value();
+    Class<? extends HandlerWrapper>[] value();
 }
 
- 
+
+

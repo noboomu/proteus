@@ -20,10 +20,10 @@ import com.squareup.javapoet.MethodSpec;
 
 import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterType;
 
-/**
-	 * Enum class that assists in code generation for different method parameter
-	 * types
+	/**
+	 * Enum that assists in code generation for different method parameter types
 	 */
+
 	public enum TypeHandler
 	{
 
@@ -159,7 +159,7 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 		{
 			Object[] args = new Object[handler.parameterTypes.length];
 
-/// typeReferenceNameForParameterizedType
+
 			for (int i = 0; i < handler.parameterTypes.length; i++)
 			{
 				if (handler.parameterTypes[i] instanceof StatementParameterType)

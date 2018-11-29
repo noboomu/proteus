@@ -58,6 +58,7 @@ import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.session.SessionAttachmentHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 
@@ -86,6 +87,9 @@ public class ProteusApplication
 
 	@Inject
 	public Config config;
+	
+	@Inject(optional=true)
+	public SessionAttachmentHandler sessionAttachmentHandler;
 
 	public List<Class<? extends Module>> registeredModules = new ArrayList<>();
 
@@ -274,6 +278,14 @@ public class ProteusApplication
 		else
 		{
 			handler = rootHandler;
+		}
+		
+		if(sessionAttachmentHandler != null)
+		{
+			log.info("Using session attachment handler.");
+			
+			sessionAttachmentHandler.setNext(handler);
+			handler = sessionAttachmentHandler;
 		}
 		
 		int httpPort = config.getInt("application.ports.http");

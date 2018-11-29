@@ -411,7 +411,9 @@ public class Reader {
 
                     // can't continue without a valid http method
                     httpMethod = (httpMethod == null) ? parentMethod : httpMethod;
-                    if (httpMethod != null) {
+                    
+                    if (httpMethod != null) 
+                    {
                         if (apiOperation != null) {
                             for (String tag : apiOperation.tags()) {
                                 if (!"".equals(tag)) {

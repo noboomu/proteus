@@ -422,16 +422,7 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 							java.nio.file.Files.createDirectories(entryFilePath.getParent());
 							
 							java.nio.file.Files.copy(entryInputStream, entryFilePath,StandardCopyOption.REPLACE_EXISTING);
-							
-//							String sharedCSS = null;
-//							  
-//							try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + File.separator + ".." + File.separator + "/swagger-ui.css"))
-//							{
-//								byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
-//								
-//								sharedCSS = new String(templateBytes,Charset.defaultCharset()); 
-//							}
-							
+
 						} catch (Exception e)
 						{
 							log.error(e.getMessage() + " for entry " + ze.getName());
@@ -632,16 +623,10 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		return router; 
 	}
 
-	 
-
-	/* (non-Javadoc)
-	 * @see com.google.common.util.concurrent.AbstractIdleService#startUp()
-	 */
+ 
 	@Override
 	protected void startUp() throws Exception
-	{
-		// TODO Auto-generated method stub
-		
+	{ 
 		
 		this.generateSwaggerSpec();
 		this.generateSwaggerHTML();
@@ -651,13 +636,11 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 		router.addAll(this.get()); 
 	}
 
-	/* (non-Javadoc)
-	 * @see com.google.common.util.concurrent.AbstractIdleService#shutDown()
-	 */
+ 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		// TODO Auto-generated method stub
+		 
 		
 	}
 	

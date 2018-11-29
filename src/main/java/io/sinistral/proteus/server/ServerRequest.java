@@ -245,6 +245,46 @@ public class ServerRequest
     {
         return exchange.getSecurityContext();
     }
+
+	/**
+	 * @return the exchange
+	 */
+	public HttpServerExchange getExchange()
+	{
+		return exchange;
+	}
+
+	/**
+	 * @return the path
+	 */
+	public String getPath()
+	{
+		return path;
+	}
+
+	/**
+	 * @return the contentType
+	 */
+	public String getContentType()
+	{
+		return contentType;
+	}
+
+	/**
+	 * @return the method
+	 */
+	public String getMethod()
+	{
+		return method;
+	}
+
+	/**
+	 * @return the accept
+	 */
+	public String getAccept()
+	{
+		return accept;
+	}
 }
 
 

@@ -87,9 +87,7 @@ public class ProteusApplication
 
 	@Inject
 	public Config config;
-	
-	@Inject(optional=true)
-	public SessionAttachmentHandler sessionAttachmentHandler;
+	 
 
 	public List<Class<? extends Module>> registeredModules = new ArrayList<>();
 
@@ -278,6 +276,16 @@ public class ProteusApplication
 		else
 		{
 			handler = rootHandler;
+		}
+		
+		SessionAttachmentHandler sessionAttachmentHandler = null;
+		
+		try
+		{
+			sessionAttachmentHandler = injector.getInstance(SessionAttachmentHandler.class); 
+		} catch (Exception e)
+		{
+			log.info("No session attachment handler found.");
 		}
 		
 		if(sessionAttachmentHandler != null)
@@ -586,6 +594,6 @@ public class ProteusApplication
 		return ports;
 	}
 
-	 
+
 
 }

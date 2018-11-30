@@ -31,8 +31,6 @@ Getting Started
 /bin/bash -e <(curl -fsSL https://raw.githubusercontent.com/noboomu/proteus-example/master/scripts/quickStart.sh)
 ```
 
-- Open [http://localhost:8090/v1/swagger](http://localhost:8090/v1/swagger) for a v2 Swagger UI.
-- Open [http://localhost:8090/v1/swagger/redoc](http://localhost:8090/v1/swagger/redoc) for a pretty version of your API.
 - Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for an OpenAPI UI.
 
 ### As a dependency
@@ -52,7 +50,7 @@ Controllers
 
 Controller classes respect standard Swagger / JAX-RS annotations:
 ```java
-@Api(tags="benchmarks")
+@Tags({@Tag(name = "benchmarks")})
 @Path("/benchmarks")
 @Produces((MediaType.APPLICATION_JSON)) 
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD))
@@ -65,7 +63,7 @@ Controller class methods respect standard Swagger / JAX-RS annotations:
 @GET
 @Path("/plaintext")
 @Produces((MediaType.TEXT_PLAIN)) 
-@ApiOperation(value = "Plaintext endpoint" )
+@Operation(description = "Plaintext endpoint" )
 public ServerResponse<ByteBuffer> plaintext(ServerRequest request)
 { 
 	return response("Hello, World!").textPlain();
@@ -135,7 +133,7 @@ For methods that should return a `String` or `ByteBuffer` to the client users ca
 @GET
 @Path("/hello-world")
 @Produces((MediaType.TEXT_PLAIN)) 
-@ApiOperation(value = "Serve a plaintext message using a ServerResponse")
+@Operation(description = "Serve a plaintext message using a ServerResponse")
 public ServerResponse<ByteBuffer> plaintext(ServerRequest request, @QueryParam("message") String message)
 { 
 	return ServerResponse.response("Hello, World!").textPlain();
@@ -148,7 +146,7 @@ For other types of responses the following demonstrates the preferred style:
 @GET
 @Path("/world")
 @Produces((MediaType.APPLICATION_JSON)) 
-@ApiOperation(value = "Return a world JSON object",   httpMethod = "GET", response=World.class )
+@Operation(description = "Return a world JSON object")
 public ServerResponse<World> getWorld(ServerRequest request, @QueryParam("id") Integer id,  @QueryParam("randomNumber") Integer randomNumber )
 { 
 	return response(new World(id,randomNumber)).applicationJson();
@@ -161,7 +159,7 @@ The entity can be set separately as well:
 @GET
 @Path("/world")
 @Produces((MediaType.APPLICATION_JSON)) 
-@ApiOperation(value = "Return a world JSON object",   httpMethod = "GET", response=World.class )
+@Operation(description = "Return a world JSON object")
 public io.sinistral.proteus.server.ServerResponse getWorld(Integer id,  Integer randomNumber )
 { 
 	return io.sinistral.proteus.server.ServerResponse.response().entity(new World(id,randomNumber));
@@ -173,7 +171,7 @@ public io.sinistral.proteus.server.ServerResponse getWorld(Integer id,  Integer 
 ```java
 @GET
 @Path("/future/user")
-@ApiOperation(value = "Future user endpoint",   httpMethod = "GET" )
+@Operation(description = "Future user endpoint"  )
 public CompletableFuture<ServerResponse<User>> futureUser( ServerRequest request )
 { 
 	return CompletableFuture.completedFuture(response( new User(123L) ).applicationJson() );
@@ -205,7 +203,7 @@ Optional parameters are also supported, here is a more complex endpoint demonstr
 ```java
 @GET
 @Path("/response/parameters/complex/{pathLong}")
-@ApiOperation(value = "Complex parameters", httpMethod = "GET")
+@Operation(description = "Complex parameters")
 public ServerResponse<Map<String,Object>> complexParameters(
         ServerRequest serverRequest, 
         @PathParam("pathLong") final Long pathLong, 
@@ -245,7 +243,7 @@ public ServerResponse<Map<String,Object>> complexParameters(
 Services
 -------------
 
-Proteus comes with two standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
+Proteus comes with three standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
 - __AssetsService__
 
 	The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.

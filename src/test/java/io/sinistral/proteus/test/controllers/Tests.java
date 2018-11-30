@@ -37,8 +37,6 @@ import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.test.models.User;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,7 +47,7 @@ import io.undertow.server.HttpServerExchange;
  * @author jbauer
  *
  */
-@Api(tags="tests")
+
 @Tags({@Tag(name = "tests")})
 @Path("/tests")
 @Produces((MediaType.APPLICATION_JSON)) 

@@ -31,8 +31,6 @@ Getting Started
 /bin/bash -e <(curl -fsSL https://raw.githubusercontent.com/noboomu/proteus-example/master/scripts/quickStart.sh)
 ```
 
-- Open [http://localhost:8090/v1/swagger](http://localhost:8090/v1/swagger) for a v2 Swagger UI.
-- Open [http://localhost:8090/v1/swagger/redoc](http://localhost:8090/v1/swagger/redoc) for a pretty version of your API.
 - Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for an OpenAPI UI.
 
 ### As a dependency

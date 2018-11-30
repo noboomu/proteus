@@ -41,6 +41,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.tags.Tags;
 import io.undertow.server.HttpServerExchange;
 
 /**
@@ -48,6 +50,7 @@ import io.undertow.server.HttpServerExchange;
  *
  */
 @Api(tags="tests")
+@Tags({@Tag(name = "tests")})
 @Path("/tests")
 @Produces((MediaType.APPLICATION_JSON)) 
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD)) 
@@ -69,7 +72,7 @@ public class Tests
 	  
 	@GET
 	@Path("/exchange/json/serialize")
-	@ApiOperation(value = "Json serialization endpoint",   httpMethod = "GET" )
+	@Operation(description = "Json serialization endpoint"  )
 	public void exchangeJsonSerialize(HttpServerExchange exchange) 
 	{  
 		try
@@ -83,7 +86,7 @@ public class Tests
 	
 	@GET
 	@Path("/exchange/json/serializeToBytes")
-	@ApiOperation(value = "Json serialization with bytes endpoint",   httpMethod = "GET" )
+	@Operation(description = "Json serialization with bytes endpoint"  )
 	public void exchangeJsonSerializeToBytes(HttpServerExchange exchange)
 	{ 
 		try
@@ -99,7 +102,7 @@ public class Tests
 	
 	@GET 
 	@Path("/exchange/user/json")
-	@ApiOperation(value = "User serialization endpoint",   httpMethod = "GET", response = User.class )
+	@Operation(description = "User serialization endpoint" )
 	public void exchangeUserJson(HttpServerExchange exchange)
 	{  
 		response( new User(123L) ).applicationJson().send(exchange); 
@@ -108,7 +111,7 @@ public class Tests
 	@GET 
 	@Path("/exchange/user/xml")
 	@Produces((MediaType.APPLICATION_XML))
-	@ApiOperation(value = "User serialization endpoint",   httpMethod = "GET", response = User.class )
+	@Operation(description = "User serialization endpoint"  )
 	public void exchangeUserXml(HttpServerExchange exchange)
 	{  
 		response( new User(123L) ).applicationXml().send(exchange); 
@@ -116,7 +119,7 @@ public class Tests
 
 	@GET
 	@Path("/response/user/json")
-	@ApiOperation(value = "User serialization endpoint",   httpMethod = "GET" )
+	@Operation(description = "User serialization endpoint"  )
 	public ServerResponse<User> responseUserJson(ServerRequest request)
 	{ 
  		User user = new User(123L);
@@ -127,7 +130,7 @@ public class Tests
 	@GET
 	@Path("/response/user/xml")
 	@Produces((MediaType.APPLICATION_XML))
-	@ApiOperation(value = "User serialization endpoint",   httpMethod = "GET" )
+	@Operation(description = "User serialization endpoint"  )
 	public ServerResponse<User> responseUserXml(ServerRequest request)
 	{ 
  		User user = new User(123L);
@@ -139,7 +142,7 @@ public class Tests
 	@GET
 	@Path("/exchange/plaintext")
 	@Produces((MediaType.TEXT_PLAIN)) 
-	@ApiOperation(value = "Plaintext endpoint",   httpMethod = "GET" )
+	@Operation(description = "Plaintext endpoint"  )
 	public void exchangePlaintext(HttpServerExchange exchange)
 	{ 
 		response("Hello, World!").textPlain().send(exchange);
@@ -149,7 +152,7 @@ public class Tests
 	@GET
 	@Path("/exchange/plaintext2")
 	@Produces((MediaType.TEXT_PLAIN)) 
-	@ApiOperation(value = "Plaintext endpoint 2",   httpMethod = "GET" )
+	@Operation(description = "Plaintext endpoint 2"  )
 	public void exchangePlaintext2(HttpServerExchange exchange)
 	{ 
 		exchange.getResponseHeaders().put(io.undertow.util.Headers.CONTENT_TYPE, "text/plain");
@@ -159,7 +162,7 @@ public class Tests
 	@GET
 	@Path("/response/plaintext")
 	@Produces((MediaType.TEXT_PLAIN)) 
-	@ApiOperation(value = "Plaintext endpoint",   httpMethod = "GET" )
+	@Operation(description = "Plaintext endpoint"  )
 	public ServerResponse<ByteBuffer> responsePlaintext(ServerRequest request)
 	{ 
 		return response("Hello, World!").textPlain();
@@ -168,7 +171,7 @@ public class Tests
 	
 	@GET
 	@Path("/response/future/map")
-	@ApiOperation(value = "Future map endpoint",   httpMethod = "GET" )
+	@Operation(description = "Future map endpoint"  )
 	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureMap( ServerRequest request )
 	{ 
 		Map<String,String> map = ImmutableMap.of("message", "success");
@@ -177,7 +180,7 @@ public class Tests
 	
 	@GET
 	@Path("/response/map")
-	@ApiOperation(value = "Map endpoint",   httpMethod = "GET" )
+	@Operation(description = "Map endpoint"  )
 	public ServerResponse<Map<String,String>> futureMap( ServerRequest request )
 	{ 
 		Map<String,String> map = ImmutableMap.of("message", "success");
@@ -188,7 +191,7 @@ public class Tests
 	@Path("/response/file/path")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@ApiOperation(value = "Upload file path endpoint",   httpMethod = "POST" )
+	@Operation(description = "Upload file path endpoint"  )
 	public ServerResponse<ByteBuffer> responseUploadFilePath(ServerRequest request, @FormParam("file") java.nio.file.Path file ) throws Exception
 	{  
 		return response(ByteBuffer.wrap(Files.toByteArray(file.toFile()))).applicationOctetStream(); 
@@ -198,7 +201,7 @@ public class Tests
 	@Path("/response/file/path/optional")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@ApiOperation(value = "Upload optional file path endpoint",   httpMethod = "POST" )
+	@Operation(description = "Upload optional file path endpoint"  )
 	public ServerResponse<ByteBuffer> responseUploadOptionalFilePath(ServerRequest request, @FormParam("file") Optional<java.nio.file.Path> file ) throws Exception
 	{  
 		if(file.isPresent())
@@ -215,7 +218,7 @@ public class Tests
 	@Path("/response/json/echo")
 	@Produces(MediaType.APPLICATION_JSON) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@ApiOperation(value = "Echo json endpoint",   httpMethod = "POST" )
+	@Operation(description = "Echo json endpoint"  )
 	public ServerResponse<User> responseEchoJson(ServerRequest request, @FormParam("user") User user ) throws Exception
 	{  
 		return response(user).applicationJson();
@@ -225,7 +228,7 @@ public class Tests
 	@Path("/response/json/beanparam")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Echo json inner class endpoint",   httpMethod = "POST" )
+	@Operation(description = "Echo json inner class endpoint"  )
 	public ServerResponse<User> responseInnerClassTest(ServerRequest request, @BeanParam User user ) throws Exception
 	{  
 		return response(user).applicationJson();
@@ -235,7 +238,7 @@ public class Tests
 	@GET
 	@Path("/generic/set")
 	@Produces((MediaType.APPLICATION_JSON)) 
-	@ApiOperation(value = "Generic set endpoint",   httpMethod = "GET" )
+	@Operation(description = "Generic set endpoint"  )
 	public ServerResponse<Set<Long>>  genericSet( ServerRequest request, @QueryParam("ids") Set<Long> ids )  throws Exception
 	{  
 		return response( ids ).applicationJson(); 
@@ -245,7 +248,7 @@ public class Tests
 	@GET
 	@Path("/optional/set")
 	@Produces((MediaType.APPLICATION_JSON)) 
-	@ApiOperation(value = "Generic optional set endpoint",   httpMethod = "GET" )
+	@Operation(description = "Generic optional set endpoint"  )
 	public ServerResponse<Set<Long>>  genericOptionalSet( ServerRequest request, @QueryParam("ids") Optional<Set<Long>> ids )  throws Exception
 	{  
 		return response( ids.get() ).applicationJson();  
@@ -254,7 +257,7 @@ public class Tests
 	
 	@GET
 	@Path("/redirect/permanent")
-	@ApiOperation(value = "Permanent redirect endpoint",   httpMethod = "GET" )
+	@Operation(description = "Permanent redirect endpoint"  )
 	@Produces(MediaType.WILDCARD) 
 	public ServerResponse<Void> testPermanentRedirect()
 	{ 
@@ -263,7 +266,7 @@ public class Tests
 	
 	@GET
 	@Path("/redirect")
-	@ApiOperation(value = "Redirect endpoint",   httpMethod = "GET" )
+	@Operation(description = "Redirect endpoint" )
 	@Produces(MediaType.WILDCARD) 
 	public ServerResponse<Void> testRedirect()
 	{ 
@@ -275,8 +278,7 @@ public class Tests
 	@Blocking
 	@Produces(MediaType.APPLICATION_JSON) 
  	@Consumes(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Convert ids" )
-	@Operation(description = "Convert ids") 
+ 	@Operation(description = "Convert ids") 
 	public ServerResponse<List<Long>> listConversion( ServerRequest request, @BeanParam List<Long> ids ) throws Exception
 	{ 
 		 
@@ -289,8 +291,7 @@ public class Tests
 	@Path("/response/file/bytebuffer")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
-	@ApiOperation(value = "Upload file path endpoint"  )
-	@Operation(description = "Upload file path endpoint")
+ 	@Operation(description = "Upload file path endpoint")
 	public ServerResponse<ByteBuffer> responseUploadByteBuffer(ServerRequest request, @FormParam("file") ByteBuffer file ) throws Exception
 	{ 
 		 
@@ -301,8 +302,7 @@ public class Tests
 	
 	@GET
 	@Path("/response/debug")
-	@ApiOperation(value = "Debug endpoint"  )
-	@Operation(description = "Debug endpoint")
+ 	@Operation(description = "Debug endpoint")
 	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request) 
 	{  
 		try
@@ -320,8 +320,7 @@ public class Tests
 	@GET
 	@Path("/response/debug/blocking")
 	@Blocking
-	@ApiOperation(value = "Debug blocking endpoint"  )
-	@Operation(description="Debug blocking endpoint")
+ 	@Operation(description="Debug blocking endpoint")
 	public ServerResponse<Map<String,String>> debugBlockingEndpoint(ServerRequest request) 
 	{  
 		try
@@ -336,8 +335,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/future/user")
-	@ApiOperation(value = "Future user endpoint" )
+	@Path("/response/future/user") 
 	@Operation(description="Future user endpoint")
 	@Produces((MediaType.APPLICATION_JSON)) 
 	public CompletableFuture<ServerResponse<User>> responseFutureUser()
@@ -347,7 +345,7 @@ public class Tests
 	
 	@GET
 	@Path("/response/parameters/complex/{pathLong}")
-	@ApiOperation(value = "Complex parameters", httpMethod = "GET")
+	@Operation(description = "Complex parameters" )
 	@Produces((MediaType.APPLICATION_JSON)) 
 	public ServerResponse<Map<String,Object>> complexParameters(
 	                    ServerRequest serverRequest, 

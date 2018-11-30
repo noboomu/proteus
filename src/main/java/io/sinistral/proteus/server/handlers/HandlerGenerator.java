@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,9 +56,10 @@ import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
-import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.sinistral.proteus.server.endpoints.EndpointInfo; 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tags;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -100,6 +102,16 @@ public class HandlerGenerator
 	protected Set<EndpointInfo> registeredEndpoints;
 
 	protected Class<?> controllerClass;
+	
+	protected Set<String> injectedHandlerWrappers = new HashSet<>();
+
+	@Inject
+	@Named("registeredHandlerWrappers")
+	protected Map<String, HandlerWrapper> registeredHandlerWrappers;
+	
+	protected Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<Class<? extends HandlerWrapper>, String>();
+
+	protected Map<Class<? extends HandlerWrapper>, String> handlerWrapperMap = new LinkedHashMap<Class<? extends HandlerWrapper>, String>();
 
 	/**
 	 * Create a new {@code HandlerGenerator} instance used to generate a
@@ -144,6 +156,51 @@ public class HandlerGenerator
 	{
 		try
 		{
+			
+//			Optional<io.sinistral.proteus.annotations.Chain> typeLevelWrapAnnotation = Optional.ofNullable(controllerClass.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
+//			
+//			typeLevelWrapAnnotation.ifPresent( a -> {
+//				 
+//				io.sinistral.proteus.annotations.Chain w = typeLevelWrapAnnotation.get();
+//
+//				Class<? extends HandlerWrapper> wrapperClasses[] = w.value();
+//
+//				for (int i = 0; i < wrapperClasses.length; i++)
+//				{
+//					Class<? extends HandlerWrapper> wrapperClass = wrapperClasses[i];
+//
+//					String wrapperName = generateFieldName(wrapperClass.getCanonicalName());
+//
+//					handlerWrapperMap.put(wrapperClass, wrapperName);
+//				}
+//				
+//			});
+//			
+//			for(Method m : this.controllerClass.getDeclaredMethods())
+//			{
+//			
+//				Optional<io.sinistral.proteus.annotations.Chain> methodLevelWrapAnnotation = Optional.ofNullable(m.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
+//				
+//				methodLevelWrapAnnotation.ifPresent( a -> {
+//					 
+//					io.sinistral.proteus.annotations.Chain w = methodLevelWrapAnnotation.get();
+//	
+//					Class<? extends HandlerWrapper> wrapperClasses[] = w.value();
+//	
+//					for (int i = 0; i < wrapperClasses.length; i++)
+//					{
+//						Class<? extends HandlerWrapper> wrapperClass = wrapperClasses[i];
+//	
+//						String wrapperName = generateFieldName(wrapperClass.getCanonicalName());
+//	
+//						handlerWrapperMap.put(wrapperClass, wrapperName);
+//					}
+//					
+//				});
+//
+//			}
+//			
+//			log.info("handlerWrapperMap: " + handlerWrapperMap);
 
 			TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
 					.addSuperinterface(ParameterizedTypeName.get(Supplier.class, RoutingHandler.class));
@@ -151,6 +208,8 @@ public class HandlerGenerator
 			ClassName extractorClass = ClassName.get("io.sinistral.proteus.server", "Extractors");
 
 			ClassName injectClass = ClassName.get("com.google.inject", "Inject");
+			
+
 
 			MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addAnnotation(injectClass);
 
@@ -168,9 +227,27 @@ public class HandlerGenerator
 					.annotated(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S", "registeredHandlerWrappers").build());
 
 			typeBuilder.addField(mapOfWrappers, "registeredHandlerWrappers", Modifier.PROTECTED, Modifier.FINAL);
+			
+//			registeredHandlerWrappers.keySet().stream().forEach( k -> {
+//				
+//				typeBuilder.addField(HandlerWrapper.class, k + "HandlerWrapper", Modifier.PROTECTED, Modifier.FINAL);
+//				
+//			});
 
 			constructor.addParameter(this.controllerClass, className);
 			constructor.addParameter(annotatedMapOfWrappers, "registeredHandlerWrappers");
+			
+//			registeredHandlerWrappers.keySet().stream().forEach( k -> {
+//				 
+//				ParameterSpec p = ParameterSpec.builder(HandlerWrapper.class, k + "HandlerWrapper").addAnnotation(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S", k).build()).build();
+//				
+//				constructor.addParameter(p);
+//				
+//			});
+			
+			// String.format("%c%s%sHandler_%s", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName()
+			//.substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()), String.valueOf(nameIndex++));
+			
 			constructor.addStatement("this.$N = $N", className, className);
 			constructor.addStatement("this.$N = $N", "registeredHandlerWrappers", "registeredHandlerWrappers");
 
@@ -206,7 +283,7 @@ public class HandlerGenerator
 				.addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
 
 		final Map<Type, String> parameterizedLiteralsNameMap = Arrays.stream(clazz.getDeclaredMethods())
-				.filter(m -> m.getAnnotation(ApiOperation.class) != null)
+				.filter(m -> m.getAnnotation(Operation.class) != null)
 				.flatMap(
 							m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)
 									.filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
@@ -219,7 +296,7 @@ public class HandlerGenerator
 				}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
 
 		Arrays.stream(clazz.getDeclaredMethods())
-			.filter(m -> m.getAnnotation(ApiOperation.class) != null)
+			.filter(m -> m.getAnnotation(Operation.class) != null)
 			.flatMap(m -> Arrays.stream(m.getParameters()))
 			.forEach(p ->
 			{
@@ -242,7 +319,7 @@ public class HandlerGenerator
 			});
 
 		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods())
-				.filter(m -> m.getAnnotation(ApiOperation.class) != null)
+				.filter(m -> m.getAnnotation(Operation.class) != null)
 				.flatMap(m -> Arrays.stream(m.getParameters())
 				.map(Parameter::getParameterizedType)).filter(t ->
 				{
@@ -321,8 +398,7 @@ public class HandlerGenerator
 
 		Optional<io.sinistral.proteus.annotations.Chain> typeLevelWrapAnnotation = Optional.ofNullable(clazz.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
 		
-		Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<Class<? extends HandlerWrapper>, String>();
-
+ 
 		if (typeLevelWrapAnnotation.isPresent())
 		{
 			io.sinistral.proteus.annotations.Chain w = typeLevelWrapAnnotation.get();
@@ -354,21 +430,15 @@ public class HandlerGenerator
 
 		List<String> typeLevelSecurityDefinitions = new ArrayList<>();
 
-		if (Optional.ofNullable(clazz.getAnnotation(io.swagger.annotations.Api.class)).isPresent())
+		if (Optional.ofNullable(clazz.getAnnotation(Tags.class)).isPresent())
 		{
-			io.swagger.annotations.Api apiAnnotation = clazz.getAnnotation(io.swagger.annotations.Api.class);
+			SecurityRequirement securityRequirementAnnotation = clazz.getAnnotation(SecurityRequirement.class);
 
-			io.swagger.annotations.Authorization[] authorizationAnnotations = apiAnnotation.authorizations();
-
-			if (authorizationAnnotations.length > 0)
+			if(securityRequirementAnnotation != null)
 			{
-				for (io.swagger.annotations.Authorization authorizationAnnotation : authorizationAnnotations)
-				{
-					if (authorizationAnnotation.value().length() > 0)
-					{
-						typeLevelSecurityDefinitions.add(authorizationAnnotation.value());
-					}
-				}
+			String securityRequirement = securityRequirementAnnotation.name();
+			 
+			typeLevelSecurityDefinitions.add(securityRequirement);
 			}
 		}
 
@@ -812,22 +882,17 @@ public class HandlerGenerator
 			 * @TODO wrap blocking in BlockingHandler
 			 */
 
-			if (Optional.ofNullable(m.getAnnotation(io.swagger.annotations.ApiOperation.class)).isPresent())
+			if (Optional.ofNullable(m.getAnnotation(Operation.class)).isPresent())
 			{
-				io.swagger.annotations.ApiOperation apiOperationAnnotation = m.getAnnotation(io.swagger.annotations.ApiOperation.class);
+				SecurityRequirement securityRequirementAnnotation = m.getAnnotation(SecurityRequirement.class);
 
-				io.swagger.annotations.Authorization[] authorizationAnnotations = apiOperationAnnotation.authorizations();
-				
-				if (authorizationAnnotations.length > 0)
+				if(securityRequirementAnnotation != null)
 				{
-					for (io.swagger.annotations.Authorization authorizationAnnotation : authorizationAnnotations)
-					{
-						if (authorizationAnnotation.value().length() > 0)
-						{
-							securityDefinitions.add(authorizationAnnotation.value());
-						}
-					}
+					String securityRequirement = securityRequirementAnnotation.name();
+				 
+					securityDefinitions.add(securityRequirement);
 				}
+						 
 			}
 
 			if (securityDefinitions.isEmpty())
@@ -977,7 +1042,7 @@ public class HandlerGenerator
 	{
 
 		Reflections ref = new Reflections(basePath);
-		Stream<Class<?>> stream = ref.getTypesAnnotatedWith(Api.class).stream();
+		Stream<Class<?>> stream = ref.getTypesAnnotatedWith(Path.class).stream();
 
 		if (pathPredicate != null)
 		{

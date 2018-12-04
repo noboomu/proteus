@@ -38,6 +38,7 @@ import com.typesafe.config.ConfigValue;
 public class ConfigModule extends AbstractModule
 {
     private static Logger log = LoggerFactory.getLogger(ConfigModule.class.getCanonicalName());
+    
     protected String configFile = null;
     protected URL configURL = null;
     protected Config config = null;

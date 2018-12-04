@@ -3,12 +3,14 @@
  */
 package io.sinistral.proteus.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -166,12 +168,16 @@ public class Extractors
 			 
 		}
 		
+
 		public static java.util.Optional<ZonedDateTime> zonedDateTime(final HttpServerExchange exchange,final String name)  {
 		    
-			 return string(exchange, name).map( ZonedDateTime::parse );
-			 
+			 return string(exchange, name).map( ZonedDateTime::parse ); 
 		}
 		 
+		public static java.util.Optional<Instant> instant(final HttpServerExchange exchange,final String name)  {
+		    
+			 return string(exchange, name).map( Instant::parse ); 
+		}
 
 		public static java.util.Optional<JsonNode> any(final HttpServerExchange exchange )
 		{
@@ -222,7 +228,12 @@ public class Extractors
 
 		public static  java.util.Optional<Path> filePath(final HttpServerExchange exchange, final String name)
 		{
-			return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map( fv -> fv.getPath());
+			return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map( fv -> fv.getFileItem().getFile());
+		}
+		
+		public static  java.util.Optional<File> file(final HttpServerExchange exchange, final String name)
+		{
+			return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map( fv -> fv.getFileItem().getFile().toFile());
 		}
 		
 		public static  java.util.Optional<ByteBuffer> byteBuffer(final HttpServerExchange exchange, final String name)  
@@ -363,7 +374,18 @@ public class Extractors
 	{
 		try
 		{
-			return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getPath();
+			return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getFileItem().getFile();
+		} catch(NullPointerException e)
+		{
+			throw new IllegalArgumentException("Missing parameter " + name, e);
+		}
+	}
+	
+	public static  File file(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
+	{
+		try
+		{
+			return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getFileItem().getFile().toFile();
 		} catch(NullPointerException e)
 		{
 			throw new IllegalArgumentException("Missing parameter " + name, e);
@@ -419,6 +441,11 @@ public class Extractors
 	{ 
 		return Long.parseLong( string(exchange, name) ); 
 	}
+	
+	public static  Instant instant(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
+	{ 
+		return Instant.parse( string(exchange, name) ); 
+	}
 
 	public static  Integer integerValue(final HttpServerExchange exchange, final String name) throws java.lang.IllegalArgumentException 
 	{ 
@@ -453,7 +480,6 @@ public class Extractors
 	{
 		if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 		{
-
 			return xmlModel(exchange,type);			
 		}
 		else

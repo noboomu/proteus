@@ -5,7 +5,10 @@ package io.sinistral.proteus.test.controllers;
 
 import static io.sinistral.proteus.server.ServerResponse.response;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -285,8 +288,34 @@ public class Tests
 
 	}
 	
+	@GET
+	@Path("/response/parse/timestamp")
+	@Blocking
+	@Produces(MediaType.TEXT_PLAIN)  
+ 	@Operation(description = "Convert timestamp") 
+	public ServerResponse<ByteBuffer> timestampConversion( ServerRequest request, @QueryParam("timestamp") Timestamp timestamp ) throws Exception
+	{ 
+		 
+		return response().body(timestamp.toString()).textPlain(); 
+		 
+
+	}
+	
+	@GET
+	@Path("/response/parse/instant")
+	@Blocking
+	@Produces(MediaType.TEXT_PLAIN)  
+ 	@Operation(description = "Convert instant") 
+	public ServerResponse<ByteBuffer> instantConversion( ServerRequest request, @QueryParam("instant") Instant instant ) throws Exception
+	{ 
+		 
+		return response().body(instant.toString()).textPlain(); 
+		 
+
+	}
+	
 	@POST
-	@Path("/response/file/bytebuffer")
+	@Path("/response/bytebuffer")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
  	@Operation(description = "Upload file path endpoint")
@@ -294,6 +323,22 @@ public class Tests
 	{ 
 		 
 		return response(file).applicationOctetStream();
+		 
+
+	}
+	
+	@POST
+	@Path("/response/file")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
+ 	@Consumes("*/*")
+ 	@Operation(description = "Upload file path endpoint")
+	public ServerResponse<ByteBuffer> responseUploadFile(ServerRequest request, @FormParam("file") File file ) throws Exception
+	{ 
+		
+		ByteBuffer response = ByteBuffer.wrap(Files.asByteSource(file).read());
+		
+		 
+		return response(response).applicationOctetStream();
 		 
 
 	}

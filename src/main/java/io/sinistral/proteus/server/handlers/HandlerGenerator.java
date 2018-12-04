@@ -599,6 +599,8 @@ public class HandlerGenerator
 			{
 
 				Type type = p.getParameterizedType();
+				
+			
 
 				try
 				{

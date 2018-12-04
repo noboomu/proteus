@@ -40,10 +40,15 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 		// StatementParameterType.TYPE,
 		// StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class,
 		// StatementParameterType.TYPE, StatementParameterType.STRING),
+		
+		FileType("$T $L =  $T.file(exchange,$S)", true, java.io.File.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+
 		ByteBufferType("$T $L =  $T.byteBuffer(exchange,$S)", true, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		DateType("$T $L =  $T.date(exchange,$S)", false, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		ZonedDateTimeType("$T $L = $T.zonedDateTime(exchange,$S)", false, java.time.ZonedDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		OffsetDateTimeType("$T $L = $T.offsetDateTime(exchange,$S)", false, java.time.OffsetDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+
+		InstantType("$T $L = $T.instant(exchange,$S)", false, java.time.Instant.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 
 		FloatType("Integer $L = $T.floatValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 		DoubleType("Integer $L = $T.doubleValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
@@ -93,6 +98,8 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 
 		OptionalByteBufferType("$T<$T> $L = $T.byteBuffer(exchange,$S)", true, Optional.class, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 
+		OptionalFileType("$T<$T> $L = $T.file(exchange,$S)", true, Optional.class, java.io.File.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+
 		OptionalFloatType("$T<Long> $L = $T.floatValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalDoubleType("$T<Integer> $L = $T.doubleValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 
@@ -100,7 +107,7 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 		OptionalInstantType("$T<$T> $L = $T.instant(exchange,$S)", false, Optional.class, java.time.Instant.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalZonedDateTimeType("$T<$T> $L = $T.zonedDateTime(exchange,$S)", false, Optional.class, java.time.ZonedDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 		OptionalOffsetDateTimeType("$T<$T> $L = $T.offsetDateTime(exchange,$S)", false, Optional.class, java.time.OffsetDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-
+ 
 		OptionalModelType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
 		OptionalValueOfType("$T<$T> $L = $T.string(exchange,$S).map($T::valueOf)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
@@ -501,6 +508,14 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 			{
 				return FilePathType;
 			}
+			else if (type.equals(java.io.File.class))
+			{
+				return FileType;
+			}
+			else if (type.equals(java.time.Instant.class))
+			{
+				return InstantType;
+			}
 			else if (type.equals(java.util.Date.class))
 			{
 				return DateType;
@@ -508,7 +523,7 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 			else if (type.equals(java.time.ZonedDateTime.class))
 			{
 				return ZonedDateTimeType;
-			}
+			} 
 			else if (type.equals(java.time.OffsetDateTime.class))
 			{
 				return OffsetDateTimeType;
@@ -539,6 +554,10 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 				{
 					return OptionalOffsetDateTimeType;
 				}
+				else if (type.getTypeName().contains("java.time.Instant"))
+				{
+					return OptionalInstantType;
+				}
 				else if (type.getTypeName().contains("java.time.ZonedDateTime"))
 				{
 					return ZonedDateTimeType;
@@ -566,6 +585,10 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 				else if (type.getTypeName().contains("java.nio.ByteBuffer"))
 				{
 					return OptionalByteBufferType;
+				}
+				else if (type.getTypeName().contains("java.io.File"))
+				{
+					return OptionalFileType;
 				}
 				else
 				{

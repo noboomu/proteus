@@ -443,9 +443,9 @@ Proteus applications generally have a main method that creates an instance of `i
 Prior to calling `start` on the `ProteusApplication` instance:
 * Register `Service` classes via `addService`  
 * Register `Module` classes via `addModule`  
-* Register classes annotated with `io.swagger.annotations.Api` via `addController`  
+* Register classes annotated with `javax.ws.rs.Path` via `addController`  
 
-Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/swagger` and [Redoc](https://github.com/Rebilly/ReDoc) at `/swagger/redoc`.
+Out of the box you get am [OpenAPI UI](https://github.com/swagger-api/swagger-ui) at `/openapi`.
 
 > A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.services.BaseService`.
 

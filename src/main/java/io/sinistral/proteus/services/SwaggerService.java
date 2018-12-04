@@ -1,4 +1,4 @@
- 
+
 package io.sinistral.proteus.services;
 
 import java.io.File;
@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.jar.JarFile;
 
@@ -74,326 +75,326 @@ import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 
-
 @Singleton
-public class SwaggerService   extends BaseService implements Supplier<RoutingHandler>
+public class SwaggerService extends BaseService implements Supplier<RoutingHandler>
 {
-	  
+
 	private static Logger log = LoggerFactory.getLogger(SwaggerService.class.getCanonicalName());
 
 	protected io.sinistral.proteus.server.tools.swagger.Reader reader = null;
-	
+
 	protected final String resourcePathPrefix = "swagger";
 
 	@Inject
 	@Named("swagger.resourcePrefix")
 	protected String resourcePrefix;
-	
+
 	@Inject
 	@Named("swagger.basePath")
 	protected String basePath;
-	
+
 	@Inject
 	@Named("swagger.theme")
 	protected String theme;
-	
+
 	@Inject
 	@Named("swagger.specFilename")
 	protected String specFilename;
-	 
+
 	@Inject
 	@Named("swagger")
 	protected Config swaggerConfig;
-	
+
 	@Inject
 	@Named("swagger.security")
 	protected Config securityConfig;
-	
+
 	@Inject
 	@Named("swagger.redocPath")
 	protected String redocPath;
-	
+
 	@Inject
 	@Named("swagger.host")
 	protected String host;
-	
+
 	@Inject
 	@Named("application.name")
 	protected String applicationName;
-	
+
 	@Inject
 	@Named("swagger.port")
 	protected Integer port;
-	
+
 	@Inject
 	@Named("application.path")
 	protected String applicationPath;
-	
+
 	@Inject
 	protected RoutingHandler router;
-	
+
 	@Inject
 	@Named("registeredEndpoints")
 	protected Set<EndpointInfo> registeredEndpoints;
-	 
+
 	@Inject
 	@Named("registeredControllers")
 	protected Set<Class<?>> registeredControllers;
-	
+
 	@Inject
 	@Named("registeredHandlerWrappers")
-	protected Map<String,HandlerWrapper> registeredHandlerWrappers;
- 
+	protected Map<String, HandlerWrapper> registeredHandlerWrappers;
+
 	protected ObjectMapper mapper = new ObjectMapper();
-	
-	protected ObjectWriter writer = null; 
-	
+
+	protected ObjectWriter writer = null;
+
 	protected YAMLMapper yamlMapper = new YAMLMapper();
-	
+
 	protected Path swaggerResourcePath = null;
-	
+
 	protected ClassLoader serviceClassLoader = null;
-	
+
 	protected Swagger swagger = null;
-	
+
 	protected String swaggerSpec = null;
-	
+
 	protected String swaggerIndexHTML = null;
-	
+
 	protected String redocHTML = null;
+	
 
 	@SuppressWarnings("deprecation")
-	public SwaggerService( )
-	{ 
+	public SwaggerService()
+	{
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
 		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		mapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
+		mapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH, true);
 		mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 		mapper.setSerializationInclusion(Include.NON_NULL);
 
 		mapper.registerModule(new Jdk8Module());
 
-		
 		writer = mapper.writerWithDefaultPrettyPrinter();
-		writer = writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES); 
-		
+		writer = writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES);
+
 		yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		yamlMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
 		yamlMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		yamlMapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH,true); 
+		yamlMapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH, true);
 		yamlMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 		yamlMapper.setSerializationInclusion(Include.NON_NULL);
 	}
 
-	 
-	public void generateSwaggerSpec()
+	public void generateSwaggerSpec() throws Exception
 	{
-		
+
 		Set<Class<?>> classes = this.registeredControllers;
 		
+		log.debug("registeredControllers: " + this.registeredControllers);
+
 		List<SwaggerExtension> extensions = new ArrayList<>();
-		
+
 		extensions.add(new ServerParameterExtension());
 
 		SwaggerExtensions.setExtensions(extensions);
 
 		log.debug("Added SwaggerExtension: ServerParameterExtension");
-		 
+
 		Swagger swagger = new Swagger();
-		
+
 		swagger.setBasePath(applicationPath);
-		
-		swagger.setHost(host+((port != 80 && port != 443) ? ":" + port : ""));
-		
+
+		swagger.setHost(host + ((port != 80 && port != 443) ? ":" + port : ""));
+
 		Info info = mapper.convertValue(swaggerConfig.getValue("info").unwrapped(), Info.class);
-		
+
 		swagger.setInfo(info);
-		
-		if(securityConfig.hasPath("apiKeys"))
-		{
-			List<? extends ConfigObject> apiKeys = securityConfig.getObjectList("apiKeys");
-			
-			for(ConfigObject apiKey : apiKeys)
-			{
-				Config apiKeyConfig = apiKey.toConfig();
-				
-				String key = apiKeyConfig.getString("key");
-				String name = apiKeyConfig.getString("name");
-				String value = apiKeyConfig.getString("value");
-				
-				io.swagger.models.auth.In keyLocation = io.swagger.models.auth.In.valueOf(apiKeyConfig.getString("in"));
-				
-				final Predicate predicate;
-				
-				switch( keyLocation )
-				{
-					case HEADER:
-					{
-						ExchangeAttribute[] attributes =  new ExchangeAttribute[]{ExchangeAttributes.requestHeader(HttpString.tryFromString(name)), ExchangeAttributes.constant(value)};
-						predicate = Predicates.equals(  attributes );  
-						break;
-					}
-					case QUERY:
-					{
-						predicate = Predicates.contains(ExchangeAttributes.queryString(),value);	 
-						break;
-					}
-					default:
-						predicate = Predicates.truePredicate();
-						break; 
-				}
-				
-				if(predicate != null)
-				{
-					log.debug("Adding apiKey handler " + name + " in " + keyLocation + " named " + key);
-					
-					final HandlerWrapper wrapper = new HandlerWrapper()
-					{ 
-						@Override
-						public HttpHandler wrap(final HttpHandler handler)
-						{
-							return new PredicateHandler( predicate, handler, ResponseCodeHandler.HANDLE_403);
-						} 
-					};
-					
-					ApiKeyAuthDefinition keyAuthDefinition = new ApiKeyAuthDefinition(name, keyLocation);
-					swagger.addSecurityDefinition(key, keyAuthDefinition);
-					
-					registeredHandlerWrappers.put(key, wrapper);
-				} 
-			}
-		}
-		
-		if(securityConfig.hasPath("basicRealms"))
-		{
-			List<? extends ConfigObject> realms = securityConfig.getObjectList("basicRealms");
-			
-			for(ConfigObject realm : realms)
-			{
-				Config realmConfig = realm.toConfig();
-				 
-				final String name = realmConfig.getString("name");
-			 
-				List<String> identities = realmConfig.getStringList("identities");
-				  
-				final Map<String, char[]> identityMap = new HashMap<>();
-				
-				identities.stream().forEach( i -> {
-					String[] identity = i.split(":");
-					
-					identityMap.put(identity[0], identity[1].toCharArray());
-				});
-				
-		        final IdentityManager identityManager = new MapIdentityManager(identityMap);
- 
-				log.debug("Adding basic handler for realm " + name + " with identities " + identityMap);
 
-				
-				final HandlerWrapper wrapper = new HandlerWrapper()
-				{ 
-					@Override
-					public HttpHandler wrap(final HttpHandler handler)
-					{
-						HttpHandler authHandler = new AuthenticationCallHandler(handler);
-						authHandler = new AuthenticationConstraintHandler(authHandler);
-					    final List<AuthenticationMechanism> mechanisms = Collections.<AuthenticationMechanism>singletonList(new BasicAuthenticationMechanism(name));
-					    authHandler = new AuthenticationMechanismsHandler(authHandler, mechanisms);
-					    authHandler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, authHandler);
-						return authHandler;
-					} 
-				};
-				
-				BasicAuthDefinition authDefinition = new BasicAuthDefinition();
-				swagger.addSecurityDefinition(name, authDefinition);
-				
-				registeredHandlerWrappers.put(name, wrapper);
-				
-			}
-		}
-
+//		if (securityConfig.hasPath("apiKeys"))
+//		{
+//			List<? extends ConfigObject> apiKeys = securityConfig.getObjectList("apiKeys");
+//
+//			for (ConfigObject apiKey : apiKeys)
+//			{
+//				Config apiKeyConfig = apiKey.toConfig();
+//
+//				String key = apiKeyConfig.getString("key");
+//				String name = apiKeyConfig.getString("name");
+//				String value = apiKeyConfig.getString("value");
+//
+//				io.swagger.models.auth.In keyLocation = io.swagger.models.auth.In.valueOf(apiKeyConfig.getString("in"));
+//
+//				final Predicate predicate;
+//
+//				switch (keyLocation)
+//				{
+//					case HEADER:
+//					{
+//						ExchangeAttribute[] attributes = new ExchangeAttribute[] { ExchangeAttributes.requestHeader(HttpString.tryFromString(name)),
+//								ExchangeAttributes.constant(value) };
+//						predicate = Predicates.equals(attributes);
+//						break;
+//					}
+//					case QUERY:
+//					{
+//						predicate = Predicates.contains(ExchangeAttributes.queryString(), value);
+//						break;
+//					}
+//					default:
+//						predicate = Predicates.truePredicate();
+//						break;
+//				}
+//
+//				if (predicate != null)
+//				{
+//					log.debug("Adding apiKey handler " + name + " in " + keyLocation + " named " + key);
+//
+//					final HandlerWrapper wrapper = new HandlerWrapper()
+//					{
+//						@Override
+//						public HttpHandler wrap(final HttpHandler handler)
+//						{
+//							return new PredicateHandler(predicate, handler, ResponseCodeHandler.HANDLE_403);
+//						}
+//					};
+//
+//					ApiKeyAuthDefinition keyAuthDefinition = new ApiKeyAuthDefinition(name, keyLocation);
+//					swagger.addSecurityDefinition(key, keyAuthDefinition);
+//
+//					registeredHandlerWrappers.put(key, wrapper);
+//				}
+//			}
+//		}
+//
+//		if (securityConfig.hasPath("basicRealms"))
+//		{
+//			List<? extends ConfigObject> realms = securityConfig.getObjectList("basicRealms");
+//
+//			for (ConfigObject realm : realms)
+//			{
+//				Config realmConfig = realm.toConfig();
+//
+//				final String name = realmConfig.getString("name");
+//
+//				List<String> identities = realmConfig.getStringList("identities");
+//
+//				final Map<String, char[]> identityMap = new HashMap<>();
+//
+//				identities.stream().forEach(i ->
+//				{
+//					String[] identity = i.split(":");
+//
+//					identityMap.put(identity[0], identity[1].toCharArray());
+//				});
+//
+//				final IdentityManager identityManager = new MapIdentityManager(identityMap);
+//
+//				log.debug("Adding basic handler for realm " + name + " with identities " + identityMap);
+//
+//				final HandlerWrapper wrapper = new HandlerWrapper()
+//				{
+//					@Override
+//					public HttpHandler wrap(final HttpHandler handler)
+//					{
+//						HttpHandler authHandler = new AuthenticationCallHandler(handler);
+//						authHandler = new AuthenticationConstraintHandler(authHandler);
+//						final List<AuthenticationMechanism> mechanisms = Collections.<AuthenticationMechanism> singletonList(new BasicAuthenticationMechanism(name));
+//						authHandler = new AuthenticationMechanismsHandler(authHandler, mechanisms);
+//						authHandler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, authHandler);
+//						return authHandler;
+//					}
+//				};
+//
+//				BasicAuthDefinition authDefinition = new BasicAuthDefinition();
+//				swagger.addSecurityDefinition(name, authDefinition);
+//
+//				registeredHandlerWrappers.put(name, wrapper);
+//
+//			}
+//		}
 
 		this.reader = new io.sinistral.proteus.server.tools.swagger.Reader(swagger);
- 
-		classes.forEach( c -> this.reader.read(c));
-		
+
+		classes.forEach(c -> this.reader.read(c));
+
 		this.swagger = this.reader.getSwagger();
+		
+		this.swaggerSpec = writer.writeValueAsString(swagger);
+
 	}
 
- 
 	public Swagger getSwagger()
 	{
 		return swagger;
 	}
 
- 
 	public void setSwagger(Swagger swagger)
 	{
 		this.swagger = swagger;
 	}
-	
+
 	public void generateSwaggerHTML()
 	{
 		try
-		{  
-			 
-			
-			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/index.html"))
+		{
+
+			try (InputStream templateInputStream = getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/index.html"))
 			{
-				byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
-				
-				String templateString = new String(templateBytes,Charset.defaultCharset());
-				 
+				byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
+
+				String templateString = new String(templateBytes, Charset.defaultCharset());
+
 				String themePath = "swagger-ui.css";
-				 
-				if(!theme.equals("default"))
+
+				if (!theme.equals("default"))
 				{
-					themePath= "themes/theme-" + theme + ".css"; 
-				} 
+					themePath = "themes/theme-" + theme + ".css";
+				}
 
 				templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
 				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", basePath);
-				templateString = templateString.replaceAll("\\{\\{ title \\}\\}",applicationName + " Swagger UI");
+				templateString = templateString.replaceAll("\\{\\{ title \\}\\}", applicationName + " Swagger UI");
 				templateString = templateString.replaceAll("\\{\\{ swaggerFilePath \\}\\}", basePath + ".json");
-	
-				this.swaggerIndexHTML = templateString;   
+
+				this.swaggerIndexHTML = templateString;
 			}
-			
-			try(InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/redoc.html"))
+
+			try (InputStream templateInputStream = getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/redoc.html"))
 			{
-				byte[] templateBytes = IOUtils.toByteArray(templateInputStream); 
-				
-				String templateString = new String(templateBytes,Charset.defaultCharset());
-				
+				byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
+
+				String templateString = new String(templateBytes, Charset.defaultCharset());
+
 				templateString = templateString.replaceAll("\\{\\{ swaggerSpecPath \\}\\}", this.basePath + ".json");
 				templateString = templateString.replaceAll("\\{\\{ applicationName \\}\\}", applicationName);
-	
-				this.redocHTML = templateString;   
+
+				this.redocHTML = templateString;
 			}
-  
-			URL url = this.getClass().getClassLoader().getResource(resourcePrefix);
-			
-			if( url.toExternalForm().contains("!") )
+
+			URL url = getClass().getClassLoader().getResource(resourcePrefix);
+
+			if (url.toExternalForm().contains("!"))
 			{
 				log.debug("Copying Swagger resources...");
-				
+
 				String appName = config.getString("application.name").replaceAll(" ", "_");
-					
+
 				Path tmpDirParent = Files.createTempDirectory(appName);
-				
+
 				Path swaggerTmpDir = tmpDirParent.resolve("swagger/");
 
-				String jarPathString = url.toExternalForm().substring(0, url.toExternalForm().indexOf("!") ).replaceAll("file:", "").replaceAll("jar:", "");
-		 
+				String jarPathString = url.toExternalForm().substring(0, url.toExternalForm().indexOf("!")).replaceAll("file:", "").replaceAll("jar:", "");
+
 				File srcFile = new File(jarPathString);
-			
-				try(JarFile jarFile = new JarFile(srcFile, false))
-				{ 
-					
-					if(swaggerTmpDir.toFile().exists())
+
+				try (JarFile jarFile = new JarFile(srcFile, false))
+				{
+
+					if (swaggerTmpDir.toFile().exists())
 					{
 						log.debug("Deleting existing Swagger directory at " + swaggerTmpDir);
-						
+
 						try
 						{
 							FileUtils.deleteDirectory(swaggerTmpDir.toFile());
@@ -403,31 +404,33 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 							log.debug("Swagger tmp directory is not a directory...");
 							swaggerTmpDir.toFile().delete();
 						}
- 					}
-					
-					java.nio.file.Files.createDirectory( swaggerTmpDir );
-					
+					}
+
+					java.nio.file.Files.createDirectory(swaggerTmpDir);
+
 					this.swaggerResourcePath = swaggerTmpDir;
-			 
-					jarFile.stream().filter( ze ->  ze.getName().endsWith("js") || ze.getName().endsWith("css") || ze.getName().endsWith("map") || ze.getName().endsWith("html") ).forEach( ze -> {
-						
-						try
-						{
-							final InputStream entryInputStream = jarFile.getInputStream(ze);
-							
-							String filename = ze.getName().substring(resourcePrefix.length() + 1); 
-							
-							Path entryFilePath = swaggerTmpDir.resolve(filename); 
 
-							java.nio.file.Files.createDirectories(entryFilePath.getParent());
-							
-							java.nio.file.Files.copy(entryInputStream, entryFilePath,StandardCopyOption.REPLACE_EXISTING);
+					jarFile.stream().filter(ze -> ze.getName().endsWith("js") || ze.getName().endsWith("css") || ze.getName().endsWith("map") || ze.getName().endsWith("html"))
+							.forEach(ze ->
+							{
 
-						} catch (Exception e)
-						{
-							log.error(e.getMessage() + " for entry " + ze.getName());
-						} 
-					}); 
+								try
+								{
+									final InputStream entryInputStream = jarFile.getInputStream(ze);
+
+									String filename = ze.getName().substring(resourcePrefix.length() + 1);
+
+									Path entryFilePath = swaggerTmpDir.resolve(filename);
+
+									java.nio.file.Files.createDirectories(entryFilePath.getParent());
+
+									java.nio.file.Files.copy(entryInputStream, entryFilePath, StandardCopyOption.REPLACE_EXISTING);
+
+								} catch (Exception e)
+								{
+									log.error(e.getMessage() + " for entry " + ze.getName());
+								}
+							});
 				}
 			}
 			else
@@ -435,213 +438,233 @@ public class SwaggerService   extends BaseService implements Supplier<RoutingHan
 				this.swaggerResourcePath = Paths.get(this.getClass().getClassLoader().getResource(this.resourcePrefix).toURI());
 				this.serviceClassLoader = this.getClass().getClassLoader();
 			}
-		
+
 		} catch (Exception e)
-		{ 
-			log.error(e.getMessage(),e);
+		{
+			log.error(e.getMessage(), e);
 		}
 	}
-	
+
 	public RoutingHandler get()
 	{
-		
+
 		RoutingHandler router = new RoutingHandler();
-		
+
 		/*
-		 * JSON path 
+		 * JSON path
 		 */
-		
+
 		String pathTemplate = this.basePath + ".json";
-		
-		FileResourceManager resourceManager = new FileResourceManager(this.swaggerResourcePath.toFile(),1024);
- 		
-		final Swagger swaggerCopy = this.swagger;
-		
-		router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
+
+		FileResourceManager resourceManager = new FileResourceManager(this.swaggerResourcePath.toFile(), 1024);
+
+ 
+		router.add(HttpMethod.GET, pathTemplate, new HttpHandler()
+		{
 
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
-				
- 
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_JSON); 
-				
+
+				final Swagger swaggerCopy = swagger;
+
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+
 				String spec = null;
-				
+
 				try
 				{
-					
+
 					swaggerCopy.setHost(exchange.getHostAndPort());
-					
+
 					spec = writer.writeValueAsString(swaggerCopy);
-					
+
 				} catch (Exception e)
 				{
-					log.error(e.getMessage(),e);
+					log.error(e.getMessage(), e);
 				}
-				
+
 				exchange.getResponseSender().send(spec);
-				
+
 			}
-			
+
 		});
-		
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).withProduces(MediaType.APPLICATION_JSON).build());
-		
+
+		this.registeredEndpoints.add(
+										EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName())
+												.withMethod(Methods.GET).withProduces(MediaType.APPLICATION_JSON).build());
+
 		/*
-		 * YAML path 
+		 * YAML path
 		 */
-		
+
 		pathTemplate = this.basePath + ".yaml";
-		
-		router.add(HttpMethod.GET, pathTemplate, new HttpHandler(){
+
+		router.add(HttpMethod.GET, pathTemplate, new HttpHandler()
+		{
 
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
-			{ 
- 
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()); 
-				
+			{
+
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType());
+
 				String spec = null;
-				
+
+				final Swagger swaggerCopy = swagger;
+
 				try
-				{ 
+				{
 					swaggerCopy.setHost(exchange.getHostAndPort());
-					
+
 					spec = yamlMapper.writeValueAsString(swaggerCopy);
-					
+
 				} catch (Exception e)
 				{
-					log.error(e.getMessage(),e);
+					log.error(e.getMessage(), e);
 				}
-				
+
 				exchange.getResponseSender().send(spec);
-				
+
 			}
-			
+
 		});
-		
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()).build());
-		
+
+		this.registeredEndpoints.add(
+										EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName())
+												.withMethod(Methods.GET).withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType()).build());
+
 		pathTemplate = this.basePath + "/" + this.redocPath;
-				 
-		router.add(HttpMethod.GET,pathTemplate, new HttpHandler(){
+
+		router.add(HttpMethod.GET, pathTemplate, new HttpHandler()
+		{
 
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
- 
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML); 
+
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
 				exchange.getResponseSender().send(redocHTML);
-				
+
 			}
-			
+
 		});
-		
-   
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).withProduces(MediaType.TEXT_HTML).build());
-		 
-		pathTemplate =  this.basePath;
-		 
-		router.add(HttpMethod.GET, pathTemplate , new HttpHandler(){
+
+		this.registeredEndpoints.add(
+										EndpointInfo.builder().withConsumes("*/*").withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName())
+												.withMethod(Methods.GET).withProduces(MediaType.TEXT_HTML).build());
+
+		pathTemplate = this.basePath;
+
+		router.add(HttpMethod.GET, pathTemplate, new HttpHandler()
+		{
 
 			@Override
 			public void handleRequest(HttpServerExchange exchange) throws Exception
 			{
- 
- 
- 				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
- 				exchange.getResponseSender().send(swaggerIndexHTML);
-				
+
+				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+				exchange.getResponseSender().send(swaggerIndexHTML);
+
 			}
-			
+
 		});
- 
-		this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.TEXT_HTML).withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).build());
- 
- 		
+
+		this.registeredEndpoints.add(
+										EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.TEXT_HTML).withPathTemplate(pathTemplate)
+												.withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).build());
+
 		try
 		{
-	 
 
-			 pathTemplate =  this.basePath + "/*";
-			 
-			 router.add(HttpMethod.GET, pathTemplate, new ResourceHandler(resourceManager){
+			pathTemplate = this.basePath + "/*";
 
-					@Override
-					public void handleRequest(HttpServerExchange exchange) throws Exception
+			router.add(HttpMethod.GET, pathTemplate, new ResourceHandler(resourceManager)
+			{
+
+				@Override
+				public void handleRequest(HttpServerExchange exchange) throws Exception
+				{
+
+					String canonicalPath = CanonicalPathUtils.canonicalize((exchange.getRelativePath()));
+
+					canonicalPath = canonicalPath.split(basePath)[1];
+
+					exchange.setRelativePath(canonicalPath);
+
+					if (serviceClassLoader == null)
 					{
-						 
-						String canonicalPath = CanonicalPathUtils.canonicalize((exchange.getRelativePath()));
-					 
-						canonicalPath =  canonicalPath.split(basePath)[1];  
-						
-						exchange.setRelativePath(canonicalPath);
-						
-						if(serviceClassLoader == null)
-						{   
-							super.handleRequest(exchange);
-						}
-						else
-						{
-							canonicalPath = resourcePrefix + canonicalPath;
-							
-							try(final InputStream resourceInputStream = serviceClassLoader.getResourceAsStream(  canonicalPath))
-							{
-							 
-								if(resourceInputStream == null)
-								{
-									ResponseCodeHandler.HANDLE_404.handleRequest(exchange);
-									return;
-								}
-								
-								byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream); 
-								
-								io.sinistral.proteus.server.MediaType mediaType = io.sinistral.proteus.server.MediaType.getByFileName(canonicalPath);
-								
-								exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, mediaType.toString());
-							
-								exchange.getResponseSender().send(ByteBuffer.wrap(resourceBytes)); 
-							}
-						}
-						
+						super.handleRequest(exchange);
 					}
-					
-				});
-			
+					else
+					{
+						canonicalPath = resourcePrefix + canonicalPath;
 
-				
-			 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.WILDCARD).withPathTemplate(pathTemplate).withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).build());
+						try (final InputStream resourceInputStream = serviceClassLoader.getResourceAsStream(canonicalPath))
+						{
 
- 
+							if (resourceInputStream == null)
+							{
+								ResponseCodeHandler.HANDLE_404.handleRequest(exchange);
+								return;
+							}
+
+							byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream);
+
+							io.sinistral.proteus.server.MediaType mediaType = io.sinistral.proteus.server.MediaType.getByFileName(canonicalPath);
+
+							exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, mediaType.toString());
+
+							exchange.getResponseSender().send(ByteBuffer.wrap(resourceBytes));
+						}
+					}
+
+				}
+
+			});
+
+			this.registeredEndpoints.add(
+											EndpointInfo.builder().withConsumes(MediaType.WILDCARD).withProduces(MediaType.WILDCARD).withPathTemplate(pathTemplate)
+													.withControllerName(this.getClass().getSimpleName()).withMethod(Methods.GET).build());
 
 		} catch (Exception e)
 		{
-			log.error(e.getMessage(),e);
+			log.error(e.getMessage(), e);
 		}
- 		  
-		return router; 
+
+		return router;
 	}
 
- 
 	@Override
 	protected void startUp() throws Exception
-	{ 
-		
-		this.generateSwaggerSpec();
-		this.generateSwaggerHTML();
- 
-		log.debug("\nSwagger Spec:\n" +  writer.writeValueAsString(this.swagger));
+	{
 
-		router.addAll(this.get()); 
+		this.generateSwaggerHTML();
+
+		CompletableFuture.runAsync(() ->
+		{
+
+			try
+			{
+
+				generateSwaggerSpec();
+
+				log.info("\nSwagger Spec:\n" + writer.writeValueAsString(swagger));
+
+			} catch (Exception e)
+			{
+				log.error("Error generating swagger spec.", e);
+			}
+
+		});
+
+		router.addAll(this.get());
 	}
 
- 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		 
-		
+
 	}
-	
+
 }

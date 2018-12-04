@@ -40,6 +40,8 @@ import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.test.models.User;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,6 +53,7 @@ import io.undertow.server.HttpServerExchange;
  *
  */
 
+@Api(tags="tests")
 @Tags({@Tag(name = "tests")})
 @Path("/tests")
 @Produces((MediaType.APPLICATION_JSON)) 
@@ -74,6 +77,7 @@ public class Tests
 	@GET
 	@Path("/exchange/json/serialize")
 	@Operation(description = "Json serialization endpoint"  )
+	@ApiOperation(value = "Json serialization endpoint"  ) 
 	public void exchangeJsonSerialize(HttpServerExchange exchange) 
 	{  
 		try
@@ -88,6 +92,8 @@ public class Tests
 	@GET
 	@Path("/exchange/json/serializeToBytes")
 	@Operation(description = "Json serialization with bytes endpoint"  )
+	@ApiOperation(value = "Json serialization with bytes endpoint"  )
+
 	public void exchangeJsonSerializeToBytes(HttpServerExchange exchange)
 	{ 
 		try

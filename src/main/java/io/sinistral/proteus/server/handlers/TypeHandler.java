@@ -24,6 +24,7 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 	 * Enum that assists in code generation for different method parameter types
 	 */
 
+ 
 	public enum TypeHandler
 	{
 
@@ -254,6 +255,10 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 
 			TypeHandler handler = TypeHandler.forType(parameter.getParameterizedType(), isBeanParameter);
 
+//			if(handler.equals(TypeHandler.ModelType))
+//			{
+//				HandlerGenerator.log.warn("found modeltype for " + parameter.getParameterizedType());
+//			}
 			addStatement(builder, parameter, handler);
 
 		}

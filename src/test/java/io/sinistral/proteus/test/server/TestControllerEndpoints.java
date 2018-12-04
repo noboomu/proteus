@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.test.models.User;
@@ -110,6 +113,80 @@ public class TestControllerEndpoints
 	public void genericSet()
 	{
 		given().accept(ContentType.JSON).when().queryParam("ids", idSet).get("tests/generic/set").then().statusCode(200).body(containsString("1"));
+	}
+	
+	@Test
+	public void genericBeanSet()
+	{
+		Set<Long> randomLongs = new HashSet<>();
+		
+		Random random = new Random();
+		
+		Long firstNumber = null;
+		
+		for(int i = 0; i < 10; i++)
+		{
+			Long v = random.nextLong();
+			
+			randomLongs.add(v);
+			
+			if(firstNumber == null)
+			{
+				firstNumber = v;
+			}
+		}
+		
+		ObjectMapper mapper = new ObjectMapper();
+		
+		try
+		{
+			
+		 
+		String body = mapper.writeValueAsString(randomLongs);
+		
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("tests/generic/set/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+		
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void genericBeanList()
+	{
+		List<Long> randomLongs = new ArrayList<>();
+		
+		Random random = new Random();
+		
+		Long firstNumber = null;
+		
+		for(int i = 0; i < 10; i++)
+		{
+			Long v = random.nextLong();
+			
+			randomLongs.add(v);
+			
+			if(firstNumber == null)
+			{
+				firstNumber = v;
+			}
+		}
+		
+		ObjectMapper mapper = new ObjectMapper();
+		
+		try
+		{
+			
+		 
+		String body = mapper.writeValueAsString(randomLongs);
+		
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("tests/generic/list/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+		
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	@Test

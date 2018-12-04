@@ -86,7 +86,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			 
 			try
 			{
-				Thread.sleep(2000);
+				Thread.sleep(5000);
 				
 				System.out.println(app.getPorts());
 				
@@ -96,7 +96,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 				
 			} catch (Exception e)
 			{
-				 log.error(e.getMessage(),e);
+				e.printStackTrace();
 			}
 		 
 			 

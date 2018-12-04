@@ -246,6 +246,28 @@ public class Tests
 	}
 	
 	  
+	@POST
+	@Path("/generic/set/bean")
+	@Produces((MediaType.APPLICATION_JSON)) 
+ 	@Consumes(MediaType.APPLICATION_JSON)
+	@Operation(description = "Generic bean set endpoint"  )
+	public ServerResponse<Set<Long>>  genericBeanSet( ServerRequest request, @BeanParam Set<Long> ids )  throws Exception
+	{  
+		return response( ids ).applicationJson(); 
+	}
+	
+	
+	@POST
+	@Path("/generic/list/bean")
+	@Produces((MediaType.APPLICATION_JSON)) 
+ 	@Consumes(MediaType.APPLICATION_JSON)
+
+	@Operation(description = "Generic bean list endpoint"  )
+	public ServerResponse<List<Long>>  genericBeanList( ServerRequest request, @BeanParam List<Long> ids )  throws Exception
+	{  
+		return response( ids ).applicationJson(); 
+	}
+	  
 	@GET
 	@Path("/optional/set")
 	@Produces((MediaType.APPLICATION_JSON)) 

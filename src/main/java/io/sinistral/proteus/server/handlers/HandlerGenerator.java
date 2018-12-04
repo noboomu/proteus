@@ -56,6 +56,7 @@ import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tags;
@@ -282,7 +283,7 @@ public class HandlerGenerator
 				.addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
 
 		final Map<Type, String> parameterizedLiteralsNameMap = Arrays.stream(clazz.getDeclaredMethods())
-				.filter(m -> m.getAnnotation(Operation.class) != null)
+				.filter(m -> m.getAnnotation(Operation.class) != null || m.getAnnotation(ApiOperation.class) != null)
 				.flatMap(
 							m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)
 									.filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
@@ -293,9 +294,11 @@ public class HandlerGenerator
 					return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
 
 				}).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
+		
+		
 
 		Arrays.stream(clazz.getDeclaredMethods())
-			.filter(m -> m.getAnnotation(Operation.class) != null)
+			.filter(m -> m.getAnnotation(Operation.class) != null || m.getAnnotation(ApiOperation.class) != null)
 			.flatMap(m -> Arrays.stream(m.getParameters()))
 			.forEach(p ->
 			{
@@ -318,7 +321,7 @@ public class HandlerGenerator
 			});
 
 		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods())
-				.filter(m -> m.getAnnotation(Operation.class) != null)
+				.filter(m -> m.getAnnotation(Operation.class) != null || m.getAnnotation(ApiOperation.class) != null)
 				.flatMap(m -> Arrays.stream(m.getParameters())
 				.map(Parameter::getParameterizedType)).filter(t ->
 				{
@@ -883,7 +886,7 @@ public class HandlerGenerator
 			 * @TODO wrap blocking in BlockingHandler
 			 */
 
-			if (Optional.ofNullable(m.getAnnotation(Operation.class)).isPresent())
+			if (Optional.ofNullable(m.getAnnotation(Operation.class)).isPresent() || Optional.ofNullable(m.getAnnotation(ApiOperation.class)).isPresent())
 			{
 				SecurityRequirement securityRequirementAnnotation = m.getAnnotation(SecurityRequirement.class);
 

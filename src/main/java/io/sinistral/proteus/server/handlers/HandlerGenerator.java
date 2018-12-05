@@ -227,27 +227,11 @@ public class HandlerGenerator
 					.annotated(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S", "registeredHandlerWrappers").build());
 
 			typeBuilder.addField(mapOfWrappers, "registeredHandlerWrappers", Modifier.PROTECTED, Modifier.FINAL);
-			
-//			registeredHandlerWrappers.keySet().stream().forEach( k -> {
-//				
-//				typeBuilder.addField(HandlerWrapper.class, k + "HandlerWrapper", Modifier.PROTECTED, Modifier.FINAL);
-//				
-//			});
+ 
 
 			constructor.addParameter(this.controllerClass, className);
 			constructor.addParameter(annotatedMapOfWrappers, "registeredHandlerWrappers");
-			
-//			registeredHandlerWrappers.keySet().stream().forEach( k -> {
-//				 
-//				ParameterSpec p = ParameterSpec.builder(HandlerWrapper.class, k + "HandlerWrapper").addAnnotation(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S", k).build()).build();
-//				
-//				constructor.addParameter(p);
-//				
-//			});
-			
-			// String.format("%c%s%sHandler_%s", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName()
-			//.substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()), String.valueOf(nameIndex++));
-			
+ 
 			constructor.addStatement("this.$N = $N", className, className);
 			constructor.addStatement("this.$N = $N", "registeredHandlerWrappers", "registeredHandlerWrappers");
 
@@ -311,7 +295,9 @@ public class HandlerGenerator
 				{
 					TypeHandler handler = TypeHandler.forType(p.getParameterizedType(), true);
 	
-					if (handler.equals(TypeHandler.BeanListValueOfType) || handler.equals(TypeHandler.BeanListFromStringType) || handler.equals(TypeHandler.OptionalBeanListValueOfType)
+					if (handler.equals(TypeHandler.BeanListValueOfType) 
+							|| handler.equals(TypeHandler.BeanListFromStringType) 
+							|| handler.equals(TypeHandler.OptionalBeanListValueOfType)
 							|| handler.equals(TypeHandler.OptionalBeanListFromStringType))
 					{
 						parameterizedLiteralsNameMap.put(p.getParameterizedType(), HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
@@ -344,14 +330,7 @@ public class HandlerGenerator
 					{
 
 					}
-					
-					/*
-					 * 	if (t.getTypeName().matches("java\\.lang|java\\.nio|java\\.io|java\\.util"))
-					{
-						return false;
-					}
-					 */
-
+			 
 					if (t.getTypeName().contains("java.lang"))
 					{
 						return false;
@@ -569,7 +548,8 @@ public class HandlerGenerator
 			for (Parameter p : m.getParameters())
 			{
 
-				if (p.getParameterizedType().equals(ServerRequest.class) || p.getParameterizedType().equals(HttpServerExchange.class)
+				if (p.getParameterizedType().equals(ServerRequest.class) 
+						|| p.getParameterizedType().equals(HttpServerExchange.class)
 						|| p.getParameterizedType().equals(HttpHandler.class))
 				{
 					continue;
@@ -597,14 +577,24 @@ public class HandlerGenerator
 
 			log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 			
+			if(isBlocking)
+			{
+ 				
+				methodBuilder.addCode(
+										"$L.dispatch( () -> ",
+										  "exchange");
+				
+				methodBuilder.beginControlFlow("", "");
+				
+				methodBuilder.beginControlFlow("try");
+				 
+			}
 			
 			Arrays.stream(m.getParameters()).forEachOrdered(p ->
 			{
 
 				Type type = p.getParameterizedType();
-				
-			
-
+				  
 				try
 				{
 
@@ -621,8 +611,7 @@ public class HandlerGenerator
 					}
 					else if (p.getType().equals(HttpHandler.class))
 					{
-						methodBuilder.addStatement("$T $L = this", HttpHandler.class, p.getName());
-						// methodBuilder.addCode("$L", "\n");
+						methodBuilder.addStatement("$T $L = this", HttpHandler.class, p.getName()); 
 					}
 					else
 					{
@@ -666,16 +655,13 @@ public class HandlerGenerator
 							else if (handler.equals(TypeHandler.FromStringType))
 							{
 								handler = TypeHandler.HeaderFromStringType;
-								TypeHandler.addStatement(methodBuilder, p, handler);
-
-							}
-
+								TypeHandler.addStatement(methodBuilder, p, handler); 
+							} 
 							else
 							{
 								handler = TypeHandler.HeaderStringType;
 
-								TypeHandler.addStatement(methodBuilder, p, handler);
-
+								TypeHandler.addStatement(methodBuilder, p, handler); 
 							}
 
 						}
@@ -684,8 +670,7 @@ public class HandlerGenerator
 							BeanParam beanParam = p.getAnnotation(BeanParam.class);
 
 							boolean isBeanParameter = beanParam != null;
-							
-
+							 
 							TypeHandler t = TypeHandler.forType(type, isBeanParameter);
 
 							log.debug("beanParam handler: " + t);
@@ -727,8 +712,10 @@ public class HandlerGenerator
 
 								TypeHandler.addStatement(methodBuilder, p);
 							}
-							else if (t.equals(TypeHandler.QueryOptionalListFromStringType) || t.equals(TypeHandler.QueryOptionalListValueOfType)
-									|| t.equals(TypeHandler.QueryOptionalSetValueOfType) || t.equals(TypeHandler.QueryOptionalSetValueOfType))
+							else if (t.equals(TypeHandler.QueryOptionalListFromStringType) 
+									|| t.equals(TypeHandler.QueryOptionalListValueOfType)
+									|| t.equals(TypeHandler.QueryOptionalSetValueOfType) 
+									|| t.equals(TypeHandler.QueryOptionalSetValueOfType))
 							{
 								ParameterizedType pType = (ParameterizedType) type;
 
@@ -786,7 +773,7 @@ public class HandlerGenerator
 
 			String controllerMethodArgs = Arrays.stream(m.getParameters()).map(Parameter::getName).collect(Collectors.joining(","));
 
-			if (!m.getReturnType().toString().equals("void"))
+			if (!m.getReturnType().toString().equalsIgnoreCase("void"))
 			{
 				if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
 						|| m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
@@ -854,8 +841,7 @@ public class HandlerGenerator
 
 				}
 
-				handlerClassBuilder.addMethod(methodBuilder.build());
-
+ 
 			}
 			else
 			{
@@ -866,9 +852,18 @@ public class HandlerGenerator
 
 				methodBuilder.addCode("$L", "\n");
 
-				handlerClassBuilder.addMethod(methodBuilder.build());
+ 
+			}
+			
+			if(isBlocking)
+			{
+				methodBuilder.endControlFlow("catch ($T e) { \n\texchange.putAttachment(io.sinistral.proteus.server.handlers.ServerDefaultResponseListener.EXCEPTION, e);\n\texchange.endExchange();\n}", Exception.class);
+				methodBuilder.endControlFlow(")", "");
 
 			}
+			
+			handlerClassBuilder.addMethod(methodBuilder.build());
+
 
 			FieldSpec handlerField = FieldSpec.builder(httpHandlerClass, handlerName, Modifier.FINAL).initializer("$L", handlerClassBuilder.build()).build();
 

@@ -366,7 +366,7 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 
 				String templateString = new String(templateBytes, Charset.defaultCharset());
 
-				templateString = templateString.replaceAll("\\{\\{ swaggerSpecPath \\}\\}", this.basePath + ".json");
+				templateString = templateString.replaceAll("\\{\\{ specPath \\}\\}", this.basePath + ".json");
 				templateString = templateString.replaceAll("\\{\\{ applicationName \\}\\}", applicationName);
 
 				this.redocHTML = templateString;

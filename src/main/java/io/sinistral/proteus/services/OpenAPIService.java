@@ -83,6 +83,8 @@ public class OpenAPIService extends BaseService implements Supplier<RoutingHandl
 	protected OpenAPI openApi = null;
 	protected String spec = null;
 	protected String indexHTML = null;
+	protected String redocHTML = null;
+	
 	@Inject
 	@Named("openapi.resourcePrefix")
 	protected String resourcePrefix;
@@ -101,9 +103,15 @@ public class OpenAPIService extends BaseService implements Supplier<RoutingHandl
 	@Inject
 	@Named("openapi.port")
 	protected Integer port;
+	 
+	@Inject
+	@Named("openapi.redocPath")
+	protected String redocPath;
+	
 	@Inject
 	@Named("application.path")
 	protected String applicationPath;
+	 
 	@Inject
 	protected RoutingHandler router;
 	@Inject
@@ -140,6 +148,13 @@ public class OpenAPIService extends BaseService implements Supplier<RoutingHandl
 				templateString = templateString.replaceAll("\\{\\{ basePath \\}\\}", basePath);
 				templateString = templateString.replaceAll("\\{\\{ title \\}\\}", applicationName + " Swagger UI");
 				this.indexHTML = templateString;
+			}
+			
+			try (InputStream templateInputStream = getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/redoc.html"))
+			{
+				byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
+ 
+				this.redocHTML = new String(templateBytes, Charset.defaultCharset());
 			}
 
 			URL url = this.getClass().getClassLoader().getResource(resourcePrefix);
@@ -234,9 +249,7 @@ public class OpenAPIService extends BaseService implements Supplier<RoutingHandl
 
 		openApi.getComponents().setSecuritySchemes(securitySchemes);
 
-		List<Server> servers = mapper.convertValue(openAPIConfig.getValue("servers").unwrapped(), new TypeReference<List<Server>>()
-		{
-		});
+		List<Server> servers = mapper.convertValue(openAPIConfig.getValue("servers").unwrapped(), new TypeReference<List<Server>>(){});
 
 		openApi.setServers(servers);
 
@@ -317,11 +330,10 @@ public class OpenAPIService extends BaseService implements Supplier<RoutingHandl
 				.withMethod(Methods.GET)
 				.withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType())
 				.build());
-
-		pathTemplate = this.basePath;
+ 
 
 		router.add(	HttpMethod.GET,
-					pathTemplate,
+		           	basePath,
 					new HttpHandler()
 					{
 						@Override
@@ -336,6 +348,33 @@ public class OpenAPIService extends BaseService implements Supplier<RoutingHandl
 				.withConsumes(MediaType.WILDCARD)
 				.withProduces(MediaType.TEXT_HTML)
 				.withPathTemplate(pathTemplate)
+				.withControllerName(this.getClass().getSimpleName())
+				.withMethod(Methods.GET)
+				.build());
+		 
+		final String specPath = pathTemplate;
+		
+		router.add(	HttpMethod.GET,
+		           	this.basePath + "/" + this.redocPath,
+					new HttpHandler()
+					{
+						@Override
+						public void handleRequest(HttpServerExchange exchange) throws Exception
+						{
+							exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+							
+							final String fullPath = String.format("%s://%s%s",exchange.getRequestScheme(), exchange.getHostAndPort(), specPath);
+							
+							final String html = redocHTML.replaceAll("\\{\\{ specPath \\}\\}",  fullPath);
+ 
+							exchange.getResponseSender().send(html);
+						}
+					});
+
+		this.registeredEndpoints.add(EndpointInfo.builder()
+				.withConsumes(MediaType.WILDCARD)
+				.withProduces(MediaType.TEXT_HTML)
+				.withPathTemplate(this.basePath + "/" + this.redocPath)
 				.withControllerName(this.getClass().getSimpleName())
 				.withMethod(Methods.GET)
 				.build());

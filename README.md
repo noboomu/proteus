@@ -31,7 +31,7 @@ Getting Started
 /bin/bash -e <(curl -fsSL https://raw.githubusercontent.com/noboomu/proteus-example/master/scripts/quickStart.sh)
 ```
 
-- Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for an OpenAPI UI.
+- Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for a Swagger UI.
 
 ### As a dependency
 
@@ -445,7 +445,7 @@ Prior to calling `start` on the `ProteusApplication` instance:
 * Register `Module` classes via `addModule`  
 * Register classes annotated with `javax.ws.rs.Path` via `addController`  
 
-Out of the box you get am [OpenAPI UI](https://github.com/swagger-api/swagger-ui) at `/openapi`.
+Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/openapi`.
 
 > A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.services.BaseService`.
 

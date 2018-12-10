@@ -14,7 +14,9 @@ JAX-RS compliant.
 Blazing fast!!!
 [The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate Proteus outperforming 99% of all other web frameworks. 
 
-![Top 5 Microservice Frameworks](https://github.com/noboomu/proteus-example/blob/master/src/main/resources/images/benchmark.png?raw=true)
+![Top 5 in Java Frameworks for Fortunes](https://github.com/noboomu/proteus-example/blob/master/src/main/resources/images/benchmark1.png?raw=true)
+
+![Top 5 in Java Frameworks for JSON](https://github.com/noboomu/proteus-example/blob/master/src/main/resources/images/benchmark2.png?raw=true)
 
 TL;DR
 ---------------

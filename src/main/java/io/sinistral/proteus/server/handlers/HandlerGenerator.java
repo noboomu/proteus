@@ -56,8 +56,6 @@ import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tags;
 import io.undertow.server.HandlerWrapper;
@@ -267,7 +265,7 @@ public class HandlerGenerator
 				.addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
 
 		final Map<Type, String> parameterizedLiteralsNameMap = Arrays.stream(clazz.getDeclaredMethods())
-				.filter(m -> m.getAnnotation(Operation.class) != null || m.getAnnotation(ApiOperation.class) != null)
+				.filter(m -> m.getAnnotation(Path.class) != null)
 				.flatMap(
 							m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)
 									.filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
@@ -282,7 +280,7 @@ public class HandlerGenerator
 		
 
 		Arrays.stream(clazz.getDeclaredMethods())
-			.filter(m -> m.getAnnotation(Operation.class) != null || m.getAnnotation(ApiOperation.class) != null)
+			.filter(m -> m.getAnnotation(Path.class) != null)
 			.flatMap(m -> Arrays.stream(m.getParameters()))
 			.forEach(p ->
 			{
@@ -307,7 +305,7 @@ public class HandlerGenerator
 			});
 
 		final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods())
-				.filter(m -> m.getAnnotation(Operation.class) != null || m.getAnnotation(ApiOperation.class) != null)
+				.filter(m -> m.getAnnotation(Path.class) != null)
 				.flatMap(m -> Arrays.stream(m.getParameters())
 				.map(Parameter::getParameterizedType)).filter(t ->
 				{
@@ -411,15 +409,15 @@ public class HandlerGenerator
 
 		List<String> typeLevelSecurityDefinitions = new ArrayList<>();
 
-		if (Optional.ofNullable(clazz.getAnnotation(Tags.class)).isPresent())
+		if (Optional.ofNullable(clazz.getAnnotation(Path.class)).isPresent())
 		{
 			SecurityRequirement securityRequirementAnnotation = clazz.getAnnotation(SecurityRequirement.class);
 
 			if(securityRequirementAnnotation != null)
 			{
-			String securityRequirement = securityRequirementAnnotation.name();
+				String securityRequirement = securityRequirementAnnotation.name();
 			 
-			typeLevelSecurityDefinitions.add(securityRequirement);
+				typeLevelSecurityDefinitions.add(securityRequirement);
 			}
 		}
 
@@ -881,7 +879,7 @@ public class HandlerGenerator
 			 * @TODO wrap blocking in BlockingHandler
 			 */
 
-			if (Optional.ofNullable(m.getAnnotation(Operation.class)).isPresent() || Optional.ofNullable(m.getAnnotation(ApiOperation.class)).isPresent())
+			if (Optional.ofNullable(m.getAnnotation(Path.class)).isPresent())
 			{
 				SecurityRequirement securityRequirementAnnotation = m.getAnnotation(SecurityRequirement.class);
 

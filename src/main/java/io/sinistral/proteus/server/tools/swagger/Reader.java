@@ -176,7 +176,7 @@ public class Reader {
         }
 
         for (Class<?> cls : sortedClasses) {
-            read(cls, "", null, false, new String[0], new String[0], new LinkedHashMap<String, Tag>(), new ArrayList<Parameter>(), new HashSet<>());
+            read(cls, "", null, false, new String[0], new String[0], new LinkedHashMap<>(), new ArrayList<>(), new HashSet<>());
         }
 
 //        for (ReaderListener listener : listeners.values()) {
@@ -199,7 +199,7 @@ public class Reader {
             readSwaggerConfig(cls, swaggerDefinition);
         }
 
-        return read(cls, "", null, false, new String[0], new String[0], new LinkedHashMap<String, Tag>(), new ArrayList<Parameter>(), new HashSet<>());
+        return read(cls, "", null, false, new String[0], new String[0], new LinkedHashMap<>(), new ArrayList<>(), new HashSet<>());
     }
 
     protected Swagger read(Class<?> cls, String parentPath, String parentMethod, boolean isSubresource, String[] parentConsumes, String[] parentProduces, Map<String, Tag> parentTags, List<Parameter> parentParameters) {
@@ -209,10 +209,10 @@ public class Reader {
     @SuppressWarnings("deprecation")
 	private Swagger read(Class<?> cls, String parentPath, String parentMethod, boolean isSubresource, String[] parentConsumes, String[] parentProduces, Map<String, Tag> parentTags, List<Parameter> parentParameters, Set<Class<?>> scannedResources) {
         
-    	Map<String, Tag> tags = new TreeMap<String, Tag>();
+    	Map<String, Tag> tags = new TreeMap<>();
         
         
-        List<SecurityRequirement> securities = new ArrayList<SecurityRequirement>();
+        List<SecurityRequirement> securities = new ArrayList<>();
 
         String[] consumes = new String[0];
         String[] produces = new String[0];
@@ -815,7 +815,7 @@ public class Reader {
                 String name = header.name();
                 if (!"".equals(name)) {
                     if (responseHeaders == null) {
-                        responseHeaders = new LinkedHashMap<String, Property>();
+                        responseHeaders = new LinkedHashMap<>();
                     }
                     String description = header.description();
                     Class<?> cls = header.response();
@@ -873,7 +873,7 @@ public class Reader {
             operationId = this.getOperationId(method.getName());
         }
          
-         String responseContainer = null;
+        String responseContainer = null;
 
         Type responseType = null;
         Map<String, Property> defaultResponseHeaders = new LinkedHashMap<String, Property>();

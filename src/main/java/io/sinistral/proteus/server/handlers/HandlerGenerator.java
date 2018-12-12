@@ -257,7 +257,7 @@ public class HandlerGenerator
 
 		String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
 		
-		Integer handlerWrapperIndex = 1;
+		int handlerWrapperIndex = 1;
 
 		HashSet<String> handlerNameSet = new HashSet<>();
 
@@ -533,7 +533,7 @@ public class HandlerGenerator
 			endpointInfo.setControllerMethod(m.getName());
 
 			String handlerName = String.format("%c%s%sHandler_%s", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName()
-					.substring(1, clazz.getSimpleName().length()), StringUtils.capitalize(m.getName()), String.valueOf(nameIndex++));
+					.substring(1), StringUtils.capitalize(m.getName()), String.valueOf(nameIndex++));
 
 			handlerNameSet.add(handlerName);
 
@@ -603,15 +603,11 @@ public class HandlerGenerator
 						methodBuilder.addStatement("$T $L = new $T(exchange)", ServerRequest.class, p.getName(), ServerRequest.class);
 
 					}
-					else if (p.getType().equals(HttpServerExchange.class))
-					{
-						// methodBuilder.addCode("$L", "\n");
-					}
 					else if (p.getType().equals(HttpHandler.class))
 					{
 						methodBuilder.addStatement("$T $L = this", HttpHandler.class, p.getName()); 
 					}
-					else
+					else if(!p.getType().equals(HttpServerExchange.class))
 					{
 						if (p.isAnnotationPresent(HeaderParam.class))
 						{
@@ -679,7 +675,7 @@ public class HandlerGenerator
 
 								String typeName = type.getTypeName();
 
-								if (typeName.indexOf("$") > -1)
+								if (typeName.contains("$"))
 								{
 									typeName = typeName.replace("$", ".");
 								}
@@ -695,7 +691,7 @@ public class HandlerGenerator
 
 								String typeName = type.getTypeName();
 
-								if (typeName.indexOf("$") > -1)
+								if (typeName.contains("$"))
 								{
 									typeName = typeName.replace("$", ".");
 								}
@@ -712,8 +708,8 @@ public class HandlerGenerator
 							}
 							else if (t.equals(TypeHandler.QueryOptionalListFromStringType) 
 									|| t.equals(TypeHandler.QueryOptionalListValueOfType)
-									|| t.equals(TypeHandler.QueryOptionalSetValueOfType) 
-									|| t.equals(TypeHandler.QueryOptionalSetValueOfType))
+									|| t.equals(TypeHandler.QueryOptionalSetValueOfType)
+									|| t.equals(TypeHandler.QueryOptionalSetFromStringType))
 							{
 								ParameterizedType pType = (ParameterizedType) type;
 
@@ -920,12 +916,10 @@ public class HandlerGenerator
 				{
 					io.sinistral.proteus.annotations.Chain w = wrapAnnotation.get();
 
-					Class<? extends HandlerWrapper> wrapperClasses[] = w.value();
+					Class<? extends HandlerWrapper>[] wrapperClasses = w.value();
 
-					for (int i = 0; i < wrapperClasses.length; i++)
+					for(Class<? extends HandlerWrapper> wrapperClass : wrapperClasses)
 					{
-						Class<? extends HandlerWrapper> wrapperClass = wrapperClasses[i];
-
 						String wrapperName = typeLevelHandlerWrapperMap.get(wrapperClass);
 
 						if (wrapperName == null)
@@ -1057,7 +1051,7 @@ public class HandlerGenerator
 
 	}
 
-	protected static Type extractErasedType(Type type) throws Exception
+	protected static Type extractErasedType(Type type)
 	{
 		String typeName = type.getTypeName();
 
@@ -1097,36 +1091,24 @@ public class HandlerGenerator
 			}
 			else if (matches > 2)
 			{
-
 				String erasedType = matcher.group(3);
 
 				String clearDollarType = erasedType.replaceAll("\\$", ".");
 
 				try
 				{
-					Class<?> clazz = Class.forName(clearDollarType);
-					return clazz;
-
+					return Class.forName(clearDollarType);
 				} catch (Exception e1)
 				{
 					try
 					{
-						Class<?> clazz = Class.forName(erasedType);
-
-						return clazz;
-
+						return Class.forName(erasedType);
 					} catch (Exception e2)
 					{
 						return type;
 					}
 				}
-
 			}
-
-		}
-		else
-		{
-			// log.warn("No type found for " + typeName);
 		}
 
 		return null;
@@ -1153,9 +1135,6 @@ public class HandlerGenerator
 			{
 				String genericInterface = matcher.group(1);
 				String erasedType = matcher.group(2).replaceAll("\\$", ".");
-
-				// log.debug("genericInterface: " + genericInterface);
-				// log.debug("erasedType: " + erasedType);
 
 				String[] genericParts = genericInterface.split("\\.");
 				String[] erasedParts = erasedType.split("\\.");
@@ -1190,9 +1169,6 @@ public class HandlerGenerator
 			{
 				String genericInterface = matcher.group(1);
 				String erasedType = matcher.group(2).replaceAll("\\$", ".");
-
-				// log.debug("genericInterface: " + genericInterface);
-				// log.debug("erasedType: " + erasedType);
 
 				String[] genericParts = genericInterface.split("\\.");
 				String[] erasedParts = erasedType.split("\\.");
@@ -1281,12 +1257,12 @@ public class HandlerGenerator
 
 	protected static boolean hasValueOfMethod(Class<?> clazz)
 	{
-		return Arrays.stream(clazz.getMethods()).filter(m -> m.getName().equals("valueOf")).findFirst().isPresent();
+		return Arrays.stream(clazz.getMethods()).anyMatch(m -> m.getName().equals("valueOf"));
 	}
 
 	protected static boolean hasFromStringMethod(Class<?> clazz)
 	{
-		return Arrays.stream(clazz.getMethods()).filter(m -> m.getName().equals("fromString")).findFirst().isPresent();
+		return Arrays.stream(clazz.getMethods()).anyMatch(m -> m.getName().equals("fromString"));
 	}
 
 }

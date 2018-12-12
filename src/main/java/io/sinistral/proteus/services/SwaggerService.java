@@ -23,6 +23,9 @@ import java.util.jar.JarFile;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 
+import io.swagger.models.Response;
+import io.swagger.util.Json;
+import io.swagger.util.Yaml;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -144,11 +147,11 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 	@Named("registeredHandlerWrappers")
 	protected Map<String, HandlerWrapper> registeredHandlerWrappers;
 
-	protected ObjectMapper mapper = new ObjectMapper();
+	protected ObjectMapper mapper;
 
-	protected ObjectWriter writer = null;
+	protected ObjectWriter writer;
 
-	protected YAMLMapper yamlMapper = new YAMLMapper();
+	protected ObjectMapper yamlMapper;
 
 	protected Path swaggerResourcePath = null;
 
@@ -166,24 +169,11 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 	@SuppressWarnings("deprecation")
 	public SwaggerService()
 	{
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		mapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH, true);
-		mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-		mapper.setSerializationInclusion(Include.NON_NULL);
-
-		mapper.registerModule(new Jdk8Module());
+		mapper = Json.mapper();
 
 		writer = mapper.writerWithDefaultPrettyPrinter();
 		writer = writer.without(SerializationFeature.WRITE_NULL_MAP_VALUES);
-
-		yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		yamlMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-		yamlMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		yamlMapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH, true);
-		yamlMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-		yamlMapper.setSerializationInclusion(Include.NON_NULL);
+		yamlMapper = Yaml.mapper();
 	}
 
 	public void generateSwaggerSpec() throws Exception
@@ -334,7 +324,7 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 		this.swagger = swagger;
 	}
 
-	public void generateSwaggerHTML()
+	protected void generateSwaggerHTML()
 	{
 		try
 		{
@@ -459,34 +449,26 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 		FileResourceManager resourceManager = new FileResourceManager(this.swaggerResourcePath.toFile(), 1024);
 
  
-		router.add(HttpMethod.GET, pathTemplate, new HttpHandler()
+		router.add(HttpMethod.GET, pathTemplate, (HttpServerExchange exchange) ->
 		{
+			final Swagger swaggerCopy = swagger;
 
-			@Override
-			public void handleRequest(HttpServerExchange exchange) throws Exception
+			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+
+			String spec = null;
+
+			try
 			{
+				swaggerCopy.setHost(exchange.getHostAndPort());
 
-				final Swagger swaggerCopy = swagger;
+				spec = writer.writeValueAsString(swaggerCopy);
 
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-
-				String spec = null;
-
-				try
-				{
-
-					swaggerCopy.setHost(exchange.getHostAndPort());
-
-					spec = writer.writeValueAsString(swaggerCopy);
-
-				} catch (Exception e)
-				{
-					log.error(e.getMessage(), e);
-				}
-
-				exchange.getResponseSender().send(spec);
-
+			} catch (Exception e)
+			{
+				log.error(e.getMessage(), e);
 			}
+
+			exchange.getResponseSender().send(spec);
 
 		});
 
@@ -500,14 +482,9 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 
 		pathTemplate = this.basePath + ".yaml";
 
-		router.add(HttpMethod.GET, pathTemplate, new HttpHandler()
+		router.add(HttpMethod.GET, pathTemplate, (HttpServerExchange exchange) ->
 		{
-
-			@Override
-			public void handleRequest(HttpServerExchange exchange) throws Exception
-			{
-
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType());
+			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType());
 
 				String spec = null;
 
@@ -525,9 +502,6 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 				}
 
 				exchange.getResponseSender().send(spec);
-
-			}
-
 		});
 
 		this.registeredEndpoints.add(
@@ -536,18 +510,10 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 
 		pathTemplate = this.basePath + "/" + this.redocPath;
 
-		router.add(HttpMethod.GET, pathTemplate, new HttpHandler()
+		router.add(HttpMethod.GET, pathTemplate, (HttpServerExchange exchange) ->
 		{
-
-			@Override
-			public void handleRequest(HttpServerExchange exchange) throws Exception
-			{
-
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
-				exchange.getResponseSender().send(redocHTML);
-
-			}
-
+			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+			exchange.getResponseSender().send(redocHTML);
 		});
 
 		this.registeredEndpoints.add(
@@ -556,18 +522,10 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 
 		pathTemplate = this.basePath;
 
-		router.add(HttpMethod.GET, pathTemplate, new HttpHandler()
+		router.add(HttpMethod.GET, pathTemplate, (HttpServerExchange exchange) ->
 		{
-
-			@Override
-			public void handleRequest(HttpServerExchange exchange) throws Exception
-			{
-
-				exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
-				exchange.getResponseSender().send(swaggerIndexHTML);
-
-			}
-
+			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+			exchange.getResponseSender().send(swaggerIndexHTML);
 		});
 
 		this.registeredEndpoints.add(
@@ -638,6 +596,7 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 	@Override
 	protected void startUp() throws Exception
 	{
+		super.startUp();
 
 		this.generateSwaggerHTML();
 

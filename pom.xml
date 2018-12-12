@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.sinistral</groupId>
 	<artifactId>proteus-core</artifactId>
-	<version>0.3.6</version>
+	<version>0.3.7-SNAPSHOT</version>
 	<name>proteus core</name>
 	<description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
 	<url>http://github.com/noboomu/proteus</url>
@@ -19,7 +19,7 @@
 	<developers>
 		<developer>
 			<name>Joshua Lee Bauer</name>
-			<email>bauer.j@gmail.com</email>
+			<email>josh@sinistral.io</email>
 		</developer>
 	</developers>
 
@@ -178,7 +178,6 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 					<compilerArgument>-parameters</compilerArgument>
 				</configuration>
 			</plugin>

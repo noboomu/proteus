@@ -45,12 +45,6 @@ public class AssetsService extends BaseService implements Supplier<RoutingHandle
     }
 
     @Override
-    protected void shutDown() throws Exception
-    {
-        super.shutDown();
-    }
-
-    @Override
     protected void startUp() throws Exception
     {
         super.startUp();

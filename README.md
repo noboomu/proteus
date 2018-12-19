@@ -33,7 +33,7 @@ Getting Started
 /bin/bash -e <(curl -fsSL https://raw.githubusercontent.com/noboomu/proteus-example/master/scripts/quickStart.sh)
 ```
 
-- Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for a Swagger UI.
+- Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for a v3 Swagger UI.
 
 ### As a dependency
 
@@ -41,7 +41,7 @@ Getting Started
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-core</artifactId>
-    <version>0.3.5</version>
+    <version>0.3.6</version>
 </dependency>
 ```
 
@@ -455,7 +455,7 @@ Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui)
 
 Examples
 ----------
-Check out [this example](https://github.com/noboomu/proteus-example).
+Check out [this example](https://github.com/noboomu/proteus-example) that also demonstrates [pac4j](https://github.com/pac4j/pac4j) integration.
  
 
 Motivation

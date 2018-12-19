@@ -307,14 +307,15 @@ public class ProteusApplication
 				
 				.setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
 				.setIoThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.ioThreadsMultiplier"))
+				.setWorkerThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.workerThreadMultiplier"))
+				.setDirectBuffers(config.getBoolean("undertow.directBuffers"))
+				.setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
+				.setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
 				.setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
 				.setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
-				.setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
 				.setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
 				.setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
 				.setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
-                .setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
-				.setWorkerThreads(config.getInt("undertow.workerThreads"))
 				.setHandler(handler);
 
  

@@ -620,10 +620,4 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 		router.addAll(this.get());
 	}
 
-	@Override
-	protected void shutDown() throws Exception
-	{
-
-	}
-
 }

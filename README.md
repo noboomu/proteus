@@ -8,7 +8,7 @@ An extremely __lightweight, flexible, and high performance__ [Undertow](http://u
 - JAX-RS compliant
 - Easy on the developer and the metal
 - Blazing fast!!!
-[The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate Proteus outperforming 99% of all other web frameworks. 
+[The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate __proteus__ outperforming 99% of all other web frameworks. 
 
 ![Top 5 in Java Frameworks for Fortunes](https://github.com/noboomu/proteus-example/blob/master/src/main/resources/images/benchmark1.png?raw=true)
 

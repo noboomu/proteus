@@ -60,7 +60,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 
 import io.undertow.server.HandlerWrapper;
-import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.ResponseCodeHandler;
@@ -69,6 +68,11 @@ import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
+
+/**
+ * A service for generating and serving an OpenAPI v3 spec and ui.
+ * @author jbauer
+ */
 
 @Singleton
 public class OpenAPIService extends BaseService implements Supplier<RoutingHandler>

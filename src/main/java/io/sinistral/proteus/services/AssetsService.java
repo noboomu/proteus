@@ -1,7 +1,3 @@
-
-/**
- *
- */
 package io.sinistral.proteus.services;
 
 import java.nio.file.Paths;
@@ -23,8 +19,8 @@ import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.Methods;
 
 /**
+ * A service for serving static assets from a directory.
  * @author jbauer
- *
  */
 public class AssetsService extends BaseService implements Supplier<RoutingHandler>
 {

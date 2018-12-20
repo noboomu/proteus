@@ -1,7 +1,4 @@
 
-/**
- *
- */
 package io.sinistral.proteus.services;
 
 import org.slf4j.Logger;
@@ -17,9 +14,7 @@ import com.typesafe.config.Config;
 
 /**
  * An abstract base class for a Proteus service.
- *
  * @author jbauer
- *
  */
 @Singleton
 public abstract class BaseService extends AbstractIdleService implements Module
@@ -27,7 +22,6 @@ public abstract class BaseService extends AbstractIdleService implements Module
     private static Logger log = LoggerFactory.getLogger(BaseService.class.getCanonicalName());
 
     /*
-     *  (non-Javadoc)
      * @see com.google.inject.AbstractModule#configure()
      */
     @Inject
@@ -38,7 +32,6 @@ public abstract class BaseService extends AbstractIdleService implements Module
     }
 
     /*
-     *  (non-Javadoc)
      * @see com.google.inject.Module#configure(com.google.inject.Binder)
      */
     public void configure(Binder binder)
@@ -46,7 +39,6 @@ public abstract class BaseService extends AbstractIdleService implements Module
     }
 
     /*
-     *  (non-Javadoc)
      * @see com.google.common.util.concurrent.AbstractIdleService#shutDown()
      */
     @Override
@@ -56,7 +48,6 @@ public abstract class BaseService extends AbstractIdleService implements Module
     }
 
     /*
-     *  (non-Javadoc)
      * @see com.google.common.util.concurrent.AbstractIdleService#startUp()
      */
     @Override

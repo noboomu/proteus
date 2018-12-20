@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.sinistral.proteus;
 
 import java.io.ByteArrayOutputStream;
@@ -63,6 +60,7 @@ import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 
 /**
+ * The base class for proteus applications.
  * @author jbauer
  */
 public class ProteusApplication
@@ -91,13 +89,20 @@ public class ProteusApplication
 
 	public List<Class<? extends Module>> registeredModules = new ArrayList<>();
 
-	public Injector injector = null;
+	public Injector injector;
+
 	public ServiceManager serviceManager = null;
+
 	public Undertow undertow = null;
+
 	public Class<? extends HttpHandler> rootHandlerClass;
+
 	public HttpHandler rootHandler;
+
 	public AtomicBoolean running = new AtomicBoolean(false);
+
 	public List<Integer> ports = new ArrayList<>();
+
 	public Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction = null;
 	
 	public Duration startupDuration; 
@@ -192,30 +197,21 @@ public class ProteusApplication
 
 		}, MoreExecutors.directExecutor());
 
-		Runtime.getRuntime().addShutdownHook(new Thread()
-		{
-			@Override
-			public void run()
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try
 			{
-				try
-				{
-					shutdown();
-				} catch (TimeoutException timeout)
-				{
-					 log.error(timeout.getMessage(),timeout);
-				}
+				shutdown();
+			} catch (TimeoutException timeout)
+			{
+				 log.error(timeout.getMessage(),timeout);
 			}
-		});
+		}));
 
 		buildServer();
 
 		undertow.start();
 		
 		serviceManager.startAsync();
-		
-	 
-		
-
 	}
 
 	public void shutdown() throws TimeoutException
@@ -228,12 +224,7 @@ public class ProteusApplication
 
 		log.info("Shutting down...");
 
- 		  try {
- 				serviceManager.stopAsync().awaitStopped(1, TimeUnit.SECONDS);
-
-	         } catch (TimeoutException timeout) {
-	        	 log.warn("Failed to shutdown within specified timeout.");
-	      }
+		serviceManager.stopAsync().awaitStopped(1, TimeUnit.SECONDS);
 
 		log.info("Shutdown complete.");
 	}
@@ -351,131 +342,46 @@ public class ProteusApplication
 
 	}
 
+	/**
+	 * Add a service class to the application
+	 * @param serviceClass
+	 * @return the application
+	 */
 	public ProteusApplication addService(Class<? extends BaseService> serviceClass)
 	{
 		registeredServices.add(serviceClass);
 		return this;
 	}
 
+	/**
+	 * Add a controller class to the application
+	 * @param controllerClass
+	 * @return the application
+	 */
 	public ProteusApplication addController(Class<?> controllerClass)
 	{
 		registeredControllers.add(controllerClass);
 		return this;
 	}
 
-	public ProteusApplication addModule(Class<? extends Module> module)
+
+	/**
+	 * Add a module class to the application
+	 * @param moduleClass
+	 * @return the application
+	 */
+	public ProteusApplication addModule(Class<? extends Module> moduleClass)
 	{
-		registeredModules.add(module);
+		registeredModules.add(moduleClass);
 		return this;
 	}
 
-	public void setRootHandlerClass(Class<? extends HttpHandler> rootHandlerClass)
-	{
-		this.rootHandlerClass = rootHandlerClass;
-	}
-
-	public void setRootHandler(HttpHandler rootHandler)
-	{
-		this.rootHandler = rootHandler;
-	}
-
-	public Undertow getUndertow()
-	{
-		return undertow;
-	}
 
 	/**
-	 * Allows direct access to the Undertow.Builder for custom configuration
-	 * 
-	 * @param serverConfigurationFunction
-	 *            the serverConfigurationFunction
+	 * Add utility routes the router
+	 * @param router
 	 */
-	public void setServerConfigurationFunction(Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction)
-	{
-		this.serverConfigurationFunction = serverConfigurationFunction;
-	}
-
-	/**
-	 * @return the serviceManager
-	 */
-	public ServiceManager getServiceManager()
-	{
-		return serviceManager;
-	}
-
-	/**
-	 * @return the config
-	 */
-	public Config getConfig()
-	{
-		return config;
-	}
-
-	public void printStatus()
-	{
-		Config globalHeaders = config.getConfig("globalHeaders");
-
-		Map<String, String> globalHeadersParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().render()));
-
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("\nUsing global headers: \n");
-		
-		List<String> tableHeaders = Arrays.asList("Header","Value");
-		
-		List<List<String>> tableRows = globalHeadersParameters.entrySet().stream().map( e -> {
-			
-			return Arrays.asList( e.getKey(), e.getValue() );
-			
-		}).collect(Collectors.toList());
-		
-		TablePrinter printer = new TablePrinter(tableHeaders, tableRows);
-
-		sb.append(printer.toString());
-
-		sb.append("\nRegistered endpoints: \n");
-		
-		tableHeaders = Arrays.asList("Method","Path","Consumes","Produces","Controller");
-		
-		tableRows = this.registeredEndpoints.stream().sorted().map( e -> {
-				
-			return Arrays.asList( e.getMethod().toString(), e.getPathTemplate(), String.format("[%s]", e.getConsumes()), String.format("[%s]", e.getProduces()), String.format("(%s.%s)", e.getControllerName() , e.getControllerMethod() ) );
-			
-		}).collect(Collectors.toList());
-		
-		printer = new TablePrinter(tableHeaders, tableRows);
-		
-		sb.append(printer.toString());
-		
-		sb.append("\nRegistered services: \n");
-
-		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();
-
-		ImmutableMap<Service, Long> serviceStartupTimeMap = this.serviceManager.startupTimes();
-
-		tableHeaders = Arrays.asList("Service","State","Startup Time");
-		
-		tableRows = serviceStateMap.asMap().entrySet().stream().flatMap(e -> {
-
-			return e.getValue().stream().map(s -> { 
-				
-				return Arrays.asList(s.getClass().getSimpleName() , e.getKey().toString(), DurationFormatUtils.formatDurationHMS(serviceStartupTimeMap.get(s))  );
-			});
-
-		}).collect(Collectors.toList());
-
-		printer = new TablePrinter(tableHeaders, tableRows);
-		
-		sb.append(printer.toString());
-
-		sb.append("\nListening On: " + this.ports ); 
-		
-		sb.append("\nApplication Startup Time: " + DurationFormatUtils.formatDurationHMS(this.startupDuration.toMillis()) + "\n");
-
-		log.info(sb.toString());
-	}
-
-	public void addDefaultRoutes(RoutingHandler router)
+	public ProteusApplication addDefaultRoutes(RoutingHandler router)
 	{
 
 		if (config.hasPath("health.statusPath"))
@@ -484,16 +390,10 @@ public class ProteusApplication
 			{
 				final String statusPath = config.getString("health.statusPath");
 
-				router.add(Methods.GET, statusPath, new HttpHandler()
+				router.add(Methods.GET, statusPath, (final HttpServerExchange exchange) ->
 				{
-
-					@Override
-					public void handleRequest(HttpServerExchange exchange) throws Exception
-					{
 						exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, MediaType.TEXT_PLAIN);
 						exchange.getResponseSender().send("OK");
-					}
-
 				});
 
 				this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/plain").withPathTemplate(statusPath).withControllerName("Internal").withMethod(Methods.GET).build());
@@ -510,7 +410,7 @@ public class ProteusApplication
 			{
 
 				final ByteBuffer faviconImageBuffer;
-				
+
 				final File faviconFile = new File(config.getString("application.favicon"));
 
 				if (!faviconFile.exists())
@@ -555,27 +455,69 @@ public class ProteusApplication
 					}
 				}
 
-				if (faviconImageBuffer != null)
+				router.add(Methods.GET, "favicon.ico", (final HttpServerExchange exchange) ->
 				{
-
-					router.add(Methods.GET, "favicon.ico", new HttpHandler()
-					{
-						@Override
-						public void handleRequest(HttpServerExchange exchange) throws Exception
-						{
-							exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.IMAGE_X_ICON.toString());
-							exchange.getResponseSender().send(faviconImageBuffer);
-						}
-
-					});
-
-				}
+						exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.IMAGE_X_ICON.toString());
+						exchange.getResponseSender().send(faviconImageBuffer);
+				});
 
 			} catch (Exception e)
 			{
 				log.error("Error adding favicon route.", e.getMessage());
 			}
 		}
+
+		return this;
+	}
+
+	/**
+	 * Set the root HttpHandler class
+	 * @param rootHandlerClass
+	 * @return the application
+	 */
+	public ProteusApplication setRootHandlerClass(Class<? extends HttpHandler> rootHandlerClass)
+	{
+		this.rootHandlerClass = rootHandlerClass;
+		return this;
+	}
+
+	/**
+	 * Set the root HttpHandler
+	 * @param rootHandler
+	 * @return the application
+	 */
+	public ProteusApplication setRootHandler(HttpHandler rootHandler)
+	{
+		this.rootHandler = rootHandler;
+		return this;
+	}
+
+	/**
+	 * Allows direct access to the Undertow.Builder for custom configuration
+	 * 
+	 * @param serverConfigurationFunction
+	 *            the serverConfigurationFunction
+	 */
+	public ProteusApplication setServerConfigurationFunction(Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction)
+	{
+		this.serverConfigurationFunction = serverConfigurationFunction;
+		return this;
+	}
+
+	/**
+	 * @return the serviceManager
+	 */
+	public ServiceManager getServiceManager()
+	{
+		return serviceManager;
+	}
+
+	/**
+	 * @return the config
+	 */
+	public Config getConfig()
+	{
+		return config;
 	}
 
 	/**
@@ -585,14 +527,73 @@ public class ProteusApplication
 	{
 		return router;
 	}
- 
+
 
 	/**
-	 * @return the ports
+	 * @return a list of used ports
 	 */
 	public List<Integer> getPorts()
 	{
 		return ports;
+	}
+
+
+	/**
+	 * @return The Undertow server
+	 */
+	public Undertow getUndertow()
+	{
+		return undertow;
+	}
+
+
+	public void printStatus()
+	{
+		Config globalHeaders = config.getConfig("globalHeaders");
+
+		Map<String, String> globalHeadersParameters = globalHeaders.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().render()));
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("\nUsing global headers: \n");
+		
+		List<String> tableHeaders = Arrays.asList("Header","Value");
+		
+		List<List<String>> tableRows = globalHeadersParameters.entrySet().stream().map( e -> Arrays.asList( e.getKey(), e.getValue() ))
+				.collect(Collectors.toList());
+		
+		TablePrinter printer = new TablePrinter(tableHeaders, tableRows);
+
+		sb.append(printer.toString());
+
+		sb.append("\nRegistered endpoints: \n");
+		
+		tableHeaders = Arrays.asList("Method","Path","Consumes","Produces","Controller");
+		
+		tableRows = this.registeredEndpoints.stream().sorted().map( e ->
+				Arrays.asList( e.getMethod().toString(), e.getPathTemplate(), String.format("[%s]", e.getConsumes()), String.format("[%s]", e.getProduces()), String.format("(%s.%s)", e.getControllerName() , e.getControllerMethod() ) ))
+				.collect(Collectors.toList());
+		
+		printer = new TablePrinter(tableHeaders, tableRows);
+		
+		sb.append(printer.toString()).append("\nRegistered services: \n");
+
+		ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();
+
+		ImmutableMap<Service, Long> serviceStartupTimeMap = this.serviceManager.startupTimes();
+
+		tableHeaders = Arrays.asList("Service","State","Startup Time");
+		
+		tableRows = serviceStateMap.asMap().entrySet().stream().flatMap(e ->
+				e.getValue().stream().map(s ->
+						Arrays.asList(s.getClass().getSimpleName() , e.getKey().toString(), DurationFormatUtils.formatDurationHMS(serviceStartupTimeMap.get(s))  )))
+				.collect(Collectors.toList());
+
+		printer = new TablePrinter(tableHeaders, tableRows);
+		
+		sb.append(printer.toString()).append("\nListening On: " + this.ports ).append("\nApplication Startup Time: " + DurationFormatUtils.formatDurationHMS(this.startupDuration.toMillis()) + "\n");
+
+		log.info(sb.toString());
 	}
 
 

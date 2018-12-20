@@ -78,6 +78,11 @@ import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 
+/**
+ * A service for generating and serving an Swagger 2.0 spec and ui.
+ * @author jbauer
+ */
+
 @Singleton
 public class SwaggerService extends BaseService implements Supplier<RoutingHandler>
 {
@@ -342,10 +347,10 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 					themePath = "themes/theme-" + theme + ".css";
 				}
 
-				templateString = templateString.replaceAll("\\{\\{ themePath \\}\\}", themePath);
-				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath \\}\\}", basePath);
-				templateString = templateString.replaceAll("\\{\\{ title \\}\\}", applicationName + " Swagger UI");
-				templateString = templateString.replaceAll("\\{\\{ swaggerFilePath \\}\\}", basePath + ".json");
+				templateString = templateString.replaceAll("\\{\\{ themePath }}", themePath);
+				templateString = templateString.replaceAll("\\{\\{ swaggerBasePath }}", basePath);
+				templateString = templateString.replaceAll("\\{\\{ title }}", applicationName + " Swagger UI");
+				templateString = templateString.replaceAll("\\{\\{ swaggerFilePath }}", basePath + ".json");
 
 				this.swaggerIndexHTML = templateString;
 			}
@@ -356,8 +361,8 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 
 				String templateString = new String(templateBytes, Charset.defaultCharset());
 
-				templateString = templateString.replaceAll("\\{\\{ specPath \\}\\}", this.basePath + ".json");
-				templateString = templateString.replaceAll("\\{\\{ applicationName \\}\\}", applicationName);
+				templateString = templateString.replaceAll("\\{\\{ specPath }}", this.basePath + ".json");
+				templateString = templateString.replaceAll("\\{\\{ applicationName }}", applicationName);
 
 				this.redocHTML = templateString;
 			}
@@ -392,6 +397,7 @@ public class SwaggerService extends BaseService implements Supplier<RoutingHandl
 						} catch (java.lang.IllegalArgumentException e)
 						{
 							log.debug("Swagger tmp directory is not a directory...");
+
 							swaggerTmpDir.toFile().delete();
 						}
 					}

@@ -3,15 +3,11 @@
 
 An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing and running microservices.
 
-__NO MAGIC.__
-
-Limited dependencies.
-
-< 400kb.
-
-JAX-RS compliant.
-
-Blazing fast!!!
+- __NO MAGIC.__
+- Lightweight: limited dependencies and < 400kb
+- JAX-RS compliant
+- Easy on the developer and the metal
+- Blazing fast!!!
 [The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate Proteus outperforming 99% of all other web frameworks. 
 
 ![Top 5 in Java Frameworks for Fortunes](https://github.com/noboomu/proteus-example/blob/master/src/main/resources/images/benchmark1.png?raw=true)
@@ -20,8 +16,9 @@ Blazing fast!!!
 
 TL;DR
 ---------------
-Proteus rewrites your user friendly MVC controller methods into high performance Undertow response handlers at run time.
-Easy on the developer and the metal.
+- Proteus rewrites your user friendly MVC controller methods into high performance Undertow response handlers at run time.
+- The goal is to provide the absolute highest performance while providing a simple and familiar API. 
+- As developers, we feel a web framework should provide the essentials at minimal cost. 
 
 Getting Started
 ---------------
@@ -267,6 +264,8 @@ Proteus comes with three standard services that extend the ```io.sinistral.prote
 
 	The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
 
+	The default configuration serves the spec at `{application.path}/swagger.json` and the ui at `${application.path}/swagger`.
+
 	The service is configured in your ```application.conf``` file.
 
 	The default configuration:
@@ -300,7 +299,9 @@ Proteus comes with three standard services that extend the ```io.sinistral.prote
  
 - __OpenAPIService__   
 
-	The OpenAPIService generates an openapi-spec file from your endpoints and serves the spec.
+	The OpenAPIService generates an openapi-spec file from your endpoints and serves a swagger-ui and spec.
+	
+	The default configuration serves the spec at `{application.path}/openapi.yaml` and the ui at `${application.path}/openapi`.
 
 	The service is configured in your ```application.conf``` file.
 

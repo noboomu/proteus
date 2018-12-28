@@ -301,56 +301,33 @@ public class Extractors
 		 
 	}
 
-	public static  <T> T jsonModel(final HttpServerExchange exchange, final TypeReference<T> type ) throws IllegalArgumentException
+	public static  <T> T jsonModel(final HttpServerExchange exchange, final TypeReference<T> type )  throws IllegalArgumentException, IOException
 	{
-		try
-		{
-			return OBJECT_MAPPER.readValue(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array(), type);
-		}
-		catch( Exception e )
-		{
-			throw new IllegalArgumentException("Invalid JSON: " + new String(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array()) );
-		}
+		final byte[] attachment = exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array();
+
+		return OBJECT_MAPPER.readValue(attachment, type);
 	}
 	
-	public static  <T> T jsonModel(final HttpServerExchange exchange, final Class<T> type )   throws IllegalArgumentException
+	public static  <T> T jsonModel(final HttpServerExchange exchange, final Class<T> type )   throws IllegalArgumentException, IOException
 	{
-		try
-		{
-			return OBJECT_MAPPER.readValue(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array(), type);
-		}
-		catch( Exception e )
-		{
-			throw new IllegalArgumentException("Invalid JSON: " + new String(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array()) );
+		final byte[] attachment = exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array();
 
-		}
+		return OBJECT_MAPPER.readValue(attachment, type);
 	}
 	 
 	
-	public static  <T> T xmlModel(final HttpServerExchange exchange, final Class<T> type )   throws IllegalArgumentException
+	public static  <T> T xmlModel(final HttpServerExchange exchange, final Class<T> type )   throws IllegalArgumentException, IOException
 	{
-		try
-		{
-			return XML_MAPPER.readValue(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array(), type);
-		}
-		catch( Exception e )
-		{
-			throw new IllegalArgumentException("Invalid XML");
+		final byte[] attachment = exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array();
 
-		}
+		return XML_MAPPER.readValue(attachment, type);
 	}
 	
-	public static  <T> T xmlModel(final HttpServerExchange exchange, final TypeReference<T> type )   throws IllegalArgumentException
+	public static  <T> T xmlModel(final HttpServerExchange exchange, final TypeReference<T> type )   throws IllegalArgumentException, IOException
 	{
-		try
-		{
-			return XML_MAPPER.readValue(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array(), XML_MAPPER.getTypeFactory().constructType(type.getType()));
-		}
-		catch( Exception e )
-		{
-			throw new IllegalArgumentException("Invalid XML");
+		final byte[] attachment = exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array();
 
-		}
+		return XML_MAPPER.readValue(attachment, XML_MAPPER.getTypeFactory().constructType(type.getType()));
 	}
 
 	public static  JsonNode any(final HttpServerExchange exchange )
@@ -464,7 +441,7 @@ public class Extractors
 		return Boolean.parseBoolean(string(exchange, name));
 	}
 	 
-	public static <T>  T model(final HttpServerExchange exchange, final TypeReference<T> type )   throws IllegalArgumentException
+	public static <T>  T model(final HttpServerExchange exchange, final TypeReference<T> type )   throws IllegalArgumentException,IOException
 	{
 		if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 		{
@@ -476,7 +453,7 @@ public class Extractors
 		}
 	}
 	
-	public static <T> T  model(final HttpServerExchange exchange, final Class<T> type )   throws IllegalArgumentException
+	public static <T> T  model(final HttpServerExchange exchange, final Class<T> type )   throws IllegalArgumentException,IOException
 	{
 		if( ServerPredicates.XML_PREDICATE.resolve(exchange) )
 		{

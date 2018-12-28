@@ -538,13 +538,14 @@ public class HandlerGenerator {
 
             if (isBlocking) {
 
-                methodBuilder.addCode(
-                        "$L.dispatch( () -> ",
-                        "exchange");
+                methodBuilder.addStatement("exchange.startBlocking()");
 
-                methodBuilder.beginControlFlow("", "");
+                methodBuilder.beginControlFlow("if (exchange.isInIoThread())");
 
-                methodBuilder.beginControlFlow("try");
+                methodBuilder.addStatement("exchange.dispatch(this)");
+
+                methodBuilder.nextControlFlow("else");
+
 
             }
 
@@ -749,11 +750,13 @@ public class HandlerGenerator {
 
             }
 
-            if (isBlocking) {
-                methodBuilder.endControlFlow("catch ($T e) { \n\texchange.putAttachment(io.sinistral.proteus.server.handlers.ServerDefaultResponseListener.EXCEPTION, e);\n\texchange.endExchange();\n}", Exception.class);
-                methodBuilder.endControlFlow(")", "");
+
+            if(isBlocking)
+            {
+                methodBuilder.endControlFlow();
 
             }
+
 
             handlerClassBuilder.addMethod(methodBuilder.build());
 
@@ -790,9 +793,9 @@ public class HandlerGenerator {
             }
 
             if (isBlocking && isDebug) {
-                handlerName = "new io.undertow.server.handlers.RequestDumpingHandler(new io.undertow.server.handlers.BlockingHandler(new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(8).wrap(" + handlerName + ")))";
+                handlerName = "new io.undertow.server.handlers.RequestDumpingHandler(new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(8).wrap(" + handlerName + "))";
             } else if (isBlocking) {
-                handlerName = "new io.undertow.server.handlers.BlockingHandler(new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(8).wrap(" + handlerName + "))";
+                handlerName = "new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(8).wrap(" + handlerName + ")";
 
             } else if (isDebug) {
                 handlerName = "new io.undertow.server.handlers.RequestDumpingHandler(" + handlerName + ")";

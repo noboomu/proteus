@@ -25,3 +25,5 @@ bin
 /proteus/
 /pom.xml.versionsBackup
 .factorypath
+.idea
+.idea/*

@@ -32,15 +32,17 @@ public abstract class BaseService extends AbstractIdleService implements Module
     }
 
     /*
+     *  (non-Javadoc)
      * @see com.google.inject.Module#configure(com.google.inject.Binder)
      */
-    public void configure(Binder binder)
-    {
+    @Override
+    public void configure(Binder binder) {
+
     }
 
     /*
-     * @see com.google.common.util.concurrent.AbstractIdleService#shutDown()
-     */
+    //* @see com.google.common.util.concurrent.AbstractIdleService#shutDown()
+    */
     @Override
     protected void shutDown() throws Exception
     {

@@ -1,7 +1,4 @@
 
-/**
- *
- */
 package io.sinistral.proteus.modules;
 
 import java.util.HashMap;
@@ -93,6 +90,7 @@ public class ApplicationModule extends AbstractModule
     protected void configure()
     {
         this.binder().requestInjection(this);
+
         this.bindMappers();
 
         RoutingHandler router = new RoutingHandler();

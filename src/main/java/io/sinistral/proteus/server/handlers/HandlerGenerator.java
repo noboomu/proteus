@@ -3,53 +3,10 @@
  */
 package io.sinistral.proteus.server.handlers;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.lang.model.element.Modifier;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
-
+import com.squareup.javapoet.*;
 import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.Extractors;
@@ -57,7 +14,6 @@ import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tags;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -67,6 +23,30 @@ import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import net.openhft.compiler.CompilerUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.lang.model.element.Modifier;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URL;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Generates code and compiles a <code>Supplier<RoutingHandler></code> class
@@ -105,9 +85,9 @@ public class HandlerGenerator {
     @Named("registeredHandlerWrappers")
     protected Map<String, HandlerWrapper> registeredHandlerWrappers;
 
-    protected Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<Class<? extends HandlerWrapper>, String>();
+    protected Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<>();
 
-    protected Map<Class<? extends HandlerWrapper>, String> handlerWrapperMap = new LinkedHashMap<Class<? extends HandlerWrapper>, String>();
+    protected Map<Class<? extends HandlerWrapper>, String> handlerWrapperMap = new LinkedHashMap<>();
 
     /**
      * Create a new {@code HandlerGenerator} instance used to generate a
@@ -241,7 +221,7 @@ public class HandlerGenerator {
         }
     }
 
-    protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz) throws Exception {
+    protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz)  {
         ClassName httpHandlerClass = ClassName.get("io.undertow.server", "HttpHandler");
 
         String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
@@ -307,7 +287,7 @@ public class HandlerGenerator {
                             t = optionalType;
                         }
 
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
 
                     }
 
@@ -328,9 +308,7 @@ public class HandlerGenerator {
                         if (pClazz.isPrimitive()) {
                             return false;
                         }
-                        if (pClazz.isEnum()) {
-                            return false;
-                        }
+                        return !pClazz.isEnum();
 
                     }
 
@@ -351,11 +329,9 @@ public class HandlerGenerator {
         if (typeLevelWrapAnnotation.isPresent()) {
             io.sinistral.proteus.annotations.Chain w = typeLevelWrapAnnotation.get();
 
-            Class<? extends HandlerWrapper> wrapperClasses[] = w.value();
+            Class<? extends HandlerWrapper>[] wrapperClasses = w.value();
 
-            for (int i = 0; i < wrapperClasses.length; i++) {
-                Class<? extends HandlerWrapper> wrapperClass = wrapperClasses[i];
-
+            for (Class<? extends HandlerWrapper> wrapperClass : wrapperClasses) {
                 String wrapperName = generateFieldName(wrapperClass.getCanonicalName());
 
                 initBuilder.addStatement("final $T $L = new $T()", wrapperClass, wrapperName, wrapperClass);
@@ -368,8 +344,8 @@ public class HandlerGenerator {
 
         initBuilder.addCode("$L", "\n");
 
-        List<String> consumesContentTypes = new ArrayList<>();
-        List<String> producesContentTypes = new ArrayList<>();
+        List<String> consumesContentTypes;
+        List<String> producesContentTypes;
 
         /*
          * Controller Level Authorization
@@ -428,7 +404,7 @@ public class HandlerGenerator {
 
                     producesContentTypes = Arrays.stream(producesAnnotation.get().value()).flatMap(v -> Arrays.stream((v.split(",")))).collect(Collectors.toList());
 
-                    producesContentType = producesContentTypes.stream().collect(Collectors.joining(","));
+                    producesContentType = String.join(",", producesContentTypes);
                 }
 
             } else {
@@ -447,17 +423,17 @@ public class HandlerGenerator {
                 if (consumesAnnotation.isPresent()) {
                     consumesContentTypes = Arrays.stream(consumesAnnotation.get().value()).flatMap(v -> Arrays.stream((v.split(",")))).collect(Collectors.toList());
 
-                    consumesContentType = consumesContentTypes.stream().collect(Collectors.joining(","));
+                    consumesContentType = String.join(",", consumesContentTypes);
                 }
             } else {
                 consumesContentTypes = Arrays.stream(consumesAnnotation.get().value()).flatMap(v -> Arrays.stream((v.split(",")))).collect(Collectors.toList());
 
-                consumesContentType = consumesContentTypes.stream().collect(Collectors.joining(","));
+                consumesContentType = String.join(",", consumesContentTypes);
             }
 
             endpointInfo.setControllerName(clazz.getSimpleName());
 
-            String methodPath = null;
+            String methodPath;
 
             try {
                 methodPath = Extractors.pathTemplateFromMethod.apply(m).replaceAll("\\/\\/", "\\/");
@@ -491,7 +467,7 @@ public class HandlerGenerator {
 
             TypeSpec.Builder handlerClassBuilder = TypeSpec.anonymousClassBuilder("").addSuperinterface(httpHandlerClass);
 
-            /**
+             /**
              * @TODO
              * Rewrite with lambdas or method references.
              *
@@ -908,7 +884,7 @@ public class HandlerGenerator {
         return names;
     }
 
-    protected static Set<Class<?>> getApiClasses(String basePath, Predicate<String> pathPredicate) throws Exception {
+    protected static Set<Class<?>> getApiClasses(String basePath, Predicate<String> pathPredicate)   {
 
         Reflections ref = new Reflections(basePath);
         Stream<Class<?>> stream = ref.getTypesAnnotatedWith(Path.class).stream();
@@ -944,14 +920,12 @@ public class HandlerGenerator {
                 String clearDollarType = erasedType.replaceAll("\\$", ".");
 
                 try {
-                    Class<?> clazz = Class.forName(clearDollarType);
-                    return clazz;
+                    return Class.forName(clearDollarType);
 
                 } catch (Exception e1) {
                     try {
-                        Class<?> clazz = Class.forName(erasedType);
 
-                        return clazz;
+                        return Class.forName(erasedType);
 
                     } catch (Exception e2) {
                         return type;
@@ -1008,7 +982,7 @@ public class HandlerGenerator {
                     erasedTypeName = erasedParts[0];
                 }
 
-                typeName = String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1, erasedTypeName.length()), genericTypeName);
+                typeName = String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1), genericTypeName);
 
                 return typeName;
             }
@@ -1037,7 +1011,7 @@ public class HandlerGenerator {
                     erasedTypeName = erasedParts[0];
                 }
 
-                typeName = String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1, erasedTypeName.length()), genericTypeName);
+                typeName = String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1), genericTypeName);
                 return typeName;
             }
 
@@ -1073,9 +1047,9 @@ public class HandlerGenerator {
             String part = parts[i];
 
             if (i == 0) {
-                sb.append(String.format("%s%s", Character.toLowerCase(part.charAt(0)), part.substring(1, part.length())));
+                sb.append(String.format("%s%s", Character.toLowerCase(part.charAt(0)), part.substring(1)));
             } else {
-                sb.append(String.format("%s%s", Character.toUpperCase(part.charAt(0)), part.substring(1, part.length())));
+                sb.append(String.format("%s%s", Character.toUpperCase(part.charAt(0)), part.substring(1)));
             }
         }
 

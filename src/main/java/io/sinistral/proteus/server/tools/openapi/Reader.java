@@ -230,12 +230,24 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		return openAPI;
 	}
 
+	public static OpenAPIConfiguration deepCopy(OpenAPIConfiguration config) {
+		if (config == null) {
+			return null;
+		}
+		try {
+			return Json.mapper().readValue(Json.pretty(config), SwaggerConfiguration.class);
+		} catch (Exception e) {
+			LOGGER.error("Exception cloning config: " + e.getMessage(), e);
+			return config;
+		}
+	}
+
 	@Override
 	public void setConfiguration(OpenAPIConfiguration openApiConfiguration)
 	{
 		if (openApiConfiguration != null)
 		{
-			this.config = ContextUtils.deepCopy(openApiConfiguration);
+			this.config = deepCopy(openApiConfiguration);
 			if (openApiConfiguration.getOpenAPI() != null)
 			{
 				this.openAPI = this.config.getOpenAPI();

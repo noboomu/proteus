@@ -444,9 +444,9 @@ By default, the configuration is loaded into a `com.typesafe.config.Config` from
 Proteus applications generally have a main method that creates an instance of `io.sinistral.proteus.ProteusApplication`. 
 
 Prior to calling `start` on the `ProteusApplication` instance:
-* Register `Service` classes via `addService`  
-* Register `Module` classes via `addModule`  
-* Register classes annotated with `javax.ws.rs.Path` via `addController`  
+* Register `Service` classes via `registerService`
+* Register `Module` classes via `registerModule`
+* Register classes annotated with `javax.ws.rs.Path` via `registerController`
 
 Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/openapi`.
 

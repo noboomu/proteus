@@ -750,7 +750,7 @@ public class HandlerGenerator {
             List<String> securityDefinitions = new ArrayList<>();
 
             /*
-             * @TODO wrap blocking in BlockingHandler
+             * @TODO wrap blocking in BlockingHandler?
              */
 
             if (Optional.ofNullable(m.getAnnotation(Path.class)).isPresent()) {

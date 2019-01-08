@@ -276,11 +276,10 @@ public class ProteusHandler implements HttpHandler
         else
         {
             // already something in the resolved path
-            StringBuilder sb = new StringBuilder(exchange.getResolvedPath().length() + match.getMatched().length());
 
-            sb.append(exchange.getResolvedPath());
-            sb.append(match.getMatched());
-            exchange.setResolvedPath(sb.toString());
+            String sb = exchange.getResolvedPath() +
+                    match.getMatched();
+            exchange.setResolvedPath(sb);
         }
 
         match.getValue().handleRequest(exchange);

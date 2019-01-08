@@ -16,7 +16,7 @@ An extremely __lightweight, flexible, and high performance__ [Undertow](http://u
 
 TL;DR
 ---------------
-- Proteus rewrites your declarative resource methods into high performance Undertow response handlers at run time.
+- Proteus rewrites your controller methods into high performance Undertow response handlers at run time.
 - The goal is to provide the absolute highest performance while providing a simple and familiar API. 
 - As developers, we feel a web framework should provide the essentials at minimal cost. 
 

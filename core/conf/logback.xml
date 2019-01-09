@@ -40,7 +40,6 @@
 	<logger name="java.jmx" level="ERROR" />
 
 	<logger name="org.apache.http.wire" level="ERROR" /> 
-	<logger name="com.wordnik" level="OFF" />
 
 	<logger name="sun.net" level="ERROR" />
 

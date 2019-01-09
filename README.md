@@ -61,7 +61,7 @@ Controller class methods respect standard Swagger / JAX-RS annotations:
 ```java
 @GET
 @Path("/plaintext")
-@Produces((MediaType.TEXT_PLAIN)) 
+@Produces((MediaType.TEXT_PLAIN))
 @Operation(description = "Plaintext endpoint" )
 public ServerResponse<ByteBuffer> plaintext(ServerRequest request)
 { 

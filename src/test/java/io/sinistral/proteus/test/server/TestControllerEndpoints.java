@@ -89,6 +89,12 @@ public class TestControllerEndpoints
 	{
 		when().get("openapi.yaml").then().statusCode(200);
 	}
+
+	@Test
+	public void testSecurityRequirementEndpoint()
+	{
+		when().get("tests/secure/resource").then().statusCode(200);
+	}
 	
 	@Test
 	public void testDebugEndpoint()

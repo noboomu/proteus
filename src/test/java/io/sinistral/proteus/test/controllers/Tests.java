@@ -44,8 +44,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
+import io.swagger.v3.oas.models.servers.Server;
 import io.undertow.server.HttpServerExchange;
 
 /**
@@ -108,7 +110,7 @@ public class Tests
 
 	
 	@GET 
-	@Path("/exchange/user/json")
+	@Path("exchange/user/json")
 	@Operation(description = "User serialization endpoint" )
 	public void exchangeUserJson(HttpServerExchange exchange)
 	{  
@@ -116,7 +118,7 @@ public class Tests
 	}
 	
 	@GET 
-	@Path("/exchange/user/xml")
+	@Path("exchange/user/xml")
 	@Produces((MediaType.APPLICATION_XML))
 	@Operation(description = "User serialization endpoint"  )
 	public void exchangeUserXml(HttpServerExchange exchange)
@@ -125,7 +127,7 @@ public class Tests
 	}
 
 	@GET
-	@Path("/response/user/json")
+	@Path("response/user/json")
 	@Operation(description = "User serialization endpoint"  )
 	public ServerResponse<User> responseUserJson(ServerRequest request)
 	{ 
@@ -135,7 +137,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/user/xml")
+	@Path("response/user/xml")
 	@Produces((MediaType.APPLICATION_XML))
 	@Operation(description = "User serialization endpoint"  )
 	public ServerResponse<User> responseUserXml(ServerRequest request)
@@ -147,7 +149,7 @@ public class Tests
 	
 	
 	@GET
-	@Path("/exchange/plaintext")
+	@Path("exchange/plaintext")
 	@Produces((MediaType.TEXT_PLAIN)) 
 	@Operation(description = "Plaintext endpoint"  )
 	public void exchangePlaintext(HttpServerExchange exchange)
@@ -157,7 +159,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/exchange/plaintext2")
+	@Path("exchange/plaintext2")
 	@Produces((MediaType.TEXT_PLAIN)) 
 	@Operation(description = "Plaintext endpoint 2"  )
 	public void exchangePlaintext2(HttpServerExchange exchange)
@@ -167,7 +169,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/plaintext")
+	@Path("response/plaintext")
 	@Produces((MediaType.TEXT_PLAIN)) 
 	@Operation(description = "Plaintext endpoint"  )
 	public ServerResponse<ByteBuffer> responsePlaintext(ServerRequest request)
@@ -177,7 +179,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/future/map")
+	@Path("response/future/map")
 	@Operation(description = "Future map endpoint"  )
 	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureMap( ServerRequest request )
 	{ 
@@ -186,7 +188,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/map")
+	@Path("response/map")
 	@Operation(description = "Map endpoint"  )
 	public ServerResponse<Map<String,String>> futureMap( ServerRequest request )
 	{ 
@@ -195,7 +197,7 @@ public class Tests
 	}
 	
 	@POST
-	@Path("/response/file/path")
+	@Path("response/file/path")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Operation(description = "Upload file path endpoint"  )
@@ -205,7 +207,7 @@ public class Tests
 	}
 	
 	@POST
-	@Path("/response/file/path/optional")
+	@Path("response/file/path/optional")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Operation(description = "Upload optional file path endpoint"  )
@@ -222,7 +224,7 @@ public class Tests
 	}
 	
 	@POST
-	@Path("/response/json/echo")
+	@Path("response/json/echo")
 	@Produces(MediaType.APPLICATION_JSON) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Operation(description = "Echo json endpoint"  )
@@ -232,7 +234,7 @@ public class Tests
 	}
 	
 	@POST
-	@Path("/response/json/beanparam")
+	@Path("response/json/beanparam")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.APPLICATION_JSON)
 	@Operation(description = "Echo json inner class endpoint"  )
@@ -243,7 +245,7 @@ public class Tests
 	
 	  
 	@GET
-	@Path("/generic/set")
+	@Path("generic/set")
 	@Produces((MediaType.APPLICATION_JSON)) 
 	@Operation(description = "Generic set endpoint"  )
 	public ServerResponse<Set<Long>>  genericSet( ServerRequest request, @QueryParam("ids") Set<Long> ids )  throws Exception
@@ -253,7 +255,7 @@ public class Tests
 	
 	  
 	@POST
-	@Path("/generic/set/bean")
+	@Path("generic/set/bean")
 	@Produces((MediaType.APPLICATION_JSON)) 
  	@Consumes(MediaType.APPLICATION_JSON)
 	@Operation(description = "Generic bean set endpoint"  )
@@ -264,7 +266,7 @@ public class Tests
 	
 	
 	@POST
-	@Path("/generic/list/bean")
+	@Path("generic/list/bean")
 	@Produces((MediaType.APPLICATION_JSON)) 
  	@Consumes(MediaType.APPLICATION_JSON)
 
@@ -275,7 +277,7 @@ public class Tests
 	}
 	  
 	@GET
-	@Path("/optional/set")
+	@Path("optional/set")
 	@Produces((MediaType.APPLICATION_JSON)) 
 	@Operation(description = "Generic optional set endpoint"  )
 	public ServerResponse<Set<Long>>  genericOptionalSet( ServerRequest request, @QueryParam("ids") Optional<Set<Long>> ids )  throws Exception
@@ -285,7 +287,7 @@ public class Tests
 
 	
 	@GET
-	@Path("/redirect/permanent")
+	@Path("redirect/permanent")
 	@Operation(description = "Permanent redirect endpoint"  )
 	@Produces(MediaType.WILDCARD) 
 	public ServerResponse<Void> testPermanentRedirect()
@@ -294,7 +296,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/redirect")
+	@Path("redirect")
 	@Operation(description = "Redirect endpoint" )
 	@Produces(MediaType.WILDCARD) 
 	public ServerResponse<Void> testRedirect()
@@ -303,7 +305,7 @@ public class Tests
 	}
 	
 	@POST
-	@Path("/response/parse/ids")
+	@Path("response/parse/ids")
 	@Blocking
 	@Produces(MediaType.APPLICATION_JSON) 
  	@Consumes(MediaType.APPLICATION_JSON)
@@ -317,7 +319,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/parse/timestamp")
+	@Path("response/parse/timestamp")
 	@Blocking
 	@Produces(MediaType.TEXT_PLAIN)  
  	@Operation(description = "Convert timestamp") 
@@ -330,7 +332,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/parse/instant")
+	@Path("response/parse/instant")
 	@Blocking
 	@Produces(MediaType.TEXT_PLAIN)  
  	@Operation(description = "Convert instant") 
@@ -343,7 +345,7 @@ public class Tests
 	}
 	
 	@POST
-	@Path("/response/bytebuffer")
+	@Path("response/bytebuffer")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
  	@Operation(description = "Upload file path endpoint")
@@ -356,7 +358,7 @@ public class Tests
 	}
 	
 	@POST
-	@Path("/response/file")
+	@Path("response/file")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
  	@Operation(description = "Upload file path endpoint")
@@ -372,7 +374,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/debug")
+	@Path("response/debug")
  	@Operation(description = "Debug endpoint")
 	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request) 
 	{  
@@ -389,7 +391,7 @@ public class Tests
 	
 
 	@GET
-	@Path("/response/debug/blocking")
+	@Path("response/debug/blocking")
 	@Blocking
  	@Operation(description="Debug blocking endpoint")
 	public ServerResponse<Map<String,String>> debugBlockingEndpoint(ServerRequest request) 
@@ -406,7 +408,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/future/user") 
+	@Path("response/future/user")
 	@Operation(description="Future user endpoint")
 	@Produces((MediaType.APPLICATION_JSON)) 
 	public CompletableFuture<ServerResponse<User>> responseFutureUser()
@@ -415,7 +417,7 @@ public class Tests
 	}
 	
 	@GET
-	@Path("/response/parameters/complex/{pathLong}")
+	@Path("response/parameters/complex/{pathLong}")
 	@Operation(description = "Complex parameters" )
 	@Produces((MediaType.APPLICATION_JSON)) 
 	public ServerResponse<Map<String,Object>> complexParameters(
@@ -453,5 +455,18 @@ public class Tests
 		responseMap.put("headerString", headerString); 
 		responseMap.put("queryIntegerList", queryIntegerList); 
 		return response(responseMap).applicationJson(); 
+	}
+
+	@GET
+	@SecurityRequirement(name = "testRequirement")
+	@Path("secure/resource")
+	@Operation(description="Secure resource")
+	@Produces(MediaType.APPLICATION_JSON)
+	public ServerResponse<Map<String,Object>> responseSecureContext()
+	{
+		Map<String,Object> responseMap = new HashMap<>();
+		responseMap.put("secure",true);
+
+		return response(responseMap);
 	}
 }

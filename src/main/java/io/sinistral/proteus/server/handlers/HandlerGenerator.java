@@ -13,7 +13,6 @@ import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -34,10 +33,8 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
@@ -354,12 +351,30 @@ public class HandlerGenerator {
         List<String> typeLevelSecurityDefinitions = new ArrayList<>();
 
         if (Optional.ofNullable(clazz.getAnnotation(Path.class)).isPresent()) {
-            SecurityRequirement securityRequirementAnnotation = clazz.getAnnotation(SecurityRequirement.class);
+
+            Annotation[] annotations = clazz.getAnnotations();
+
+            Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter(a -> a.getClass().getName().contains("SecurityRequirement" +
+                    "")).findFirst().orElse(null);
 
             if (securityRequirementAnnotation != null) {
-                String securityRequirement = securityRequirementAnnotation.name();
 
-                typeLevelSecurityDefinitions.add(securityRequirement);
+                if (securityRequirementAnnotation != null) {
+
+                    try {
+                        Field nameField = securityRequirementAnnotation.getClass().getField("name");
+
+                        if (nameField != null) {
+                            Object securityRequirement = nameField.get(securityRequirementAnnotation);
+                            typeLevelSecurityDefinitions.add(securityRequirement.toString());
+                        }
+
+                    } catch (Exception e) {
+                        log.warn("No name field on security requirement");
+                    }
+
+                }
+
             }
         }
 
@@ -754,12 +769,31 @@ public class HandlerGenerator {
              */
 
             if (Optional.ofNullable(m.getAnnotation(Path.class)).isPresent()) {
-                SecurityRequirement securityRequirementAnnotation = m.getAnnotation(SecurityRequirement.class);
+
+                Annotation[] annotations = clazz.getAnnotations();
+
+                Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter( a -> a.getClass().getName().contains("SecurityRequirement") ).findFirst().orElse(null);
 
                 if (securityRequirementAnnotation != null) {
-                    String securityRequirement = securityRequirementAnnotation.name();
 
-                    securityDefinitions.add(securityRequirement);
+                    if (securityRequirementAnnotation != null) {
+
+                        try
+                        {
+                            Field nameField = securityRequirementAnnotation.getClass().getField("name");
+
+                            if(nameField != null) {
+                                Object securityRequirement = nameField.get(securityRequirementAnnotation);
+                                securityDefinitions.add(securityRequirement.toString());
+                            }
+
+                        } catch( Exception e )
+                        {
+                            log.warn("No name field on security requirement");
+                        }
+
+                    }
+
                 }
 
             }

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.sinistral</groupId>
 	<artifactId>proteus-core</artifactId>
-	<version>0.3.7-SNAPSHOT</version>
+	<version>0.3.7</version>
 	<name>proteus core</name>
 	<description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
 	<url>http://github.com/noboomu/proteus</url>
@@ -192,9 +192,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- <dependency> <groupId>junit</groupId> <artifactId>junit</artifactId> 
-			<version>4.12</version> <scope>test</scope> </dependency> -->
-
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
@@ -202,7 +199,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.junit.vintage/junit-vintage-engine -->
 		<dependency>
 			<groupId>org.junit.vintage</groupId>
 			<artifactId>junit-vintage-engine</artifactId>

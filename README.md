@@ -157,7 +157,7 @@ If the response object's `contentType` is not explicitly set, the `@Produces` an
 For methods that should return a `String` or `ByteBuffer` to the client users can create responses like this:
  ```java
   ...
-  import  static io.sinistral.proteus.server.ServerResponse.response;
+  import  static  io.sinistral.proteus.server.ServerResponse.response;
   ...
 @GET
 @Path("/hello-world")
@@ -173,7 +173,7 @@ By default, passing a `String` to the static `ServerResponse.response` helper fu
 For other types of responses the following demonstrates the preferred style:
 ```java
   ...
-  import  static io.sinistral.proteus.server.ServerResponse.response;
+  import  static  io.sinistral.proteus.server.ServerResponse.response;
   ...
 @GET
 @Path("/world")
@@ -189,7 +189,7 @@ The entity can be set separately as well:
 
 ```java
   ...
-  import  static io.sinistral.proteus.server.ServerResponse.response;
+  import  static  io.sinistral.proteus.server.ServerResponse.response;
   ...
 @GET
 @Path("/world")
@@ -205,7 +205,7 @@ public ServerResponse getWorld(Integer id,  Integer randomNumber )
 
 ```java
   ...
-  import  static io.sinistral.proteus.server.ServerResponse.response;
+  import  static  io.sinistral.proteus.server.ServerResponse.response;
   ...
 @GET
 @Path("/future/user")
@@ -220,7 +220,7 @@ In this case a handler will be generated with the following source code:
 
 ```java
   ...
-  import  static io.sinistral.proteus.server.ServerResponse.response;
+  import  static  io.sinistral.proteus.server.ServerResponse.response;
   ...
 public void handleRequest(final io.undertow.server.HttpServerExchange exchange) throws java.lang.Exception { 
     CompletableFuture<ServerResponse<User>> response = examplesController.futureUser();
@@ -243,7 +243,7 @@ Multipart/Form file uploads can be passed to the endpoint methods as a ```java.i
 Optional parameters are also supported, here is a more complex endpoint demonstrating several parameter types:
 ```java
   ...
-  import  static io.sinistral.proteus.server.ServerResponse.response;
+  import  static  io.sinistral.proteus.server.ServerResponse.response;
   ...
 @GET
 @Path("/response/parameters/complex/{pathLong}")

@@ -281,6 +281,27 @@ public class TestControllerEndpoints
 		given().when().redirects().follow(false).get("tests/redirect/permanent").then().statusCode(301);
 	}
 
+	@Test
+	public void pathParam()
+	{
+		given().accept(ContentType.TEXT).when().get("tests/response/params/path/foobar").then().statusCode(200).and().body(containsString("foobar"));
+
+	}
+
+//	@Test
+//	public void regexPathParam()
+//	{
+//		given().accept(ContentType.TEXT).when().get("tests/response/params/regexpath/fooBar").then().statusCode(200).and().body(containsString("fooBar"));
+//
+//	}
+//
+//	@Test
+//	public void invalidRegexPathParam()
+//	{
+//		given().accept(ContentType.TEXT).when().get("tests/response/params/regexpath/fooBar101").then().statusCode(400);
+//
+//	}
+
  	@Test
 	public void responseUploadFilePathParameter()
 	{

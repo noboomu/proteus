@@ -37,6 +37,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import io.sinistral.proteus.annotations.Blocking;
+import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.swagger.test.models.User;
@@ -334,7 +335,21 @@ public class Tests
 		 
 
 	}
-	
+
+
+
+
+
+
+	@GET
+	@Path("response/params/path/{param}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public ServerResponse<ByteBuffer> pathParamEndpoint(ServerRequest request, @PathParam("param") String param) {
+
+		return response(param).textPlain();
+	}
+
+
 	@GET
 	@Path("response/debug")
 	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request) 

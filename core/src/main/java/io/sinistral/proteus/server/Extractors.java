@@ -3,6 +3,19 @@
  */
 package io.sinistral.proteus.server;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.inject.Inject;
+import io.sinistral.proteus.server.predicates.ServerPredicates;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.form.FormDataParser;
+import io.undertow.util.HttpString;
+import io.undertow.util.Methods;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -19,21 +32,6 @@ import java.util.Deque;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.inject.Inject;
-
-import io.sinistral.proteus.server.predicates.ServerPredicates;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.server.handlers.form.FormDataParser;
-import io.undertow.util.HttpString;
-import io.undertow.util.Methods;
-
 /**
  * @author jbauer
  */
@@ -41,22 +39,20 @@ public class Extractors
 {
 	private static Logger log = LoggerFactory.getLogger(Extractors.class.getCanonicalName());
 
-    @Inject
+	@Inject
 	public static XmlMapper XML_MAPPER;
     
-    @Inject
+  @Inject
 	public static ObjectMapper OBJECT_MAPPER;
-    
-    public static JsonNode  parseJson(byte[] bytes)  {
-    	try
-		{
-			return OBJECT_MAPPER.readTree(bytes);
-		} catch (Exception e)
-		{
-			log.error(e.getMessage(),e);
-			return null;
-		}
-    };
+
+  public static JsonNode parseJson(byte[] bytes) {
+    try {
+      return OBJECT_MAPPER.readTree(bytes);
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      return null;
+    }
+  }
 	
 	public static class Optional
 	{

@@ -36,14 +36,9 @@ import io.undertow.util.Headers;
  */
 public class ServerRequest
 {
-    protected static final Receiver.ErrorCallback ERROR_CALLBACK = new Receiver.ErrorCallback()
-    {
-        @Override
-        public void error(HttpServerExchange exchange, IOException e)
-        {
-            exchange.putAttachment(DefaultResponseListener.EXCEPTION, e);
-            exchange.endExchange();
-        }
+    protected static final Receiver.ErrorCallback ERROR_CALLBACK = (exchange, e) -> {
+        exchange.putAttachment(DefaultResponseListener.EXCEPTION, e);
+        exchange.endExchange();
     };
     
     public static final AttachmentKey<ByteBuffer> BYTE_BUFFER_KEY = AttachmentKey.create(ByteBuffer.class);
@@ -109,16 +104,11 @@ public class ServerRequest
 
     private void extractBytes() throws IOException
     {
-        this.exchange.getRequestReceiver().receiveFullBytes(new Receiver.FullBytesCallback()
-                                       {
-                                           @Override
-                                           public void handle(HttpServerExchange exchange, byte[] message)
-                                           {
-                                               ByteBuffer buffer = ByteBuffer.wrap(message);
+        this.exchange.getRequestReceiver().receiveFullBytes((exchange, message) -> {
+            ByteBuffer buffer = ByteBuffer.wrap(message);
 
-                                               exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
-                                           }
-                                       },ERROR_CALLBACK);
+            exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
+        },ERROR_CALLBACK);
     }
 
     private void extractFormParameters(final FormData formData)

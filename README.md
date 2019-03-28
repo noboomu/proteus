@@ -1,7 +1,7 @@
 
-![Alt logo](https://raw.githubusercontent.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/server/tools/swagger/proteus-logo.svg?sanitize=true)
+![Alt logo](https://raw.githubusercontent.com/noboomu/proteus/master/core/src/main/resources/io/sinistral/proteus/proteus-logo.svg?sanitize=true)
 
-An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing RESTful web applications and microservices.
+An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing RESTful web applications and microservices
 
 - __NO MAGIC__
 - Incredibly easy to use and get started
@@ -9,7 +9,7 @@ An extremely __lightweight, flexible, and high performance__ [Undertow](http://u
 - JAX-RS compliant
 - Easy on the developer and the metal
 - Blazing fast!!!
-[The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate __proteus__ outperforming 99% of all other web frameworks. 
+[The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate __proteus__ outperforming 99% of all other web frameworks
 
 ![Top 5 in Java Frameworks for Fortunes](https://github.com/noboomu/proteus-example/blob/master/src/main/resources/images/benchmark1.png?raw=true)
 

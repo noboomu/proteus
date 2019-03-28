@@ -1,25 +1,22 @@
 package io.sinistral.proteus.services;
 
-import java.nio.file.Paths;
-
-import java.util.Set;
-import java.util.function.Supplier;
-
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-
 import com.typesafe.config.Config;
-
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-
 import io.undertow.predicate.TruePredicate;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.Methods;
 
+import java.nio.file.Paths;
+import java.util.Set;
+import java.util.function.Supplier;
+
 /**
  * A service for serving static assets from a directory.
+ *
  * @author jbauer
  */
 public class AssetsService extends BaseService implements Supplier<RoutingHandler>
@@ -56,19 +53,19 @@ public class AssetsService extends BaseService implements Supplier<RoutingHandle
         final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile());
 
         router.add(Methods.GET,
-                   assetsPath + "/*",
-                   io.undertow.Handlers.rewrite("regex('" + assetsPath + "/(.*)')",
-                                                "/$1",
-                                                getClass().getClassLoader(),
-                                                new ResourceHandler(fileResourceManager).setCachable(TruePredicate.instance()).setCacheTime(assetsCacheTime)));
-        
+                assetsPath + "/*",
+                io.undertow.Handlers.rewrite("regex('" + assetsPath + "/(.*)')",
+                        "/$1",
+                        getClass().getClassLoader(),
+                        new ResourceHandler(fileResourceManager).setCachable(TruePredicate.instance()).setCacheTime(assetsCacheTime)));
+
         this.registeredEndpoints.add(EndpointInfo.builder()
-                                                 .withConsumes("*/*")
-                                                 .withProduces("*/*")
-                                                 .withPathTemplate(assetsPath)
-                                                 .withControllerName(this.getClass().getSimpleName())
-                                                 .withMethod(Methods.GET)
-                                                 .build());
+                .withConsumes("*/*")
+                .withProduces("*/*")
+                .withPathTemplate(assetsPath)
+                .withControllerName(this.getClass().getSimpleName())
+                .withMethod(Methods.GET)
+                .build());
 
         return router;
     }

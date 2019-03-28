@@ -1,36 +1,29 @@
-
 /**
  *
  */
 package io.sinistral.proteus.server.handlers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import io.sinistral.proteus.server.predicates.ServerPredicates;
+import io.undertow.server.DefaultResponseListener;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.util.Headers;
+import io.undertow.util.StatusCodes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.core.MediaType;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MediaType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import io.sinistral.proteus.server.predicates.ServerPredicates;
-
-import io.undertow.server.DefaultResponseListener;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.util.Headers;
-import io.undertow.util.StatusCodes;
 
 /**
  * @author jbauer
@@ -40,31 +33,28 @@ import io.undertow.util.StatusCodes;
 public class ServerDefaultResponseListener implements DefaultResponseListener
 {
     private static Logger log = LoggerFactory.getLogger(ServerDefaultResponseListener.class.getCanonicalName());
-    
+
     @Inject
     protected XmlMapper xmlMapper;
-    
+
     @Inject
     protected ObjectMapper objectMapper;
 
     @Override
     public boolean handleDefaultResponse(HttpServerExchange exchange)
     {
-        if (!exchange.isResponseChannelAvailable())
-        {
+        if (!exchange.isResponseChannelAvailable()) {
             return false;
         }
 
         final int statusCode = exchange.getStatusCode();
 
-        if (statusCode >= 400)
-        {
+        if (statusCode >= 400) {
             final Map<String, String> errorMap = new HashMap<>();
             final String path = exchange.getRelativePath();
             Throwable throwable = exchange.getAttachment(DefaultResponseListener.EXCEPTION);
 
-            if (throwable == null)
-            {
+            if (throwable == null) {
                 final String reason = StatusCodes.getReason(statusCode);
 
                 throwable = new Exception(reason);
@@ -74,13 +64,11 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
             errorMap.put("message", throwable.getMessage());
             errorMap.put("path", path);
             errorMap.put("code", Integer.toString(statusCode));
-            
+
             log.error("\n\tmessage: " + throwable.getMessage() + "\n\tpath: " + path, throwable);
 
-            if (throwable.getStackTrace() != null)
-            {
-                if (throwable.getStackTrace().length > 0)
-                {
+            if (throwable.getStackTrace() != null) {
+                if (throwable.getStackTrace().length > 0) {
                     errorMap.put("className", throwable.getStackTrace()[0].getClassName());
                 }
 
@@ -98,13 +86,11 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
                 }
             }
 
-            if (throwable instanceof IllegalArgumentException)
-            {
+            if (throwable instanceof IllegalArgumentException) {
                 exchange.setStatusCode(StatusCodes.BAD_REQUEST);
             }
 
-            if (ServerPredicates.ACCEPT_XML_EXCLUSIVE_PREDICATE.resolve(exchange))
-            {
+            if (ServerPredicates.ACCEPT_XML_EXCLUSIVE_PREDICATE.resolve(exchange)) {
                 try {
 
                     final String xmlBody = xmlMapper.writeValueAsString(errorMap);
@@ -116,9 +102,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
                 } catch (JsonProcessingException e) {
                     log.warn("Unable to create XML from error...");
                 }
-            }
-            else
-            {
+            } else {
                 String jsonBody;
 
                 try {

@@ -1,20 +1,18 @@
-
 /**
  *
  */
 package io.sinistral.proteus.server.security;
 
-import java.security.Principal;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
 import io.undertow.security.idm.Account;
 import io.undertow.security.idm.Credential;
 import io.undertow.security.idm.IdentityManager;
 import io.undertow.security.idm.PasswordCredential;
+
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author jbauer
@@ -47,8 +45,7 @@ public class MapIdentityManager implements IdentityManager
     {
         Account account = getAccount(id);
 
-        if ((account != null) && verifyCredential(account, credential))
-        {
+        if ((account != null) && verifyCredential(account, credential)) {
             return account;
         }
 
@@ -57,8 +54,7 @@ public class MapIdentityManager implements IdentityManager
 
     private boolean verifyCredential(Account account, Credential credential)
     {
-        if (credential instanceof PasswordCredential)
-        {
+        if (credential instanceof PasswordCredential) {
             char[] password = ((PasswordCredential) credential).getPassword();
             char[] expectedPassword = identities.get(account.getPrincipal().getName());
 
@@ -70,8 +66,7 @@ public class MapIdentityManager implements IdentityManager
 
     private Account getAccount(final String id)
     {
-        if (identities.containsKey(id))
-        {
+        if (identities.containsKey(id)) {
             return new UserAccount(id);
         }
 

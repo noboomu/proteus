@@ -1,4 +1,3 @@
-
 /**
  *
  */
@@ -6,12 +5,8 @@ package io.sinistral.proteus.server.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-
 import io.sinistral.proteus.server.predicates.ServerPredicates;
-
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
@@ -37,26 +32,19 @@ public class ServerFallbackHandler implements HttpHandler
         final String responseBody;
         final String reason = StatusCodes.getReason(statusCode);
 
-        if (ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange))
-        {
+        if (ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange)) {
             responseBody = objectMapper.writeValueAsString(new Message(statusCode, reason));
 
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.APPLICATION_JSON);
-        }
-        else if (ServerPredicates.ACCEPT_XML_PREDICATE.resolve(exchange))
-        {
+        } else if (ServerPredicates.ACCEPT_XML_PREDICATE.resolve(exchange)) {
             responseBody = xmlMapper.writeValueAsString(new Message(statusCode, reason));
 
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.APPLICATION_XML);
-        }
-        else if (ServerPredicates.ACCEPT_HTML_PREDICATE.resolve(exchange))
-        {
+        } else if (ServerPredicates.ACCEPT_HTML_PREDICATE.resolve(exchange)) {
             responseBody = "<html><head><title>Error</title></head><body>" + statusCode + " - " + reason + "</body></html>";
 
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.TEXT_HTML);
-        }
-        else
-        {
+        } else {
             responseBody = statusCode + " - " + reason;
 
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.TEXT_PLAIN);

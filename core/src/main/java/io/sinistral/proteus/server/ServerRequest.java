@@ -1,22 +1,9 @@
-
 /**
  *
  */
 package io.sinistral.proteus.server;
 
-import java.io.File;
-import java.io.IOException;
-
-import java.net.InetSocketAddress;
-
-import java.nio.ByteBuffer;
-
-import java.util.Deque;
-import java.util.Map;
-import java.util.concurrent.Executor;
-
 import io.sinistral.proteus.server.predicates.ServerPredicates;
-
 import io.undertow.io.Receiver;
 import io.undertow.security.api.SecurityContext;
 import io.undertow.server.DefaultResponseListener;
@@ -29,6 +16,14 @@ import io.undertow.util.AttachmentKey;
 import io.undertow.util.FastConcurrentDirectDeque;
 import io.undertow.util.Headers;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.Deque;
+import java.util.Map;
+import java.util.concurrent.Executor;
+
 /**
  *
  * @author jbauer
@@ -40,12 +35,12 @@ public class ServerRequest
         exchange.putAttachment(DefaultResponseListener.EXCEPTION, e);
         exchange.endExchange();
     };
-    
+
     public static final AttachmentKey<ByteBuffer> BYTE_BUFFER_KEY = AttachmentKey.create(ByteBuffer.class);
-    
+
     protected static final String CHARSET = "UTF-8";
     protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
-    
+
     public final HttpServerExchange exchange;
     protected final String path;
     protected FormData form;
@@ -70,18 +65,12 @@ public class ServerRequest
         this.contentType = exchange.getRequestHeaders().getFirst(Headers.CONTENT_TYPE);
         this.accept = exchange.getRequestHeaders().getFirst(Headers.ACCEPT);
 
-        if (this.contentType != null)
-        {
-            if (ServerPredicates.URL_ENCODED_FORM_PREDICATE.resolve(exchange))
-            {
+        if (this.contentType != null) {
+            if (ServerPredicates.URL_ENCODED_FORM_PREDICATE.resolve(exchange)) {
                 this.parseEncodedForm();
-            }
-            else if (ServerPredicates.MULTIPART_PREDICATE.resolve(exchange))
-            {
+            } else if (ServerPredicates.MULTIPART_PREDICATE.resolve(exchange)) {
                 this.parseMultipartForm();
-            }
-            else if (exchange.getRequestContentLength() > 0)
-            {
+            } else if (exchange.getRequestContentLength() > 0) {
                 this.extractBytes();
             }
         }
@@ -108,20 +97,18 @@ public class ServerRequest
             ByteBuffer buffer = ByteBuffer.wrap(message);
 
             exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
-        },ERROR_CALLBACK);
+        }, ERROR_CALLBACK);
     }
 
     private void extractFormParameters(final FormData formData)
     {
-        if (formData != null)
-        {
-            for (String key : formData)
-            {
+        if (formData != null) {
+            for (String key : formData) {
                 final Deque<FormData.FormValue> formValues = formData.get(key);
                 final Deque<String> values = formValues.stream()
-                                                       .filter(fv -> !fv.isFileItem())
-                                                       .map(FormData.FormValue::getValue)
-                                                       .collect(java.util.stream.Collectors.toCollection(FastConcurrentDirectDeque::new));
+                        .filter(fv -> !fv.isFileItem())
+                        .map(FormData.FormValue::getValue)
+                        .collect(java.util.stream.Collectors.toCollection(FastConcurrentDirectDeque::new));
 
                 exchange.getQueryParameters().put(key, values);
             }
@@ -130,8 +117,7 @@ public class ServerRequest
 
     public Deque<FormData.FormValue> files(final String name)
     {
-        if (this.form != null)
-        {
+        if (this.form != null) {
             return form.get(name);
         }
 
@@ -150,7 +136,7 @@ public class ServerRequest
         final FormData formData = new FormEncodedDataDefinition().setDefaultEncoding(this.exchange.getRequestCharset()).create(exchange).parseBlocking();
 
         this.exchange.putAttachment(FormDataParser.FORM_DATA, formData);
-        
+
         extractFormParameters(formData);
     }
 
@@ -160,12 +146,11 @@ public class ServerRequest
 
         final FormDataParser formDataParser = new MultiPartParserDefinition().setTempFileLocation(new File(TMP_DIR).toPath()).setDefaultEncoding(CHARSET).create(this.exchange);
 
-        if (formDataParser != null)
-        {
+        if (formDataParser != null) {
             final FormData formData = formDataParser.parseBlocking();
 
             this.exchange.putAttachment(FormDataParser.FORM_DATA, formData);
-            
+
             extractFormParameters(formData);
         }
     }
@@ -236,45 +221,45 @@ public class ServerRequest
         return exchange.getSecurityContext();
     }
 
-	/**
-	 * @return the exchange
-	 */
-	public HttpServerExchange getExchange()
-	{
-		return exchange;
-	}
+    /**
+     * @return the exchange
+     */
+    public HttpServerExchange getExchange()
+    {
+        return exchange;
+    }
 
-	/**
-	 * @return the path
-	 */
-	public String getPath()
-	{
-		return path;
-	}
+    /**
+     * @return the path
+     */
+    public String getPath()
+    {
+        return path;
+    }
 
-	/**
-	 * @return the contentType
-	 */
-	public String getContentType()
-	{
-		return contentType;
-	}
+    /**
+     * @return the contentType
+     */
+    public String getContentType()
+    {
+        return contentType;
+    }
 
-	/**
-	 * @return the method
-	 */
-	public String getMethod()
-	{
-		return method;
-	}
+    /**
+     * @return the method
+     */
+    public String getMethod()
+    {
+        return method;
+    }
 
-	/**
-	 * @return the accept
-	 */
-	public String getAccept()
-	{
-		return accept;
-	}
+    /**
+     * @return the accept
+     */
+    public String getAccept()
+    {
+        return accept;
+    }
 }
 
 

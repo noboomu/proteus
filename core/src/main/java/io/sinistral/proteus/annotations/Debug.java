@@ -1,4 +1,3 @@
-
 /**
  *
  */
@@ -15,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Indicates that this route should use a RequestDumpingHandler
  */
 @Retention(RUNTIME)
-@Target({ TYPE, METHOD })
+@Target({TYPE, METHOD})
 public @interface Debug
 {
     boolean value() default true;

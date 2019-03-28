@@ -1,13 +1,7 @@
-
 /**
  *
  */
 package io.sinistral.proteus.server.handlers;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.undertow.Handlers;
 import io.undertow.predicate.Predicate;
@@ -15,13 +9,12 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.ResponseCodeHandler;
 import io.undertow.server.handlers.cache.LRUCache;
-import io.undertow.util.CopyOnWriteMap;
-import io.undertow.util.HttpString;
-import io.undertow.util.Methods;
-import io.undertow.util.PathMatcher;
-import io.undertow.util.PathTemplate;
-import io.undertow.util.PathTemplateMatch;
-import io.undertow.util.PathTemplateMatcher;
+import io.undertow.util.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author jbauer
@@ -61,12 +54,9 @@ public class ProteusHandler implements HttpHandler
 
     public ProteusHandler(int cacheSize)
     {
-        if (cacheSize > 0)
-        {
+        if (cacheSize > 0) {
             cache = new LRUCache<>(cacheSize, -1, true);
-        }
-        else
-        {
+        } else {
             cache = null;
         }
     }
@@ -82,20 +72,17 @@ public class ProteusHandler implements HttpHandler
     {
         PathTemplateMatcher<RoutingMatch> matcher = matches.get(method);
 
-        if (matcher == null)
-        {
+        if (matcher == null) {
             matches.put(method, matcher = new PathTemplateMatcher<>());
         }
 
         RoutingMatch res = matcher.get(template);
 
-        if (res == null)
-        {
+        if (res == null) {
             matcher.add(template, res = new RoutingMatch());
         }
 
-        if (allMethodsMatcher.get(template) == null)
-        {
+        if (allMethodsMatcher.get(template) == null) {
             allMethodsMatcher.add(template, res);
         }
 
@@ -113,20 +100,17 @@ public class ProteusHandler implements HttpHandler
     {
         PathTemplateMatcher<RoutingMatch> matcher = matches.get(method);
 
-        if (matcher == null)
-        {
+        if (matcher == null) {
             matches.put(method, matcher = new PathTemplateMatcher<>());
         }
 
         RoutingMatch res = matcher.get(template);
 
-        if (res == null)
-        {
+        if (res == null) {
             matcher.add(template, res = new RoutingMatch());
         }
 
-        if (allMethodsMatcher.get(template) == null)
-        {
+        if (allMethodsMatcher.get(template) == null) {
             allMethodsMatcher.add(template, res);
         }
 
@@ -142,13 +126,11 @@ public class ProteusHandler implements HttpHandler
 
     public synchronized ProteusHandler addAll(ProteusHandler routingHandler)
     {
-        for (Entry<HttpString, PathTemplateMatcher<RoutingMatch>> entry : routingHandler.getMatches().entrySet())
-        {
+        for (Entry<HttpString, PathTemplateMatcher<RoutingMatch>> entry : routingHandler.getMatches().entrySet()) {
             HttpString method = entry.getKey();
             PathTemplateMatcher<RoutingMatch> matcher = matches.get(method);
 
-            if (matcher == null)
-            {
+            if (matcher == null) {
                 matches.put(method, matcher = new PathTemplateMatcher<>());
             }
 
@@ -156,10 +138,8 @@ public class ProteusHandler implements HttpHandler
 
             // If we use allMethodsMatcher.addAll() we can have duplicate
             // PathTemplates which we want to ignore here so it does not crash.
-            for (PathTemplate template : entry.getValue().getPathTemplates())
-            {
-                if (allMethodsMatcher.get(template.getTemplateString()) == null)
-                {
+            for (PathTemplate template : entry.getValue().getPathTemplates()) {
+                if (allMethodsMatcher.get(template.getTemplateString()) == null) {
                     allMethodsMatcher.add(template, new RoutingMatch());
                 }
             }
@@ -227,8 +207,7 @@ public class ProteusHandler implements HttpHandler
     private void handleNoMatch(final HttpServerExchange exchange) throws Exception
     {
         // if invalidMethodHandler is null we fail fast without matching with allMethodsMatcher
-        if ((invalidMethodHandler != null) && (allMethodsMatcher.match(exchange.getRelativePath()) != null))
-        {
+        if ((invalidMethodHandler != null) && (allMethodsMatcher.match(exchange.getRelativePath()) != null)) {
             invalidMethodHandler.handleRequest(exchange);
 
             return;
@@ -243,38 +222,31 @@ public class ProteusHandler implements HttpHandler
         PathMatcher.PathMatch<HttpHandler> match = null;
         boolean hit = false;
 
-        if (cache != null)
-        {
+        if (cache != null) {
             match = cache.get(exchange.getRelativePath());
             hit = true;
         }
 
-        if (match == null)
-        {
+        if (match == null) {
             match = pathMatcher.match(exchange.getRelativePath());
         }
 
-        if (match.getValue() == null)
-        {
+        if (match.getValue() == null) {
             handleRouterRequest(exchange);
 
             return;
         }
 
-        if (hit)
-        {
+        if (hit) {
             cache.add(exchange.getRelativePath(), match);
         }
 
         exchange.setRelativePath(match.getRemaining());
 
-        if (exchange.getResolvedPath().isEmpty())
-        {
+        if (exchange.getResolvedPath().isEmpty()) {
             // first path handler, we can just use the matched part
             exchange.setResolvedPath(match.getMatched());
-        }
-        else
-        {
+        } else {
             // already something in the resolved path
 
             String sb = exchange.getResolvedPath() +
@@ -289,8 +261,7 @@ public class ProteusHandler implements HttpHandler
     {
         PathTemplateMatcher<RoutingMatch> matcher = matches.get(exchange.getRequestMethod());
 
-        if (matcher == null)
-        {
+        if (matcher == null) {
             handleNoMatch(exchange);
 
             return;
@@ -298,8 +269,7 @@ public class ProteusHandler implements HttpHandler
 
         PathTemplateMatcher.PathMatchResult<RoutingMatch> match = matcher.match(exchange.getRelativePath());
 
-        if (match == null)
-        {
+        if (match == null) {
             handleNoMatch(exchange);
 
             return;
@@ -307,27 +277,21 @@ public class ProteusHandler implements HttpHandler
 
         exchange.putAttachment(PathTemplateMatch.ATTACHMENT_KEY, match);
 
-        for (Entry<String, String> entry : match.getParameters().entrySet())
-        {
+        for (Entry<String, String> entry : match.getParameters().entrySet()) {
             exchange.addQueryParam(entry.getKey(), entry.getValue());
         }
 
-        for (HandlerHolder handler : match.getValue().predicatedHandlers)
-        {
-            if (handler.predicate.resolve(exchange))
-            {
+        for (HandlerHolder handler : match.getValue().predicatedHandlers) {
+            if (handler.predicate.resolve(exchange)) {
                 handler.handler.handleRequest(exchange);
 
                 return;
             }
         }
 
-        if (match.getValue().defaultHandler != null)
-        {
+        if (match.getValue().defaultHandler != null) {
             match.getValue().defaultHandler.handleRequest(exchange);
-        }
-        else
-        {
+        } else {
             fallbackHandler.handleRequest(exchange);
         }
     }
@@ -378,8 +342,7 @@ public class ProteusHandler implements HttpHandler
     {
         PathTemplateMatcher<RoutingMatch> handler = matches.get(method);
 
-        if (handler != null)
-        {
+        if (handler != null) {
             handler.remove(path);
         }
 

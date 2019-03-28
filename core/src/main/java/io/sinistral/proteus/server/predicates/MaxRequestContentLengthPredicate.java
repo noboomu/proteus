@@ -1,17 +1,16 @@
-
 /**
  *
  */
 package io.sinistral.proteus.server.predicates;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
 import io.undertow.predicate.Predicate;
 import io.undertow.predicate.PredicateBuilder;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author jbauer
@@ -31,8 +30,7 @@ public class MaxRequestContentLengthPredicate implements Predicate
     {
         final String length = value.getRequestHeaders().getFirst(Headers.CONTENT_LENGTH);
 
-        if (length == null)
-        {
+        if (length == null) {
             return false;
         }
 

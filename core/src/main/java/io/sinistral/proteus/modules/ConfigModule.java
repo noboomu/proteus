@@ -1,20 +1,7 @@
-
 /**
  *
  */
 package io.sinistral.proteus.modules;
-
-import java.io.File;
-
-import java.lang.reflect.Type;
-
-import java.net.URL;
-
-import java.util.List;
-import java.util.Map.Entry;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
@@ -23,11 +10,18 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Types;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.lang.reflect.Type;
+import java.net.URL;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Much of this is taken with reverence from Jooby
@@ -38,7 +32,7 @@ import com.typesafe.config.ConfigValue;
 public class ConfigModule extends AbstractModule
 {
     private static Logger log = LoggerFactory.getLogger(ConfigModule.class.getCanonicalName());
-    
+
     protected String configFile = null;
     protected URL configURL = null;
     protected Config config = null;
@@ -47,8 +41,7 @@ public class ConfigModule extends AbstractModule
     {
         this.configFile = System.getProperty("config.file");
 
-        if (this.configFile == null)
-        {
+        if (this.configFile == null) {
             this.configFile = "application.conf";
         }
     }
@@ -68,24 +61,20 @@ public class ConfigModule extends AbstractModule
     {
         traverse(this.binder(), "", config.root());
 
-        for (Entry<String, ConfigValue> entry : config.entrySet())
-        {
+        for (Entry<String, ConfigValue> entry : config.entrySet()) {
             String name = entry.getKey();
             Named named = Names.named(name);
             Object value = entry.getValue().unwrapped();
 
-            if (value instanceof List)
-            {
+            if (value instanceof List) {
                 List<Object> values = (List<Object>) value;
                 Type listType = (values.size() == 0)
-                                ? String.class
-                                : Types.listOf(values.iterator().next().getClass());
+                        ? String.class
+                        : Types.listOf(values.iterator().next().getClass());
                 Key<Object> key = (Key<Object>) Key.get(listType, Names.named(name));
 
                 this.binder().bind(key).toInstance(values);
-            }
-            else
-            {
+            } else {
                 this.binder().bindConstant().annotatedWith(named).to(value.toString());
             }
         }
@@ -95,7 +84,7 @@ public class ConfigModule extends AbstractModule
         this.config = ConfigFactory.load(config).withFallback(referenceConfig);
 
         log.debug(this.config.toString());
-        
+
         this.binder().bind(Config.class).toInstance(config);
     }
 
@@ -107,17 +96,14 @@ public class ConfigModule extends AbstractModule
 
         config = ConfigFactory.load(config).withFallback(referenceConfig);
 
-        if (configURL != null)
-        {
+        if (configURL != null) {
             config = ConfigFactory.load(ConfigFactory.parseURL(configURL)).withFallback(config);
-        }
-        else if (configFile != null)
-        {
+        } else if (configFile != null) {
             config = fileConfig(configFile).withFallback(config);
         }
 
         this.bindConfig(config);
-        
+
         install(new ApplicationModule(this.config));
     }
 
@@ -126,16 +112,12 @@ public class ConfigModule extends AbstractModule
         File userDirectory = new File(System.getProperty("user.dir"));
         File fileRoot = new File(userDirectory, fileName);
 
-        if (fileRoot.exists())
-        {
+        if (fileRoot.exists()) {
             return ConfigFactory.load(ConfigFactory.parseFile(fileRoot));
-        }
-        else
-        {
+        } else {
             File fileConfig = new File(new File(userDirectory, "conf"), fileName);
 
-            if (fileConfig.exists())
-            {
+            if (fileConfig.exists()) {
                 return ConfigFactory.load(ConfigFactory.parseFile(fileConfig));
             }
         }
@@ -146,25 +128,24 @@ public class ConfigModule extends AbstractModule
     private static void traverse(final Binder binder, final String nextPath, final ConfigObject rootConfig)
     {
         rootConfig.forEach(
-            (key, value) -> {
-                if (value instanceof ConfigObject)
-                {
-                    try {
+                (key, value) -> {
+                    if (value instanceof ConfigObject) {
+                        try {
 
-                        ConfigObject child = (ConfigObject) value;
-                        String path = nextPath + key;
-                        
-                        Named named = Names.named(path);
+                            ConfigObject child = (ConfigObject) value;
+                            String path = nextPath + key;
 
-                        binder.bind(Config.class).annotatedWith(named).toInstance(child.toConfig());
-                        
-                        traverse(binder, path + ".", child);
+                            Named named = Names.named(path);
 
-                    } catch (Exception e) {
-                        log.error("Error binding " + value, e);
+                            binder.bind(Config.class).annotatedWith(named).toInstance(child.toConfig());
+
+                            traverse(binder, path + ".", child);
+
+                        } catch (Exception e) {
+                            log.error("Error binding " + value, e);
+                        }
                     }
-                }
-            } );
+                });
     }
 }
 

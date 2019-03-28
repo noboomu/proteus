@@ -1,4 +1,3 @@
-
 /**
  *
  */
@@ -16,7 +15,7 @@ public class ServerException extends Exception
      *
      */
     private static final long serialVersionUID = 8360356916374374408L;
-    
+
     private Integer status = 500;
 
     public ServerException(int status)

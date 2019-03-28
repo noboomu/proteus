@@ -51,14 +51,16 @@ import java.util.stream.Stream;
  * annotation (i.e. <code>javax.ws.rs.GET</code>)
  * @author jbauer
  */
-public class HandlerGenerator {
+public class HandlerGenerator
+{
 
     static Logger log = LoggerFactory.getLogger(HandlerGenerator.class.getCanonicalName());
 
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
 
-    public enum StatementParameterType {
+    public enum StatementParameterType
+    {
         STRING, LITERAL, TYPE, RAW
     }
 
@@ -94,7 +96,8 @@ public class HandlerGenerator {
      * @param controllerClass
      *            the class handlers will be generated from this class
      */
-    public HandlerGenerator(String packageName, Class<?> controllerClass) {
+    public HandlerGenerator(String packageName, Class<?> controllerClass)
+    {
         this.packageName = packageName;
         this.controllerClass = controllerClass;
         this.className = controllerClass.getSimpleName() + "RouteSupplier";
@@ -104,7 +107,8 @@ public class HandlerGenerator {
      * Compiles the generated source into a new {@link Class}
      * @return a new {@code Supplier<RoutingHandler>} class
      */
-    public Class<? extends Supplier<RoutingHandler>> compileClass() {
+    public Class<? extends Supplier<RoutingHandler>> compileClass()
+    {
         try {
             this.generateRoutes();
 
@@ -121,7 +125,8 @@ public class HandlerGenerator {
     /**
      * Generates the routing Java source code
      */
-    protected void generateRoutes() {
+    protected void generateRoutes()
+    {
         try {
 
 //			Optional<io.sinistral.proteus.annotations.Chain> typeLevelWrapAnnotation = Optional.ofNullable(controllerClass.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
@@ -218,7 +223,8 @@ public class HandlerGenerator {
         }
     }
 
-    protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz)  {
+    protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz)
+    {
         ClassName httpHandlerClass = ClassName.get("io.undertow.server", "HttpHandler");
 
         String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
@@ -260,7 +266,8 @@ public class HandlerGenerator {
                         if (handler.equals(TypeHandler.BeanListValueOfType)
                                 || handler.equals(TypeHandler.BeanListFromStringType)
                                 || handler.equals(TypeHandler.OptionalBeanListValueOfType)
-                                || handler.equals(TypeHandler.OptionalBeanListFromStringType)) {
+                                || handler.equals(TypeHandler.OptionalBeanListFromStringType))
+                        {
                             parameterizedLiteralsNameMap.put(p.getParameterizedType(), HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
                         }
                     }
@@ -467,7 +474,8 @@ public class HandlerGenerator {
 
             //The handler for these two inputs types is blocking, so we set the flag
             if (endpointInfo.getConsumes().contains(FormEncodedDataDefinition.APPLICATION_X_WWW_FORM_URLENCODED)
-                    || endpointInfo.getConsumes().contains(MultiPartParserDefinition.MULTIPART_FORM_DATA)) {
+                    || endpointInfo.getConsumes().contains(MultiPartParserDefinition.MULTIPART_FORM_DATA))
+            {
                 isBlocking = true;
             }
 
@@ -482,7 +490,7 @@ public class HandlerGenerator {
 
             TypeSpec.Builder handlerClassBuilder = TypeSpec.anonymousClassBuilder("").addSuperinterface(httpHandlerClass);
 
-             /**
+            /**
              * @TODO
              * Rewrite with lambdas or method references.
              *
@@ -504,7 +512,8 @@ public class HandlerGenerator {
 
                 if (p.getParameterizedType().equals(ServerRequest.class)
                         || p.getParameterizedType().equals(HttpServerExchange.class)
-                        || p.getParameterizedType().equals(HttpHandler.class)) {
+                        || p.getParameterizedType().equals(HttpHandler.class))
+                {
                     continue;
                 }
 
@@ -631,7 +640,8 @@ public class HandlerGenerator {
                             } else if (t.equals(TypeHandler.QueryOptionalListFromStringType)
                                     || t.equals(TypeHandler.QueryOptionalListValueOfType)
                                     || t.equals(TypeHandler.QueryOptionalSetValueOfType)
-                                    || t.equals(TypeHandler.QueryOptionalSetFromStringType)) {
+                                    || t.equals(TypeHandler.QueryOptionalSetFromStringType))
+                            {
                                 ParameterizedType pType = (ParameterizedType) type;
 
                                 if (type instanceof ParameterizedType) {
@@ -681,7 +691,8 @@ public class HandlerGenerator {
 
             if (!m.getReturnType().toString().equalsIgnoreCase("void")) {
                 if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
-                        || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture")) {
+                        || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
+                {
                     Type futureType = m.getGenericReturnType();
 
                     functionBlockBuilder.add("$T $L = $L.$L($L);", futureType, "response", controllerName, m.getName(), controllerMethodArgs);
@@ -698,7 +709,8 @@ public class HandlerGenerator {
                     methodBuilder.addStatement("$L.send(this,$L)", "response", "exchange");
 
                 } else if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
-                        || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture")) {
+                        || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
+                {
                     String postProcess = ".";
 
                     if (!producesContentType.contains(",")) {
@@ -742,8 +754,7 @@ public class HandlerGenerator {
             }
 
 
-            if(isBlocking)
-            {
+            if (isBlocking) {
                 methodBuilder.endControlFlow();
 
             }
@@ -772,23 +783,21 @@ public class HandlerGenerator {
 
                 Annotation[] annotations = clazz.getAnnotations();
 
-                Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter( a -> a.getClass().getName().contains("SecurityRequirement") ).findFirst().orElse(null);
+                Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter(a -> a.getClass().getName().contains("SecurityRequirement")).findFirst().orElse(null);
 
                 if (securityRequirementAnnotation != null) {
 
                     if (securityRequirementAnnotation != null) {
 
-                        try
-                        {
+                        try {
                             Field nameField = securityRequirementAnnotation.getClass().getField("name");
 
-                            if(nameField != null) {
+                            if (nameField != null) {
                                 Object securityRequirement = nameField.get(securityRequirementAnnotation);
                                 securityDefinitions.add(securityRequirement.toString());
                             }
 
-                        } catch( Exception e )
-                        {
+                        } catch (Exception e) {
                             log.warn("No name field on security requirement");
                         }
 
@@ -862,7 +871,8 @@ public class HandlerGenerator {
     /**
      * @return the packageName
      */
-    public String getPackageName() {
+    public String getPackageName()
+    {
         return packageName;
     }
 
@@ -870,14 +880,16 @@ public class HandlerGenerator {
      * @param packageName
      *            the packageName to set
      */
-    public void setPackageName(String packageName) {
+    public void setPackageName(String packageName)
+    {
         this.packageName = packageName;
     }
 
     /**
      * @return the className
      */
-    public String getClassName() {
+    public String getClassName()
+    {
         return className;
     }
 
@@ -885,11 +897,13 @@ public class HandlerGenerator {
      * @param className
      *            the className to set
      */
-    public void setClassName(String className) {
+    public void setClassName(String className)
+    {
         this.className = className;
     }
 
-    protected static ArrayList<String> getClassNamesFromPackage(String packageName) throws Exception {
+    protected static ArrayList<String> getClassNamesFromPackage(String packageName) throws Exception
+    {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         URL packageURL;
         ArrayList<String> names = new ArrayList<>();
@@ -918,7 +932,8 @@ public class HandlerGenerator {
         return names;
     }
 
-    protected static Set<Class<?>> getApiClasses(String basePath, Predicate<String> pathPredicate)   {
+    protected static Set<Class<?>> getApiClasses(String basePath, Predicate<String> pathPredicate)
+    {
 
         Reflections ref = new Reflections(basePath);
         Stream<Class<?>> stream = ref.getTypesAnnotatedWith(Path.class).stream();
@@ -938,7 +953,8 @@ public class HandlerGenerator {
 
     }
 
-    protected static Type extractErasedType(Type type) {
+    protected static Type extractErasedType(Type type)
+    {
         String typeName = type.getTypeName();
 
         Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
@@ -986,7 +1002,8 @@ public class HandlerGenerator {
         return null;
     }
 
-    protected static String typeReferenceNameForParameterizedType(Type type) {
+    protected static String typeReferenceNameForParameterizedType(Type type)
+    {
 
         String typeName = type.getTypeName();
 
@@ -1054,7 +1071,8 @@ public class HandlerGenerator {
         return typeName;
     }
 
-    protected static String typeReferenceNameForType(Type type) {
+    protected static String typeReferenceNameForType(Type type)
+    {
         String typeName = type.getTypeName();
 
         String[] erasedParts = typeName.split("\\.");
@@ -1072,7 +1090,8 @@ public class HandlerGenerator {
         return typeName;
     }
 
-    protected static String generateFieldName(String name) {
+    protected static String generateFieldName(String name)
+    {
         String[] parts = name.split("\\.");
 
         StringBuilder sb = new StringBuilder();
@@ -1090,7 +1109,8 @@ public class HandlerGenerator {
         return sb.toString();
     }
 
-    protected static void generateTypeReference(MethodSpec.Builder builder, Type type, String name) {
+    protected static void generateTypeReference(MethodSpec.Builder builder, Type type, String name)
+    {
 
         builder.addCode(
                 CodeBlock
@@ -1098,17 +1118,20 @@ public class HandlerGenerator {
 
     }
 
-    protected static void generateParameterReference(MethodSpec.Builder builder, Class<?> clazz) {
+    protected static void generateParameterReference(MethodSpec.Builder builder, Class<?> clazz)
+    {
 
         builder.addCode(CodeBlock.of("\n\nType $LType = $T.", clazz, clazz));
 
     }
 
-    protected static boolean hasValueOfMethod(Class<?> clazz) {
+    protected static boolean hasValueOfMethod(Class<?> clazz)
+    {
         return Arrays.stream(clazz.getMethods()).anyMatch(m -> m.getName().equals("valueOf"));
     }
 
-    protected static boolean hasFromStringMethod(Class<?> clazz) {
+    protected static boolean hasFromStringMethod(Class<?> clazz)
+    {
         return Arrays.stream(clazz.getMethods()).anyMatch(m -> m.getName().equals("fromString"));
     }
 

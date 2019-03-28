@@ -1,4 +1,3 @@
-
 /**
  *
  */
@@ -22,8 +21,7 @@ public class TablePrinter
         this.headers = headersIn;
         this.maxLength = new ArrayList<Integer>();
 
-        for (int i = 0; i < headers.size(); i++)
-        {
+        for (int i = 0; i < headers.size(); i++) {
             maxLength.add(headers.get(i).length());
         }
 
@@ -39,15 +37,12 @@ public class TablePrinter
         String padder = "";
         String rowSeperator = "";
 
-        for (int i = 0; i < 4; i++)
-        {
+        for (int i = 0; i < 4; i++) {
             padder += " ";
         }
 
-        for (int i = 0; i < maxLength.size(); i++)
-        {
-            for (int j = 0; j < maxLength.get(i) + (TABLEPADDING * 2); j++)
-            {
+        for (int i = 0; i < maxLength.size(); i++) {
+            for (int j = 0; j < maxLength.get(i) + (TABLEPADDING * 2); j++) {
                 rowSeparatorBuilder.append("-");
             }
         }
@@ -56,13 +51,11 @@ public class TablePrinter
 
         sb.append("\n");
 
-        for (int i = 0; i < headers.size(); i++)
-        {
+        for (int i = 0; i < headers.size(); i++) {
             sb.append(padder);
             sb.append(headers.get(i));
 
-            for (int k = 0; k < (maxLength.get(i) - headers.get(i).length()); k++)
-            {
+            for (int k = 0; k < (maxLength.get(i) - headers.get(i).length()); k++) {
                 sb.append(" ");
             }
 
@@ -73,17 +66,14 @@ public class TablePrinter
         sb.append(rowSeperator);
         sb.append("\n");
 
-        for (int i = 0; i < table.size(); i++)
-        {
+        for (int i = 0; i < table.size(); i++) {
             List<String> tempRow = table.get(i);
 
-            for (int j = 0; j < tempRow.size(); j++)
-            {
+            for (int j = 0; j < tempRow.size(); j++) {
                 sb.append(padder);
                 sb.append(tempRow.get(j));
 
-                for (int k = 0; k < (maxLength.get(j) - tempRow.get(j).length()); k++)
-                {
+                for (int k = 0; k < (maxLength.get(j) - tempRow.get(j).length()); k++) {
                     sb.append(" ");
                 }
 
@@ -104,10 +94,8 @@ public class TablePrinter
 
     private void updateMaxColumnLength(int col)
     {
-        for (int i = 0; i < table.size(); i++)
-        {
-            if (table.get(i).get(col).length() > maxLength.get(col))
-            {
+        for (int i = 0; i < table.size(); i++) {
+            if (table.get(i).get(col).length() > maxLength.get(col)) {
                 maxLength.set(col, table.get(i).get(col).length());
             }
         }
@@ -115,14 +103,11 @@ public class TablePrinter
 
     private void updateMaxLengths()
     {
-        for (int i = 0; i < table.size(); i++)
-        {
+        for (int i = 0; i < table.size(); i++) {
             List<String> temp = table.get(i);
 
-            for (int j = 0; j < temp.size(); j++)
-            {
-                if (temp.get(j).length() > maxLength.get(j))
-                {
+            for (int j = 0; j < temp.size(); j++) {
+                if (temp.get(j).length() > maxLength.get(j)) {
                     maxLength.set(j, temp.get(j).length());
                 }
             }

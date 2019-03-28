@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"  standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="200" height="100" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g>
+        <text x="150" y="52" style="text-anchor: middle; font-size: 22px; font-family: 'Monaco';">proteus</text>
+        <g transform="matrix(1.5,0,0,1.5,0,0)">
+            <g transform="matrix(1,0,0,1,15.9971,14.9573)">
+                <path d="M32,7.57a0.05,0.05,0,0,0,0,0,0.27,0.27,0,0,0,0-.05,0.06,0.06,0,0,0,0,0l0-.07v0l0,0v0l0,0v0l0-.06,0,0,0,0,0,0,0-.05h0L31.7,7h0l0,0h0l0,0h0l-0.06,0h0L16.34,0.07a0.84,0.84,0,0,0-.69,0L0.52,6.87h0l-0.06,0h0l0,0h0l0,0h0L0.25,7h0l0,0.05v0l0,0v0l0,0.06v0l0,0v0l0,0v0L0,7.47a0.05,0.05,0,0,1,0,0V7.55a0.05,0.05,0,0,1,0,0V26.35a0.85,0.85,0,0,0,.5.78l15.16,6.8h0l0.07,0h0l0.08,0h0L16,34l0.17,0h0l0.08,0h0l0.07,0h0l15.16-6.8a0.85,0.85,0,0,0,.5-0.78V7.58h0ZM16,1.78L29.09,7.65,16,13.52,2.91,7.65ZM1.68,9l13.48,6V31.84l-13.48-6V9ZM16.84,31.83V15L30.32,9V25.79l-13.48,6h0Z" fill="#000000"></path>
+            </g>
+            <g x="0" y="0" width="64" height="64" fill="#000000">
+                <path fill="#000000" d="M31.8,63.6L3.6,47.7V15.8L31.8-0.2l28.1,15.9v31.9L31.8,63.6z M5.6,46.5l26.1,14.8l26.1-14.8V16.9L31.8,2.1
+    L5.6,16.9V46.5z"></path>
+            </g>
+        </g>
+    </g>
+</svg>

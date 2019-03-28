@@ -1,14 +1,15 @@
 
-![Alt logo](https://raw.githubusercontent.com/noboomu/proteus/master/src/main/resources/io/sinistral/proteus/server/tools/swagger/proteus-logo.svg?sanitize=true)
+![Alt logo](https://raw.githubusercontent.com/noboomu/proteus/master/core/src/main/resources/io/sinistral/proteus/proteus-logo.svg?sanitize=true)
 
-An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing RESTful web applications and microservices.
+An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing RESTful web applications and microservices
 
 - __NO MAGIC__
-- Lightweight: limited dependencies and < 400kb
+- Incredibly easy to use and get started
+- Limited dependencies and < 340kb
 - JAX-RS compliant
 - Easy on the developer and the metal
 - Blazing fast!!!
-[The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate __proteus__ outperforming 99% of all other web frameworks. 
+[The latest Techempower benchmarks](https://www.techempower.com/benchmarks/) demonstrate __proteus__ outperforming 99% of all other web frameworks
 
 ![Top 5 in Java Frameworks for Fortunes](https://github.com/noboomu/proteus-example/blob/master/src/main/resources/images/benchmark1.png?raw=true)
 
@@ -30,7 +31,8 @@ Getting Started
 /bin/bash -e <(curl -fsSL https://raw.githubusercontent.com/noboomu/proteus-example/master/scripts/quickStart.sh)
 ```
 
-- Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for a v3 Swagger UI.
+- Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for a v3 OpenAPI UI.
+- Open [http://localhost:8090/v1/swagger](http://localhost:8090/v1/openapi) for a v2 Swagger UI.
 
 ### As a dependency
 
@@ -38,7 +40,25 @@ Getting Started
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-core</artifactId>
-    <version>0.3.6</version>
+    <version>0.4.0-SNAPSHOT</version>
+</dependency>
+```
+
+Swagger v2 Support
+```xml
+<dependency>
+    <groupId>io.sinistral</groupId>
+    <artifactId>proteus-swagger</artifactId>
+    <version>0.4.0-SNAPSHOT</version>
+</dependency>
+```
+
+OpenAPI v3 Support
+```xml
+<dependency>
+    <groupId>io.sinistral</groupId>
+    <artifactId>proteus-swagger</artifactId>
+    <version>0.4.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -47,12 +67,12 @@ Controllers
 
 ### Supported Controller Annotations
 
-Controller classes respect standard Swagger / JAX-RS annotations:
+Controller classes respect standard JAX-RS annotations:
 ```java
-@Tags({@Tag(name = "benchmarks")})
 @Path("/benchmarks")
 @Produces((MediaType.APPLICATION_JSON)) 
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD))
+public class DemoController
 ```
 
 ### Supported Method Annotations
@@ -61,13 +81,17 @@ Controller class methods respect standard Swagger / JAX-RS annotations:
 ```java
 @GET
 @Path("/plaintext")
-@Produces((MediaType.TEXT_PLAIN)) 
-@Operation(description = "Plaintext endpoint" )
+@Produces((MediaType.TEXT_PLAIN))
 public ServerResponse<ByteBuffer> plaintext(ServerRequest request)
 { 
 	return response("Hello, World!").textPlain();
 }
 ```
+
+> Swagger v2 annotations are supported when using the `proteus-swagger` module.
+
+> OpenAPI v3 annotations are supported when using the `proteus-openapi` module.
+
 Proteus has three built in annotations:
 
 * @Blocking
@@ -113,7 +137,9 @@ Controller methods arguments support the following [JAX-RS annotations](https://
     * ```javax.ws.rs.DefaultParam```
     * Sets the default value of a method parameter.
     
-## Return Types
+## Methods and Return Types
+
+###### *The examples below assume you've included the `proteus-openapi` module.
 
 #### Performance
 For total control and maximum performance the raw `HttpServerExchange` can be passed to the controller method.
@@ -123,25 +149,34 @@ Methods that take an `HttpServerExchange` as an argument should __not__ return a
 In this case the method takes on __full responsibility__ for completing the exchange.
  
 #### Convenience
+
+
 The static method ```io.sinistral.proteus.server.ServerResponse.response``` helps create ```ServerResponse<T>``` instances that are the preferred return type for controller methods.
 
 If the response object's `contentType` is not explicitly set, the `@Produces` annotation is used in combination with the `Accept` headers to determine the `Content-Type`.
 
 For methods that should return a `String` or `ByteBuffer` to the client users can create responses like this:
  ```java
+  ...
+  import static io.sinistral.proteus.server.ServerResponse.response;
+  ...
 @GET
 @Path("/hello-world")
 @Produces((MediaType.TEXT_PLAIN)) 
 @Operation(description = "Serve a plaintext message using a ServerResponse")
 public ServerResponse<ByteBuffer> plaintext(ServerRequest request, @QueryParam("message") String message)
 { 
-	return ServerResponse.response("Hello, World!").textPlain();
+	return response("Hello, World!").textPlain();
 }
 ```
 By default, passing a `String` to the static `ServerResponse.response` helper function will convert it into a `ByteBuffer`.
 
 For other types of responses the following demonstrates the preferred style:
 ```java
+  ...
+ 
+  import static io.sinistral.proteus.server.ServerResponse.response;
+   ...
 @GET
 @Path("/world")
 @Produces((MediaType.APPLICATION_JSON)) 
@@ -155,19 +190,26 @@ The entity can be set separately as well:
 > this disables static type checking!
 
 ```java
+  ...
+ 
+  import static io.sinistral.proteus.server.ServerResponse.response;
+  ...
 @GET
 @Path("/world")
 @Produces((MediaType.APPLICATION_JSON)) 
 @Operation(description = "Return a world JSON object")
-public io.sinistral.proteus.server.ServerResponse getWorld(Integer id,  Integer randomNumber )
+public ServerResponse getWorld(Integer id,  Integer randomNumber )
 { 
-	return io.sinistral.proteus.server.ServerResponse.response().entity(new World(id,randomNumber));
+	return response().entity(new World(id,randomNumber));
 }
 
 ```
 `CompletableFuture<ServerResponse<T>>` can also be used as a response type:
 
 ```java
+  ...  
+  import static io.sinistral.proteus.server.ServerResponse.response; 
+  ...
 @GET
 @Path("/future/user")
 @Operation(description = "Future user endpoint"  )
@@ -180,6 +222,9 @@ public CompletableFuture<ServerResponse<User>> futureUser( ServerRequest request
 In this case a handler will be generated with the following source code:
 
 ```java
+  ...
+  import static io.sinistral.proteus.server.ServerResponse.response;
+  ...
 public void handleRequest(final io.undertow.server.HttpServerExchange exchange) throws java.lang.Exception { 
     CompletableFuture<ServerResponse<User>> response = examplesController.futureUser();
     response.thenAccept( r ->  r.applicationJson().send(this,exchange) )
@@ -200,6 +245,9 @@ Multipart/Form file uploads can be passed to the endpoint methods as a ```java.i
 
 Optional parameters are also supported, here is a more complex endpoint demonstrating several parameter types:
 ```java
+  ...
+  import  static  io.sinistral.proteus.server.ServerResponse.response;
+  ...
 @GET
 @Path("/response/parameters/complex/{pathLong}")
 @Operation(description = "Complex parameters")
@@ -242,8 +290,11 @@ public ServerResponse<Map<String,Object>> complexParameters(
 Services
 -------------
 
-Proteus comes with three standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
+Proteus has three standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
+
 - __AssetsService__
+
+    Included in the `proteus-core` module.
 
 	The AssetsService mounts an asset directory at a given path and is configured in your ```application.conf``` file.
 
@@ -262,6 +313,8 @@ Proteus comes with three standard services that extend the ```io.sinistral.prote
 	```
 - __SwaggerService__   
 
+    Included in the `proteus-swagger` module.
+
 	The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
 
 	The default configuration serves the spec at `{application.path}/swagger.json` and the ui at `${application.path}/swagger`.
@@ -272,7 +325,6 @@ Proteus comes with three standard services that extend the ```io.sinistral.prote
 	```
 	swagger {
    	 # the path that has an index.html template and theme css files
-   	 resourcePrefix="io/sinistral/proteus/swagger"
    	 # swagger version
     	swagger: "2.0"
    	 info {
@@ -299,6 +351,8 @@ Proteus comes with three standard services that extend the ```io.sinistral.prote
  
 - __OpenAPIService__   
 
+    Included in the `proteus-openapi` module.
+
 	The OpenAPIService generates an openapi-spec file from your endpoints and serves a swagger-ui and spec.
 	
 	The default configuration serves the spec at `{application.path}/openapi.yaml` and the ui at `${application.path}/openapi`.
@@ -308,8 +362,6 @@ Proteus comes with three standard services that extend the ```io.sinistral.prote
 	The default configuration:
 	```
 	openapi {
-
- 	 resourcePrefix="io/sinistral/proteus/server/tools/openapi"
 
  	 basePath= ${application.path}"/openapi"
 

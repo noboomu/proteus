@@ -734,7 +734,7 @@ public class HandlerGenerator
                     methodBuilder.addStatement("exchange.getResponseHeaders().put($T.CONTENT_TYPE, $S)", Headers.class, producesContentType);
 
                     if (m.getReturnType().equals(String.class)) {
-                        methodBuilder.addStatement("exchange.getResponseHeaders().send($L)", "response");
+                        methodBuilder.addStatement("exchange.getResponseSender().send($L)", "response");
                     } else {
                         methodBuilder.addStatement("exchange.getResponseSender().send($L.toString())", "response");
                     }

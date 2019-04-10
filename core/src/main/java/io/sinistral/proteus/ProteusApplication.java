@@ -18,6 +18,7 @@ import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.services.BaseService;
+import io.sinistral.proteus.services.DefaultService;
 import io.sinistral.proteus.utilities.SecurityOps;
 import io.sinistral.proteus.utilities.TablePrinter;
 import io.undertow.Undertow;

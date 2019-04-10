@@ -290,7 +290,9 @@ public ServerResponse<Map<String,Object>> complexParameters(
 Services
 -------------
 
-Proteus has three standard services that extend the ```io.sinistral.proteus.services.BaseService``` class.
+Proteus has three standard services that extend the ```io.sinistral.proteus.services.DefaultService``` class.
+The ```io.sinistral.proteus.services.DefaultService``` extends ```com.google.common.util.concurrent.AbstractIdleService``` and implements the ```io.sinistral.proteus.services.BaseService``` interface.
+The ProteusApplication class expects services that implement ```io.sinistral.proteus.services.BaseService```.
 
 - __AssetsService__
 
@@ -502,7 +504,7 @@ Prior to calling `start` on the `ProteusApplication` instance:
 
 Out of the box you get a [Swagger UI](https://github.com/swagger-api/swagger-ui) at `/openapi`.
 
-> A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.services.BaseService`.
+> A `Service` extends `com.google.common.util.concurrent.AbstractIdleService` or `io.sinistral.proteus.services.DefaultService`.
 
 > A `Module` implements `com.google.inject.Module`.
 

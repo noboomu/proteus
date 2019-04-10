@@ -9,7 +9,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-import io.sinistral.proteus.services.BaseService;
+import io.sinistral.proteus.services.DefaultService;
 import io.sinistral.proteus.swagger.jaxrs2.Reader;
 import io.sinistral.proteus.swagger.jaxrs2.ServerParameterExtension;
 import io.swagger.jaxrs.ext.SwaggerExtension;
@@ -57,7 +57,7 @@ import java.util.jar.JarFile;
  */
 
 @Singleton
-public class SwaggerService extends BaseService implements Supplier<RoutingHandler>
+public class SwaggerService extends DefaultService implements Supplier<RoutingHandler>
 {
 
 	private static Logger log = LoggerFactory.getLogger(SwaggerService.class.getCanonicalName());

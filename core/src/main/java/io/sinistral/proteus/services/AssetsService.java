@@ -1,6 +1,7 @@
 package io.sinistral.proteus.services;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
@@ -19,7 +20,8 @@ import java.util.function.Supplier;
  *
  * @author jbauer
  */
-public class AssetsService extends BaseService implements Supplier<RoutingHandler>
+@Singleton
+public class AssetsService extends DefaultService implements Supplier<RoutingHandler>
 {
     @Inject
     @Named("registeredEndpoints")

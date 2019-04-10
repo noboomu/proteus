@@ -16,6 +16,7 @@ import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.services.BaseService;
+import io.sinistral.proteus.services.DefaultService;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;

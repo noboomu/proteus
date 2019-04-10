@@ -27,7 +27,7 @@ import javax.ws.rs.core.MediaType;
 import io.sinistral.proteus.openapi.jaxrs2.Reader;
 import io.sinistral.proteus.openapi.jaxrs2.ServerModelResolver;
 import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
-import io.sinistral.proteus.services.BaseService;
+import io.sinistral.proteus.services.DefaultService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -76,7 +76,7 @@ import io.undertow.util.Methods;
  */
 
 @Singleton
-public class OpenAPIService extends BaseService implements Supplier<RoutingHandler>
+public class OpenAPIService extends DefaultService implements Supplier<RoutingHandler>
 {
 	private static Logger log = LoggerFactory.getLogger(OpenAPIService.class.getCanonicalName());
 

@@ -65,9 +65,9 @@ public class ApplicationModule extends AbstractModule
 
             log.info("Installing JacksonModule " + className);
 
-            Class<? extends JacksonModule> clazz = (Class<? extends JacksonModule>) Class.forName(className);
+            Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
 
-            JacksonModule module = clazz.newInstance();
+            AbstractModule module = clazz.newInstance();
 
             install(module);
 

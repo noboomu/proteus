@@ -14,6 +14,9 @@ import com.google.inject.Module;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 import io.sinistral.proteus.modules.ConfigModule;
+import io.sinistral.proteus.modules.JacksonModule;
+import io.sinistral.proteus.server.Extractors;
+import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
@@ -225,6 +228,8 @@ public class ProteusApplication
 
     public void buildServer()
     {
+
+
 
         for (Class<?> controllerClass : registeredControllers) {
             HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);

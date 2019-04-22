@@ -46,6 +46,8 @@ public class ConfigModule extends AbstractModule
         }
     }
 
+
+
     public ConfigModule(String configFile)
     {
         this.configFile = configFile;
@@ -54,6 +56,16 @@ public class ConfigModule extends AbstractModule
     public ConfigModule(URL configURL)
     {
         this.configURL = configURL;
+    }
+
+    public Config getConfig()
+    {
+        return config;
+    }
+
+    public void setConfig(Config config)
+    {
+        this.config = config;
     }
 
     @SuppressWarnings("unchecked")

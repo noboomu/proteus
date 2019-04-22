@@ -44,7 +44,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
-        <undertow.version>2.0.16.Final</undertow.version>
+        <undertow.version>2.0.20.Final</undertow.version>
         <jackson.version>2.9.8</jackson.version>
         <openapi.version>2.0.6</openapi.version>
         <swagger.version>1.5.21</swagger.version>

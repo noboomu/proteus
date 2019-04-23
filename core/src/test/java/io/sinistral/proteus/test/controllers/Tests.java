@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.controllers;
+package io.sinistral.proteus.test.controllers;
 
 import static io.sinistral.proteus.server.ServerResponse.response;
 
@@ -37,10 +37,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import io.sinistral.proteus.annotations.Blocking;
-import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
-import io.sinistral.proteus.swagger.test.models.User;
+import io.sinistral.proteus.test.models.User;
 
 import io.undertow.server.HttpServerExchange;
 

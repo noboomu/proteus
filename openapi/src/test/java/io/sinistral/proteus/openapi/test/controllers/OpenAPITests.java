@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.controllers;
+package io.sinistral.proteus.openapi.test.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -9,11 +9,15 @@ import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.sinistral.proteus.annotations.Blocking;
+import io.sinistral.proteus.openapi.test.models.Pojo;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.tags.Tags;
 import io.undertow.server.HttpServerExchange;
+import org.javamoney.moneta.Money;
 
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -28,6 +32,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,12 +46,12 @@ import static io.sinistral.proteus.server.ServerResponse.response;
  *
  */
 
-@Api(tags="tests")
+@Tags({@Tag(name = "tests")})
 @Path("/tests")
 @Produces((MediaType.APPLICATION_JSON)) 
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD)) 
 @Singleton
-public class Tests
+public class OpenAPITests
 {
 	 private static final ByteBuffer buffer;
 	  static {
@@ -64,7 +69,7 @@ public class Tests
 	@GET
 	@Path("exchange/plaintext")
 	@Produces((MediaType.TEXT_PLAIN)) 
-	@ApiOperation(value =  "Plaintext endpoint"  )
+	@Operation(description = "Plaintext endpoint"  )
 	public void exchangePlaintext(HttpServerExchange exchange)
 	{ 
 		response("Hello, World!").textPlain().send(exchange);
@@ -75,7 +80,7 @@ public class Tests
 	@GET
 	@Path("response/plaintext")
 	@Produces((MediaType.TEXT_PLAIN)) 
-	@ApiOperation(value =  "Plaintext endpoint"  )
+	@Operation(description = "Plaintext endpoint"  )
 	public ServerResponse<ByteBuffer> responsePlaintext(ServerRequest request)
 	{ 
 		return response("Hello, World!").textPlain();
@@ -84,7 +89,7 @@ public class Tests
 	
 	@GET
 	@Path("response/future/map")
-	@ApiOperation(value =  "Future map endpoint"  )
+	@Operation(description = "Future map endpoint"  )
 	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureMap( ServerRequest request )
 	{ 
 		Map<String,String> map = ImmutableMap.of("message", "success");
@@ -93,7 +98,7 @@ public class Tests
 	
 	@GET
 	@Path("response/map")
-	@ApiOperation(value =  "Map endpoint"  )
+	@Operation(description = "Map endpoint"  )
 	public ServerResponse<Map<String,String>> futureMap( ServerRequest request )
 	{ 
 		Map<String,String> map = ImmutableMap.of("message", "success");
@@ -104,7 +109,7 @@ public class Tests
 	@Path("response/file/path")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@ApiOperation(value =  "Upload file path endpoint"  )
+	@Operation(description = "Upload file path endpoint"  )
 	public ServerResponse<ByteBuffer> responseUploadFilePath(ServerRequest request, @FormParam("file") java.nio.file.Path file ) throws Exception
 	{  
 		return response(ByteBuffer.wrap(Files.toByteArray(file.toFile()))).applicationOctetStream(); 
@@ -114,7 +119,7 @@ public class Tests
 	@Path("response/file/path/optional")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@ApiOperation(value =  "Upload optional file path endpoint"  )
+	@Operation(description = "Upload optional file path endpoint"  )
 	public ServerResponse<ByteBuffer> responseUploadOptionalFilePath(ServerRequest request, @FormParam("file") Optional<java.nio.file.Path> file ) throws Exception
 	{  
 		if(file.isPresent())
@@ -130,18 +135,45 @@ public class Tests
 	@GET
 	@Path("generic/set")
 	@Produces((MediaType.APPLICATION_JSON)) 
-	@ApiOperation(value =  "Generic set endpoint"  )
+	@Operation(description = "Generic set endpoint"  )
 	public ServerResponse<Set<Long>>  genericSet( ServerRequest request, @QueryParam("ids") Set<Long> ids )  throws Exception
 	{  
 		return response( ids ).applicationJson(); 
 	}
-	
-	  
+
+
+	@GET
+	@Path("types/money")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Operation(description = "Money type endpoint"  )
+	public ServerResponse<Money>  getMoney(ServerRequest request )  throws Exception
+	{
+		return response( Money.of(100.0,"USD") ).applicationJson();
+	}
+
+	@GET
+	@Path("types/pojo2")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Operation(description = "Money type endpoint"  )
+	public ServerResponse<Pojo>  getPojo2(ServerRequest request )  throws Exception
+	{
+		return response( new Pojo(100L,"USD") ).applicationJson();
+	}
+
+	@GET
+	@Path("types/pojo")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Operation(description = "Money type endpoint"  )
+	public ServerResponse<Pojo>  getPojo(ServerRequest request )  throws Exception
+	{
+		return response( new Pojo(100L,"USD") ).applicationJson();
+	}
+
 	@POST
 	@Path("generic/set/bean")
 	@Produces((MediaType.APPLICATION_JSON)) 
  	@Consumes(MediaType.APPLICATION_JSON)
-	@ApiOperation(value =  "Generic bean set endpoint"  )
+	@Operation(description = "Generic bean set endpoint"  )
 	public ServerResponse<Set<Long>>  genericBeanSet( ServerRequest request, @BeanParam Set<Long> ids )  throws Exception
 	{  
 		return response( ids ).applicationJson(); 
@@ -153,7 +185,7 @@ public class Tests
 	@Produces((MediaType.APPLICATION_JSON)) 
  	@Consumes(MediaType.APPLICATION_JSON)
 
-	@ApiOperation(value =  "Generic bean list endpoint"  )
+	@Operation(description = "Generic bean list endpoint"  )
 	public ServerResponse<List<Long>>  genericBeanList( ServerRequest request, @BeanParam List<Long> ids )  throws Exception
 	{  
 		return response( ids ).applicationJson(); 
@@ -162,7 +194,7 @@ public class Tests
 	@GET
 	@Path("optional/set")
 	@Produces((MediaType.APPLICATION_JSON)) 
-	@ApiOperation(value =  "Generic optional set endpoint"  )
+	@Operation(description = "Generic optional set endpoint"  )
 	public ServerResponse<Set<Long>>  genericOptionalSet( ServerRequest request, @QueryParam("ids") Optional<Set<Long>> ids )  throws Exception
 	{  
 		return response( ids.get() ).applicationJson();  
@@ -174,7 +206,7 @@ public class Tests
 	@Blocking
 	@Produces(MediaType.APPLICATION_JSON) 
  	@Consumes(MediaType.APPLICATION_JSON)
- 	@ApiOperation(value =  "Convert ids") 
+ 	@Operation(description = "Convert ids") 
 	public ServerResponse<List<Long>> listConversion( ServerRequest request, @BeanParam List<Long> ids ) throws Exception
 	{ 
 		 
@@ -187,7 +219,7 @@ public class Tests
 	@Path("response/parse/timestamp")
 	@Blocking
 	@Produces(MediaType.TEXT_PLAIN)  
- 	@ApiOperation(value =  "Convert timestamp") 
+ 	@Operation(description = "Convert timestamp") 
 	public ServerResponse<ByteBuffer> timestampConversion( ServerRequest request, @QueryParam("timestamp") Timestamp timestamp ) throws Exception
 	{
 		return response().body(timestamp.toString()).textPlain();
@@ -197,7 +229,7 @@ public class Tests
 	@Path("response/parse/instant")
 	@Blocking
 	@Produces(MediaType.TEXT_PLAIN)  
- 	@ApiOperation(value =  "Convert instant") 
+ 	@Operation(description = "Convert instant") 
 	public ServerResponse<ByteBuffer> instantConversion( ServerRequest request, @QueryParam("instant") Instant instant ) throws Exception
 	{ 
 		 
@@ -210,7 +242,7 @@ public class Tests
 	@Path("response/bytebuffer")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
- 	@ApiOperation(value =  "Upload file path endpoint")
+ 	@Operation(description = "Upload file path endpoint")
 	public ServerResponse<ByteBuffer> responseUploadByteBuffer(ServerRequest request, @FormParam("file") ByteBuffer file ) throws Exception
 	{ 
 		 
@@ -223,7 +255,7 @@ public class Tests
 	@Path("response/file")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes("*/*")
- 	@ApiOperation(value =  "Upload file path endpoint")
+ 	@Operation(description = "Upload file path endpoint")
 	public ServerResponse<ByteBuffer> responseUploadFile(ServerRequest request, @FormParam("file") File file ) throws Exception
 	{ 
 		
@@ -237,7 +269,7 @@ public class Tests
 	
 	@GET
 	@Path("response/debug")
- 	@ApiOperation(value =  "Debug endpoint")
+ 	@Operation(description = "Debug endpoint")
 	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request) 
 	{  
 		try
@@ -254,7 +286,7 @@ public class Tests
 	@GET
 	@Path("response/debug/blocking")
 	@Blocking
- 	@ApiOperation(value="Debug blocking endpoint")
+ 	@Operation(description="Debug blocking endpoint")
 	public ServerResponse<Map<String,String>> debugBlockingEndpoint(ServerRequest request) 
 	{  
 		try
@@ -268,4 +300,17 @@ public class Tests
 		}
 	}
 
+
+	@GET
+	@SecurityRequirement(name = "testRequirement")
+	@Path("secure/resource")
+	@Operation(description="Secure resource")
+	@Produces(MediaType.APPLICATION_JSON)
+	public ServerResponse<Map<String,Object>> responseSecureContext()
+	{
+		Map<String,Object> responseMap = new HashMap<>();
+		responseMap.put("secure",true);
+
+		return response(responseMap);
+	}
 }

@@ -1,13 +1,11 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.server;
+package io.sinistral.proteus.test.server;
 
-import io.restassured.http.ContentType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -16,13 +14,16 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.LongStream;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.is;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import io.restassured.http.ContentType;
 
 /*
  * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;
  */
-
 /**
  * @author jbauer
  */

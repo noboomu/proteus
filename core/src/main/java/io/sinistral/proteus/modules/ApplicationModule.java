@@ -81,6 +81,9 @@ public class ApplicationModule extends AbstractModule
 
         }
 
+        this.requestStaticInjection(Extractors.class);
+        this.requestStaticInjection(ServerResponse.class);
+
      }
 
     @SuppressWarnings("unchecked")

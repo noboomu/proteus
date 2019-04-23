@@ -1,11 +1,13 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.server;
+package io.sinistral.proteus.test.server;
 
-import java.util.List;
-
-import io.sinistral.proteus.swagger.test.controllers.Tests;
+import io.restassured.RestAssured;
+import io.sinistral.proteus.ProteusApplication;
+import io.sinistral.proteus.services.AssetsService;
+import io.sinistral.proteus.swagger.services.SwaggerService;
+import io.sinistral.proteus.test.controllers.Tests;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
@@ -15,9 +17,7 @@ import org.junit.runners.model.InitializationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.restassured.RestAssured;
-import io.sinistral.proteus.ProteusApplication;
-import io.sinistral.proteus.services.AssetsService;
+import java.util.List;
 
 /**
  * @author jbauer
@@ -70,8 +70,9 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			
 			first = false;
 			
-			final ProteusApplication app = new ProteusApplication();
-
+			final ProteusApplication app = new ProteusApplication(DefaultServer.class.getClassLoader().getResource("application.conf"));
+			 
+			app.addService(SwaggerService.class);
 			app.addService(AssetsService.class);
 
 			app.addController(Tests.class);

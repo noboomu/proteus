@@ -12,7 +12,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +29,7 @@ import javax.ws.rs.core.MediaType;
 import io.sinistral.proteus.openapi.jaxrs2.Reader;
 import io.sinistral.proteus.openapi.jaxrs2.ServerModelResolver;
 import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
+import io.sinistral.proteus.openapi.models.MoneyModelConverter;
 import io.sinistral.proteus.services.DefaultService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -265,7 +268,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
 		SwaggerConfiguration config = new SwaggerConfiguration().resourceClasses(classes.stream().map(Class::getName).collect(Collectors.toSet())).openAPI(openApi);
 
-		config.setModelConverterClassess(Collections.singleton(ServerModelResolver.class.getName()));
+		config.setModelConverterClassess(new HashSet<>(Arrays.asList(ServerModelResolver.class.getName())));
 
 		OpenApiContext ctx = new GenericOpenApiContext().openApiConfiguration(config)
 				.openApiReader(new Reader(config))

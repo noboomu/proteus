@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.inject.AbstractModule;
-import io.sinistral.proteus.server.Extractors;
-import io.sinistral.proteus.server.ServerResponse;
 
 public class JacksonModule extends AbstractModule
 {
@@ -25,8 +23,5 @@ public class JacksonModule extends AbstractModule
         objectMapper.registerModule(new Jdk8Module());
 
         this.bind(ObjectMapper.class).toInstance(objectMapper);
-
-        this.requestStaticInjection(Extractors.class);
-        this.requestStaticInjection(ServerResponse.class);
     }
 }

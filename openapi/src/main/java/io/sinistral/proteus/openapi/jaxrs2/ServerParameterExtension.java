@@ -4,6 +4,8 @@
  */
 package io.sinistral.proteus.openapi.jaxrs2;
 
+import org.zalando.jackson.datatype.money.MoneyModule;
+
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JavaType;
@@ -38,7 +40,13 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
     private static String COOKIE_PARAM = "cookie";
     private static String PATH_PARAM = "path";
     private static String FORM_PARAM = "form";
-    final ObjectMapper mapper = Json.mapper();
+
+    final static ObjectMapper mapper = Json.mapper();
+
+    static
+    {
+        mapper.registerModule(new MoneyModule());
+    }
 
     @Override
     public ResolvedParameter extractParameters(List<Annotation> annotations, Type type, Set<Type> typesToSkip, Components components, javax.ws.rs.Consumes classConsumes,

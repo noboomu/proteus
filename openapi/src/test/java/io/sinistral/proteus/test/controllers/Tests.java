@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.controllers;
+package io.sinistral.proteus.test.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
 import io.undertow.server.HttpServerExchange;
+import org.javamoney.moneta.Money;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -127,8 +128,18 @@ public class Tests
 	{  
 		return response( ids ).applicationJson(); 
 	}
-	
-	  
+
+
+	@GET
+	@Path("types/money")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Operation(description = "Money type endpoint"  )
+	public ServerResponse<Money>  getMoney(ServerRequest request )  throws Exception
+	{
+		return response( Money.of(100.0,"USD") ).applicationJson();
+	}
+
+
 	@POST
 	@Path("generic/set/bean")
 	@Produces((MediaType.APPLICATION_JSON)) 

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.server;
+package io.sinistral.proteus.test.server;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
@@ -64,6 +64,12 @@ public class TestControllerEndpoints
 	public void testOpenAPIDocs()
 	{
 		when().get("openapi.yaml").then().statusCode(200);
+	}
+
+	@Test
+	public void testMoneyType()
+	{
+		when().get("tests/types/money").then().statusCode(200);
 	}
 
 

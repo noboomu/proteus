@@ -1,4 +1,4 @@
-package io.sinistral.proteus.openapi.models;
+package io.sinistral.proteus.openapi.test.converters;
 
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -21,6 +21,8 @@ import java.util.Objects;
 public class MoneyModelConverter implements ModelConverter
 {
 
+    private final Schema<Money> schema = new MoneySchema();
+
     @Override
     public Schema resolve(AnnotatedType type, ModelConverterContext context, Iterator<ModelConverter> chain) {
 
@@ -28,39 +30,44 @@ public class MoneyModelConverter implements ModelConverter
 
          if(_type != null && (_type.getRawClass().equals(Money.class)))
         {
-            return new MoneySchema();
+            context.defineModel("Money",schema, type, null);
+
+            return schema;
         }
 
         if (type.getType() instanceof Class<?>) {
-
-            System.out.println("MoneyModelConverter resolving class: " + ((Class) type.getType()).getName());
 
             Class<?> cls = (Class<?>) type.getType();
 
             if(cls.isAssignableFrom(Money.class))
             {
-                return  new MoneySchema();
+                context.defineModel("Money",schema, type, null);
+
+                return schema;
             }
         }
         else if(type.getType().getTypeName().equals("[simple type, class org.javamoney.moneta.Money]"))
         {
-            System.out.println("is org.javamoney.moneta.Money");
-            return new MoneySchema();
+            context.defineModel("Money",schema, type, null);
+
+            return schema;
         }
         else if (type.isSchemaProperty()) {
+
             _type = Json.mapper().constructType(type.getType());
 
             if (_type != null) {
                 Class<?> cls = _type.getRawClass();
                 if (Money.class.isAssignableFrom(cls)) {
-                    return new MoneySchema();
+
+                    context.defineModel("Money",schema, type, null);
+
+                    return schema;
                 }
             }
         }
 
         if (chain.hasNext()) {
-            System.out.println("skipped resolving " + _type);
-
             return chain.next().resolve(type, context, chain);
         }
 
@@ -73,13 +80,13 @@ public class MoneyModelConverter implements ModelConverter
     {
         private String _type = "object";
 
-        private String _$ref = null;// "#/components/schemas/Money";
+        private String _$ref = null;
 
         private String _description = "A monetary amount";
 
-        private Map<String, Schema> _properties = ImmutableMap.of("number",new NumberSchema(),"currency",new StringSchema());
+        private Map<String, Schema> _properties = ImmutableMap.of("amount",new NumberSchema(),"currency",new StringSchema());
 
-        private List<String> _required = Arrays.asList("number","currency");
+        private List<String> _required = Arrays.asList("amount","currency");
 
         public MoneySchema()
         {
@@ -89,6 +96,7 @@ public class MoneyModelConverter implements ModelConverter
             super.set$ref(_$ref);
             super.description(_description);
             super.properties(_properties);
+            super.required(_required);
         }
 
         @Override
@@ -117,6 +125,7 @@ public class MoneyModelConverter implements ModelConverter
             MoneySchema MoneySchema = (MoneySchema) o;
             return Objects.equals(this._type, MoneySchema._type) &&
                     Objects.equals(this._properties, MoneySchema._properties) &&
+                    Objects.equals(this._description, MoneySchema._description) &&
                     super.equals(o);
         }
 
@@ -125,21 +134,6 @@ public class MoneyModelConverter implements ModelConverter
         {
             return Objects.hash(_type, _properties, super.hashCode());
         }
-
-//        @Override
-//        public String toString()
-//        {
-//            StringBuilder sb = new StringBuilder();
-//            sb.append("class MoneySchema {\n");
-//            sb.append("    ").append(toIndentedString(super.toString())).append("\n");
-//            sb.append("    title: ").append(toIndentedString(getTitle())).append("\n");
-//            sb.append("    type: ").append(toIndentedString(_type)).append("\n");
-//            sb.append(toIndentedString(_properties.toString())).append("\n");
-//            sb.append("    }").append("\n");
-//
-//            sb.append("}");
-//            return sb.toString();
-//        }
 
         /**
          * Convert the given object to string with each line indented by 4 spaces

@@ -148,25 +148,17 @@ public class OpenAPITests
 	@Operation(description = "Money type endpoint"  )
 	public ServerResponse<Money>  getMoney(ServerRequest request )  throws Exception
 	{
-		return response( Money.of(100.0,"USD") ).applicationJson();
+		return response( Money.of(123.23,"USD") ).applicationJson();
 	}
 
-	@GET
-	@Path("types/pojo2")
-	@Produces((MediaType.APPLICATION_JSON))
-	@Operation(description = "Money type endpoint"  )
-	public ServerResponse<Pojo>  getPojo2(ServerRequest request )  throws Exception
-	{
-		return response( new Pojo(100L,"USD") ).applicationJson();
-	}
 
 	@GET
 	@Path("types/pojo")
 	@Produces((MediaType.APPLICATION_JSON))
-	@Operation(description = "Money type endpoint"  )
+	@Operation(description = "Pojo type endpoint"  )
 	public ServerResponse<Pojo>  getPojo(ServerRequest request )  throws Exception
 	{
-		return response( new Pojo(100L,"USD") ).applicationJson();
+		return response( new Pojo(100L,"John Doe") ).applicationJson();
 	}
 
 	@POST

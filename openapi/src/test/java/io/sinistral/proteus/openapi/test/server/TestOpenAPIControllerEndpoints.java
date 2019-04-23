@@ -16,10 +16,7 @@ import java.util.Set;
 import java.util.stream.LongStream;
 
 import static io.restassured.RestAssured.when;
-
-/*
- * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;
- */
+import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  * @author jbauer
@@ -61,22 +58,19 @@ public class TestOpenAPIControllerEndpoints
 	@Test
 	public void testOpenAPIDocs()
 	{
-		when().get("openapi.yaml").then().log().all().statusCode(200);
+		when().get("openapi.yaml").then().statusCode(200);
 	}
 
+	@Test
 	public void testPojoType()
 	{
-		when().get("tests/types/pojo").then().log().all().statusCode(200);
+		when().get("tests/types/pojo").then().statusCode(200).body("id", equalTo(100),"name", equalTo("John Doe"));
 	}
 
-	@Test	public void testPojoType2()
-	{
-		when().get("tests/types/pojo2").then().log().all().statusCode(200);
-	}
-
+	@Test
 	public void testMoneyType()
 	{
-		when().get("tests/types/money").then().log().all().statusCode(200);
+		when().get("tests/types/money").then().statusCode(200).body("amount", equalTo(123.23f),"currency", equalTo("USD"));
 	}
 
 

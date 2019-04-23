@@ -1,55 +1,17 @@
 package io.sinistral.proteus.openapi.services;
 
-import java.io.File;
-import java.io.InputStream;
-
-import java.net.URL;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
-import java.util.jar.JarFile;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-
-import io.sinistral.proteus.openapi.jaxrs2.Reader;
-import io.sinistral.proteus.openapi.jaxrs2.ServerModelResolver;
-import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
-import io.sinistral.proteus.openapi.models.MoneyModelConverter;
-import io.sinistral.proteus.services.DefaultService;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-
 import com.typesafe.config.Config;
-
+import io.sinistral.proteus.openapi.jaxrs2.Reader;
+import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
-
+import io.sinistral.proteus.services.DefaultService;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
@@ -62,7 +24,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
-
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
@@ -72,6 +33,31 @@ import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 /**
  * A service for generating and serving an OpenAPI v3 spec and ui.
@@ -268,7 +254,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
 		SwaggerConfiguration config = new SwaggerConfiguration().resourceClasses(classes.stream().map(Class::getName).collect(Collectors.toSet())).openAPI(openApi);
 
-		config.setModelConverterClassess(new HashSet<>(Arrays.asList(ServerModelResolver.class.getName())));
+		config.setModelConverterClassess(new HashSet<>( openAPIConfig.getStringList("converters") ));
 
 		OpenApiContext ctx = new GenericOpenApiContext().openApiConfiguration(config)
 				.openApiReader(new Reader(config))

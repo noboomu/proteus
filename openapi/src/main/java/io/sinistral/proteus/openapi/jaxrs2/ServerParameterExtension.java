@@ -4,8 +4,6 @@
  */
 package io.sinistral.proteus.openapi.jaxrs2;
 
-import org.zalando.jackson.datatype.money.MoneyModule;
-
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JavaType;
@@ -24,10 +22,19 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.ws.rs.*;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.MatrixParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author jbauer
@@ -42,11 +49,6 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
     private static String FORM_PARAM = "form";
 
     final static ObjectMapper mapper = Json.mapper();
-
-    static
-    {
-        mapper.registerModule(new MoneyModule());
-    }
 
     @Override
     public ResolvedParameter extractParameters(List<Annotation> annotations, Type type, Set<Type> typesToSkip, Components components, javax.ws.rs.Consumes classConsumes,

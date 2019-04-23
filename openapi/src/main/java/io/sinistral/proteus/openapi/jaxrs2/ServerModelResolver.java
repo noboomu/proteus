@@ -8,15 +8,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import io.sinistral.proteus.openapi.models.MoneyModelConverter;
 import io.sinistral.proteus.server.ServerResponse;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverterContext;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.media.Schema;
-import org.javamoney.moneta.Money;
-import org.zalando.jackson.datatype.money.MoneyModule;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -33,19 +30,9 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 {
     private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ServerModelResolver.class.getCanonicalName());
 
-    static final ObjectMapper mapper = Json.mapper();
-
-    static
-    {
-        mapper.registerModule(new MoneyModule());
-    }
-
     public ServerModelResolver()
     {
-        super(mapper);
-
-
-        System.out.println("not from super");
+        super(Json.mapper());
     }
 
     /**
@@ -53,8 +40,7 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
      */
     public ServerModelResolver(ObjectMapper mapper)
     {
-        super(ServerModelResolver.mapper);
-
+        super(mapper);
     }
 
     /*
@@ -72,7 +58,6 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
         if ((rawClass != null) &&!resolvedType.isPrimitive())
         {
-            // log.debug("resolvedType in " + resolvedType);
             if (rawClass.isAssignableFrom(ServerResponse.class))
             {
                 resolvedType = classType.containedType(0);
@@ -83,25 +68,18 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
                 if (futureCls.isAssignableFrom(ServerResponse.class))
                 {
-                    // log.debug("class is assignable from ServerResponse");
                     final JavaType futureType = TypeFactory.defaultInstance().constructType(classType.containedType(0));
 
                     resolvedType = futureType.containedType(0);
                 }
                 else
                 {
-                    // log.debug("class is NOT assignable from ServerResponse");
                     resolvedType = classType.containedType(0);
                 }
             }
 
             if (resolvedType != null)
             {
-//                if (resolvedType.getTypeName().contains("org.javamoney.moneta.Money"))
-//                {
-//                    resolvedType = TypeFactory.defaultInstance().constructFromCanonical(Money.class.getName());
-//                }
-
                 if (resolvedType.getTypeName().contains("java.lang.Void"))
                 {
                     resolvedType = TypeFactory.defaultInstance().constructFromCanonical(Void.class.getName());
@@ -133,30 +111,12 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
                 annotatedType.setType(resolvedType);
 
-                // log.debug("resolvedType out " + resolvedType);
             }
         }
 
         try {
 
-
-            // log.info("Processing " + annotatedType + " " + classType + " " + annotatedType.getName());
-
-            if(annotatedType.getType().getTypeName().contains("org.javamoney.moneta.Money"))
-            {
-                MoneyModelConverter.MoneySchema schema = new MoneyModelConverter.MoneySchema();
-
-                context.defineModel("money",schema);
-
-                return schema;
-            }
-            else {
-
-                Schema schema = super.resolve(annotatedType, context, next);
-
-                return schema;
-            }
-
+            return super.resolve(annotatedType, context, next);
 
         } catch (Exception e) {
 

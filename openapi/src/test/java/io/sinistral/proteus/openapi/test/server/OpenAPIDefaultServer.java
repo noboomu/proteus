@@ -73,6 +73,7 @@ public class OpenAPIDefaultServer extends BlockJUnit4ClassRunner
 			final ProteusApplication app = new ProteusApplication();
 
 			app.addService(OpenAPIService.class);
+
 			app.addService(AssetsService.class);
 
 			app.addController(OpenAPITests.class);

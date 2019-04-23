@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import io.sinistral.proteus.openapi.models.MoneyModelConverter;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.swagger.v3.core.converter.AnnotatedType;
@@ -1374,19 +1373,11 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 				}
 			}
 
-			ModelConverters converters = ModelConverters.getInstance();
-
-			converters.addConverter(new ServerModelResolver());
-			converters.addConverter(new MoneyModelConverter());
-
-
-			ResolvedSchema resolvedSchema = converters
+			ResolvedSchema resolvedSchema = ModelConverters.getInstance()
 					.resolveAsResolvedSchema(new AnnotatedType(returnType).resolveAsRef(true).jsonViewAnnotation(jsonViewAnnotation));
 
 			if (resolvedSchema.schema != null)
 			{
-				System.out.println("resolvedSchema: " + resolvedSchema.schema);
-
 				Schema returnTypeSchema = resolvedSchema.schema;
 				Content content = new Content();
 				MediaType mediaType = new MediaType().schema(returnTypeSchema);

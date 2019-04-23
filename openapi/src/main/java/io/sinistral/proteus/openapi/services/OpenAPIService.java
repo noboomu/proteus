@@ -9,6 +9,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 import io.sinistral.proteus.openapi.jaxrs2.Reader;
+import io.sinistral.proteus.openapi.jaxrs2.ServerModelResolver;
 import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.services.DefaultService;
@@ -254,7 +255,15 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
 		SwaggerConfiguration config = new SwaggerConfiguration().resourceClasses(classes.stream().map(Class::getName).collect(Collectors.toSet())).openAPI(openApi);
 
-		config.setModelConverterClassess(new HashSet<>( openAPIConfig.getStringList("converters") ));
+		Set<String> modelConverterClasses = new HashSet<>();
+
+		modelConverterClasses.add(ServerModelResolver.class.getName());
+
+		List<String> additionalConverterClasses = openAPIConfig.getStringList("converterClasses");
+
+		modelConverterClasses.addAll(additionalConverterClasses);
+
+		config.setModelConverterClassess(modelConverterClasses);
 
 		OpenApiContext ctx = new GenericOpenApiContext().openApiConfiguration(config)
 				.openApiReader(new Reader(config))

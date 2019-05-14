@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response.Status;
  * @author jbauer
  *
  */
-public class ServerException extends Exception
+public class ServerException extends RuntimeException
 {
     /**
      *

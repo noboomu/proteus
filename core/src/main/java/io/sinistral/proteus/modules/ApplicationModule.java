@@ -59,21 +59,32 @@ public class ApplicationModule extends AbstractModule
 
         this.bind(XmlMapper.class).toInstance(xmlMapper);
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        try {
 
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-        objectMapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH, true);
-        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-        objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
-        objectMapper.registerModule(new AfterburnerModule());
-        objectMapper.registerModule(new Jdk8Module());
+            String className = config.getString("application.jacksonModule");
 
-        this.bind(ObjectMapper.class).toInstance(objectMapper);
+            log.info("Installing JacksonModule " + className);
+
+            Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
+
+            AbstractModule module = clazz.newInstance();
+
+            install(module);
+
+        } catch (Exception e) {
+
+            this.binder().addError(e);
+
+            log.error(e.getMessage(), e);
+
+            install(new JacksonModule());
+
+        }
+
         this.requestStaticInjection(Extractors.class);
         this.requestStaticInjection(ServerResponse.class);
-    }
+
+     }
 
     @SuppressWarnings("unchecked")
     @Override

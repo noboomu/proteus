@@ -58,7 +58,6 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
         if ((rawClass != null) &&!resolvedType.isPrimitive())
         {
-            // log.debug("resolvedType in " + resolvedType);
             if (rawClass.isAssignableFrom(ServerResponse.class))
             {
                 resolvedType = classType.containedType(0);
@@ -69,14 +68,12 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
                 if (futureCls.isAssignableFrom(ServerResponse.class))
                 {
-                    // log.debug("class is assignable from ServerResponse");
                     final JavaType futureType = TypeFactory.defaultInstance().constructType(classType.containedType(0));
 
                     resolvedType = futureType.containedType(0);
                 }
                 else
                 {
-                    // log.debug("class is NOT assignable from ServerResponse");
                     resolvedType = classType.containedType(0);
                 }
             }
@@ -114,13 +111,11 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
                 annotatedType.setType(resolvedType);
 
-                // log.debug("resolvedType out " + resolvedType);
             }
         }
 
         try {
 
-            // log.info("Processing " + annotatedType + " " + classType + " " + annotatedType.getName());
             return super.resolve(annotatedType, context, next);
 
         } catch (Exception e) {

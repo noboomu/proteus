@@ -60,7 +60,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>2.2.1</version>
+                    <version>3.0.1</version>
                     <executions>
                         <execution>
                             <id>attach-sources</id>
@@ -70,10 +70,14 @@
                         </execution>
                     </executions>
                 </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.9.1</version>
+                    <configuration>
+                        <source>8</source>
+                    </configuration>
+                    <version>3.1.0</version>
                     <executions>
                         <execution>
                             <id>attach-javadocs</id>
@@ -81,10 +85,11 @@
                                 <goal>jar</goal>
                             </goals>
                             <configuration>
-                                <additionalparam>-Xdoclint:none</additionalparam>
+                                <doclint>none</doclint>
                             </configuration>
                         </execution>
                     </executions>
+
                 </plugin>
 
                 <plugin>
@@ -130,22 +135,41 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.5.1</version>
+                    <version>3.8.1</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
                         <compilerArgument>-parameters</compilerArgument>
+
                     </configuration>
                 </plugin>
-
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>enforce-versions</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireJavaVersion>
+                                        <version>1.8</version>
+                                    </requireJavaVersion>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.20.1</version>
+                    <version>3.0.0-M3</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit47</artifactId>
-                            <version>2.20.1</version>
+                            <version>3.0.0-M3</version>
                         </dependency>
                     </dependencies>
                     <configuration>

@@ -1,11 +1,13 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.server;
+package io.sinistral.proteus.openapi.test.server;
 
-import java.util.List;
-
-import io.sinistral.proteus.swagger.test.controllers.Tests;
+import io.restassured.RestAssured;
+import io.sinistral.proteus.ProteusApplication;
+import io.sinistral.proteus.openapi.services.OpenAPIService;
+import io.sinistral.proteus.openapi.test.controllers.OpenAPITests;
+import io.sinistral.proteus.services.AssetsService;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
@@ -15,16 +17,14 @@ import org.junit.runners.model.InitializationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.restassured.RestAssured;
-import io.sinistral.proteus.ProteusApplication;
-import io.sinistral.proteus.services.AssetsService;
+import java.util.List;
 
 /**
  * @author jbauer
  */
-public class DefaultServer extends BlockJUnit4ClassRunner
+public class OpenAPIDefaultServer extends BlockJUnit4ClassRunner
 {
-	private static Logger log = LoggerFactory.getLogger(DefaultServer.class.getCanonicalName());
+	private static Logger log = LoggerFactory.getLogger(OpenAPIDefaultServer.class.getCanonicalName());
 
 	private static boolean first = true;
 
@@ -32,7 +32,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 	 * @param clazz
 	 * @throws InitializationError
 	 */
-	public DefaultServer(Class<?> clazz) throws InitializationError
+	public OpenAPIDefaultServer(Class<?> clazz) throws InitializationError
 	{
 		super(clazz); 
 	}
@@ -72,9 +72,11 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			
 			final ProteusApplication app = new ProteusApplication();
 
+			app.addService(OpenAPIService.class);
+
 			app.addService(AssetsService.class);
 
-			app.addController(Tests.class);
+			app.addController(OpenAPITests.class);
 
 			app.start();
 			

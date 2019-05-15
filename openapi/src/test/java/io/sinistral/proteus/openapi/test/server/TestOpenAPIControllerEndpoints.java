@@ -1,12 +1,12 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.server;
+package io.sinistral.proteus.openapi.test.server;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -15,19 +15,14 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.LongStream;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static io.restassured.RestAssured.when;
+import static org.hamcrest.CoreMatchers.equalTo;
 
-/*
- * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;
- */
 /**
  * @author jbauer
  */
-@RunWith(DefaultServer.class)
-public class TestControllerEndpoints
+@RunWith(OpenAPIDefaultServer.class)
+public class TestOpenAPIControllerEndpoints
 {
  
 	private File file = null;
@@ -64,6 +59,18 @@ public class TestControllerEndpoints
 	public void testOpenAPIDocs()
 	{
 		when().get("openapi.yaml").then().statusCode(200);
+	}
+
+	@Test
+	public void testPojoType()
+	{
+		when().get("tests/types/pojo").then().statusCode(200).body("id", equalTo(100),"name", equalTo("John Doe"));
+	}
+
+	@Test
+	public void testMoneyType()
+	{
+		when().get("tests/types/money").then().statusCode(200).body("amount", equalTo(123.23f),"currency", equalTo("USD"));
 	}
 
 

@@ -29,7 +29,7 @@
                 <directory>src/test/resources</directory>
             </testResource>
             <testResource>
-                <directory>src/test/java</directory>
+                <directory>src/test/java/sinistral/proteus/openapi</directory>
                 <excludes>
                     <exclude>**/*.java</exclude>
                 </excludes>
@@ -59,7 +59,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20.1</version>
+                <groupId>org.apache.maven.plugins</groupId>
 
             </plugin>
             <plugin>
@@ -109,6 +109,14 @@
             <artifactId>swagger-integration</artifactId>
             <version>${openapi.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>jackson-datatype-money</artifactId>
+            <version>1.1.1</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>proteus-core</artifactId>

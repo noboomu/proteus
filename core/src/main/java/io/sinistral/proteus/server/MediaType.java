@@ -9,9 +9,14 @@ package io.sinistral.proteus.server;
  */
 
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MediaType
@@ -1210,6 +1215,11 @@ public class MediaType
         }
     }
 
+    public static synchronized MediaType getByMimeType(String type)
+    {
+        return Optional.ofNullable(getTypeMap().get(type)).orElse(MediaType.DEFAULT);
+    }
+
     public String withCharset(String charset)
     {
         return charset != null ? String.format("%s; charset=%s", this.contentType, charset.toUpperCase()) : this.contentType;
@@ -1262,6 +1272,30 @@ public class MediaType
         return this.contentType;
     }
 
+    private static final Map<String,MediaType> TYPE_MAP = new HashMap<>();
+
+    public static Map<String,MediaType> getTypeMap()
+    {
+        if(TYPE_MAP.size() == 0) {
+            Class<?> clazz = MediaType.class;
+
+            Field[] fields = clazz.getDeclaredFields();
+
+            Arrays.stream(fields).filter(f -> f.getType().equals(MediaType.class)).forEach( f -> {
+
+                try
+                {
+                    MediaType mt = (MediaType)f.get(MediaType.class);
+                    TYPE_MAP.put(mt.contentType,mt);
+                } catch( Exception e )
+                {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        return TYPE_MAP;
+    }
 
     @Override
     public int hashCode()
@@ -1307,5 +1341,4 @@ public class MediaType
 
         return toString();
     }
-
 }

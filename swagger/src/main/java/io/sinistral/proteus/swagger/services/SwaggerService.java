@@ -187,7 +187,7 @@ public class SwaggerService extends DefaultService implements Supplier<RoutingHa
 //				String name = apiKeyConfig.getString("name");
 //				String value = apiKeyConfig.getString("value");
 //
-//				io.swagger.models.auth.In keyLocation = io.swagger.models.auth.In.valueOf(apiKeyConfig.getString("in"));
+//				io.swagger.converters.auth.In keyLocation = io.swagger.converters.auth.In.valueOf(apiKeyConfig.getString("in"));
 //
 //				final Predicate predicate;
 //

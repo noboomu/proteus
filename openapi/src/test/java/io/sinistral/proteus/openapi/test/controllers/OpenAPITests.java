@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.controllers;
+package io.sinistral.proteus.openapi.test.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -9,6 +9,7 @@ import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.sinistral.proteus.annotations.Blocking;
+import io.sinistral.proteus.openapi.test.models.Pojo;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,14 +17,26 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
 import io.undertow.server.HttpServerExchange;
+import org.javamoney.moneta.Money;
 
-import javax.ws.rs.*;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static io.sinistral.proteus.server.ServerResponse.response;
@@ -38,7 +51,7 @@ import static io.sinistral.proteus.server.ServerResponse.response;
 @Produces((MediaType.APPLICATION_JSON)) 
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD)) 
 @Singleton
-public class Tests
+public class OpenAPITests
 {
 	 private static final ByteBuffer buffer;
 	  static {
@@ -127,8 +140,27 @@ public class Tests
 	{  
 		return response( ids ).applicationJson(); 
 	}
-	
-	  
+
+
+	@GET
+	@Path("types/money")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Operation(description = "Money type endpoint"  )
+	public ServerResponse<Money>  getMoney(ServerRequest request )  throws Exception
+	{
+		return response( Money.of(123.23,"USD") ).applicationJson();
+	}
+
+
+	@GET
+	@Path("types/pojo")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Operation(description = "Pojo type endpoint"  )
+	public ServerResponse<Pojo>  getPojo(ServerRequest request )  throws Exception
+	{
+		return response( new Pojo(100L,"John Doe") ).applicationJson();
+	}
+
 	@POST
 	@Path("generic/set/bean")
 	@Produces((MediaType.APPLICATION_JSON)) 

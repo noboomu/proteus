@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.sinistral.proteus.swagger.test.server;
+package io.sinistral.proteus.test.server;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
@@ -36,8 +36,8 @@ import org.junit.runner.RunWith;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.restassured.http.ContentType;
-import io.sinistral.proteus.swagger.test.models.User;
-import io.sinistral.proteus.swagger.test.models.User.UserType;
+import io.sinistral.proteus.test.models.User;
+import io.sinistral.proteus.test.models.User.UserType;
  
 /*
  * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;

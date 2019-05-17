@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
+import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.undertow.io.IoCallback;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
@@ -623,10 +624,21 @@ public class ServerResponse<T>
                     exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(this.entity)));
                 } else {
 
-                    exchange.getResponseSender().send(ByteBuffer.wrap(OBJECT_MAPPER.writeValueAsBytes(this.entity)));
-                }
+                    final Class jsonViewClass = exchange.getAttachment(JsonViewWrapper.JSON_VIEW_KEY);
+
+                    if(jsonViewClass != null)
+                    {
+                        exchange.getResponseSender().send(ByteBuffer.wrap(OBJECT_MAPPER.writerWithView(jsonViewClass).writeValueAsBytes(this.entity)));
+                    }
+                    else
+                    {
+                        exchange.getResponseSender().send(ByteBuffer.wrap(OBJECT_MAPPER.writeValueAsBytes(this.entity)));
+                    }
+
+                 }
 
             } catch (Exception e) {
+
                 log.error(e.getMessage() + " for entity " + this.entity, e);
 
                 throw new IllegalArgumentException(e);

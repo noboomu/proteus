@@ -40,12 +40,12 @@ public class Extractors
     private static Logger log = LoggerFactory.getLogger(Extractors.class.getCanonicalName());
 
     @Inject
-    public static XmlMapper XML_MAPPER;
+    private static XmlMapper XML_MAPPER;
 
     @Inject
-    public static ObjectMapper OBJECT_MAPPER;
+    private static ObjectMapper OBJECT_MAPPER;
 
-    public static JsonNode parseJson(byte[] bytes)
+    private static JsonNode parseJson(byte[] bytes)
     {
         try {
             return OBJECT_MAPPER.readTree(bytes);
@@ -71,7 +71,6 @@ public class Extractors
         public static <T> java.util.Optional<T> model(final HttpServerExchange exchange, final TypeReference<T> type)
         {
             if (ServerPredicates.XML_PREDICATE.resolve(exchange)) {
-
                 return xmlModel(exchange, type);
             } else {
                 return jsonModel(exchange, type);

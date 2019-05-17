@@ -17,6 +17,7 @@ import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.services.BaseService;
 import io.sinistral.proteus.services.DefaultService;
+import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
@@ -33,6 +34,7 @@ import java.util.*;
 public class ApplicationModule extends AbstractModule
 {
     private static Logger log = LoggerFactory.getLogger(ApplicationModule.class.getCanonicalName());
+
     protected Set<EndpointInfo> registeredEndpoints = new TreeSet<>();
     protected Set<Class<?>> registeredControllers = new HashSet<>();
     protected Set<Class<? extends BaseService>> registeredServices = new HashSet<>();
@@ -83,6 +85,7 @@ public class ApplicationModule extends AbstractModule
 
         this.requestStaticInjection(Extractors.class);
         this.requestStaticInjection(ServerResponse.class);
+        this.requestStaticInjection(JsonViewWrapper.class);
 
      }
 

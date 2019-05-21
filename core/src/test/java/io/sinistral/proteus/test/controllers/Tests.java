@@ -4,6 +4,7 @@
 package io.sinistral.proteus.test.controllers;
 
 import static io.sinistral.proteus.server.ServerResponse.response;
+import static io.sinistral.proteus.test.wrappers.TestWrapper.DEBUG_TEST_KEY;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -37,10 +38,13 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import io.sinistral.proteus.annotations.Blocking;
+import io.sinistral.proteus.annotations.Chain;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.test.models.User;
 
+import io.sinistral.proteus.test.wrappers.TestClassWrapper;
+import io.sinistral.proteus.test.wrappers.TestWrapper;
 import io.undertow.server.HttpServerExchange;
 
 /**
@@ -53,6 +57,7 @@ import io.undertow.server.HttpServerExchange;
 @Produces((MediaType.APPLICATION_JSON)) 
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD)) 
 @Singleton
+@Chain({TestClassWrapper.class})
 public class Tests
 {
 	 private static final ByteBuffer buffer;
@@ -351,13 +356,17 @@ public class Tests
 
 	@GET
 	@Path("response/debug")
-	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request) 
+	@Chain({TestWrapper.class})
+	public ServerResponse<Map<String,String>> debugEndpoint(ServerRequest request)
 	{  
 		try
 		{
-			Map<String,String> map = ImmutableMap.of("message", "Hello, World!");
+			String testString = request.getExchange().getAttachment(DEBUG_TEST_KEY);
+
+			Map<String,String> map = ImmutableMap.of("message", "Hello, World!","attachment",testString);
 			
 			return response( map ).applicationJson();
+
 		} catch(Exception e)
 		{
 			return response().badRequest(e);

@@ -1,12 +1,8 @@
 package io.sinistral.proteus.modules;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
@@ -16,7 +12,6 @@ import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.services.BaseService;
-import io.sinistral.proteus.services.DefaultService;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HandlerWrapper;
@@ -39,6 +34,7 @@ public class ApplicationModule extends AbstractModule
     protected Set<Class<?>> registeredControllers = new HashSet<>();
     protected Set<Class<? extends BaseService>> registeredServices = new HashSet<>();
     protected Map<String, HandlerWrapper> registeredHandlerWrappers = new HashMap<>();
+
     protected Config config;
 
     public ApplicationModule(Config config)
@@ -148,6 +144,7 @@ public class ApplicationModule extends AbstractModule
         this.bind(new TypeLiteral<Map<String, HandlerWrapper>>()
         {
         }).annotatedWith(Names.named("registeredHandlerWrappers")).toInstance(registeredHandlerWrappers);
+
     }
 }
 

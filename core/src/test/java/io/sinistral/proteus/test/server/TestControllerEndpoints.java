@@ -81,7 +81,7 @@ public class TestControllerEndpoints
 	@Test
 	public void testDebugEndpoint()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/debug").then().statusCode(200);
+		given().accept(ContentType.JSON).when().get("tests/response/debug").then().statusCode(200).body(containsString("testValue"));
 	}
 
 	@Test

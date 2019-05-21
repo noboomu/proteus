@@ -84,9 +84,9 @@ public class HandlerGenerator
     @Named("registeredHandlerWrappers")
     protected Map<String, HandlerWrapper> registeredHandlerWrappers;
 
-    protected Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<>();
+    protected Map<String, Class<? extends HandlerWrapper>> registeredWrapperTypes = new HashMap<>();
 
-    protected Map<Class<? extends HandlerWrapper>, String> handlerWrapperMap = new LinkedHashMap<>();
+    protected Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<>();
 
     /**
      * Create a new {@code HandlerGenerator} instance used to generate a
@@ -129,51 +129,6 @@ public class HandlerGenerator
     {
         try {
 
-//			Optional<io.sinistral.proteus.annotations.Chain> typeLevelWrapAnnotation = Optional.ofNullable(controllerClass.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
-//			
-//			typeLevelWrapAnnotation.ifPresent( a -> {
-//				 
-//				io.sinistral.proteus.annotations.Chain w = typeLevelWrapAnnotation.get();
-//
-//				Class<? extends HandlerWrapper> wrapperClasses[] = w.value();
-//
-//				for (int i = 0; i < wrapperClasses.length; i++)
-//				{
-//					Class<? extends HandlerWrapper> wrapperClass = wrapperClasses[i];
-//
-//					String wrapperName = generateFieldName(wrapperClass.getCanonicalName());
-//
-//					handlerWrapperMap.put(wrapperClass, wrapperName);
-//				}
-//				
-//			});
-//			
-//			for(Method m : this.controllerClass.getDeclaredMethods())
-//			{
-//			
-//				Optional<io.sinistral.proteus.annotations.Chain> methodLevelWrapAnnotation = Optional.ofNullable(m.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
-//				
-//				methodLevelWrapAnnotation.ifPresent( a -> {
-//					 
-//					io.sinistral.proteus.annotations.Chain w = methodLevelWrapAnnotation.get();
-//	
-//					Class<? extends HandlerWrapper> wrapperClasses[] = w.value();
-//	
-//					for (int i = 0; i < wrapperClasses.length; i++)
-//					{
-//						Class<? extends HandlerWrapper> wrapperClass = wrapperClasses[i];
-//	
-//						String wrapperName = generateFieldName(wrapperClass.getCanonicalName());
-//	
-//						handlerWrapperMap.put(wrapperClass, wrapperName);
-//					}
-//					
-//				});
-//
-//			}
-//			
-//			log.info("handlerWrapperMap: " + handlerWrapperMap);
-
             TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
                     .addSuperinterface(ParameterizedTypeName.get(Supplier.class, RoutingHandler.class));
 
@@ -199,7 +154,6 @@ public class HandlerGenerator
 
             typeBuilder.addField(mapOfWrappers, "registeredHandlerWrappers", Modifier.PROTECTED, Modifier.FINAL);
 
-
             constructor.addParameter(this.controllerClass, className);
             constructor.addParameter(annotatedMapOfWrappers, "registeredHandlerWrappers");
 
@@ -207,6 +161,17 @@ public class HandlerGenerator
             constructor.addStatement("this.$N = $N", "registeredHandlerWrappers", "registeredHandlerWrappers");
 
             addClassMethodHandlers(typeBuilder, this.controllerClass);
+
+            registeredWrapperTypes.forEach((key, value) -> {
+
+                TypeName typeName = TypeName.get(value);
+
+                typeBuilder.addField(typeName, key, Modifier.PROTECTED, Modifier.FINAL);
+
+                constructor.addParameter(typeName, key);
+
+                constructor.addStatement("this.$N = $N", key, key);
+            });
 
             typeBuilder.addMethod(constructor.build());
 
@@ -329,6 +294,9 @@ public class HandlerGenerator
 
         Optional<io.sinistral.proteus.annotations.Chain> typeLevelWrapAnnotation = Optional.ofNullable(clazz.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
 
+        /*
+        CLASS LEVEL WRAPPERS
+         */
 
         if (typeLevelWrapAnnotation.isPresent()) {
             io.sinistral.proteus.annotations.Chain w = typeLevelWrapAnnotation.get();
@@ -336,9 +304,10 @@ public class HandlerGenerator
             Class<? extends HandlerWrapper>[] wrapperClasses = w.value();
 
             for (Class<? extends HandlerWrapper> wrapperClass : wrapperClasses) {
+
                 String wrapperName = generateFieldName(wrapperClass.getCanonicalName());
 
-                initBuilder.addStatement("final $T $L = new $T()", wrapperClass, wrapperName, wrapperClass);
+                registeredWrapperTypes.put(wrapperName,wrapperClass);
 
                 typeLevelHandlerWrapperMap.put(wrapperClass, wrapperName);
             }
@@ -821,6 +790,8 @@ public class HandlerGenerator
 
             }
 
+
+
             if (wrapAnnotation.isPresent() || typeLevelHandlerWrapperMap.size() > 0 || securityDefinitions.size() > 0) {
                 initBuilder.addStatement("currentHandler = $L", handlerName);
 
@@ -835,16 +806,22 @@ public class HandlerGenerator
                         if (wrapperName == null) {
                             wrapperName = String.format("%s_%d", generateFieldName(wrapperClass.getCanonicalName()), handlerWrapperIndex++);
 
-                            initBuilder.addStatement("final $T $L = new $T()", wrapperClass, wrapperName, wrapperClass);
+
                         }
 
                         initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler");
+
+                        registeredWrapperTypes.put(wrapperName,wrapperClass);
+
                     }
                 }
 
                 for (Class<? extends HandlerWrapper> wrapperClass : typeLevelHandlerWrapperMap.keySet()) {
                     String wrapperName = typeLevelHandlerWrapperMap.get(wrapperClass);
                     initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler");
+
+                    registeredWrapperTypes.put(wrapperName,wrapperClass);
+
                 }
 
                 for (String securityDefinitionName : securityDefinitions) {
@@ -855,6 +832,8 @@ public class HandlerGenerator
             } else {
                 initBuilder.addStatement("$L.add(io.undertow.util.Methods.$L,$S,$L)", "router", httpMethod, methodPath, handlerName);
             }
+
+
 
             initBuilder.addCode("$L", "\n");
 

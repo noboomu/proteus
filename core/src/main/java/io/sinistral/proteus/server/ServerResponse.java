@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
-import io.sinistral.proteus.test.wrappers.JsonViewWrapper;
+import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.undertow.io.IoCallback;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;

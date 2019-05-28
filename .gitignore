@@ -28,4 +28,4 @@ bin
 .idea
 .idea/*
 *.iml
-tty.sh
+*.sh

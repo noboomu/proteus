@@ -165,10 +165,10 @@ public class Tests
 	
 	@GET
 	@Path("response/future/map")
-	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureMap( ServerRequest request )
+	public CompletableFuture<Map<String,String>> responseFutureMap( ServerRequest request )
 	{ 
 		Map<String,String> map = ImmutableMap.of("message", "success");
-		return CompletableFuture.completedFuture(response( map ).applicationJson());
+		return CompletableFuture.completedFuture(map);
 	}
 	
 	@GET
@@ -393,9 +393,9 @@ public class Tests
 	@GET
 	@Path("response/future/user")
 	@Produces((MediaType.APPLICATION_JSON)) 
-	public CompletableFuture<ServerResponse<User>> responseFutureUser()
+	public CompletableFuture<User> responseFutureUser()
 	{ 
-		return CompletableFuture.completedFuture(response( new User(123L) ).applicationJson() );
+		return CompletableFuture.completedFuture( new User(123L)  );
 	}
 	
 	@GET

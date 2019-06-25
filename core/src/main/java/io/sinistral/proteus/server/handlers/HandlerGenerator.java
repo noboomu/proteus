@@ -690,10 +690,12 @@ public class HandlerGenerator
                         } else if (producesContentType.contains(MediaType.TEXT_HTML)) {
                             postProcess = ".textHtml().";
                         }
+                        else {
+                            postProcess = String.format(".contentType(%s).",producesContentType);
+                        }
                     }
-
                     methodBuilder.addCode(
-                            "$L.thenAcceptAsync( r ->  r" + postProcess + "send(this,$L), io.undertow.util.SameThreadExecutor.INSTANCE )\n\t.exceptionally( ex -> ",
+                            "$L.thenAcceptAsync( r -> io.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send(this,$L), io.undertow.util.SameThreadExecutor.INSTANCE )\n\t.exceptionally( ex -> ",
                             "response", "exchange");
                     methodBuilder.beginControlFlow("", "");
                     methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");

@@ -16,7 +16,7 @@
 
 	<logger name="io.netty" level="ERROR" />
 	<logger name="io.netty.handler" level="ERROR" />
-	<logger name="io.sinistral.proteus.server.handlers" level="ERROR" />
+	<logger name="io.sinistral.proteus.server.handlers" level="DEBUG" />
 	<logger name="io.sinistral.proteus.services" level="ERROR" />
 
 	<logger name="com.sun.jersey" level="ERROR" />

@@ -26,6 +26,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
+import io.restassured.RestAssured;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -56,6 +57,8 @@ public class TestControllerEndpoints
 	@Before
 	public void setUp()
 	{
+		RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+
 		try
 		{
  			byte[] bytes  = new byte[8388608];
@@ -456,6 +459,21 @@ public class TestControllerEndpoints
 				then().statusCode(200).and().body(containsString(ts.toString()));
 
 		 
+	}
+
+	@Test
+	public void notFound()
+	{
+		given().accept(ContentType.JSON).when().get("tests/response/error/404").then().statusCode(404).log().body().content(containsString("No entity found"));
+
+	}
+
+
+	@Test
+	public void unauthorized()
+	{
+		given().accept(ContentType.JSON).when().get("tests/response/error/401").then().statusCode(401).log().body().content(containsString("Unauthorized"));
+
 	}
 	
 	@Test

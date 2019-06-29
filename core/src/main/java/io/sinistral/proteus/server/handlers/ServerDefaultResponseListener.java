@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.sinistral.proteus.server.exceptions.ServerException;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpServerExchange;
@@ -47,9 +48,10 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
             return false;
         }
 
-        final int statusCode = exchange.getStatusCode();
+        int statusCode = exchange.getStatusCode();
 
         if (statusCode >= 400) {
+
             final Map<String, String> errorMap = new HashMap<>();
             final String path = exchange.getRelativePath();
             Throwable throwable = exchange.getAttachment(DefaultResponseListener.EXCEPTION);
@@ -58,6 +60,11 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
                 final String reason = StatusCodes.getReason(statusCode);
 
                 throwable = new Exception(reason);
+            } else if(throwable instanceof ServerException)
+            {
+                ServerException serverException = (ServerException) throwable;
+                exchange.setStatusCode(serverException.getStatus());
+                statusCode = serverException.getStatus();
             }
 
             errorMap.put("exceptionClass", throwable.getClass().getName());

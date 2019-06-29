@@ -10,6 +10,8 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.ResponseCodeHandler;
 import io.undertow.server.handlers.cache.LRUCache;
 import io.undertow.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ProteusHandler implements HttpHandler
 {
+    private static final Logger log = LoggerFactory.getLogger(ProteusHandler.class.getName());
+
     private final PathMatcher<HttpHandler> pathMatcher = new PathMatcher<>();
     private final Map<HttpString, PathTemplateMatcher<RoutingMatch>> matches = new CopyOnWriteMap<>();
 

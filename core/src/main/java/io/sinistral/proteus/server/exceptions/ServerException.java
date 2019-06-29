@@ -16,7 +16,7 @@ public class ServerException extends RuntimeException
      */
     private static final long serialVersionUID = 8360356916374374408L;
 
-    private Integer status = 500;
+    private Integer status = Status.BAD_REQUEST.getStatusCode();
 
     public ServerException(int status)
     {

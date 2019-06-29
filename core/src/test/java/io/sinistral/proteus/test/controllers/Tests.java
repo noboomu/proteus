@@ -30,6 +30,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -41,6 +42,7 @@ import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.annotations.Chain;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
+import io.sinistral.proteus.server.exceptions.ServerException;
 import io.sinistral.proteus.test.models.User;
 
 import io.sinistral.proteus.test.wrappers.TestClassWrapper;
@@ -53,6 +55,7 @@ import io.undertow.server.HttpServerExchange;
  */
 
 
+@SuppressWarnings("ALL")
 @Path("/tests")
 @Produces((MediaType.APPLICATION_JSON)) 
 @Consumes((MediaType.MEDIA_TYPE_WILDCARD)) 
@@ -372,7 +375,33 @@ public class Tests
 			return response().badRequest(e);
 		}
 	}
-	
+
+	// new ServerException("No entity found", Response.Status.NOT_FOUND);
+
+	@GET
+	@Path("response/error/404")
+	public ServerResponse<Void> notFoundError(ServerRequest request, @QueryParam("test") Optional<String> param ) throws Exception
+	{
+		if(!param.isPresent()) {
+			throw  new ServerException("No entity found", Response.Status.NOT_FOUND);
+		}
+
+		return response().notFound();
+
+	}
+
+
+	@GET
+	@Path("response/error/401")
+	public ServerResponse<Void> unauthorizedError(ServerRequest request, @QueryParam("test") Optional<String> param ) throws Exception
+	{
+		if(!param.isPresent()) {
+			throw  new ServerException("Unauthorized", Response.Status.UNAUTHORIZED);
+		}
+
+		return response().unauthorized();
+
+	}
 
 	@GET
 	@Path("response/debug/blocking")

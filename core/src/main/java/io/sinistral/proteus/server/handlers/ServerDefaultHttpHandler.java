@@ -5,6 +5,7 @@ package io.sinistral.proteus.server.handlers;
 
 import com.google.inject.Inject;
 import com.typesafe.config.Config;
+import io.sinistral.proteus.server.exceptions.ServerException;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -12,6 +13,8 @@ import io.undertow.server.RoutingHandler;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.HttpString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
  */
 public class ServerDefaultHttpHandler implements HttpHandler
 {
+    private static final Logger log = LoggerFactory.getLogger(ServerDefaultHttpHandler.class);
+
     protected final HeaderMap headers = new HeaderMap();
 
     @Inject(optional = true)
@@ -61,7 +66,20 @@ public class ServerDefaultHttpHandler implements HttpHandler
             fiGlobal = headers.fiNextNonEmpty(fiGlobal);
         }
 
-        next.handleRequest(exchange);
+        try {
+            next.handleRequest(exchange);
+        } catch (Exception e) {
+
+            exchange.putAttachment(DefaultResponseListener.EXCEPTION,e);
+
+            if(e instanceof  ServerException)
+            {
+                ServerException serverException = (ServerException) e;
+                exchange.setStatusCode(serverException.getStatus());
+            }
+
+            defaultResponseListener.handleDefaultResponse(exchange);
+        }
     }
 }
 

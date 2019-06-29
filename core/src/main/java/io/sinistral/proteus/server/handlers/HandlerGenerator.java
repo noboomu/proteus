@@ -694,12 +694,19 @@ public class HandlerGenerator
                             postProcess = String.format(".contentType(%s).",producesContentType);
                         }
                     }
+                    methodBuilder.addCode("exchange.dispatch( () -> ");
+                    methodBuilder.beginControlFlow("", "");
+
+
                     methodBuilder.addCode(
-                            "$L.thenAcceptAsync( r -> io.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send(this,$L), io.undertow.util.SameThreadExecutor.INSTANCE )\n\t.exceptionally( ex -> ",
+                            "$L.thenAccept( r -> io.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send(this,$L) )\n\t.exceptionally( ex -> ",
                             "response", "exchange");
                     methodBuilder.beginControlFlow("", "");
                     methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
                     methodBuilder.endControlFlow(")", "");
+
+                    methodBuilder.endControlFlow(")", "");
+
                 } else {
 
                     methodBuilder.addStatement("exchange.getResponseHeaders().put($T.CONTENT_TYPE, $S)", Headers.class, producesContentType);

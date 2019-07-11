@@ -40,7 +40,7 @@ Getting Started
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-core</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.1</version>
 </dependency>
 ```
 
@@ -49,7 +49,7 @@ Swagger v2 Support
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-swagger</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.1</version>
 </dependency>
 ```
 
@@ -58,7 +58,7 @@ OpenAPI v3 Support
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-swagger</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.1</version>
 </dependency>
 ```
 

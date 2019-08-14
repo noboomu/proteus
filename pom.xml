@@ -7,7 +7,7 @@
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-project</artifactId>
     <packaging>pom</packaging>
-    <version>0.4.1</version>
+    <version>0.4.2-SNAPSHOT</version>
 
     <description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
     <url>http://github.com/noboomu/proteus</url>

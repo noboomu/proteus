@@ -9,6 +9,8 @@ package io.sinistral.proteus.server;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -966,6 +968,7 @@ public class MediaType
     public static final MediaType IMAGE_GIF = create("image/gif", "gif");
     public static final MediaType IMAGE_IEF = create("image/ief", "ief");
     public static final MediaType IMAGE_JPEG = create("image/jpeg", "jpeg", "jpg", "jpe");
+    public static final MediaType IMAGE_JBIG = create("image/jbig", "jbig", "jbg");
     public static final MediaType IMAGE_KTX = create("image/ktx", "ktx");
     public static final MediaType IMAGE_PCX = create("image/pcx", "pcx");
     public static final MediaType IMAGE_PNG = create("image/png", "png");
@@ -1230,10 +1233,10 @@ public class MediaType
         return new MediaType(contentType);
     }
 
+
     private final byte[] bytes;
 
     private final String contentType;
-
 
     private MediaType(String contentType)
     {
@@ -1245,7 +1248,6 @@ public class MediaType
     {
         this.bytes = join(name, attributes).getBytes();
         this.contentType = new String(this.bytes);
-
     }
 
     private String join(String name, String[] attributes)
@@ -1261,6 +1263,7 @@ public class MediaType
         return bytes;
     }
 
+    @JsonProperty("contentType")
     public String contentType()
     {
         return this.contentType;
@@ -1272,7 +1275,34 @@ public class MediaType
         return this.contentType;
     }
 
+    public String getFileExtension()
+    {
+        return Optional.ofNullable(EXTENSION_MAP.get(this)).map( fe -> fe.get(0)).orElse(null);
+    }
+
+    public List<String> getFileExtensions()
+    {
+        return Optional.ofNullable(EXTENSION_MAP.get(this)).orElse(null);
+    }
+
+    public String subType()
+    {
+        return this.contentType.substring(this.contentType.lastIndexOf("/") + 1, Math.max(this.contentType.lastIndexOf(";"),this.contentType.length()));
+    }
+
     private static final Map<String,MediaType> TYPE_MAP = new HashMap<>();
+
+    private static final Map<MediaType,List<String>> EXTENSION_MAP = new HashMap<>();
+
+    public static Map<MediaType,List<String>> getFileExtensionMap()
+    {
+        if(EXTENSION_MAP.size() == 0) {
+
+            EXTENSION_MAP.putAll(FILE_EXTENSIONS.entrySet().stream().collect(Collectors.groupingBy(Map.Entry::getValue, Collectors.mapping(Map.Entry::getKey, Collectors.toList()))));
+        }
+
+        return EXTENSION_MAP;
+    }
 
     public static Map<String,MediaType> getTypeMap()
     {
@@ -1289,7 +1319,7 @@ public class MediaType
                     TYPE_MAP.put(mt.contentType,mt);
                 } catch( Exception e )
                 {
-                    e.printStackTrace();
+
                 }
             });
         }

@@ -1277,12 +1277,12 @@ public class MediaType
 
     public String getFileExtension()
     {
-        return Optional.ofNullable(EXTENSION_MAP.get(this)).map( fe -> fe.get(0)).orElse(null);
+        return Optional.ofNullable(getFileExtensionMap().get(this)).map( fe -> fe.get(0)).orElse(null);
     }
 
     public List<String> getFileExtensions()
     {
-        return Optional.ofNullable(EXTENSION_MAP.get(this)).orElse(null);
+        return Optional.ofNullable(getFileExtensionMap().get(this)).orElse(null);
     }
 
     public String subType()

@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-project</artifactId>
     <packaging>pom</packaging>
-    <version>0.4.2</version>
+    <version>0.4.2-SNAPSHOT</version>
 
     <description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
     <url>http://github.com/noboomu/proteus</url>
@@ -33,10 +35,9 @@
 
     <scm>
         <connection>scm:git:git://github.com/noboomu/proteus.git</connection>
-        <developerConnection>scm:git:ssh://github.com/noboomu/proteus.git</developerConnection>
+        <developerConnection>scm:git:ssh://github.com:noboomu/proteus.git</developerConnection>
         <url>http://github.com/noboomu/proteus/tree/master</url>
-      <tag>v0.4.2</tag>
-  </scm>
+    </scm>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

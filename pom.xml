@@ -126,7 +126,7 @@
                     <version>2.5.3</version>
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
-                        <useReleaseProfile>false</useReleaseProfile>
+                        <tagNameFormat>v@{project.version}</tagNameFormat>
                         <releaseProfiles>ossrh</releaseProfiles>
                         <goals>deploy</goals>
                     </configuration>

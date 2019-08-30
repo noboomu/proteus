@@ -974,7 +974,7 @@ public class MediaType
     public static final MediaType IMAGE_PNG = create("image/png", "png");
     public static final MediaType IMAGE_PRS_BTIF = create("image/prs.btif", "btif");
     public static final MediaType IMAGE_SGI = create("image/sgi", "sgi");
-    public static final MediaType IMAGE_SVG_XML = createUTF8("image/svg+xml", "svg", "svgz");
+    public static final MediaType IMAGE_SVG_XML = create("image/svg+xml", "svg", "svgz");
     public static final MediaType IMAGE_TIFF = create("image/tiff", "tiff", "tif");
     public static final MediaType IMAGE_VND_ADOBE_PHOTOSHOP = create("image/vnd.adobe.photoshop", "psd");
     public static final MediaType IMAGE_VND_DECE_GRAPHIC = create("image/vnd.dece.graphic", "uvi", "uvvi", "uvg",
@@ -1190,8 +1190,10 @@ public class MediaType
     {
         MediaType mt = new MediaType(type, attributes);
 
-        for (String ext : fileExtensisons) {
-            FILE_EXTENSIONS.put(ext, mt);
+        if(!Arrays.stream(attributes).anyMatch(a -> a.equals(UTF8_ATTR[0]))) {
+            for (String ext : fileExtensisons) {
+                FILE_EXTENSIONS.put(ext, mt);
+            }
         }
 
         return mt;

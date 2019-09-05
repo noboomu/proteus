@@ -1038,6 +1038,7 @@ public class MediaType
     public static final MediaType MODEL_X3D_XML = create("model/x3d+xml", "x3d", "x3dz");
     public static final MediaType TEXT_CACHE_MANIFEST = create("text/cache-manifest", "appcache", "manifest");
     public static final MediaType TEXT_CALENDAR = create("text/calendar", "ics", "icz", "ifb");
+
     public static final MediaType TEXT_CSS_UTF8 = createUTF8("text/css", "css");
     public static final MediaType TEXT_CSV_UTF8 = createUTF8("text/csv", "csv");
     public static final MediaType TEXT_H323 = create("text/h323", "323");
@@ -1045,7 +1046,6 @@ public class MediaType
     public static final MediaType TEXT_IULS = create("text/iuls", "uls");
     public static final MediaType TEXT_MATHML = create("text/mathml", "mml");
     public static final MediaType TEXT_N3 = create("text/n3", "n3");
-    public static final MediaType TEXT_PLAIN = create("text/plain");
     public static final MediaType TEXT_PLAIN_UTF8 = createUTF8("text/plain", "asc", "txt", "text", "conf", "def",
             "pot", "brf", "LIST", "LOG", "IN");
     public static final MediaType TEXT_PRS_LINES_TAG = create("text/prs.lines.tag", "dsc");
@@ -1201,12 +1201,18 @@ public class MediaType
 
     public static synchronized MediaType createUTF8(String type, String... fileExtensisons)
     {
+        for (String ext : fileExtensisons) {
+            if(!FILE_EXTENSIONS.containsKey(ext)) {
+                FILE_EXTENSIONS.put(ext, create(type, fileExtensisons));
+            }
+        }
         return create(type, UTF8_ATTR, fileExtensisons);
     }
 
     public static synchronized MediaType getByFileExtension(String fileExtension)
     {
         return FILE_EXTENSIONS.get(fileExtension);
+
     }
 
     public static synchronized MediaType getByFileName(String filename)
@@ -1292,6 +1298,11 @@ public class MediaType
         return this.contentType.substring(this.contentType.lastIndexOf("/") + 1, Math.max(this.contentType.lastIndexOf(";"),this.contentType.length()));
     }
 
+    public String baseType()
+    {
+        return this.contentType.substring(0,this.contentType.lastIndexOf(";"));
+    }
+
     private static final Map<String,MediaType> TYPE_MAP = new HashMap<>();
 
     private static final Map<MediaType,List<String>> EXTENSION_MAP = new HashMap<>();
@@ -1373,4 +1384,5 @@ public class MediaType
 
         return toString();
     }
+
 }

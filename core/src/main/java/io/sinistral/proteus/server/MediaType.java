@@ -726,6 +726,7 @@ public class MediaType
     public static final MediaType APPLICATION_X_GRAMPS_XML = create("application/x-gramps-xml", "gramps");
     public static final MediaType APPLICATION_X_GRAPHING_CALCULATOR = create("application/x-graphing-calculator", "gcf");
     public static final MediaType APPLICATION_X_GTAR_COMPRESSED = create("application/x-gtar-compressed", "tgz", "taz");
+    public static final MediaType APPLICATION_X_GZIP_COMPRESSED = create("application/x-gzip", "gz");
     public static final MediaType APPLICATION_X_GTAR = create("application/x-gtar", "gtar");
     public static final MediaType APPLICATION_X_HDF = create("application/x-hdf", "hdf");
     public static final MediaType APPLICATION_XHTML_XML_UTF8 = createUTF8("application/xhtml+xml", "xhtml", "xht");

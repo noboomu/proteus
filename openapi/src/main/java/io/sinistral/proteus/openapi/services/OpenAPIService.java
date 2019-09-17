@@ -50,11 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.jar.JarFile;
@@ -123,9 +119,15 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 	@Named("registeredControllers")
 	protected Set<Class<?>> registeredControllers;
 
+	@Inject(optional = true)
+	@Named("jackson.jsonView.queryParameterName")
+	protected String jsonViewQueryParameterName;
+
 	@Inject
 	@Named("registeredHandlerWrappers")
 	protected Map<String, HandlerWrapper> registeredHandlerWrappers;
+
+
 
 	public OpenAPIService()
 	{
@@ -254,6 +256,16 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 		openApi.setServers(servers);
 
 		SwaggerConfiguration config = new SwaggerConfiguration().resourceClasses(classes.stream().map(Class::getName).collect(Collectors.toSet())).openAPI(openApi);
+
+		if(jsonViewQueryParameterName != null) {
+
+			if(config.getUserDefinedOptions() == null)
+			{
+				config.setUserDefinedOptions(new HashMap<>());
+			}
+
+			config.getUserDefinedOptions().put("jsonViewQueryParameterName", jsonViewQueryParameterName);
+		}
 
 		Set<String> modelConverterClasses = new HashSet<>();
 

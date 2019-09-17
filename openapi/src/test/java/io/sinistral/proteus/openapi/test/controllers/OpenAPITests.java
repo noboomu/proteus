@@ -9,9 +9,11 @@ import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.sinistral.proteus.annotations.Blocking;
+import io.sinistral.proteus.annotations.Chain;
 import io.sinistral.proteus.openapi.test.models.Pojo;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
+import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -305,4 +307,17 @@ public class OpenAPITests
 
 		return response(responseMap);
 	}
+
+
+	@Chain({JsonViewWrapper.class})
+	@GET
+	@Path("response/jsonview")
+	@Produces(MediaType.APPLICATION_JSON)
+	public ServerResponse<ByteBuffer> jsonViewEndpoint()
+	{
+
+
+		return response( "ok" );
+	}
+
 }

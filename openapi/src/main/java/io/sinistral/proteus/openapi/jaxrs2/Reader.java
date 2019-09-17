@@ -13,8 +13,10 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotatedParameter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import io.sinistral.proteus.annotations.Chain;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
+import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.converter.ResolvedSchema;
@@ -45,6 +47,7 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.tags.Tag;
+import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpServerExchange;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -88,6 +91,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 	private static final String HEAD_METHOD = "head";
 	private static final String OPTIONS_METHOD = "options";
 
+	private Schema stringSchema;
+
 	public Reader()
 	{
 // Json.mapper().addMixIn(ServerRequest.class, ServerRequestMixIn.class);
@@ -96,6 +101,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		paths = new Paths();
 		openApiTags = new LinkedHashSet<>();
 		components = new Components();
+		stringSchema = new Schema();
+		stringSchema.setType("string");
 
 	}
 
@@ -451,7 +458,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		globalParameters.addAll(ReaderUtils.collectFieldParameters(cls, components, classConsumes, null));
 
 		// iterate class methods
-		Method methods[] = cls.getMethods();
+		Method[] methods = cls.getMethods();
 		for (Method method : methods)
 		{
 			if (isOperationHidden(method))
@@ -701,6 +708,53 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 						}
 					}
 
+					boolean hasJsonWrapper = false;
+
+					if(method.isAnnotationPresent(Chain.class))
+					{
+						Chain chainAnnotation = method.getAnnotation(Chain.class);
+
+						Class<? extends HandlerWrapper>[] wrappers = chainAnnotation.value();
+
+						for(Class<? extends HandlerWrapper> wrapper : wrappers)
+						{
+							if(wrapper.equals(JsonViewWrapper.class))
+							{
+								LOGGER.debug("Found json wrapper class on method");
+								hasJsonWrapper = true;
+							}
+						}
+					} else 	if(cls.isAnnotationPresent(Chain.class))
+					{
+						Chain chainAnnotation = cls.getAnnotation(Chain.class);
+
+						Class<? extends HandlerWrapper>[] wrappers = chainAnnotation.value();
+
+						for(Class<? extends HandlerWrapper> wrapper : wrappers)
+						{
+							if(wrapper.equals(JsonViewWrapper.class))
+							{
+								LOGGER.debug("Found json wrapper class on class");
+								hasJsonWrapper = true;
+							}
+						}
+					}
+
+					LOGGER.debug("hasJsonWrapper");
+
+					if(hasJsonWrapper && config.getUserDefinedOptions().containsKey("jsonViewQueryParameterName"))
+					{
+						Parameter contextParameter = new Parameter();
+						contextParameter.description("JsonView class")
+								.allowEmptyValue(true)
+								.required(false)
+								.name(config.getUserDefinedOptions().get("jsonViewQueryParameterName").toString())
+								.in("query")
+								.schema(stringSchema);
+
+						operation.addParametersItem(contextParameter);
+					}
+
 					if (subResource != null && !scannedResources.contains(subResource))
 					{
 						scannedResources.add(subResource);
@@ -728,6 +782,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 					}
 
 					PathItem pathItemObject;
+
 					if (openAPI.getPaths() != null && openAPI.getPaths().get(operationPath) != null)
 					{
 						pathItemObject = openAPI.getPaths().get(operationPath);
@@ -741,6 +796,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 					{
 						continue;
 					}
+
 					setPathItemOperation(pathItemObject, httpMethod, operation);
 
 					paths.addPathItem(operationPath, pathItemObject);

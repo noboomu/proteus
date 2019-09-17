@@ -80,6 +80,11 @@ public class TestOpenAPIControllerEndpoints
 		when().get("tests/secure/resource").then().statusCode(200);
 	}
 
+	@Test
+	public void testJsonViewEndpoint()
+	{
+		when().get("tests/response/jsonview").then().statusCode(200);
+	}
 	
 	@After
 	public void tearDown()

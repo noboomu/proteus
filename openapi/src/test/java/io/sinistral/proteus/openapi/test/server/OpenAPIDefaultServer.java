@@ -86,7 +86,7 @@ public class OpenAPIDefaultServer extends BlockJUnit4ClassRunner
 			{
 				Thread.sleep(5000);
 				
-				System.out.println(app.getPorts());
+				log.debug("ports: " + app.getPorts());
 				
 				List<Integer> ports = app.getPorts();
 				
@@ -110,8 +110,8 @@ public class OpenAPIDefaultServer extends BlockJUnit4ClassRunner
 					Thread.sleep(100L);
 				} catch (InterruptedException e)
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
+					log.error("Error while waiting",e);
 				}
 			}
 

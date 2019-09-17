@@ -47,6 +47,7 @@
         <jackson.version>2.9.8</jackson.version>
         <openapi.version>2.0.6</openapi.version>
         <swagger.version>1.5.21</swagger.version>
+        <changelog.version>1.60</changelog.version>
 
     </properties>
 
@@ -176,6 +177,8 @@
                         <argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
                     </configuration>
                 </plugin>
+
+
 
             </plugins>
 

@@ -30,3 +30,5 @@ bin
 *.iml
 *.sh
 tty.sh
+.okhttpcache/*
+.okhttpcache

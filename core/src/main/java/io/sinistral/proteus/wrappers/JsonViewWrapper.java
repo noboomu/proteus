@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.util.AttachmentKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import java.util.Deque;
@@ -14,6 +16,8 @@ import java.util.Optional;
 public class JsonViewWrapper implements HandlerWrapper
 {
     public static AttachmentKey<Class> JSON_VIEW_KEY = AttachmentKey.create(Class.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(JsonViewWrapper.class.getName());
 
     @Named("jackson.jsonView.className")
     @Inject(optional = true)
@@ -44,7 +48,7 @@ public class JsonViewWrapper implements HandlerWrapper
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error processing JsonView",e);
             }
         }
     }
@@ -64,6 +68,7 @@ public class JsonViewWrapper implements HandlerWrapper
                             Class viewClass = CLASS_MAP.get(cn);
 
                             exchange.putAttachment(JSON_VIEW_KEY, viewClass);
+
                         });
             }
 

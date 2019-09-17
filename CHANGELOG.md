@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Support for JsonView in OpenAPI.**
+
+
+[2b3cad35f5039b0](https://github.com/noboomu/proteus/commit/2b3cad35f5039b0) Joshua Bauer *2019-09-17 21:26:13*
+
 **Add gzip MediaType.**
 
 

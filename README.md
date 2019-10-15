@@ -57,7 +57,7 @@ OpenAPI v3 Support
 ```xml
 <dependency>
     <groupId>io.sinistral</groupId>
-    <artifactId>proteus-swagger</artifactId>
+    <artifactId>proteus-openapi</artifactId>
     <version>0.4.1</version>
 </dependency>
 ```

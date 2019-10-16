@@ -816,6 +816,8 @@ public class MediaType
     public static final MediaType APPLICATION_X_RESEARCH_INFO_SYSTEMS = create("application/x-research-info-systems",
             "RIS");
     public static final MediaType APPLICATION_X_RUBY = create("application/x-ruby", "rb");
+    public static final MediaType APPLICATION_X_WWW_FORM_URLENCODED = create("application/x-www-form-urlencoded");
+
     public static final MediaType APPLICATION_X_SCILAB = create("application/x-scilab", "sci", "sce");
     public static final MediaType APPLICATION_X_SHAR = create("application/x-shar", "shar");
     public static final MediaType APPLICATION_X_SHOCKWAVE_FLASH = create("application/x-shockwave-flash", "swf", "swfl");
@@ -1191,6 +1193,11 @@ public class MediaType
     {
         MediaType mt = new MediaType(type, attributes);
 
+        if(fileExtensisons == null)
+        {
+            fileExtensisons = new String[]{};
+        }
+
         if(!Arrays.stream(attributes).anyMatch(a -> a.equals(UTF8_ATTR[0]))) {
             for (String ext : fileExtensisons) {
                 FILE_EXTENSIONS.put(ext, mt);
@@ -1202,6 +1209,11 @@ public class MediaType
 
     public static synchronized MediaType createUTF8(String type, String... fileExtensisons)
     {
+        if(fileExtensisons == null)
+        {
+            fileExtensisons = new String[]{};
+        }
+
         for (String ext : fileExtensisons) {
             if(!FILE_EXTENSIONS.containsKey(ext)) {
                 FILE_EXTENSIONS.put(ext, create(type, fileExtensisons));

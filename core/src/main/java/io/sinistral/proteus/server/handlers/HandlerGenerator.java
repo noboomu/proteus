@@ -399,6 +399,7 @@ public class HandlerGenerator
                 }
 
             } else {
+
                 producesContentTypes = Arrays.stream(producesAnnotation.get().value()).flatMap(v -> Arrays.stream((v.split(",")))).collect(Collectors.toList());
 
                 producesContentType = producesContentTypes.stream().collect(Collectors.joining(","));

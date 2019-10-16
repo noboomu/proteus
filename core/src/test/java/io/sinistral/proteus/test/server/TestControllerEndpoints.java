@@ -475,6 +475,34 @@ public class TestControllerEndpoints
 		given().accept(ContentType.JSON).when().get("tests/response/error/401").then().statusCode(401).log().body().content(containsString("Unauthorized"));
 
 	}
+
+	@Test
+	public void maxValueError()
+	{
+		given().queryParam("param",105).when().get("tests/response/max").then().statusCode(400).log();
+
+	}
+
+	@Test
+	public void minValueError()
+	{
+		given().queryParam("param",5).when().get("tests/response/min").then().statusCode(400).log();
+
+	}
+	@Test
+	public void maxValue()
+	{
+		given().queryParam("param",50).when().get("tests/response/max").then().statusCode(200).log();
+
+	}
+
+	@Test
+	public void minValue()
+	{
+		given().queryParam("param",15).when().get("tests/response/min").then().statusCode(200).log();
+
+	}
+
 	
 	@Test
 	public void responseComplexParameters()
@@ -485,7 +513,7 @@ public class TestControllerEndpoints
 		List<Integer> integerList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		String stringValue = "TESTSTRING123!#$";
 
-		Map<String, Object> map = given()
+		Map map = given()
 
 				
 				

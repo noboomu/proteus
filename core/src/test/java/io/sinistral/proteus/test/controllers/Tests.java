@@ -19,6 +19,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -390,6 +392,22 @@ public class Tests
 
 	}
 
+	@GET
+	@Path("response/max")
+	public ServerResponse<ByteBuffer> maxValue(ServerRequest request, @QueryParam("param") @Max(100) Integer param ) throws Exception
+	{
+		return response().body(param.toString());
+
+	}
+
+
+	@GET
+	@Path("response/min")
+	public ServerResponse<ByteBuffer> minValue(ServerRequest request, @QueryParam("param") @Min(10) Integer param ) throws Exception
+	{
+		return response().body(param.toString());
+
+	}
 
 	@GET
 	@Path("response/error/401")

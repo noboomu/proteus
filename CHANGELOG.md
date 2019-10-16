@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added travis config.**
+
+
+[d710f0f986d2a8e](https://github.com/noboomu/proteus/commit/d710f0f986d2a8e) Joshua Bauer *2019-09-17 21:32:50*
+
 **Support for JsonView in OpenAPI.**
 
 

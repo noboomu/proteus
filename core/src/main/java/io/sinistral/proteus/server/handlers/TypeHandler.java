@@ -6,7 +6,10 @@ package io.sinistral.proteus.server.handlers;
 import com.squareup.javapoet.MethodSpec;
 import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterType;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -160,10 +163,11 @@ public enum TypeHandler
     {
         Object[] args = new Object[handler.parameterTypes.length];
 
+        String pName = parameter.getName();
 
         for (int i = 0; i < handler.parameterTypes.length; i++) {
             if (handler.parameterTypes[i] instanceof StatementParameterType) {
-                String pName = parameter.getName();
+
 
                 if (parameter.isAnnotationPresent(QueryParam.class)) {
                     QueryParam qp = parameter.getAnnotation(QueryParam.class);
@@ -215,6 +219,44 @@ public enum TypeHandler
         }
 
         builder.addStatement(handler.statement, args);
+
+        Max max = parameter.isAnnotationPresent(Max.class) ? parameter.getAnnotationsByType(Max.class)[0] : null;
+
+        Min min = parameter.isAnnotationPresent(Min.class) ? parameter.getAnnotationsByType(Min.class)[0] : null;
+
+
+        if(max != null || min != null)
+        {
+            if(max != null && min != null)
+            {
+                long maxValue = min.value();
+                long minValue = min.value();
+
+                builder.beginControlFlow("if( $L < $L )", pName, minValue);
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)",min.message().equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
+                builder.endControlFlow();
+                builder.beginControlFlow("else if( $L > $L )", pName, maxValue);
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)",max.message().equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
+                builder.endControlFlow();
+
+            }
+            else if(max != null)
+            {
+                long maxValue = max.value();
+
+                builder.beginControlFlow("if( $L > $L )", pName, maxValue);
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)",max.message().equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
+                builder.endControlFlow();
+            }
+            else
+            {
+                long minValue = min.value();
+
+                builder.beginControlFlow("if( $L < $L )", pName, minValue);
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)",min.message().equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
+                builder.endControlFlow();
+            }
+        }
     }
 
     /**
@@ -298,6 +340,7 @@ public enum TypeHandler
 
             }
         }
+
         if (isSet && !isOptional) {
             try {
                 Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);

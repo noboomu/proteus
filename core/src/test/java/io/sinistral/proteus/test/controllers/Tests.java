@@ -175,7 +175,7 @@ public class Tests
 		Map<String,String> map = ImmutableMap.of("message", "success");
 		return CompletableFuture.completedFuture(map);
 	}
-	
+
 	@GET
 	@Path("response/map")
 	public ServerResponse<Map<String,String>> futureMap( ServerRequest request )
@@ -408,6 +408,16 @@ public class Tests
 		return response().body(param.toString());
 
 	}
+
+
+	@GET
+	@Path("response/future/response")
+	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureResponseMap( ServerRequest request )
+	{
+		Map<String,String> map = ImmutableMap.of("message", "success");
+		return CompletableFuture.completedFuture(response(map).applicationJson().ok());
+	}
+
 
 	@GET
 	@Path("response/error/401")

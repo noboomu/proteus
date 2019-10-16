@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added max min annotation support.**
+
+
+[23d28b1509aaaf7](https://github.com/noboomu/proteus/commit/23d28b1509aaaf7) Joshua Bauer *2019-10-16 20:45:51*
+
+**refactor(readme): Typo in maven dependency tag for OpenAPI**
+
+
+[b1f9def9a259cb7](https://github.com/noboomu/proteus/commit/b1f9def9a259cb7) Dheeraj Khardwal *2019-10-13 10:45:08*
+
 **Added travis config.**
 
 

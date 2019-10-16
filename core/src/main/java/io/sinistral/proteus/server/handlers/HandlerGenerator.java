@@ -675,38 +675,61 @@ public class HandlerGenerator
 
                 methodBuilder.addCode("$L", "\n");
 
+
                 if (m.getReturnType().equals(ServerResponse.class)) {
                     methodBuilder.addStatement("$L.send(this,$L)", "response", "exchange");
 
-                } else if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
-                        || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
-                {
-                    String postProcess = ".";
+                } else if ((m.getGenericReturnType().toString().contains("java.util.concurrent.CompletionStage") && m.getGenericReturnType().toString().contains("ServerResponse"))
+                        || (m.getGenericReturnType().toString().contains("java.util.concurrent.CompletableFuture") && m.getGenericReturnType().toString().contains("ServerResponse")))
 
-                    if (!producesContentType.contains(",")) {
-                        if (producesContentType.contains(MediaType.APPLICATION_JSON)) {
-                            postProcess = ".applicationJson().";
-                        } else if (producesContentType.contains(MediaType.APPLICATION_XML)) {
-                            postProcess = ".applicationXml().";
-                        } else if (producesContentType.contains(MediaType.TEXT_HTML)) {
-                            postProcess = ".textHtml().";
-                        }
-                        else {
-                            postProcess = String.format(".contentType(%s).",producesContentType);
-                        }
-                    }
+                {
                     methodBuilder.addCode("exchange.dispatch( () -> ");
                     methodBuilder.beginControlFlow("", "");
 
-
                     methodBuilder.addCode(
-                            "$L.thenAccept( r -> io.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send(this,$L) )\n\t.exceptionally( ex -> ",
+                            "$L.thenAccept( r -> r.send(this,$L) )\n\t.exceptionally( ex -> ",
                             "response", "exchange");
                     methodBuilder.beginControlFlow("", "");
                     methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
                     methodBuilder.endControlFlow(")", "");
 
                     methodBuilder.endControlFlow(")", "");
+                }
+                else if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
+                        || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
+                {
+
+
+                        String postProcess = ".";
+
+                        if (!producesContentType.contains(",")) {
+                            if (producesContentType.contains(MediaType.APPLICATION_JSON)) {
+                                postProcess = ".applicationJson().";
+                            } else if (producesContentType.contains(MediaType.APPLICATION_XML)) {
+                                postProcess = ".applicationXml().";
+                            } else if (producesContentType.contains(MediaType.TEXT_HTML)) {
+                                postProcess = ".textHtml().";
+                            } else if (producesContentType != null) {
+                                postProcess = String.format(".contentType(\"%s\").", producesContentType);
+                            } else {
+                                postProcess = ".";
+                            }
+                        }
+                        methodBuilder.addCode("exchange.dispatch( () -> ");
+                        methodBuilder.beginControlFlow("", "");
+
+
+                        methodBuilder.addCode(
+                                "$L.thenAccept( r -> io.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send(this,$L) )\n\t.exceptionally( ex -> ",
+                                "response", "exchange");
+                        methodBuilder.beginControlFlow("", "");
+                        methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
+                        methodBuilder.endControlFlow(")", "");
+
+                        methodBuilder.endControlFlow(")", "");
+
+
+
 
                 } else {
 

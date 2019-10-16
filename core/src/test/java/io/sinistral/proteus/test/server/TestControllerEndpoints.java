@@ -265,7 +265,14 @@ public class TestControllerEndpoints
 	{
 		given().accept(ContentType.JSON).when().get("tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
 	}
-	
+
+	@Test
+	public void responseFutureResponseMap()
+	{
+		given().accept(ContentType.JSON).when().get("tests/response/future/response").then().statusCode(200).and().body("message", is("success"));
+	}
+
+
 	@Test
 	public void testRedirect()
 	{

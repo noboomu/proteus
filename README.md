@@ -40,7 +40,7 @@ Getting Started
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-core</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
 </dependency>
 ```
 
@@ -49,7 +49,7 @@ Swagger v2 Support
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-swagger</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
 </dependency>
 ```
 
@@ -58,7 +58,7 @@ OpenAPI v3 Support
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-openapi</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
 </dependency>
 ```
 
@@ -79,6 +79,8 @@ public class DemoController
 
 Controller class methods respect standard Swagger / JAX-RS annotations:
 ```java
+
+
 @GET
 @Path("/plaintext")
 @Produces((MediaType.TEXT_PLAIN))
@@ -198,7 +200,7 @@ The entity can be set separately as well:
 @Path("/world")
 @Produces((MediaType.APPLICATION_JSON)) 
 @Operation(description = "Return a world JSON object")
-public ServerResponse getWorld(Integer id,  Integer randomNumber )
+public ServerResponse getWorld(ServerRequest request, Integer id,  Integer randomNumber )
 { 
 	return response().entity(new World(id,randomNumber));
 }

@@ -4,15 +4,13 @@
         <artifactId>proteus-project</artifactId>
         <groupId>io.sinistral</groupId>
         <version>0.4.3-SNAPSHOT</version>
-        <relativePath> ../pom.xml</relativePath>
 
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>proteus-openapi</artifactId>
+    <artifactId>proteus-swagger</artifactId>
 
-
-    <name>Proteus OpenAPI</name>
+    <name>Proteus Swagger</name>
 
     <packaging>jar</packaging>
 
@@ -29,7 +27,7 @@
                 <directory>src/test/resources</directory>
             </testResource>
             <testResource>
-                <directory>src/test/java/sinistral/proteus/openapi</directory>
+                <directory>src/test/java</directory>
                 <excludes>
                     <exclude>**/*.java</exclude>
                 </excludes>
@@ -86,37 +84,28 @@
     <dependencies>
 
 
+
         <dependency>
-            <groupId>io.swagger.core.v3</groupId>
+            <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>${openapi.version}</version>
+            <version>${swagger.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-models</artifactId>
-            <version>${openapi.version}</version>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-core</artifactId>
+            <version>${swagger.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
         <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-jaxrs2</artifactId>
-            <version>${openapi.version}</version>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-jaxrs</artifactId>
+            <version>${swagger.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-integration</artifactId>
-            <version>${openapi.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>jackson-datatype-money</artifactId>
-            <version>1.1.1</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>proteus-core</artifactId>
@@ -126,8 +115,8 @@
     </dependencies>
 
 
-    <distributionManagement>
-        <downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-openapi</downloadUrl>
-    </distributionManagement>
 
+    <distributionManagement>
+        <downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-swagger</downloadUrl>
+    </distributionManagement>
 </project>

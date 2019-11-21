@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bumped version in README.md**
+
+
+[36b065e4fe3efad](https://github.com/noboomu/proteus/commit/36b065e4fe3efad) Joshua Bauer *2019-11-20 19:47:34*
+
+**Support wrapping ServerResponse in a CompletableFuture**
+
+
+[e9ea1af37128516](https://github.com/noboomu/proteus/commit/e9ea1af37128516) Joshua Bauer *2019-10-16 23:49:35*
+
 **Added max min annotation support.**
 
 

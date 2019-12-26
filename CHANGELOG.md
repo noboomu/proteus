@@ -4,6 +4,21 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve swagger css.**
+
+
+[1a6ae84e4ac27e7](https://github.com/noboomu/proteus/commit/1a6ae84e4ac27e7) Joshua Bauer *2019-12-26 17:56:27*
+
+**Update README.md**
+
+
+[9539b97eeeb1188](https://github.com/noboomu/proteus/commit/9539b97eeeb1188) JL Bauer *2019-12-19 23:00:12*
+
+**Restructure modules to support parent artifact.**
+
+
+[e529d9ef04e7c4a](https://github.com/noboomu/proteus/commit/e529d9ef04e7c4a) joshua bauer *2019-11-21 06:22:24*
+
 **Bumped version in README.md**
 
 

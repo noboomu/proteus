@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bump version.**
+
+
+[734c56ab0883459](https://github.com/noboomu/proteus/commit/734c56ab0883459) Joshua Bauer *2019-12-26 20:54:55*
+
 **Improve swagger css.**
 
 

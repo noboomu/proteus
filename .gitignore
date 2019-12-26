@@ -23,7 +23,7 @@ bin
 .settings/org.scala-ide.sdt.core.prefs
 .cache-tests
 /proteus/
-/pom.xml.versionsBackup
+*.versionsBackup
 .factorypath
 .idea
 .idea/*

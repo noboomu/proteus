@@ -70,9 +70,11 @@ public class JsonViewWrapper implements HandlerWrapper
                         .orElse(DEFAULT_VIEW_CLASS);
 
 
-                Class viewClass = CLASS_MAP.get(className);
+                if(className != null) {
+                    Class viewClass = CLASS_MAP.get(className.toLowerCase());
 
-                exchange.putAttachment(JSON_VIEW_KEY, viewClass);
+                    exchange.putAttachment(JSON_VIEW_KEY, viewClass);
+                }
 
 
             }

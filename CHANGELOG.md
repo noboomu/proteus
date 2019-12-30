@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Restructure pom files.**
+
+
+[f19edfc200c612a](https://github.com/noboomu/proteus/commit/f19edfc200c612a) Joshua Bauer *2020-12-30 01:17:28*
+
+**Update README.md**
+
+
+[af53f9619d7afbc](https://github.com/noboomu/proteus/commit/af53f9619d7afbc) JL Bauer *2019-12-28 07:27:28*
+
 **Next snapshot.**
 
 

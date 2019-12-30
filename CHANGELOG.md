@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Further css fixes.**
+
+
+[2af2076b54ce120](https://github.com/noboomu/proteus/commit/2af2076b54ce120) joshua bauer *2020-12-30 07:06:52*
+
 **Revert JSONView updates.**
 
 

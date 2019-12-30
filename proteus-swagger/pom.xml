@@ -107,9 +107,9 @@
             <version>${swagger.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>io.sinistral</groupId>
             <artifactId>proteus-core</artifactId>
-            <version>${project.version}</version>
+            <version>${proteus.version}</version>
         </dependency>
 
     </dependencies>

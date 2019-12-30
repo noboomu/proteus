@@ -4,6 +4,21 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Next snapshot.**
+
+
+[44d0c6c1866c2d4](https://github.com/noboomu/proteus/commit/44d0c6c1866c2d4) Joshua Bauer *2019-12-26 23:23:28*
+
+**Bump to latest snapshot.**
+
+
+[ea7a9116b1b99fc](https://github.com/noboomu/proteus/commit/ea7a9116b1b99fc) Joshua Bauer *2019-12-26 22:30:11*
+
+**Release 0.4.3.**
+
+
+[d53b685da74d246](https://github.com/noboomu/proteus/commit/d53b685da74d246) Joshua Bauer *2019-12-26 22:21:40*
+
 **Bump version.**
 
 

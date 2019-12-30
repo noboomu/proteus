@@ -4,7 +4,6 @@
         <artifactId>proteus-project</artifactId>
         <groupId>io.sinistral</groupId>
         <version>0.4.4-SNAPSHOT</version>
-
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -117,9 +116,9 @@
         </dependency>
 
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>io.sinistral</groupId>
             <artifactId>proteus-core</artifactId>
-            <version>${project.version}</version>
+            <version>${proteus.version}</version>
         </dependency>
 
     </dependencies>

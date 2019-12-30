@@ -23,6 +23,10 @@ public class JsonViewWrapper implements HandlerWrapper
     @Inject(optional = true)
     private static String VIEW_CLASS_NAME;
 
+    @Named("jackson.jsonView.defaultViewClass")
+    @Inject(optional = true)
+    private static String DEFAULT_VIEW_CLASS = null;
+
     @Named("jackson.jsonView.queryParameterName")
     @Inject(optional = true)
     private static String QUERY_PARAMETER_NAME = "context";
@@ -48,7 +52,7 @@ public class JsonViewWrapper implements HandlerWrapper
                 }
 
             } catch (Exception e) {
-                logger.error("Error processing JsonView",e);
+                logger.error("Error processing JsonView", e);
             }
         }
     }
@@ -60,16 +64,17 @@ public class JsonViewWrapper implements HandlerWrapper
 
             if (CLASS_MAP != null) {
 
-                Optional.ofNullable(exchange.getQueryParameters().get(QUERY_PARAMETER_NAME))
+                String className = Optional.ofNullable(exchange.getQueryParameters().get(QUERY_PARAMETER_NAME))
                         .filter(q -> q.size() > 0)
                         .map(Deque::getFirst)
-                        .ifPresent(cn -> {
+                        .orElse(DEFAULT_VIEW_CLASS);
 
-                            Class viewClass = CLASS_MAP.get(cn);
 
-                            exchange.putAttachment(JSON_VIEW_KEY, viewClass);
+                Class viewClass = CLASS_MAP.get(className);
 
-                        });
+                exchange.putAttachment(JSON_VIEW_KEY, viewClass);
+
+
             }
 
             handler.handleRequest(exchange);

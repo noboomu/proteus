@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Revert JSONView updates.**
+
+
+[42d9de2c00cd43e](https://github.com/noboomu/proteus/commit/42d9de2c00cd43e) joshua bauer *2020-12-30 06:36:54*
+
 **Improve default JsonView handling.**
 
 

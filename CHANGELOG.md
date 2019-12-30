@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve default JsonView handling.**
+
+
+[f341af566518055](https://github.com/noboomu/proteus/commit/f341af566518055) joshua bauer *2020-12-30 05:48:32*
+
 **Restructure pom files.**
 
 

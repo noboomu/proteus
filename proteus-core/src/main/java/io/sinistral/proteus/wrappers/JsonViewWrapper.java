@@ -51,6 +51,8 @@ public class JsonViewWrapper implements HandlerWrapper
                     CLASS_MAP.put(c.getSimpleName().toLowerCase(), c);
                 }
 
+
+
             } catch (Exception e) {
                 logger.error("Error processing JsonView", e);
             }
@@ -60,6 +62,7 @@ public class JsonViewWrapper implements HandlerWrapper
     @Override
     public HttpHandler wrap(HttpHandler handler)
     {
+
         return exchange -> {
 
             if (CLASS_MAP != null) {

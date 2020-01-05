@@ -46,7 +46,7 @@ public class ServerResponse<T>
     protected int status = StatusCodes.OK;
     protected final HeaderMap headers = new HeaderMap();
     protected final Map<String, Cookie> cookies = new HashMap<>();
-    protected String contentType = null;
+    protected String contentType = javax.ws.rs.core.MediaType.APPLICATION_JSON;
     protected T entity;
     protected Throwable throwable;
     //	protected Class<? extends JsonContext> jsonContext;
@@ -270,11 +270,11 @@ public class ServerResponse<T>
     {
         this.contentType = contentType;
 
-        if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_JSON)) {
+        if (this.contentType.contains(javax.ws.rs.core.MediaType.APPLICATION_JSON)) {
             if (!this.preprocessed) {
                 this.processJson = true;
             }
-        } else if (this.contentType.equals(javax.ws.rs.core.MediaType.APPLICATION_XML)) {
+        } else if (this.contentType.contains(javax.ws.rs.core.MediaType.APPLICATION_XML)) {
             if (!this.preprocessed) {
                 this.processXml = true;
             }
@@ -561,6 +561,7 @@ public class ServerResponse<T>
 
 
         if (hasError) {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.APPLICATION_JSON);
             exchange.putAttachment(DefaultResponseListener.EXCEPTION, throwable);
             exchange.endExchange();
             return;

@@ -12,6 +12,7 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
+import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +77,7 @@ public class ServerDefaultHttpHandler implements HttpHandler
             {
                 ServerException serverException = (ServerException) e;
                 exchange.setStatusCode(serverException.getStatus());
+                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.APPLICATION_JSON);
             }
 
             defaultResponseListener.handleDefaultResponse(exchange);

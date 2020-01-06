@@ -12,6 +12,7 @@ import io.sinistral.proteus.server.exceptions.ServerException;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.StatusCodes;
 import org.slf4j.Logger;
@@ -50,11 +51,18 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 
         int statusCode = exchange.getStatusCode();
 
-        if (statusCode >= 400) {
+        Throwable throwable = exchange.getAttachment(ExceptionHandler.THROWABLE);
+
+        if(throwable == null)
+        {
+            throwable = exchange.getAttachment(DefaultResponseListener.EXCEPTION);
+        }
+
+        if (statusCode >= 400 || throwable != null) {
 
             final Map<String, String> errorMap = new HashMap<>();
+
             final String path = exchange.getRelativePath();
-            Throwable throwable = exchange.getAttachment(DefaultResponseListener.EXCEPTION);
 
             if (throwable == null) {
                 final String reason = StatusCodes.getReason(statusCode);

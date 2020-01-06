@@ -1,6 +1,4 @@
-/**
- *
- */
+
 package io.sinistral.proteus.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +11,7 @@ import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
+import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -561,8 +560,11 @@ public class ServerResponse<T>
 
 
         if (hasError) {
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.APPLICATION_JSON);
-            exchange.putAttachment(DefaultResponseListener.EXCEPTION, throwable);
+            if(this.status == StatusCodes.OK)
+            {
+                exchange.setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR);
+            }
+            exchange.putAttachment(ExceptionHandler.THROWABLE, throwable);
             exchange.endExchange();
             return;
         }

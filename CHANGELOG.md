@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Set default content type for exceptions.**
+
+
+[20c67536c5ec75c](https://github.com/noboomu/proteus/commit/20c67536c5ec75c) joshua bauer *2020-01-05 05:36:36*
+
+**Revert to previous openhft compiler version.**
+
+
+[ba63bd0fc852aaa](https://github.com/noboomu/proteus/commit/ba63bd0fc852aaa) joshua bauer *2020-12-30 19:35:52*
+
 **Further css fixes.**
 
 

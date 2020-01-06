@@ -1,6 +1,4 @@
-/**
- *
- */
+
 package io.sinistral.proteus.server.handlers;
 
 import com.google.inject.Inject;
@@ -10,6 +8,7 @@ import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
@@ -68,17 +67,12 @@ public class ServerDefaultHttpHandler implements HttpHandler
         }
 
         try {
+
             next.handleRequest(exchange);
+
         } catch (Exception e) {
 
-            exchange.putAttachment(DefaultResponseListener.EXCEPTION,e);
-
-            if(e instanceof  ServerException)
-            {
-                ServerException serverException = (ServerException) e;
-                exchange.setStatusCode(serverException.getStatus());
-                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.APPLICATION_JSON);
-            }
+            exchange.putAttachment(ExceptionHandler.THROWABLE,e);
 
             defaultResponseListener.handleDefaultResponse(exchange);
         }

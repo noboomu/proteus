@@ -8,6 +8,7 @@ import io.undertow.io.Receiver;
 import io.undertow.security.api.SecurityContext;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
@@ -32,7 +33,7 @@ import java.util.concurrent.Executor;
 public class ServerRequest
 {
     protected static final Receiver.ErrorCallback ERROR_CALLBACK = (exchange, e) -> {
-        exchange.putAttachment(DefaultResponseListener.EXCEPTION, e);
+        exchange.putAttachment(ExceptionHandler.THROWABLE, e);
         exchange.endExchange();
     };
 

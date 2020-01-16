@@ -180,6 +180,13 @@ public class ServerResponse<T>
         return this;
     }
 
+    public ServerResponse<T> body(byte[] body)
+    {
+        this.body = ByteBuffer.wrap(body);
+        this.preprocessed = true;
+        return this;
+    }
+
     public ServerResponse<T> body(String body)
     {
         return this.body(ByteBuffer.wrap(body.getBytes()));

@@ -307,7 +307,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 				log.error("Error generating OpenAPI spec", e);
 			}
 
-		});
+		},this.executor());
 
 		router.addAll(this.get());
 	}

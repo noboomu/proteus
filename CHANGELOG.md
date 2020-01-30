@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Allow byte arrays in response bodies.**
+
+
+[fb8229f7e656a44](https://github.com/noboomu/proteus/commit/fb8229f7e656a44) Joshua Bauer *2020-01-16 21:08:44*
+
+**Improve error handlers.**
+
+
+[e1a7de453d79acf](https://github.com/noboomu/proteus/commit/e1a7de453d79acf) Joshua Bauer *2020-01-06 17:12:33*
+
 **Set default content type for exceptions.**
 
 

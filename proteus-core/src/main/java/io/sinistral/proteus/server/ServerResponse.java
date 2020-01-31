@@ -638,7 +638,7 @@ public class ServerResponse<T>
                     exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(this.entity)));
                 } else {
 
-                    final Class<?> jsonViewClass = exchange.getAttachment(JsonViewWrapper.JSON_VIEW_KEY);
+                    final Class jsonViewClass = exchange.getAttachment(JsonViewWrapper.JSON_VIEW_KEY);
 
                     if(jsonViewClass != null)
                     {

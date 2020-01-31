@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 public class JsonViewWrapper implements HandlerWrapper
 {
-    public static AttachmentKey<Class<?>> JSON_VIEW_KEY = AttachmentKey.create(Class.class);
+    public static AttachmentKey<Class> JSON_VIEW_KEY = AttachmentKey.create(Class.class);
 
     private static final Logger logger = LoggerFactory.getLogger(JsonViewWrapper.class.getName());
 
@@ -36,7 +36,7 @@ public class JsonViewWrapper implements HandlerWrapper
 
     private Map<String, Class> CLASS_MAP = new ConcurrentHashMap<>();
 
-    private Class<?> defaultViewClass = null;
+    private Class defaultViewClass = null;
 
     public JsonViewWrapper()
     {
@@ -46,11 +46,11 @@ public class JsonViewWrapper implements HandlerWrapper
 
             try {
 
-                Class<?> clazz = Class.forName(VIEW_CLASS_NAME);
+                Class clazz = Class.forName(VIEW_CLASS_NAME);
 
-                final Class<?>[] contexts = clazz.getClasses();
+                final Class[] contexts = clazz.getClasses();
 
-                for (Class<?> c : contexts) {
+                for (Class c : contexts) {
                     CLASS_MAP.put(c.getSimpleName().toLowerCase(), c);
                 }
 
@@ -79,7 +79,7 @@ public class JsonViewWrapper implements HandlerWrapper
                         .map(Deque::getFirst).orElse(null);
 
                 if(className != null) {
-                    Class<?> viewClass = CLASS_MAP.getOrDefault(className, defaultViewClass);
+                    Class viewClass = CLASS_MAP.getOrDefault(className, defaultViewClass);
 
                     exchange.putAttachment(JSON_VIEW_KEY, viewClass);
                 }

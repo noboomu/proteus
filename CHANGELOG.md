@@ -4,20 +4,13 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
-**Cleanup JsonViewWrapper.**
-
-
-[dc95a16a710813a](https://github.com/noboomu/proteus/commit/dc95a16a710813a) Joshua Bauer *2020-01-31 01:04:26*
-
-**Improvements to JsonViewWrapper.**
-
-
-[ead870ae6ad73d9](https://github.com/noboomu/proteus/commit/ead870ae6ad73d9) Joshua Bauer *2020-01-31 01:02:12*
-
 **Update readme.**
 
+ * Improvements to JsonViewWrapper.
+ * Cleanup JsonViewWrapper.
+ * More JSON work.
 
-[7bfd78a09ba642d](https://github.com/noboomu/proteus/commit/7bfd78a09ba642d) Joshua Bauer *2020-01-31 00:39:35*
+[594682feb70b27d](https://github.com/noboomu/proteus/commit/594682feb70b27d) Joshua Bauer *2020-01-31 01:23:26*
 
 **Improve JSON view handling.**
 

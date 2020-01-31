@@ -2,6 +2,7 @@
 package io.sinistral.proteus.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
@@ -23,6 +24,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jbauer
@@ -39,6 +41,8 @@ public class ServerResponse<T>
 
     @Inject
     protected static ObjectMapper OBJECT_MAPPER;
+
+    protected static Map<Class<?>, ObjectWriter> WRITER_CACHE = new ConcurrentHashMap<>();
 
     protected ByteBuffer body;
 
@@ -634,11 +638,12 @@ public class ServerResponse<T>
                     exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(this.entity)));
                 } else {
 
-                    final Class jsonViewClass = exchange.getAttachment(JsonViewWrapper.JSON_VIEW_KEY);
+                    final Class<?> jsonViewClass = exchange.getAttachment(JsonViewWrapper.JSON_VIEW_KEY);
 
                     if(jsonViewClass != null)
                     {
-                        exchange.getResponseSender().send(ByteBuffer.wrap(OBJECT_MAPPER.writerWithView(jsonViewClass).writeValueAsBytes(this.entity)));
+                        ObjectWriter writer = WRITER_CACHE.computeIfAbsent(jsonViewClass, (view) -> OBJECT_MAPPER.writerWithView(view));
+                        exchange.getResponseSender().send(ByteBuffer.wrap(writer.writeValueAsBytes(this.entity)));
                     }
                     else
                     {

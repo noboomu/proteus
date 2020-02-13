@@ -181,13 +181,20 @@ public class ServerRequest
         exchange.dispatch(executor, runnable);
     }
 
-    public void redirect(String location, boolean includeParameters)
+    /**
+     * Abort current request and respond with redirect. Returns empty @ServerResponse for convenience.
+     * @param location
+     * @param includeParameters
+     * @return serverResponse
+     */
+    public <T>  ServerResponse<T> redirect(String location, boolean includeParameters)
     {
 
         exchange.getResponseHeaders().put(Headers.LOCATION, RedirectBuilder.redirect(exchange, location, includeParameters));
         exchange.setStatusCode(302);
         exchange.endExchange();
 
+        return new ServerResponse<>();
     }
 
     /**

@@ -555,6 +555,7 @@ public class ServerResponse<T>
         return this;
     }
 
+
     public void send(final HttpServerExchange exchange) throws RuntimeException
     {
         send(null, exchange);
@@ -566,6 +567,13 @@ public class ServerResponse<T>
         final boolean hasBody = this.body != null;
         final boolean hasEntity = this.entity != null;
         final boolean hasError = this.throwable != null;
+
+        if(exchange.isResponseStarted())
+        {
+            return;
+        }
+
+
 
         exchange.setStatusCode(this.status);
 
@@ -660,7 +668,19 @@ public class ServerResponse<T>
             }
 
         } else {
-            exchange.endExchange();
+
+            if(handler != null)
+            {
+                try {
+                    handler.handleRequest(exchange);
+                } catch (Exception e) {
+                    log.error("Error handling request",e);
+                    exchange.endExchange();
+                }
+            }
+            else {
+                exchange.endExchange();
+            }
         }
 
     }

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Cleanup pom.**
+
+
+[3b70ce6a2f6d81d](https://github.com/noboomu/proteus/commit/3b70ce6a2f6d81d) Joshua Bauer *2020-01-31 23:55:10*
+
 **Update readme.**
 
  * Improvements to JsonViewWrapper.

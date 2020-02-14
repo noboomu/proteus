@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Redirect improvements.**
+
+
+[7fc1a12a7508952](https://github.com/noboomu/proteus/commit/7fc1a12a7508952) Joshua Bauer *2020-02-13 23:36:16*
+
 **Added redirect mechanism on ServerRequest.**
 
 

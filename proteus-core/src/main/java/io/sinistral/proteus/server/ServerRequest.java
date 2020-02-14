@@ -190,6 +190,7 @@ public class ServerRequest
     public <T>  ServerResponse<T> redirect(String location, boolean includeParameters)
     {
 
+        exchange.setRelativePath("/");
         exchange.getResponseHeaders().put(Headers.LOCATION, RedirectBuilder.redirect(exchange, location, includeParameters));
         exchange.setStatusCode(302);
         exchange.endExchange();

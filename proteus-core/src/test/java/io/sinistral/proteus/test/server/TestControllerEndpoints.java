@@ -12,6 +12,7 @@ import static org.junit.Assert.assertThat;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -466,6 +467,46 @@ public class TestControllerEndpoints
 				then().statusCode(200).and().body(containsString(ts.toString()));
 
 		 
+	}
+
+	@Test
+	public void responseParseBigDecimal()
+	{
+
+
+		BigDecimal value = new BigDecimal(23234.34);
+
+		given()
+
+
+
+				.queryParam("value", value.toString())
+
+				.when()
+
+				.get("tests/response/parse/big-decimal").
+
+						then().statusCode(200).and().body(containsString(value.toString()));
+	}
+
+	@Test
+	public void responseParseDouble()
+	{
+
+
+		Double value = 23234.34;
+
+		given()
+
+
+
+				.queryParam("value", Double.toString(value))
+
+				.when()
+
+				.get("tests/response/parse/double").
+
+						then().statusCode(200).and().body(containsString(value.toString()));
 	}
 
 	@Test

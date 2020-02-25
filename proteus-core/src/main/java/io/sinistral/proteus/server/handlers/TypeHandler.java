@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -47,8 +48,9 @@ public enum TypeHandler
 
     InstantType("$T $L = $T.instant(exchange,$S)", false, java.time.Instant.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 
-    FloatType("Integer $L = $T.floatValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
-    DoubleType("Integer $L = $T.doubleValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+    FloatType("Float $L = $T.floatValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+    DoubleType("Double $L = $T.doubleValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+    BigDecimalType("BigDecimal $L = $T.bigDecimalValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 
     ValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     FromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
@@ -97,8 +99,10 @@ public enum TypeHandler
 
     OptionalFileType("$T<$T> $L = $T.file(exchange,$S)", true, Optional.class, java.io.File.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 
-    OptionalFloatType("$T<Long> $L = $T.floatValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-    OptionalDoubleType("$T<Integer> $L = $T.doubleValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+    OptionalFloatType("$T<Float> $L = $T.floatValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+    OptionalDoubleType("$T<Double> $L = $T.doubleValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+    OptionalBigDecimalType("$T<BigDecimal> $L = $T.bigDecimalValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+
 
     OptionalDateType("$T<$T> $L = $T.date(exchange,$S)", false, Optional.class, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
     OptionalInstantType("$T<$T> $L = $T.instant(exchange,$S)", false, Optional.class, java.time.Instant.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
@@ -446,7 +450,9 @@ public enum TypeHandler
             return FloatType;
         } else if (type.equals(Double.class)) {
             return DoubleType;
-        } else if (type.equals(java.nio.ByteBuffer.class)) {
+        }else if (type.equals(BigDecimal.class)) {
+            return BigDecimalType;
+        }  else if (type.equals(java.nio.ByteBuffer.class)) {
             return ByteBufferType;
         } else if (type.equals(Boolean.class)) {
             return BooleanType;
@@ -487,7 +493,9 @@ public enum TypeHandler
                 return OptionalFloatType;
             } else if (type.getTypeName().contains("java.lang.Double")) {
                 return OptionalDoubleType;
-            } else if (type.getTypeName().contains("java.lang.Integer")) {
+            }  else if (type.getTypeName().contains("java.math.BigDecimal")) {
+                return OptionalBigDecimalType;
+            }else if (type.getTypeName().contains("java.lang.Integer")) {
                 return OptionalIntegerType;
             } else if (type.getTypeName().contains("java.nio.file.Path")) {
                 return OptionalFilePathType;

@@ -807,6 +807,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 					openAPI.setPaths(this.paths);
 
+					LOGGER.debug("Completed paths");
+
 				}
 			}
 		}

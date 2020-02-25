@@ -7,6 +7,7 @@ import static io.sinistral.proteus.server.ServerResponse.response;
 import static io.sinistral.proteus.test.wrappers.TestWrapper.DEBUG_TEST_KEY;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -304,6 +305,29 @@ public class Tests
 		return response().body(timestamp.toString()).textPlain(); 
 		 
 
+	}
+
+
+	@GET
+	@Path("response/parse/double")
+	@Blocking
+	@Produces(MediaType.TEXT_PLAIN)
+	public ServerResponse<ByteBuffer> doubleConversion( ServerRequest request, @QueryParam("value") Double value ) throws Exception
+	{
+		assert (value instanceof Double);
+
+		return response().body(value.toString()).textPlain();
+	}
+
+	@GET
+	@Path("response/parse/big-decimal")
+	@Blocking
+	@Produces(MediaType.TEXT_PLAIN)
+	public ServerResponse<ByteBuffer> bigDecimalConversion( ServerRequest request, @QueryParam("value") BigDecimal value ) throws Exception
+	{
+		assert (value instanceof BigDecimal);
+
+		return response().body(value.toString()).textPlain();
 	}
 	
 	@GET

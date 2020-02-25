@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Cleanup poms and improve redirect.**
+
+
+[e684d4388b28ed7](https://github.com/noboomu/proteus/commit/e684d4388b28ed7) Joshua Bauer *2020-02-14 00:28:13*
+
 **Redirect improvements.**
 
 

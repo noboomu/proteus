@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
@@ -190,6 +191,10 @@ public class Extractors
             return string(exchange, name).map(Double::parseDouble);
         }
 
+        public static java.util.Optional<BigDecimal> bigDecimalValue(final HttpServerExchange exchange, final String name)
+        {
+            return string(exchange, name).map(BigDecimal::new);
+        }
 
         public static java.util.Optional<Long> longValue(final HttpServerExchange exchange, final String name)
         {
@@ -387,6 +392,11 @@ public class Extractors
     public static Double doubleValue(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
         return Double.parseDouble(string(exchange, name));
+    }
+
+    public static BigDecimal bigDecimalValue(final HttpServerExchange exchange, final String name)
+    {
+        return new BigDecimal(string(exchange, name));
     }
 
 

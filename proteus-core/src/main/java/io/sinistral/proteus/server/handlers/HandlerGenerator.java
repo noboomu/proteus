@@ -787,7 +787,6 @@ public class HandlerGenerator
 
                 Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter(a -> a.getClass().getName().contains("SecurityRequirement")).findFirst().orElse(null);
 
-                if (securityRequirementAnnotation != null) {
 
                     if (securityRequirementAnnotation != null) {
 
@@ -802,8 +801,6 @@ public class HandlerGenerator
                         } catch (Exception e) {
                             log.warn("No name field on security requirement");
                         }
-
-                    }
 
                 }
 

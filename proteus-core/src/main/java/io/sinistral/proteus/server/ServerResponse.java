@@ -8,7 +8,6 @@ import com.google.inject.Inject;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.undertow.io.IoCallback;
-import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
@@ -694,6 +693,7 @@ public class ServerResponse<T>
     {
         return new ServerResponse<T>();
     }
+
 
     public static ServerResponse<ByteBuffer> response(ByteBuffer body)
     {

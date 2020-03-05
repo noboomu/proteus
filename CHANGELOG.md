@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Fix Double conversion and add BigDecimal support.**
+
+
+[d425ee1da2fa5a7](https://github.com/noboomu/proteus/commit/d425ee1da2fa5a7) Joshua Bauer *2020-02-25 00:54:22*
+
 **Cleanup poms and improve redirect.**
 
 

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Updated swagger ui.**
+
+
+[c07a4cc717a1a52](https://github.com/noboomu/proteus/commit/c07a4cc717a1a52) Joshua Bauer *2020-03-05 20:13:40*
+
 **Fix Double conversion and add BigDecimal support.**
 
 

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Prep for release.**
+
+
+[d898140ed9505e9](https://github.com/noboomu/proteus/commit/d898140ed9505e9) Joshua Bauer *2020-03-13 22:18:30*
+
 **Updated swagger ui.**
 
 

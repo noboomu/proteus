@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Set version to 4.5 for release**
+
+
+[009626f1e52b411](https://github.com/noboomu/proteus/commit/009626f1e52b411) Joshua Bauer *2020-03-13 23:13:09*
+
 **Prep for release.**
 
 

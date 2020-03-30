@@ -40,6 +40,7 @@ public class MediaType
     /*******************************************************/
 
     public static final MediaType TEXT_YAML = create("text/yaml", "yaml");
+    public static final MediaType MULTIPART_FORM_DATA = create("multipart/form-data");
 
     public static final MediaType APPLICATION_ANDREW_INSET = create("application/andrew-inset", "ez");
     public static final MediaType APPLICATION_ANNODEX = create("application/annodex", "anx");

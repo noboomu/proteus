@@ -72,17 +72,24 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
             {
                 ServerException serverException = (ServerException) throwable;
                 exchange.setStatusCode(serverException.getStatus());
-                statusCode = serverException.getStatus();
+
+
+            } else  if (throwable instanceof IllegalArgumentException) {
+                exchange.setStatusCode(StatusCodes.BAD_REQUEST);
             }
+
+
 
             errorMap.put("exceptionClass", throwable.getClass().getName());
             errorMap.put("message", throwable.getMessage());
             errorMap.put("path", path);
-            errorMap.put("code", Integer.toString(statusCode));
+            errorMap.put("code", Integer.toString(exchange.getStatusCode()));
 
-            log.error("\n\tmessage: " + throwable.getMessage() + "\n\tpath: " + path, throwable);
 
-            if (throwable.getStackTrace() != null) {
+            if (throwable.getStackTrace() != null && exchange.getStatusCode() >= 500 ) {
+
+                log.error("path: " + path, throwable);
+
                 if (throwable.getStackTrace().length > 0) {
                     errorMap.put("className", throwable.getStackTrace()[0].getClassName());
                 }
@@ -101,9 +108,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
                 }
             }
 
-            if (throwable instanceof IllegalArgumentException) {
-                exchange.setStatusCode(StatusCodes.BAD_REQUEST);
-            }
+
 
             if (ServerPredicates.ACCEPT_XML_EXCLUSIVE_PREDICATE.resolve(exchange)) {
                 try {

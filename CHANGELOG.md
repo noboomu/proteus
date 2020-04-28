@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added multipart/form-data media type.**
+
+
+[544668fabf96683](https://github.com/noboomu/proteus/commit/544668fabf96683) Joshua Bauer *2020-03-30 23:14:29*
+
 **Set version to 4.5 for release**
 
 

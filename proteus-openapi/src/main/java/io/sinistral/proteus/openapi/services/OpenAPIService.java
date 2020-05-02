@@ -319,7 +319,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 		/*
 		 * YAML path
 		 */
-		String pathTemplate = this.applicationPath + File.separator + this.specFilename;
+		String pathTemplate = this.applicationPath + "/" + this.specFilename;
 
 		FileResourceManager resourceManager = new FileResourceManager(this.resourcePath.toFile(), 1024);
 

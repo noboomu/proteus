@@ -42,7 +42,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <undertow.version>2.0.20.Final</undertow.version>
+        <undertow.version>2.1.0.Final</undertow.version>
         <jackson.version>2.9.8</jackson.version>
         <guava.version>28.1-jre</guava.version>
         <guice.version>4.2.2</guice.version>

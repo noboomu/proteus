@@ -47,15 +47,7 @@ public class ApplicationModule extends AbstractModule
      */
     public void bindMappers()
     {
-        JacksonXmlModule xmlModule = new JacksonXmlModule();
 
-        xmlModule.setDefaultUseWrapper(false);
-
-        XmlMapper xmlMapper = new XmlMapper(xmlModule);
-
-        xmlMapper.enable(ToXmlGenerator.Feature.WRITE_XML_DECLARATION);
-
-        this.bind(XmlMapper.class).toInstance(xmlMapper);
 
         try {
 
@@ -76,6 +68,28 @@ public class ApplicationModule extends AbstractModule
             log.error(e.getMessage(), e);
 
             install(new JacksonModule());
+
+        }
+
+        try {
+
+            String className = config.getString("application.xmlModule");
+
+            log.info("Installing XmlModule " + className);
+
+            Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
+
+            AbstractModule module = clazz.newInstance();
+
+            install(module);
+
+        } catch (Exception e) {
+
+            this.binder().addError(e);
+
+            log.error(e.getMessage(), e);
+
+            install(new XmlModule());
 
         }
 

@@ -4,10 +4,35 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Incorrect File.sep() use - broken on Windows.**
+
+ * On Windows:
+ * ```
+ * GET           /v1/openapi/*                [*/*]                     [*/*]                     (OpenAPIService._)
+ * GET           /v1/openapi/redoc            [*/*]                     [text/html]               (OpenAPIService._)
+ * GET           /v1\openapi.yaml             [*/*]                     [text/yaml]               (OpenAPIService._)
+ * ```
+
+[bea9fd3de5d1d4d](https://github.com/noboomu/proteus/commit/bea9fd3de5d1d4d) nich0s *2020-05-01 13:35:04*
+
+**Better error logs.**
+
+
+[aad21cfa3e050d3](https://github.com/noboomu/proteus/commit/aad21cfa3e050d3) Joshua Bauer *2020-04-28 16:04:11*
+
+**Update README.md**
+
+
+[e3fac1fd8f268ef](https://github.com/noboomu/proteus/commit/e3fac1fd8f268ef) JL Bauer *2020-04-02 02:11:17*
+
 **Added multipart/form-data media type.**
 
 
 [544668fabf96683](https://github.com/noboomu/proteus/commit/544668fabf96683) Joshua Bauer *2020-03-30 23:14:29*
+
+
+## v0.4.5
+### No issue
 
 **Set version to 4.5 for release**
 

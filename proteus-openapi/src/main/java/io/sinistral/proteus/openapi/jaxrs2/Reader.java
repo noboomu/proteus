@@ -1303,6 +1303,18 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 			operation.setOperationId(getOperationId(method.getName()));
 		}
 
+		/*
+				if (StringUtils.isBlank(operation.getOperationId()))
+		{
+			String className = toLowerCase(method.getDeclaringClass().getSimpleName().charAt(0)) + method.getDeclaringClass().getSimpleName().substring(1);
+
+			String operationId = String.format("%s%s",className,toUpperCase(method.getName().charAt(0)) + method.getName().substring(1));
+
+			operation.setOperationId(operationId);
+		}
+
+		 */
+
 		// classResponses
 		if (classResponses != null && classResponses.length > 0)
 		{

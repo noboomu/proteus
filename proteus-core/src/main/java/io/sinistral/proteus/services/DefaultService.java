@@ -55,6 +55,9 @@ public abstract class DefaultService extends AbstractIdleService implements Base
     {
         log.info("Starting " + this.getClass().getSimpleName());
     }
+
+
+
 }
 
 

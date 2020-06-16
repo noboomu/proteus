@@ -325,7 +325,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
 		router.add(	HttpMethod.GET, pathTemplate, (HttpServerExchange exchange) ->
 		{
-			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType());
+			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType());
 
 			exchange.getResponseSender().send(spec);
 		});
@@ -335,7 +335,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 				.withPathTemplate(pathTemplate)
 				.withControllerName(this.getClass().getSimpleName())
 				.withMethod(Methods.GET)
-				.withProduces(io.sinistral.proteus.server.MediaType.TEXT_YAML.contentType())
+				.withProduces(io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType())
 				.build());
  
 
@@ -412,7 +412,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
 										byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream);
 
-										io.sinistral.proteus.server.MediaType mediaType = io.sinistral.proteus.server.MediaType.getByFileName(canonicalPath);
+										io.sinistral.proteus.protocol.MediaType mediaType = io.sinistral.proteus.protocol.MediaType.getByFileName(canonicalPath);
 
 										exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, mediaType.toString());
 										exchange.getResponseSender().send(ByteBuffer.wrap(resourceBytes));

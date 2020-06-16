@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Break out XmlModule**
+
+
+[cf6d3c9b4a93457](https://github.com/noboomu/proteus/commit/cf6d3c9b4a93457) Joshua Bauer *2020-05-15 00:05:32*
+
 **Incorrect File.sep() use - broken on Windows.**
 
  * On Windows:

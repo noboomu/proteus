@@ -380,7 +380,7 @@ public class ProteusApplication
                 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/plain").withPathTemplate(statusPath).withControllerName("Internal").withMethod(Methods.GET).build());
 
             } catch (Exception e) {
-                log.error("Error adding health status route.", e.getMessage());
+                log.error("Error adding health status route.", e);
             }
         }
 
@@ -426,12 +426,12 @@ public class ProteusApplication
 
                 router.add(Methods.GET, "favicon.ico", (final HttpServerExchange exchange) ->
                 {
-                    exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, io.sinistral.proteus.server.MediaType.IMAGE_X_ICON.toString());
+                    exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.IMAGE_X_ICON.toString());
                     exchange.getResponseSender().send(faviconImageBuffer);
                 });
 
             } catch (Exception e) {
-                log.error("Error adding favicon route.", e.getMessage());
+                log.error("Error adding favicon route.", e);
             }
         }
 

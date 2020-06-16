@@ -3,7 +3,7 @@
  */
 package io.sinistral.proteus.server.predicates;
 
-import io.sinistral.proteus.server.MediaType;
+import io.sinistral.proteus.protocol.MediaType;
 import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.predicate.Predicate;
 import io.undertow.predicate.Predicates;

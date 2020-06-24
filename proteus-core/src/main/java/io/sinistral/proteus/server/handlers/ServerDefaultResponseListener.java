@@ -3,6 +3,7 @@
  */
 package io.sinistral.proteus.server.handlers;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -39,8 +40,12 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
     @Inject
     protected XmlMapper xmlMapper;
 
-    @Inject
-    protected ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper = new ObjectMapper();
+
+    public ServerDefaultResponseListener()
+    {
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
 
     @Override
     public boolean handleDefaultResponse(HttpServerExchange exchange)
@@ -60,7 +65,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 
         if (statusCode >= 400 || throwable != null) {
 
-            final Map<String, String> errorMap = new HashMap<>();
+            final Map<String, Object> errorMap = new HashMap<>();
 
             final String path = exchange.getRelativePath();
 
@@ -85,6 +90,20 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
             errorMap.put("path", path);
             errorMap.put("code", Integer.toString(exchange.getStatusCode()));
 
+            if(throwable.getCause() != null)
+            {
+                try
+                {
+
+                errorMap.put("cause",objectMapper.valueToTree(throwable.getCause()));
+
+                } catch( Exception e )
+                {
+                    errorMap.put("cause",throwable.getCause().getMessage());
+
+                }
+            }
+
 
             if (throwable.getStackTrace() != null && exchange.getStatusCode() >= 500 ) {
 
@@ -94,18 +113,9 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
                     errorMap.put("className", throwable.getStackTrace()[0].getClassName());
                 }
 
-                StringWriter sw = new StringWriter();
 
-                throwable.printStackTrace(new PrintWriter(sw));
+                errorMap.put("stackTrace", throwable.getStackTrace());
 
-                String exceptionAsString = sw.toString();
-                List<String> stringList = Arrays.stream(exceptionAsString.split("\n")).collect(Collectors.toList());
-
-                try {
-                    errorMap.put("stackTrace", objectMapper.writeValueAsString(stringList));
-                } catch (JsonProcessingException e) {
-                    log.error(e.getMessage());
-                }
             }
 
 

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added protocol package and custom HttpHeaders implementation.**
+
+
+[b131119887b8d43](https://github.com/noboomu/proteus/commit/b131119887b8d43) Joshua Bauer *2020-06-16 21:39:52*
+
 **Break out XmlModule**
 
 

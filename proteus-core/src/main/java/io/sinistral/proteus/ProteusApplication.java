@@ -192,11 +192,18 @@ public class ProteusApplication
 
         }, MoreExecutors.directExecutor());
 
+        final Thread mainThread = Thread.currentThread();
+
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 shutdown();
-            } catch (TimeoutException timeout) {
-                log.error(timeout.getMessage(), timeout);
+                mainThread.join();
+            }
+            catch (InterruptedException ex) {
+                log.error("Shutdown was interrupted", ex);
+            }
+            catch (TimeoutException timeout) {
+                log.error("Shutdown timed out", timeout);
             }
         }));
 

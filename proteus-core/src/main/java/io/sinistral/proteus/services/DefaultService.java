@@ -45,6 +45,7 @@ public abstract class DefaultService extends AbstractIdleService implements Base
     protected void shutDown() throws Exception
     {
         log.info("Stopping " + this.getClass().getSimpleName());
+
     }
 
     /*
@@ -54,6 +55,7 @@ public abstract class DefaultService extends AbstractIdleService implements Base
     protected void startUp() throws Exception
     {
         log.info("Starting " + this.getClass().getSimpleName());
+
     }
 
 

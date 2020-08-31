@@ -95,7 +95,7 @@ public class ConfigModule extends AbstractModule
 
         this.config = ConfigFactory.load(config).withFallback(referenceConfig);
 
-        log.debug(this.config.toString());
+        log.trace(this.config.toString());
 
         this.binder().bind(Config.class).toInstance(config);
     }

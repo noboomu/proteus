@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve error handling.**
+
+
+[94f075989e28408](https://github.com/noboomu/proteus/commit/94f075989e28408) Joshua Bauer *2020-06-24 20:28:31*
+
 **Added protocol package and custom HttpHeaders implementation.**
 
 

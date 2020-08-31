@@ -67,6 +67,7 @@ public enum TypeHandler
     // StatementParameterType.LITERAL,
     // io.sinistral.proteus.server.Extractors.class,
     // StatementParameterType.LITERAL, StatementParameterType.RAW),
+
     BeanListValueOfType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
     BeanListFromStringType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
 
@@ -304,7 +305,7 @@ public enum TypeHandler
         boolean isSet = type.getTypeName().contains("java.util.Set");
         boolean isMap = type.getTypeName().contains("java.util.Map");
 
-        if (!isOptional && !isArray && !isSet) {
+        if (!isOptional && !isArray && !isSet && !isMap) {
             try {
                 Class<?> clazz = Class.forName(type.getTypeName());
 
@@ -314,6 +315,7 @@ public enum TypeHandler
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);
+
             }
         }
 
@@ -341,7 +343,20 @@ public enum TypeHandler
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);
+               throw   e;
+            }
+        }
 
+        if (isMap && !isOptional) {
+            try {
+
+
+                    return ModelType;
+
+
+            } catch (Exception e) {
+                HandlerGenerator.log.error(e.getMessage(), e);
+                throw e;
             }
         }
 
@@ -369,9 +384,10 @@ public enum TypeHandler
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);
+                throw e;
 
             }
-        } else if (isArray && isOptional) {
+        } else if (isArray ) {
             try {
 
                 if (type instanceof ParameterizedType) {
@@ -402,9 +418,23 @@ public enum TypeHandler
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);
-
+                throw e;
             }
-        } else if (isSet && isOptional) {
+        }
+
+        else if (isMap ) {
+            try {
+
+
+                    return ModelType;
+
+            } catch (Exception e) {
+                HandlerGenerator.log.error(e.getMessage(), e);
+                throw e;
+            }
+        }
+
+        else if (isSet  ) {
             try {
 
                 if (type instanceof ParameterizedType) {
@@ -435,6 +465,7 @@ public enum TypeHandler
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);
+                throw e;
 
             }
         }

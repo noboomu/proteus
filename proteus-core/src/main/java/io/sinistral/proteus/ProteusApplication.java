@@ -137,6 +137,8 @@ public class ProteusApplication
             return;
         }
 
+        final Thread mainThread = Thread.currentThread();
+
         final long startTime = System.currentTimeMillis();
 
         log.info("Configuring modules: " + registeredModules);
@@ -188,11 +190,25 @@ public class ProteusApplication
             public void failure(Service service)
             {
                 log.error("Service failure: " + service);
+
+                startupDuration = Duration.ofMillis(System.currentTimeMillis() - startTime);
+
+                for (ListenerInfo info : undertow.getListenerInfo()) {
+                    log.debug("listener info: " + info);
+                    SocketAddress address = info.getAddress();
+
+                    if (address != null) {
+                        ports.add(((java.net.InetSocketAddress) address).getPort());
+                    }
+                }
+
+                printStatus();
+
+                running.set(true);
             }
 
         }, MoreExecutors.directExecutor());
 
-        final Thread mainThread = Thread.currentThread();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {

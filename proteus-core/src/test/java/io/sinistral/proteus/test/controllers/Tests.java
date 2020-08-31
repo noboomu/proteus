@@ -246,6 +246,15 @@ public class Tests
 	{  
 		return response( ids ).applicationJson(); 
 	}
+
+	@POST
+	@Path("generic/map/bean")
+	@Produces((MediaType.APPLICATION_JSON))
+ 	@Consumes(MediaType.APPLICATION_JSON)
+	public ServerResponse<Map<String,Long>>  genericBeanMap( ServerRequest request, @BeanParam Map<String,Long> ids )  throws Exception
+	{
+		return response( ids ).applicationJson();
+	}
 	
 	
 	@POST

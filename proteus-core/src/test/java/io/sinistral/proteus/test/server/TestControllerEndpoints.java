@@ -181,6 +181,43 @@ public class TestControllerEndpoints
 			e.printStackTrace();
 		}
 	}
+
+	@Test
+	public void genericBeanMap()
+	{
+		Map<String,Long> randomLongs = new java.util.HashMap<>();
+
+		Random random = new Random();
+
+		Long firstNumber = null;
+
+		for(int i = 0; i < 10; i++)
+		{
+			Long v = random.nextLong();
+
+			randomLongs.put(v.toString(),v);
+
+			if(firstNumber == null)
+			{
+				firstNumber = v;
+			}
+		}
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		try
+		{
+
+
+		String body = mapper.writeValueAsString(randomLongs);
+
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("tests/generic/map/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
 	
 	@Test
 	public void optionalGenericSet()

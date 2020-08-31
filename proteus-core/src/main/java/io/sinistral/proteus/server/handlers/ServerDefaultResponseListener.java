@@ -67,6 +67,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 
             final Map<String, Object> errorMap = new HashMap<>();
 
+
             final String path = exchange.getRelativePath();
 
             if (throwable == null) {

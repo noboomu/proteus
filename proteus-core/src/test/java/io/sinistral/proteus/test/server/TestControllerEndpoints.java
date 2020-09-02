@@ -240,6 +240,13 @@ public class TestControllerEndpoints
 	}
 
 	@Test
+	public void responseWorkerFuture()
+	{
+		Map response  = given().accept(ContentType.JSON).when().get("tests/response/future/worker").as(Map.class);
+		assertThat(response.get("status").toString(), CoreMatchers.is("OK"));
+	}
+
+	@Test
 	public void responseUserXml()
 	{
 		User user = given().accept(ContentType.XML).when().get("tests/response/user/xml").as(User.class);

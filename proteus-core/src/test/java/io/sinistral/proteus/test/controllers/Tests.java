@@ -487,7 +487,32 @@ public class Tests
 	{ 
 		return CompletableFuture.completedFuture( new User(123L)  );
 	}
-	
+
+	@GET
+	@Path("response/future/worker")
+	@Produces((MediaType.APPLICATION_JSON))
+	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureUser(ServerRequest request)
+	{
+
+		CompletableFuture<ServerResponse<Map<String,String>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+			    Thread.sleep(2000L);
+
+			    future.complete(response(Map.of("status","OK")).applicationJson().ok());
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+	}
+
 	@GET
 	@Path("response/parameters/complex/{pathLong}")
 	@Produces((MediaType.APPLICATION_JSON)) 

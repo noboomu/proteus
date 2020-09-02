@@ -165,7 +165,6 @@ public class ProteusApplication
             public void stopped()
             {
                 undertow.stop();
-                running.set(false);
             }
 
             public void healthy()
@@ -211,6 +210,12 @@ public class ProteusApplication
 
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+
+            if (!this.isRunning()) {
+            log.warn("Server is not running...");
+            return;
+        }
+
             try {
                 shutdown();
                 mainThread.join();
@@ -228,6 +233,8 @@ public class ProteusApplication
         undertow.start();
 
         serviceManager.startAsync();
+
+
     }
 
     public void shutdown() throws TimeoutException
@@ -237,9 +244,13 @@ public class ProteusApplication
             return;
         }
 
+
+
         log.info("Shutting down...");
 
         serviceManager.stopAsync().awaitStopped(1, TimeUnit.SECONDS);
+
+        this.running.set(false);
 
         log.info("Shutdown complete.");
     }

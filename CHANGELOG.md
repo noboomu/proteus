@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Set config log level to trace.**
+
+
+[3590b4337ce241c](https://github.com/noboomu/proteus/commit/3590b4337ce241c) Joshua Bauer *2020-08-31 21:15:19*
+
+**Better generic parameter handling.**
+
+
+[4917d3016811cec](https://github.com/noboomu/proteus/commit/4917d3016811cec) Joshua Bauer *2020-08-31 19:35:07*
+
 **Improve error handling.**
 
 

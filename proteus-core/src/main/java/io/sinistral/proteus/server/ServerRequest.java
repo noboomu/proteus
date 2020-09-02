@@ -15,7 +15,9 @@ import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.*;
+import org.xnio.XnioExecutor;
 import org.xnio.XnioIoThread;
+import org.xnio.XnioWorker;
 import org.xnio.channels.StreamSinkChannel;
 import org.xnio.channels.StreamSourceChannel;
 import org.xnio.conduits.StreamSinkConduit;
@@ -30,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 
 /**
@@ -247,6 +250,14 @@ public class ServerRequest
     public HttpServerExchange getExchange()
     {
         return exchange;
+    }
+
+      /**
+     * @return the worker
+     */
+    public XnioWorker getWorker()
+    {
+        return Optional.ofNullable(exchange.getConnection()).filter(ServerConnection::isOpen).map(ServerConnection::getWorker).orElse(null);
     }
 
     /**

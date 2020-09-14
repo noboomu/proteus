@@ -32,6 +32,7 @@ import io.undertow.util.Methods;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xnio.Options;
 
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayOutputStream;
@@ -314,12 +315,15 @@ public class ProteusApplication
 
         Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
 
+
                 .setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
                 .setIoThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.ioThreadsMultiplier"))
                 .setWorkerThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.workerThreadMultiplier"))
                 .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
                 .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
                 .setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
+                .setSocketOption(org.xnio.Options.READ_TIMEOUT, config.getInt("undertow.socket.readTimeout"))
+                .setSocketOption(org.xnio.Options.WRITE_TIMEOUT, config.getInt("undertow.socket.writeTimeout"))
                 .setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
                 .setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
                 .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))

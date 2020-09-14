@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Fix for looping requests when response wrapped in completable future.**
+
+
+[f91ff64db7a64ea](https://github.com/noboomu/proteus/commit/f91ff64db7a64ea) Joshua Bauer *2020-09-14 19:41:59*
+
 **Cleanup shutdown and expose worker in request.**
 
 

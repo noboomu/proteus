@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Cleanup shutdown and expose worker in request.**
+
+
+[54979422dab4bff](https://github.com/noboomu/proteus/commit/54979422dab4bff) Joshua Bauer *2020-09-02 18:34:03*
+
 **Set config log level to trace.**
 
 

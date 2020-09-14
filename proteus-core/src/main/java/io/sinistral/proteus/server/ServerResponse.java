@@ -573,8 +573,6 @@ public class ServerResponse<T>
             return;
         }
 
-
-
         exchange.setStatusCode(this.status);
 
 
@@ -641,6 +639,9 @@ public class ServerResponse<T>
                 exchange.getResponseSender().send(this.body, this.ioCallback);
             }
         } else if (hasEntity) {
+
+
+
             try {
                 if (this.processXml) {
                     exchange.getResponseSender().send(ByteBuffer.wrap(XML_MAPPER.writeValueAsBytes(this.entity)));

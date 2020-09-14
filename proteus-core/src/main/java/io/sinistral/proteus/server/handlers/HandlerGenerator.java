@@ -687,7 +687,7 @@ public class HandlerGenerator
                     methodBuilder.beginControlFlow("", "");
 
                     methodBuilder.addCode(
-                            "$L.thenAccept( r -> r.send(this,$L) )\n\t.exceptionally( ex -> ",
+                            "$L.thenAccept( r -> r.send(null,$L) )\n\t.exceptionally( ex -> ",
                             "response", "exchange");
                     methodBuilder.beginControlFlow("", "");
                     methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");

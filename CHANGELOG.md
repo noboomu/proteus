@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Ensure worker is used for async dispatch.**
+
+
+[6482aac600edd62](https://github.com/noboomu/proteus/commit/6482aac600edd62) Joshua Bauer *2020-09-15 17:16:40*
+
 **Send**
 
 

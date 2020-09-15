@@ -677,7 +677,7 @@ public class HandlerGenerator
 
 
                 if (m.getReturnType().equals(ServerResponse.class)) {
-                    methodBuilder.addStatement("$L.send(this,$L)", "response", "exchange");
+                    methodBuilder.addStatement("$L.send($L)", "response", "exchange");
 
                 } else if ((m.getGenericReturnType().toString().contains("java.util.concurrent.CompletionStage") && m.getGenericReturnType().toString().contains("ServerResponse"))
                         || (m.getGenericReturnType().toString().contains("java.util.concurrent.CompletableFuture") && m.getGenericReturnType().toString().contains("ServerResponse")))
@@ -687,13 +687,20 @@ public class HandlerGenerator
                     methodBuilder.beginControlFlow("", "");
 
                     methodBuilder.addCode(
-                            "$L.thenAccept( r -> r.send($L) )\n\t.exceptionally( ex -> ",
-                            "response", "exchange");
-                    methodBuilder.beginControlFlow("", "");
-                    methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
-                    methodBuilder.endControlFlow(")", "");
+                                "$L.whenComplete( (r,ex) -> ",
+                                "response");
+                        methodBuilder.beginControlFlow("", "");
 
-                    methodBuilder.endControlFlow(")", "");
+                        methodBuilder.beginControlFlow("if(ex != null)");
+                        methodBuilder.addCode("\t\texchange.putAttachment(io.undertow.server.handlers.ExceptionHandler.THROWABLE, ex);");
+                        methodBuilder.addCode("\t\texchange.setResponseCode(500);\n\t");
+                        methodBuilder.addCode("\t\texchange.endExchange();\n\t");
+                        methodBuilder.nextControlFlow("else");
+                        methodBuilder.addCode("\t\tr.send($L);","exchange");
+                        methodBuilder.endControlFlow();
+                        methodBuilder.endControlFlow(")", "");
+                        methodBuilder.endControlFlow(")", "");
+
                 }
                 else if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
                         || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
@@ -715,19 +722,26 @@ public class HandlerGenerator
                                 postProcess = ".";
                             }
                         }
+
                         methodBuilder.addCode("exchange.dispatch( exchange.getConnection().getWorker(), () -> ");
                         methodBuilder.beginControlFlow("", "");
 
 
                         methodBuilder.addCode(
-                                "$L.thenAccept( r -> io.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send($L) )\n\t.exceptionally( ex -> ",
-                                "response", "exchange");
+                                "$L.whenComplete( (r,ex) -> ",
+                                "response");
                         methodBuilder.beginControlFlow("", "");
-                        methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
+
+                        methodBuilder.beginControlFlow("if(ex != null)");
+                        methodBuilder.addCode("\texchange.putAttachment(io.undertow.server.handlers.ExceptionHandler.THROWABLE, ex);\n");
+                        methodBuilder.addCode("\texchange.setResponseCode(500);\n");
+                        methodBuilder.addCode("\texchange.endExchange();\n");
+                        methodBuilder.nextControlFlow("else");
+                        methodBuilder.addCode("\t\tio.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send($L);","exchange");
+                        methodBuilder.endControlFlow();
                         methodBuilder.endControlFlow(")", "");
 
                         methodBuilder.endControlFlow(")", "");
-
 
 
 

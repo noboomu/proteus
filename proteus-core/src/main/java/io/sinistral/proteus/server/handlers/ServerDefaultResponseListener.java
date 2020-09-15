@@ -89,7 +89,14 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
             errorMap.put("exceptionClass", throwable.getClass().getName());
             errorMap.put("message", throwable.getMessage());
             errorMap.put("path", path);
-            errorMap.put("code", Integer.toString(exchange.getStatusCode()));
+
+
+            if(statusCode < 300)
+            {
+                statusCode = 500;
+            }
+
+            errorMap.put("code", Integer.toString(statusCode));
 
             if(throwable.getCause() != null)
             {
@@ -106,7 +113,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
             }
 
 
-            if (throwable.getStackTrace() != null && exchange.getStatusCode() >= 500 ) {
+            if (throwable.getStackTrace() != null && statusCode >= 500 ) {
 
                 log.error("path: " + path, throwable);
 

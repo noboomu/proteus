@@ -4,6 +4,21 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Send**
+
+
+[ee7ad65ed114816](https://github.com/noboomu/proteus/commit/ee7ad65ed114816) Joshua Bauer *2020-09-15 16:11:53*
+
+**Remove empty server responses.**
+
+
+[5ce38822c3dd229](https://github.com/noboomu/proteus/commit/5ce38822c3dd229) joshua bauer *2020-09-15 04:56:32*
+
+**Remove further looping state for server responses.**
+
+
+[487d57cae528b14](https://github.com/noboomu/proteus/commit/487d57cae528b14) joshua bauer *2020-09-15 04:55:00*
+
 **Expose socket timeouts.**
 
 

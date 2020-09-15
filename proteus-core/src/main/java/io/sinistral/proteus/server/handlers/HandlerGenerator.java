@@ -677,13 +677,13 @@ public class HandlerGenerator
 
 
                 if (m.getReturnType().equals(ServerResponse.class)) {
-                    methodBuilder.addStatement("$L.send($L)", "response", "exchange");
+                    methodBuilder.addStatement("$L.send(this,$L)", "response", "exchange");
 
                 } else if ((m.getGenericReturnType().toString().contains("java.util.concurrent.CompletionStage") && m.getGenericReturnType().toString().contains("ServerResponse"))
                         || (m.getGenericReturnType().toString().contains("java.util.concurrent.CompletableFuture") && m.getGenericReturnType().toString().contains("ServerResponse")))
 
                 {
-                    methodBuilder.addCode("exchange.dispatch( () -> ");
+                    methodBuilder.addCode("exchange.dispatch( exchange.getConnection().getWorker(), () -> ");
                     methodBuilder.beginControlFlow("", "");
 
                     methodBuilder.addCode(
@@ -715,7 +715,7 @@ public class HandlerGenerator
                                 postProcess = ".";
                             }
                         }
-                        methodBuilder.addCode("exchange.dispatch( () -> ");
+                        methodBuilder.addCode("exchange.dispatch( exchange.getConnection().getWorker(), () -> ");
                         methodBuilder.beginControlFlow("", "");
 
 

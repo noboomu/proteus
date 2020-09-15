@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Expose socket timeouts.**
+
+
+[2621026ce02933c](https://github.com/noboomu/proteus/commit/2621026ce02933c) Joshua Bauer *2020-09-14 20:13:41*
+
 **Fix for looping requests when response wrapped in completable future.**
 
 

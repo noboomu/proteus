@@ -709,10 +709,6 @@ public class ServerResponse<T>
 
     public static <T> ServerResponse<T> response(T entity)
     {
-        if(entity == null)
-        {
-            return new ServerResponse<T>().notFound();
-        }
         return new ServerResponse<T>().entity(entity);
     }
 

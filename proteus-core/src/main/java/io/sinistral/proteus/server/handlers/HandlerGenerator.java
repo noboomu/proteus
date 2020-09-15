@@ -677,7 +677,7 @@ public class HandlerGenerator
 
 
                 if (m.getReturnType().equals(ServerResponse.class)) {
-                    methodBuilder.addStatement("$L.send(this,$L)", "response", "exchange");
+                    methodBuilder.addStatement("$L.send($L)", "response", "exchange");
 
                 } else if ((m.getGenericReturnType().toString().contains("java.util.concurrent.CompletionStage") && m.getGenericReturnType().toString().contains("ServerResponse"))
                         || (m.getGenericReturnType().toString().contains("java.util.concurrent.CompletableFuture") && m.getGenericReturnType().toString().contains("ServerResponse")))
@@ -687,7 +687,7 @@ public class HandlerGenerator
                     methodBuilder.beginControlFlow("", "");
 
                     methodBuilder.addCode(
-                            "$L.thenAccept( r -> r.send(null,$L) )\n\t.exceptionally( ex -> ",
+                            "$L.thenAccept( r -> r.send($L) )\n\t.exceptionally( ex -> ",
                             "response", "exchange");
                     methodBuilder.beginControlFlow("", "");
                     methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");
@@ -720,7 +720,7 @@ public class HandlerGenerator
 
 
                         methodBuilder.addCode(
-                                "$L.thenAccept( r -> io.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send(this,$L) )\n\t.exceptionally( ex -> ",
+                                "$L.thenAccept( r -> io.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send($L) )\n\t.exceptionally( ex -> ",
                                 "response", "exchange");
                         methodBuilder.beginControlFlow("", "");
                         methodBuilder.addCode("\t\tthrow new java.util.concurrent.CompletionException(ex);\n\t");

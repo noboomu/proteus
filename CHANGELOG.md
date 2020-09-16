@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Replace whenComplete in async.**
+
+
+[96534322bf6613a](https://github.com/noboomu/proteus/commit/96534322bf6613a) Joshua Bauer *2020-09-15 18:33:35*
+
 **Ensure worker is used for async dispatch.**
 
 

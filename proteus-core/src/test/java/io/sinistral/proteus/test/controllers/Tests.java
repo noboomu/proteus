@@ -379,7 +379,47 @@ public class Tests
 	}
 
 
+	@POST
+	@Path("list/file")
+	 @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("*/*")
+	@Blocking
+	public ServerResponse<Map<String,String>> uploadMultipleFiles(ServerRequest request, @FormParam("files") List<File> files, @FormParam("names") List<String> names ) throws Exception
+	{
 
+		Map<String,String> map = new HashMap<>();
+
+		for(int i = 0; i < files.size(); i++)
+		{
+			map.put(names.get(i),files.get(i).getTotalSpace()+"");
+		}
+
+
+		return response(map).applicationJson();
+
+
+	}
+
+	@POST
+	@Path("list/path")
+	 @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("*/*")
+	@Blocking
+	public ServerResponse<Map<String,String>> uploadMultiplePaths(ServerRequest request, @FormParam("files") List<java.nio.file.Path> files, @FormParam("names") List<String> names ) throws Exception
+	{
+
+		Map<String,String> map = new HashMap<>();
+
+		for(int i = 0; i < files.size(); i++)
+		{
+			map.put(names.get(i),files.get(i).toFile().getTotalSpace()+"");
+		}
+
+
+		return response(map).applicationJson();
+
+
+	}
 
 
 
@@ -479,6 +519,105 @@ public class Tests
 			return response().badRequest(e);
 		}
 	}
+
+	@GET
+	@Path("response/badrequest/blocking")
+	@Blocking
+	public ServerResponse<Map<String,String>> badRequestBlocking(ServerRequest request)
+	{
+
+			return response().badRequest(new ServerException("Bad Request", Response.Status.BAD_REQUEST));
+
+	}
+
+	@GET
+	@Path("response/badrequest")
+	public ServerResponse<Map<String,String>> badRequest(ServerRequest request)
+	{
+
+			return response().badRequest(new ServerException("Bad Request", Response.Status.BAD_REQUEST));
+
+	}
+
+	@GET
+	@Path("future/badrequest")
+	@Produces((MediaType.APPLICATION_JSON))
+	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureBadRequest(ServerRequest request)
+	{
+
+		CompletableFuture<ServerResponse<Map<String,String>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response().badRequest(new ServerException("Bad request", Response.Status.BAD_REQUEST)));
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+	}
+
+	@GET
+	@Path("future/badrequest/blocking")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Blocking
+	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureBadRequestBlocking(ServerRequest request)
+	{
+
+		CompletableFuture<ServerResponse<Map<String,String>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response().badRequest(new ServerException("Bad request", Response.Status.BAD_REQUEST)));
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+	}
+
+	@GET
+	@Path("future/notfound/blocking")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Blocking
+	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureNotFoundBlocking(ServerRequest request)
+	{
+
+		CompletableFuture<ServerResponse<Map<String,String>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response().notFound());
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+	}
 	
 	@GET
 	@Path("response/future/user")
@@ -492,6 +631,33 @@ public class Tests
 	@Path("response/future/worker")
 	@Produces((MediaType.APPLICATION_JSON))
 	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureUser(ServerRequest request)
+	{
+
+		CompletableFuture<ServerResponse<Map<String,String>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response(Map.of("status","OK")).applicationJson().ok());
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+	}
+
+	@GET
+	@Path("response/future/worker/blocking")
+	@Produces((MediaType.APPLICATION_JSON))
+	@Blocking
+	public CompletableFuture<ServerResponse<Map<String,String>>> responseFutureUserBlocking(ServerRequest request)
 	{
 
 		CompletableFuture<ServerResponse<Map<String,String>>> future = new CompletableFuture<>();

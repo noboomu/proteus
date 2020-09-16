@@ -30,8 +30,10 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author jbauer
@@ -340,6 +342,28 @@ public class Extractors
         try {
             return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getFileItem().getFile();
         } catch (NullPointerException e) {
+            throw new IllegalArgumentException("Missing parameter " + name, e);
+        }
+    }
+
+    public static List<Path> pathList(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
+    {
+        try
+        {
+           return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().map( i -> i.getFileItem().getFile()).collect(Collectors.toList());
+        } catch( Exception e )
+        {
+            throw new IllegalArgumentException("Missing parameter " + name, e);
+        }
+    }
+
+    public static List<File> fileList(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
+    {
+        try
+        {
+           return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().map( i -> i.getFileItem().getFile().toFile()).collect(Collectors.toList());
+        } catch( Exception e )
+        {
             throw new IllegalArgumentException("Missing parameter " + name, e);
         }
     }

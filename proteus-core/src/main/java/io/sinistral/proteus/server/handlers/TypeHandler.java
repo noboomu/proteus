@@ -21,9 +21,7 @@ import java.util.Optional;
  * Enum that assists in code generation for different method parameter types
  */
 
-
-public enum TypeHandler
-{
+public enum TypeHandler {
 
     LongType("Long $L = $T.longValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     IntegerType("Integer $L = $T.integerValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
@@ -71,6 +69,10 @@ public enum TypeHandler
     BeanListValueOfType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
     BeanListFromStringType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
 
+    FileListType("$T $L = io.sinistral.proteus.server.Extractors.fileList(exchange,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.STRING),
+
+    PathListType("$T $L = io.sinistral.proteus.server.Extractors.pathList(exchange,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.STRING),
+
     HeaderValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
     HeaderFromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
     HeaderStringType("$T $L = $T.string(exchange,$S)", false, String.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
@@ -103,7 +105,6 @@ public enum TypeHandler
     OptionalFloatType("$T<Float> $L = $T.floatValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
     OptionalDoubleType("$T<Double> $L = $T.doubleValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
     OptionalBigDecimalType("$T<BigDecimal> $L = $T.bigDecimalValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
-
 
     OptionalDateType("$T<$T> $L = $T.date(exchange,$S)", false, Optional.class, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
     OptionalInstantType("$T<$T> $L = $T.instant(exchange,$S)", false, Optional.class, java.time.Instant.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
@@ -173,7 +174,6 @@ public enum TypeHandler
         for (int i = 0; i < handler.parameterTypes.length; i++) {
             if (handler.parameterTypes[i] instanceof StatementParameterType) {
 
-
                 if (parameter.isAnnotationPresent(QueryParam.class)) {
                     QueryParam qp = parameter.getAnnotation(QueryParam.class);
                     pName = qp.value();
@@ -229,36 +229,29 @@ public enum TypeHandler
 
         Min min = parameter.isAnnotationPresent(Min.class) ? parameter.getAnnotationsByType(Min.class)[0] : null;
 
-
-        if(max != null || min != null)
-        {
-            if(max != null && min != null)
-            {
+        if (max != null || min != null) {
+            if (max != null && min != null) {
                 long maxValue = min.value();
                 long minValue = min.value();
 
                 builder.beginControlFlow("if( $L < $L )", pName, minValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)",min.message().equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", min.message().equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
                 builder.endControlFlow();
                 builder.beginControlFlow("else if( $L > $L )", pName, maxValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)",max.message().equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", max.message().equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
                 builder.endControlFlow();
 
-            }
-            else if(max != null)
-            {
+            } else if (max != null) {
                 long maxValue = max.value();
 
                 builder.beginControlFlow("if( $L > $L )", pName, maxValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)",max.message().equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", max.message().equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
                 builder.endControlFlow();
-            }
-            else
-            {
+            } else {
                 long minValue = min.value();
 
                 builder.beginControlFlow("if( $L < $L )", pName, minValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)",min.message().equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", min.message().equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
                 builder.endControlFlow();
             }
         }
@@ -326,9 +319,10 @@ public enum TypeHandler
                 if (HandlerGenerator.hasValueOfMethod(erasedType)) {
                     if (!isBeanParam) {
                         return QueryListValueOfType;
-
                     } else {
+
                         return BeanListValueOfType;
+
                     }
                 } else if (HandlerGenerator.hasFromStringMethod(erasedType)) {
                     if (!isBeanParam) {
@@ -337,22 +331,24 @@ public enum TypeHandler
                     } else {
                         return BeanListFromStringType;
                     }
+                } else if (erasedType.getTypeName().contains("java.nio.file.Path")) {
+                    return PathListType;
+                } else if (erasedType.getTypeName().contains("java.io.File")) {
+                    return FileListType;
                 } else {
                     return ModelType;
                 }
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);
-               throw   e;
+                throw e;
             }
         }
 
         if (isMap && !isOptional) {
             try {
 
-
-                    return ModelType;
-
+                return ModelType;
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);
@@ -387,7 +383,7 @@ public enum TypeHandler
                 throw e;
 
             }
-        } else if (isArray ) {
+        } else if (isArray) {
             try {
 
                 if (type instanceof ParameterizedType) {
@@ -420,21 +416,16 @@ public enum TypeHandler
                 HandlerGenerator.log.error(e.getMessage(), e);
                 throw e;
             }
-        }
-
-        else if (isMap ) {
+        } else if (isMap) {
             try {
 
-
-                    return ModelType;
+                return ModelType;
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);
                 throw e;
             }
-        }
-
-        else if (isSet  ) {
+        } else if (isSet) {
             try {
 
                 if (type instanceof ParameterizedType) {
@@ -481,9 +472,9 @@ public enum TypeHandler
             return FloatType;
         } else if (type.equals(Double.class)) {
             return DoubleType;
-        }else if (type.equals(BigDecimal.class)) {
+        } else if (type.equals(BigDecimal.class)) {
             return BigDecimalType;
-        }  else if (type.equals(java.nio.ByteBuffer.class)) {
+        } else if (type.equals(java.nio.ByteBuffer.class)) {
             return ByteBufferType;
         } else if (type.equals(Boolean.class)) {
             return BooleanType;
@@ -524,9 +515,9 @@ public enum TypeHandler
                 return OptionalFloatType;
             } else if (type.getTypeName().contains("java.lang.Double")) {
                 return OptionalDoubleType;
-            }  else if (type.getTypeName().contains("java.math.BigDecimal")) {
+            } else if (type.getTypeName().contains("java.math.BigDecimal")) {
                 return OptionalBigDecimalType;
-            }else if (type.getTypeName().contains("java.lang.Integer")) {
+            } else if (type.getTypeName().contains("java.lang.Integer")) {
                 return OptionalIntegerType;
             } else if (type.getTypeName().contains("java.nio.file.Path")) {
                 return OptionalFilePathType;

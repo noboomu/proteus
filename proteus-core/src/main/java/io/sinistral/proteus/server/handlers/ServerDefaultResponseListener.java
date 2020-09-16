@@ -84,7 +84,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
                 exchange.setStatusCode(StatusCodes.BAD_REQUEST);
             }
 
-
+            statusCode = exchange.getStatusCode();
 
             errorMap.put("exceptionClass", throwable.getClass().getName());
             errorMap.put("message", throwable.getMessage());

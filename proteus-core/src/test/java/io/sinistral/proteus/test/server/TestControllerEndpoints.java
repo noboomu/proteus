@@ -52,6 +52,8 @@ public class TestControllerEndpoints
 {
  
 	private File file = null;
+
+	private List<File> files = new ArrayList<>();
 	
 	private Set<Long> idSet = new HashSet<>();
 
@@ -62,17 +64,21 @@ public class TestControllerEndpoints
 
 		try
 		{
- 			byte[] bytes  = new byte[8388608];
-			Random random = new Random(); 
+ 			for(int i = 0; i < 4; i++)
+			{
+				byte[] bytes  = new byte[8388608];
+			Random random = new Random();
 			random.nextBytes(bytes);
 
-			file = Files.createTempFile("test-asset", ".mp4").toFile();
-			
+			files.add(Files.createTempFile("test-asset", ".mp4").toFile());
+
 			LongStream.range(1L,10L).forEach( l -> {
-				
+
 				idSet.add(l);
 			});
-			 
+			}
+
+ 			file = files.get(0);
 
 		} catch (Exception e)
 		{
@@ -85,27 +91,27 @@ public class TestControllerEndpoints
 	@Test
 	public void testDebugEndpoint()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/debug").then().statusCode(200).body(containsString("testValue"));
+		given().accept(ContentType.JSON).when().get("v1/tests/response/debug").then().statusCode(200).body(containsString("testValue"));
 	}
 
 	@Test
 	public void testDebugBlockingEndpoint()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/debug/blocking").then().statusCode(200);
+		given().accept(ContentType.JSON).when().get("v1/tests/response/debug/blocking").then().statusCode(200);
 	}
 
 	
 	@Test
 	public void exchangeUserJson()
 	{
-		User user = given().accept(ContentType.JSON).when().get("tests/exchange/user/json").as(User.class);
+		User user = given().accept(ContentType.JSON).when().get("v1/tests/exchange/user/json").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
 	}
 	
 	@Test
 	public void genericSet()
 	{
-		given().accept(ContentType.JSON).when().queryParam("ids", idSet).get("tests/generic/set").then().statusCode(200).body(containsString("1"));
+		given().accept(ContentType.JSON).when().queryParam("ids", idSet).get("v1/tests/generic/set").then().statusCode(200).body(containsString("1"));
 	}
 	
 	@Test
@@ -137,7 +143,7 @@ public class TestControllerEndpoints
 		 
 		String body = mapper.writeValueAsString(randomLongs);
 		
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("tests/generic/set/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/set/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
 		
 		} catch (Exception e)
 		{
@@ -174,7 +180,7 @@ public class TestControllerEndpoints
 		 
 		String body = mapper.writeValueAsString(randomLongs);
 		
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("tests/generic/list/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/list/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
 		
 		} catch (Exception e)
 		{
@@ -211,7 +217,7 @@ public class TestControllerEndpoints
 
 		String body = mapper.writeValueAsString(randomLongs);
 
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("tests/generic/map/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/map/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
 
 		} catch (Exception e)
 		{
@@ -222,53 +228,96 @@ public class TestControllerEndpoints
 	@Test
 	public void optionalGenericSet()
 	{
-		given().accept(ContentType.JSON).when().queryParam("ids",idSet).get("tests/optional/set").then().statusCode(200).body(containsString("1"));
+		given().accept(ContentType.JSON).when().queryParam("ids",idSet).get("v1/tests/optional/set").then().statusCode(200).body(containsString("1"));
 	}
 
 	@Test
 	public void exchangeUserXml()
 	{
-		User user = given().accept(ContentType.XML).when().get("tests/exchange/user/xml").as(User.class);
+		User user = given().accept(ContentType.XML).when().get("v1/tests/exchange/user/xml").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
 	}
 
 	@Test
 	public void responseUserJson()
 	{
-		User user = given().accept(ContentType.JSON).when().get("tests/response/user/json").as(User.class);
+		User user = given().accept(ContentType.JSON).when().get("v1/tests/response/user/json").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
 	}
 
 	@Test
 	public void responseWorkerFuture()
 	{
-		Map response  = given().accept(ContentType.JSON).when().get("tests/response/future/worker").as(Map.class);
+		Map response  = given().accept(ContentType.JSON).when().get("v1/tests/response/future/worker").as(Map.class);
 		assertThat(response.get("status").toString(), CoreMatchers.is("OK"));
 	}
 
 	@Test
+	public void responseWorkerFutureBlocking()
+	{
+		Map response  = given().accept(ContentType.JSON).when().get("v1/tests/response/future/worker/blocking").as(Map.class);
+		assertThat(response.get("status").toString(), CoreMatchers.is("OK"));
+	}
+
+	@Test
+	public void healthCheck()
+	{
+		  given().accept(ContentType.TEXT).when().get("health").then().statusCode(200).and().body(containsString("OK"));;
+ 	}
+
+	@Test
 	public void responseUserXml()
 	{
-		User user = given().accept(ContentType.XML).when().get("tests/response/user/xml").as(User.class);
+		User user = given().accept(ContentType.XML).when().get("v1/tests/response/user/xml").as(User.class);
 		assertThat(user.getId(), CoreMatchers.is(123L));
+	}
+
+	@Test
+	public void badRequest()
+	{
+		given().accept(ContentType.TEXT).when().get("v1/tests/response/badrequest").then().statusCode(400);
+	}
+
+	@Test
+	public void badRequestBlocking()
+	{
+		given().accept(ContentType.TEXT).when().get("v1/tests/response/badrequest/blocking").then().statusCode(400);
+	}
+
+	@Test
+	public void badRequestFuture()
+	{
+		given().accept(ContentType.TEXT).when().get("v1/tests/future/badrequest").then().statusCode(400);
+	}
+
+	@Test
+	public void notFoundFuture()
+	{
+		given().accept(ContentType.TEXT).when().get("v1/tests/future/notfound/blocking").then().statusCode(404);
+	}
+
+	@Test
+	public void badRequestFutureBlocking()
+	{
+		given().accept(ContentType.TEXT).when().get("v1/tests/future/badrequest/blocking").then().statusCode(400);
 	}
 
 	@Test
 	public void exchangePlaintext()
 	{
-		given().accept(ContentType.TEXT).when().get("tests/exchange/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
+		given().accept(ContentType.TEXT).when().get("v1/tests/exchange/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
 	}
 	
 	@Test
 	public void exchangePlaintext2()
 	{
-		given().accept(ContentType.TEXT).when().get("tests/exchange/plaintext2").then().statusCode(200).and().body(containsString("Hello, World!"));
+		given().accept(ContentType.TEXT).when().get("v1/tests/exchange/plaintext2").then().statusCode(200).and().body(containsString("Hello, World!"));
 	}
 
 	@Test
 	public void responsePlaintext()
 	{
-		given().accept(ContentType.TEXT).when().get("tests/response/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
+		given().accept(ContentType.TEXT).when().get("v1/tests/response/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
 	}
 	
 	@Test
@@ -276,7 +325,7 @@ public class TestControllerEndpoints
 	{
 		User model = new User(101L,UserType.ADMIN);
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("v1/tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
 
 	}
 	
@@ -286,7 +335,7 @@ public class TestControllerEndpoints
 		User model = new User();
 		model.setId(101L);
 		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("tests/response/json/beanparam").then().statusCode(200).and().body(containsString("101"));
+		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("v1/tests/response/json/beanparam").then().statusCode(200).and().body(containsString("101"));
 
 	}
 	 
@@ -294,66 +343,66 @@ public class TestControllerEndpoints
 	@Test
 	public void responseFutureUser()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/future/user").then().statusCode(200).and().body(containsString("123"));
+		given().accept(ContentType.JSON).when().get("v1/tests/response/future/user").then().statusCode(200).and().body(containsString("123"));
 
 	}
 
 	@Test
 	public void responseMap()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/map").then().statusCode(200).and().body("message", is("success"));
+		given().accept(ContentType.JSON).when().get("v1/tests/response/map").then().statusCode(200).and().body("message", is("success"));
 	}
 	
 
 	@Test
 	public void responseFutureMap()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
+		given().accept(ContentType.JSON).when().get("v1/tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
 	}
 
 	@Test
 	public void responseFutureResponseMap()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/future/response").then().statusCode(200).and().body("message", is("success"));
+		given().accept(ContentType.JSON).when().get("v1/tests/response/future/response").then().statusCode(200).and().body("message", is("success"));
 	}
 
 
 	@Test
 	public void testRedirect()
 	{
-		given().when().get("tests/redirect").then().statusCode(200).and().header("Server", "gws");
+		given().when().get("v1/tests/redirect").then().statusCode(200).and().header("Server", "gws");
 	}
 	
 	@Test
 	public void testRedirectFoundCode()
 	{
-		given().when().redirects().follow(false).get("tests/redirect").then().statusCode(302);
+		given().when().redirects().follow(false).get("v1/tests/redirect").then().statusCode(302);
 	}
 	
 	@Test
 	public void testRedirectMovedPermanentlyCode()
 	{
-		given().when().redirects().follow(false).get("tests/redirect/permanent").then().statusCode(301);
+		given().when().redirects().follow(false).get("v1/tests/redirect/permanent").then().statusCode(301);
 	}
 
 	@Test
 	public void pathParam()
 	{
-		given().accept(ContentType.TEXT).when().get("tests/response/params/path/foobar").then().statusCode(200).and().body(containsString("foobar"));
+		given().accept(ContentType.TEXT).when().get("v1/tests/response/params/path/foobar").then().statusCode(200).and().body(containsString("foobar"));
 
 	}
 
 //	@Test
 //	public void regexPathParam()
 //	{
-//		given().accept(ContentType.TEXT).when().get("tests/response/params/regexpath/fooBar").then().statusCode(200).and().body(containsString("fooBar"));
+//		given().accept(ContentType.TEXT).when().get("v1/tests/response/params/regexpath/fooBar").then().statusCode(200).and().body(containsString("fooBar"));
 //
 //	}
 //
 //	@Test
 //	public void invalidRegexPathParam()
 //	{
-//		given().accept(ContentType.TEXT).when().get("tests/response/params/regexpath/fooBar101").then().statusCode(400);
+//		given().accept(ContentType.TEXT).when().get("v1/tests/response/params/regexpath/fooBar101").then().statusCode(400);
 //
 //	}
 
@@ -364,7 +413,7 @@ public class TestControllerEndpoints
 		try
 		{
 
-			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("tests/response/file/path").asInputStream();
+			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("v1/tests/response/file/path").asInputStream();
 
 			try(final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
 			{
@@ -372,6 +421,62 @@ public class TestControllerEndpoints
 			  
 				assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
 			}
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	@Test
+	public void uploadMultipleFiles()
+	{
+
+		try
+		{
+
+
+			Map map = given().multiPart("files", files.get(0)).multiPart("files",files.get(1)).multiPart("files",files.get(2)).multiPart("files",files.get(3))
+							 .multiPart("names",files.get(0).getName())
+							 .multiPart("names",files.get(1).getName())
+							 .multiPart("names",files.get(2).getName())
+							 .multiPart("names",files.get(3).getName())
+							 .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
+
+
+			assertThat(map.size(), equalTo(4));
+
+			assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace()+""));
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	@Test
+	public void uploadMultiplePaths()
+	{
+
+		try
+		{
+
+
+			Map map = given().multiPart("files", files.get(0)).multiPart("files",files.get(1)).multiPart("files",files.get(2)).multiPart("files",files.get(3))
+							 .multiPart("names",files.get(0).getName())
+							 .multiPart("names",files.get(1).getName())
+							 .multiPart("names",files.get(2).getName())
+							 .multiPart("names",files.get(3).getName())
+							 .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
+
+
+			assertThat(map.size(), equalTo(4));
+
+			assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace()+""));
 
 		} catch (Exception e)
 		{
@@ -388,7 +493,7 @@ public class TestControllerEndpoints
 		try
 		{
 
-			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("tests/response/file/path/optional").asInputStream();
+			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("v1/tests/response/file/path/optional").asInputStream();
 
 			try(final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
 			{
@@ -412,7 +517,7 @@ public class TestControllerEndpoints
 		{
 			List<Long> values = new Random().longs(10, 0L, 20L).boxed().collect(Collectors.toList());
 			 
-			given().contentType(ContentType.JSON).accept(ContentType.JSON).body(values).when().post("tests/response/parse/ids").then().statusCode(200);
+			given().contentType(ContentType.JSON).accept(ContentType.JSON).body(values).when().post("v1/tests/response/parse/ids").then().statusCode(200);
 
 
 		} catch (Exception e)
@@ -431,7 +536,7 @@ public class TestControllerEndpoints
 		try
 		{
 
-			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("tests/response/bytebuffer").asInputStream();
+			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("v1/tests/response/bytebuffer").asInputStream();
 
 			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			IOUtils.copy(is, byteArrayOutputStream);
@@ -456,7 +561,7 @@ public class TestControllerEndpoints
 		try
 		{
 
-			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("tests/response/file").asInputStream();
+			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("v1/tests/response/file").asInputStream();
 
 			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			IOUtils.copy(is, byteArrayOutputStream);
@@ -488,7 +593,7 @@ public class TestControllerEndpoints
 
 				.when()
 
-				.get("tests/response/parse/instant").
+				.get("v1/tests/response/parse/instant").
 				
 				then().statusCode(200).and().body(containsString(instant.toString()));
 
@@ -507,7 +612,7 @@ public class TestControllerEndpoints
 				.queryParam("timestamp", ts.toString()) 
 				.when()
 
-				.get("tests/response/parse/timestamp").
+				.get("v1/tests/response/parse/timestamp").
 				then().statusCode(200).and().body(containsString(ts.toString()));
 
 		 
@@ -528,7 +633,7 @@ public class TestControllerEndpoints
 
 				.when()
 
-				.get("tests/response/parse/big-decimal").
+				.get("v1/tests/response/parse/big-decimal").
 
 						then().statusCode(200).and().body(containsString(value.toString()));
 	}
@@ -548,7 +653,7 @@ public class TestControllerEndpoints
 
 				.when()
 
-				.get("tests/response/parse/double").
+				.get("v1/tests/response/parse/double").
 
 						then().statusCode(200).and().body(containsString(value.toString()));
 	}
@@ -556,7 +661,7 @@ public class TestControllerEndpoints
 	@Test
 	public void notFound()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/error/404").then().statusCode(404).log().body().content(containsString("No entity found"));
+		given().accept(ContentType.JSON).when().get("v1/tests/response/error/404").then().statusCode(404).log().body().content(containsString("No entity found"));
 
 	}
 
@@ -564,34 +669,34 @@ public class TestControllerEndpoints
 	@Test
 	public void unauthorized()
 	{
-		given().accept(ContentType.JSON).when().get("tests/response/error/401").then().statusCode(401).log().body().content(containsString("Unauthorized"));
+		given().accept(ContentType.JSON).when().get("v1/tests/response/error/401").then().statusCode(401).log().body().content(containsString("Unauthorized"));
 
 	}
 
 	@Test
 	public void maxValueError()
 	{
-		given().queryParam("param",105).when().get("tests/response/max").then().statusCode(400).log();
+		given().queryParam("param",105).when().get("v1/tests/response/max").then().statusCode(400).log();
 
 	}
 
 	@Test
 	public void minValueError()
 	{
-		given().queryParam("param",5).when().get("tests/response/min").then().statusCode(400).log();
+		given().queryParam("param",5).when().get("v1/tests/response/min").then().statusCode(400).log();
 
 	}
 	@Test
 	public void maxValue()
 	{
-		given().queryParam("param",50).when().get("tests/response/max").then().statusCode(200).log();
+		given().queryParam("param",50).when().get("v1/tests/response/max").then().statusCode(200).log();
 
 	}
 
 	@Test
 	public void minValue()
 	{
-		given().queryParam("param",15).when().get("tests/response/min").then().statusCode(200).log();
+		given().queryParam("param",15).when().get("v1/tests/response/min").then().statusCode(200).log();
 
 	}
 
@@ -603,7 +708,7 @@ public class TestControllerEndpoints
 		UUID randomUUID = UUID.randomUUID();
 		Long longValue = 123456789L;
 		List<Integer> integerList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
-		String stringValue = "TESTSTRING123!#$";
+		String stringValue = "v1/testsTRING123!#$";
 
 		Map map = given()
 
@@ -639,7 +744,7 @@ public class TestControllerEndpoints
 
 				.when()
 
-				.get("tests/response/parameters/complex/" + longValue.toString())
+				.get("v1/tests/response/parameters/complex/" + longValue.toString())
 
 				.as(Map.class);
 

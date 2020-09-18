@@ -70,8 +70,10 @@ public enum TypeHandler {
     BeanListFromStringType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
 
     FileListType("$T $L = io.sinistral.proteus.server.Extractors.fileList(exchange,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.STRING),
-
     PathListType("$T $L = io.sinistral.proteus.server.Extractors.pathList(exchange,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.STRING),
+
+    FileMapType("$T $L = io.sinistral.proteus.server.Extractors.fileMap(exchange,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.STRING),
+    PathMapType("$T $L = io.sinistral.proteus.server.Extractors.pathMap(exchange,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.STRING),
 
     HeaderValueOfType("$T $L = $T.valueOf($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
     HeaderFromStringType("$T $L = $T.fromString($T.string(exchange,$S))", false, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.TYPE, io.sinistral.proteus.server.Extractors.Header.class, StatementParameterType.STRING),
@@ -314,6 +316,8 @@ public enum TypeHandler {
 
         if (isArray && !isOptional) {
             try {
+
+
                 Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);
 
                 if (HandlerGenerator.hasValueOfMethod(erasedType)) {
@@ -348,7 +352,19 @@ public enum TypeHandler {
         if (isMap && !isOptional) {
             try {
 
-                return ModelType;
+
+                ParameterizedType erasedType = (ParameterizedType) HandlerGenerator.extractErasedType(type);
+
+                Type[] types = erasedType.getActualTypeArguments();
+
+                if (types[1].getTypeName().contains("java.nio.file.Path")) {
+                    return PathMapType;
+                } else if (types[1].getTypeName().contains("java.io.File")) {
+                    return FileMapType;
+                }
+                else {
+                    return ModelType;
+                }
 
             } catch (Exception e) {
                 HandlerGenerator.log.error(e.getMessage(), e);

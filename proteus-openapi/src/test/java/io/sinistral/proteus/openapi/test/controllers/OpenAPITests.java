@@ -8,8 +8,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.annotations.Chain;
+import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.openapi.test.models.Pojo;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
@@ -20,6 +24,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
 import io.undertow.server.HttpServerExchange;
 import org.javamoney.moneta.Money;
+import org.junit.BeforeClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -55,6 +62,8 @@ import static io.sinistral.proteus.server.ServerResponse.response;
 @Singleton
 public class OpenAPITests
 {
+	private static final Logger logger = LoggerFactory.getLogger(OpenAPITests.class.getName());
+
 	 private static final ByteBuffer buffer;
 	  static {
 	    String message = "Hello, World!";
@@ -63,9 +72,12 @@ public class OpenAPITests
 	    buffer.put(messageBytes);
 	    buffer.flip();
 	  }
+
+
 	  
 	@Inject
 	protected ObjectMapper objectMapper;
+
 
 	
 	@GET
@@ -273,7 +285,7 @@ public class OpenAPITests
 			return response( map ).applicationJson();
 		} catch(Exception e)
 		{
-			return response().badRequest(e);
+			return response().badRequest(e).applicationJson();
 		}
 	}
 
@@ -290,10 +302,96 @@ public class OpenAPITests
 			return response( map ).applicationJson();
 		} catch(Exception e)
 		{
-			return response().badRequest(e);
+			return response().badRequest(e).applicationJson();
 		}
 	}
 
+	@POST
+	@Path("list/file")
+	 @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("*/*")
+	@Blocking
+	@Debug
+	public ServerResponse<Map<String,String>> uploadMultipleFileList(ServerRequest request, @FormParam("files") List<File> files, @FormParam("names") List<String> names ) throws Exception
+	{
+
+logger.debug("files {} names {}",files,names);
+		Map<String,String> map = new HashMap<>();
+
+		for(int i = 0; i < files.size(); i++)
+		{
+			map.put(names.get(i),files.get(i).getTotalSpace()+"");
+		}
+
+		logger.debug("map {}",map);
+
+		return response(map).applicationJson();
+
+
+	}
+
+	@POST
+	@Path("list/path")
+	 @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("*/*")
+	@Blocking
+	@Debug
+	public ServerResponse<Map<String,String>> uploadMultiplePathList(ServerRequest request, @FormParam("files") List<java.nio.file.Path> files, @FormParam("names") List<String> names ) throws Exception
+	{
+
+		Map<String,String> map = new HashMap<>();
+
+		for(int i = 0; i < files.size(); i++)
+		{
+			map.put(names.get(i),files.get(i).toFile().getTotalSpace()+"");
+		}
+
+
+		return response(map).applicationJson();
+
+
+	}
+
+	@POST
+	@Path("map/file")
+	 @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("*/*")
+	@Blocking
+	public ServerResponse<Map<String,String>> uploadMultipleFileMap(ServerRequest request, @FormParam("files") Map<String,File> files ) throws Exception
+	{
+
+		Map<String,String> map = new HashMap<>();
+
+		for(String k : files.keySet())
+		{
+			map.put(k,files.get(k).getTotalSpace()+"");
+		}
+
+
+		return response(map).applicationJson();
+
+
+	}
+
+	@POST
+	@Path("map/path")
+	 @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("*/*")
+	@Blocking
+	public ServerResponse<Map<String,String>> uploadMultiplePathMap(ServerRequest request, @FormParam("files") Map<String,java.nio.file.Path> files  ) throws Exception
+	{
+
+		Map<String,String> map = new HashMap<>();
+
+		for(String k : files.keySet())
+		{
+			map.put(k,files.get(k).toFile().getTotalSpace()+"");
+		}
+
+		return response(map).applicationJson();
+
+
+	}
 
 	@GET
 	@SecurityRequirement(name = "testRequirement")
@@ -317,7 +415,7 @@ public class OpenAPITests
 	{
 
 
-		return response( "ok" );
+		return response( "ok" ).applicationJson();
 	}
 
 }

@@ -1293,8 +1293,11 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		if (apiRequestBody != null && operation.getRequestBody() == null)
 		{
 
+
 			OperationParser.getRequestBody(apiRequestBody, classConsumes, methodConsumes, components, jsonViewAnnotation).ifPresent(
 																																	operation::setRequestBody);
+
+			LOGGER.debug("request body: " + operation.getRequestBody().toString());
 		}
 
 		// operation id
@@ -1755,7 +1758,19 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		{
 			return new ResolvedParameter();
 		}
+
 		LOGGER.debug("getParameters for {}", type);
+
+		if(type.toString().equalsIgnoreCase("[map type; class java.util.Map, [simple type, class java.lang.String] -> [simple type, class java.nio.file.Path]]"))
+		{
+			type = TypeFactory.defaultInstance().constructCollectionType(java.util.List.class,java.nio.file.Path.class);
+
+		}
+		else if(type.toString().equalsIgnoreCase("[map type; class java.util.Map, [simple type, class java.lang.String] -> [simple type, class java.io.File]]"))
+		{
+			type = TypeFactory.defaultInstance().constructCollectionType(java.util.List.class,java.io.File.class);
+		}
+
 		Set<Type> typesToSkip = new HashSet<>();
 		final OpenAPIExtension extension = chain.next();
 		LOGGER.debug("trying extension {}", extension);

@@ -99,7 +99,7 @@ public class OpenAPIDefaultServer extends BlockJUnit4ClassRunner
 		 
 			 
  			
-			RestAssured.baseURI = String.format("http://localhost:%d/v1",port);
+			RestAssured.baseURI = String.format("http://localhost:%d/",port);
 			
 			RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 			

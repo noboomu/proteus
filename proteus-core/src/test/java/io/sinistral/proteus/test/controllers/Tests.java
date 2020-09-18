@@ -384,7 +384,7 @@ public class Tests
 	 @Produces(MediaType.APPLICATION_JSON)
  	@Consumes("*/*")
 	@Blocking
-	public ServerResponse<Map<String,String>> uploadMultipleFiles(ServerRequest request, @FormParam("files") List<File> files, @FormParam("names") List<String> names ) throws Exception
+	public ServerResponse<Map<String,String>> uploadMultipleFileList(ServerRequest request, @FormParam("files") List<File> files, @FormParam("names") List<String> names ) throws Exception
 	{
 
 		Map<String,String> map = new HashMap<>();
@@ -405,7 +405,7 @@ public class Tests
 	 @Produces(MediaType.APPLICATION_JSON)
  	@Consumes("*/*")
 	@Blocking
-	public ServerResponse<Map<String,String>> uploadMultiplePaths(ServerRequest request, @FormParam("files") List<java.nio.file.Path> files, @FormParam("names") List<String> names ) throws Exception
+	public ServerResponse<Map<String,String>> uploadMultiplePathList(ServerRequest request, @FormParam("files") List<java.nio.file.Path> files, @FormParam("names") List<String> names ) throws Exception
 	{
 
 		Map<String,String> map = new HashMap<>();
@@ -415,6 +415,47 @@ public class Tests
 			map.put(names.get(i),files.get(i).toFile().getTotalSpace()+"");
 		}
 
+
+		return response(map).applicationJson();
+
+
+	}
+
+	@POST
+	@Path("map/file")
+	 @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("*/*")
+	@Blocking
+	public ServerResponse<Map<String,String>> uploadMultipleFileMap(ServerRequest request, @FormParam("files") Map<String,File> files ) throws Exception
+	{
+
+		Map<String,String> map = new HashMap<>();
+
+		for(String k : files.keySet())
+		{
+			map.put(k,files.get(k).getTotalSpace()+"");
+		}
+
+
+		return response(map).applicationJson();
+
+
+	}
+
+	@POST
+	@Path("map/path")
+	 @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("*/*")
+	@Blocking
+	public ServerResponse<Map<String,String>> uploadMultiplePathMap(ServerRequest request, @FormParam("files") Map<String,java.nio.file.Path> files  ) throws Exception
+	{
+
+		Map<String,String> map = new HashMap<>();
+
+		for(String k : files.keySet())
+		{
+			map.put(k,files.get(k).toFile().getTotalSpace()+"");
+		}
 
 		return response(map).applicationJson();
 

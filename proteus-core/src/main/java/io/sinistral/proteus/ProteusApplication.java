@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -204,7 +205,7 @@ public class ProteusApplication
 
                 printStatus();
 
-                running.set(true);
+                running.set(false);
             }
 
         }, MoreExecutors.directExecutor());
@@ -228,6 +229,7 @@ public class ProteusApplication
                 log.error("Shutdown timed out", timeout);
             }
         }));
+
 
         buildServer();
 
@@ -265,97 +267,94 @@ public class ProteusApplication
     {
 
 
+            for (Class<?> controllerClass : registeredControllers) {
+                HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
 
-        for (Class<?> controllerClass : registeredControllers) {
-            HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
+                injector.injectMembers(generator);
 
-            injector.injectMembers(generator);
+                try {
+                    Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(generator.compileClass());
 
-            try {
-                Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(generator.compileClass());
+                    router.addAll(generatedRouteSupplier.get());
 
-                router.addAll(generatedRouteSupplier.get());
-
-            } catch (Exception e) {
-                log.error("Exception creating handlers for " + controllerClass.getName() + "!!!\n" + e.getMessage(), e);
-            }
-
-        }
-
-        this.addDefaultRoutes(router);
-
-        HttpHandler handler;
-
-        if (rootHandlerClass != null) {
-            handler = injector.getInstance(rootHandlerClass);
-        } else {
-            handler = rootHandler;
-        }
-
-        SessionAttachmentHandler sessionAttachmentHandler = null;
-
-        try {
-            sessionAttachmentHandler = injector.getInstance(SessionAttachmentHandler.class);
-        } catch (Exception e) {
-            log.info("No session attachment handler found.");
-        }
-
-        if (sessionAttachmentHandler != null) {
-            log.info("Using session attachment handler.");
-
-            sessionAttachmentHandler.setNext(handler);
-            handler = sessionAttachmentHandler;
-        }
-
-        int httpPort = config.getInt("application.ports.http");
-
-        if (System.getProperty("http.port") != null) {
-            httpPort = Integer.parseInt(System.getProperty("http.port"));
-        }
-
-        Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
-
-
-                .setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
-                .setIoThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.ioThreadsMultiplier"))
-                .setWorkerThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.workerThreadMultiplier"))
-                .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
-                .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
-                .setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
-                .setSocketOption(org.xnio.Options.READ_TIMEOUT, config.getInt("undertow.socket.readTimeout"))
-                .setSocketOption(org.xnio.Options.WRITE_TIMEOUT, config.getInt("undertow.socket.writeTimeout"))
-                .setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
-                .setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
-                .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
-                .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
-                .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
-                .setHandler(handler);
-
-
-        if (config.getBoolean("undertow.ssl.enabled")) {
-            try {
-                int httpsPort = config.getInt("application.ports.https");
-
-                if (System.getProperty("https.port") != null) {
-                    httpsPort = Integer.parseInt(System.getProperty("https.port"));
+                } catch (Exception e) {
+                    log.error("Exception creating handlers for " + controllerClass.getName() + "!!!\n" + e.getMessage(), e);
                 }
 
-                KeyStore keyStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.keystorePath"), config.getString("undertow.ssl.keystorePassword"));
-                KeyStore trustStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.truststorePath"), config.getString("undertow.ssl.truststorePassword"));
-
-                undertowBuilder.addHttpsListener(httpsPort, config.getString("application.host"), SecurityOps.createSSLContext(keyStore, trustStore, config.getString("undertow.ssl.keystorePassword")));
-
-
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
             }
-        }
 
-        if (serverConfigurationFunction != null) {
-            undertowBuilder = serverConfigurationFunction.apply(undertowBuilder);
-        }
+            this.addDefaultRoutes(router);
 
-        this.undertow = undertowBuilder.build();
+            HttpHandler handler;
+
+            if (rootHandlerClass != null) {
+                handler = injector.getInstance(rootHandlerClass);
+            } else {
+                handler = rootHandler;
+            }
+
+            SessionAttachmentHandler sessionAttachmentHandler = null;
+
+            try {
+                sessionAttachmentHandler = injector.getInstance(SessionAttachmentHandler.class);
+            } catch (Exception e) {
+                log.info("No session attachment handler found.");
+            }
+
+            if (sessionAttachmentHandler != null) {
+                log.info("Using session attachment handler.");
+
+                sessionAttachmentHandler.setNext(handler);
+                handler = sessionAttachmentHandler;
+            }
+
+            int httpPort = config.getInt("application.ports.http");
+
+            if (System.getProperty("http.port") != null) {
+                httpPort = Integer.parseInt(System.getProperty("http.port"));
+            }
+
+            Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
+
+                                                       .setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
+                                                       .setIoThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.ioThreadsMultiplier"))
+                                                       .setWorkerThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.workerThreadMultiplier"))
+                                                       .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
+                                                       .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
+                                                       .setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
+                                                       .setSocketOption(org.xnio.Options.READ_TIMEOUT, config.getInt("undertow.socket.readTimeout"))
+                                                       .setSocketOption(org.xnio.Options.WRITE_TIMEOUT, config.getInt("undertow.socket.writeTimeout"))
+                                                       .setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
+                                                       .setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
+                                                       .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
+                                                       .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
+                                                       .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
+                                                       .setHandler(handler);
+
+            if (config.getBoolean("undertow.ssl.enabled")) {
+                try {
+                    int httpsPort = config.getInt("application.ports.https");
+
+                    if (System.getProperty("https.port") != null) {
+                        httpsPort = Integer.parseInt(System.getProperty("https.port"));
+                    }
+
+                    KeyStore keyStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.keystorePath"), config.getString("undertow.ssl.keystorePassword"));
+                    KeyStore trustStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.truststorePath"), config.getString("undertow.ssl.truststorePassword"));
+
+                    undertowBuilder.addHttpsListener(httpsPort, config.getString("application.host"), SecurityOps.createSSLContext(keyStore, trustStore, config.getString("undertow.ssl.keystorePassword")));
+
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+
+            if (serverConfigurationFunction != null) {
+                undertowBuilder = serverConfigurationFunction.apply(undertowBuilder);
+            }
+
+            this.undertow = undertowBuilder.build();
+
 
     }
 

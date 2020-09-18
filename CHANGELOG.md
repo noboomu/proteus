@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added support for multiple file uploads.**
+
+
+[2ebba11320f386e](https://github.com/noboomu/proteus/commit/2ebba11320f386e) Joshua Bauer *2020-09-16 23:33:26*
+
 **Replace whenComplete in async.**
 
 

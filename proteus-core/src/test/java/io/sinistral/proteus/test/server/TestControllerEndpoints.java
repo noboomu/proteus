@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -431,7 +432,7 @@ public class TestControllerEndpoints
 	}
 
 	@Test
-	public void uploadMultipleFiles()
+	public void uploadMultipleFileList()
 	{
 
 		try
@@ -454,12 +455,13 @@ public class TestControllerEndpoints
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fail(e.getMessage());
 		}
 
 	}
 
 	@Test
-	public void uploadMultiplePaths()
+	public void uploadMultiplePathList()
 	{
 
 		try
@@ -482,6 +484,57 @@ public class TestControllerEndpoints
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fail(e.getMessage());
+		}
+
+	}
+
+	@Test
+	public void uploadMultipleFileMap()
+	{
+
+		try
+		{
+
+			Map map = given().multiPart("files", files.get(0)).multiPart("files",files.get(1)).multiPart("files",files.get(2)).multiPart("files",files.get(3))
+							 .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
+
+
+			assertThat(map.size(), equalTo(4));
+
+			assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace()+""));
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+
+	}
+
+	@Test
+	public void uploadMultiplePathMap()
+	{
+
+		try
+		{
+
+
+			Map map = given().multiPart("files", files.get(0)).multiPart("files",files.get(1)).multiPart("files",files.get(2)).multiPart("files",files.get(3))
+
+							 .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
+
+
+			assertThat(map.size(), equalTo(4));
+
+			assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace()+""));
+
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 
 	}

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -362,6 +364,28 @@ public class Extractors
         try
         {
            return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().map( i -> i.getFileItem().getFile().toFile()).collect(Collectors.toList());
+        } catch( Exception e )
+        {
+            throw new IllegalArgumentException("Missing parameter " + name, e);
+        }
+    }
+
+    public static Map<String,Path> pathMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
+    {
+        try
+        {
+           return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().collect(Collectors.toMap(FormData.FormValue::getFileName, i -> i.getFileItem().getFile()));
+        } catch( Exception e )
+        {
+            throw new IllegalArgumentException("Missing parameter " + name, e);
+        }
+    }
+
+    public static Map<String,File> fileMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
+    {
+        try
+        {
+           return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().collect(Collectors.toMap(FormData.FormValue::getFileName, i -> i.getFileItem().getFile().toFile()));
         } catch( Exception e )
         {
             throw new IllegalArgumentException("Missing parameter " + name, e);

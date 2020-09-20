@@ -544,4 +544,9 @@ Built With
  - [Swagger](http://swagger.io/) (annotations and swagger spec)
  - [JAX-RS](http://docs.oracle.com/javaee/6/api/javax/ws/rs/package-summary.html) (annotations only)
 
+In The Wild
+----------
+* [Source One Parts Center](http://s1partscenter.com)
+* [Wurrly](https://wurrly.com)
+
   

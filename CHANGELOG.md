@@ -1,8 +1,12 @@
 # Changelog
 Proteus Changelog.
 
-## Unreleased
-### No issue
+[3d4deba169cedff](https://github.com/noboomu/proteus/commit/3d4deba169cedff) Joshua Bauer *2020-11-19 20:58:09*
+
+**Update README.md**
+
+
+[eed4d6c51456f4f](https://github.com/noboomu/proteus/commit/eed4d6c51456f4f) JL Bauer *2020-09-20 22:02:28*
 
 **Improve multipart handling.**
 

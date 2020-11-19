@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve multipart handling.**
+
+
+[66acf750c442f54](https://github.com/noboomu/proteus/commit/66acf750c442f54) Joshua Bauer *2020-09-18 19:17:36*
+
 **Added support for multiple file uploads.**
 
 

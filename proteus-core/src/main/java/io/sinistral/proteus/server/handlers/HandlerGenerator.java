@@ -21,6 +21,7 @@ import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
+import net.openhft.compiler.CachedCompiler;
 import net.openhft.compiler.CompilerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
@@ -112,12 +113,12 @@ public class HandlerGenerator
         try {
             this.generateRoutes();
 
-            log.debug("\n\nGenerated Class Source:\n\n" + this.sourceString);
+            log.debug("\n\nGenerated Class Source:\n\n{}", this.sourceString);
 
-            return CompilerUtils.CACHED_COMPILER.loadFromJava(packageName + "." + className, this.sourceString);
+            return new CachedCompiler(null,null).loadFromJava(packageName + "." + className, this.sourceString);
 
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("Failed to compile {}\nSource:\n{}",packageName + "." + className,this.sourceString, e);
             return null;
         }
     }
@@ -125,9 +126,8 @@ public class HandlerGenerator
     /**
      * Generates the routing Java source code
      */
-    protected void generateRoutes()
+    protected void generateRoutes() throws Exception
     {
-        try {
 
             TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
                     .addSuperinterface(ParameterizedTypeName.get(Supplier.class, RoutingHandler.class));
@@ -183,9 +183,7 @@ public class HandlerGenerator
 
             this.sourceString = sb.toString();
 
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
+
     }
 
     protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz)

@@ -22,6 +22,7 @@ bin
 .classpath
 .settings/org.scala-ide.sdt.core.prefs
 .cache-tests
+release.properties
 /proteus/
 *.versionsBackup
 .factorypath

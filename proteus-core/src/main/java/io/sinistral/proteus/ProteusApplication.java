@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -276,24 +277,52 @@ public class ProteusApplication {
     public void buildServer()
     {
 
+        ExecutorService handlerExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        CountDownLatch countDownLatch = new CountDownLatch(registeredControllers.size());
+
+        CopyOnWriteArrayList<Class<? extends Supplier<RoutingHandler>>> routerClasses = new CopyOnWriteArrayList<>();
+
         for (Class<?> controllerClass : registeredControllers)
         {
 
-            HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
+            handlerExecutor.execute(() -> {
 
-            injector.injectMembers(generator);
+                try
+                {
 
-            try
-            {
-                Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(generator.compileClass());
+                    log.debug("Compiling {}...", controllerClass);
 
-                router.addAll(generatedRouteSupplier.get());
+                    HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
 
-            } catch (Exception e)
-            {
-                log.error("Exception creating handlers for " + controllerClass.getName() + "!!!\n" + e.getMessage(), e);
-            }
+                    injector.injectMembers(generator);
 
+                    routerClasses.add(generator.compileClass());
+
+                    log.debug("Compiled {}", controllerClass);
+
+                } catch (Exception e)
+                {
+                    log.error("Exception creating handlers for {}", controllerClass.getName(), e);
+                }
+
+                countDownLatch.countDown();
+            });
+
+        }
+
+        try
+        {
+            countDownLatch.await();
+        } catch (Exception e)
+        {
+            log.error("Failed waiting for handlers to generate", e);
+        }
+
+        for (Class<? extends Supplier<RoutingHandler>> clazz : routerClasses)
+        {
+            Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(clazz);
+            router.addAll(generatedRouteSupplier.get());
         }
 
         this.addDefaultRoutes(router);

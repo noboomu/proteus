@@ -1,6 +1,17 @@
 # Changelog
 Proteus Changelog.
 
+## v0.4.6
+### No issue
+
+**Cleanup CHANGELOG.**
+
+
+[22eb4349dcc9e02](https://github.com/noboomu/proteus/commit/22eb4349dcc9e02) Joshua Bauer *2020-11-19 21:06:07*
+
+**Prep for next release.**
+
+
 [3d4deba169cedff](https://github.com/noboomu/proteus/commit/3d4deba169cedff) Joshua Bauer *2020-11-19 20:58:09*
 
 **Update README.md**

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Async service timeouts.**
+
+
+[5b1ff1de664b009](https://github.com/noboomu/proteus/commit/5b1ff1de664b009) Joshua Bauer *2020-11-20 01:22:12*
+
 **Controllers are now compiled in parallel.**
 
 

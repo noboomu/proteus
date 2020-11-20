@@ -246,7 +246,7 @@ public class ProteusApplication {
 
         try
         {
-            serviceManager.startAsync().awaitHealthy(120L, TimeUnit.SECONDS);
+            serviceManager.startAsync().awaitHealthy(config.getDuration("application.services.timeout"));
         } catch( Exception e )
         {
             log.error("Failed start to services within 2 minutes",e);
@@ -288,6 +288,8 @@ public class ProteusApplication {
         CountDownLatch countDownLatch = new CountDownLatch(registeredControllers.size());
 
         CopyOnWriteArrayList<Class<? extends Supplier<RoutingHandler>>> routerClasses = new CopyOnWriteArrayList<>();
+
+        log.info("Generating route handlers...");
 
         for (Class<?> controllerClass : registeredControllers)
         {
@@ -332,6 +334,8 @@ public class ProteusApplication {
         }
 
         this.addDefaultRoutes(router);
+
+        log.info("Route handlers generated");
 
         HttpHandler handler;
 

@@ -1,6 +1,15 @@
 # Changelog
 Proteus Changelog.
 
+## Unreleased
+### No issue
+
+**Controllers are now compiled in parallel.**
+
+
+[a9f4e75734b3515](https://github.com/noboomu/proteus/commit/a9f4e75734b3515) Joshua Bauer *2020-11-19 21:22:26*
+
+
 ## v0.4.6
 ### No issue
 

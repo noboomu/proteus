@@ -30,11 +30,8 @@ import io.undertow.server.session.SessionAttachmentHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xnio.Options;
-
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -51,7 +48,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -171,12 +167,14 @@ public class ProteusApplication {
         serviceManager.addListener(new Listener() {
             public void stopped()
             {
-
+                log.info("Services are stopped");
                 undertow.stop();
             }
 
             public void healthy()
             {
+
+                log.info("Services are healthy");
 
                 startupDuration = Duration.ofMillis(System.currentTimeMillis() - startTime);
 
@@ -246,7 +244,15 @@ public class ProteusApplication {
 
         undertow.start();
 
-        serviceManager.startAsync();
+        try
+        {
+            serviceManager.startAsync().awaitHealthy(120L, TimeUnit.SECONDS);
+        } catch( Exception e )
+        {
+            log.error("Failed start to services within 2 minutes",e);
+        }
+
+//        serviceManager.startAsync();
 
     }
 
@@ -265,7 +271,7 @@ public class ProteusApplication {
 
         this.running.set(false);
 
-        log.info("Shutdown complete.");
+        log.info("Shutdown complete");
     }
 
     public boolean isRunning()

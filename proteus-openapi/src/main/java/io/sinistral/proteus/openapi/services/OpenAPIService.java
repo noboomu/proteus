@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -58,382 +59,399 @@ import java.util.stream.Collectors;
 
 /**
  * A service for generating and serving an OpenAPI v3 spec and ui.
+ *
  * @author jbauer
  */
 
 @Singleton
-public class OpenAPIService extends DefaultService implements Supplier<RoutingHandler>
-{
-	private static Logger log = LoggerFactory.getLogger(OpenAPIService.class.getCanonicalName());
-
-	protected final String resourcePathPrefix = "openapi";
-
-	protected ObjectMapper mapper;
-	protected ObjectWriter writer ;
-	protected ObjectMapper yamlMapper;
-	protected Path resourcePath = null;
-	protected ClassLoader serviceClassLoader = null;
-	protected OpenAPI openApi = null;
-	protected String spec = null;
-	protected String indexHTML = null;
-	protected String redocHTML = null;
-
-	protected final String resourcePrefix = "io/sinistral/proteus/openapi";
-
-	@Inject
-	@Named("openapi.basePath")
-	protected String basePath;
-
-	@Inject
-	@Named("openapi.specFilename")
-	protected String specFilename;
-
-	@Inject
-	@Named("openapi")
-	protected Config openAPIConfig;
-
-	@Inject
-	@Named("application.name")
-	protected String applicationName;
-
-	@Inject
-	@Named("openapi.port")
-	protected Integer port;
-	 
-	@Inject
-	@Named("openapi.redocPath")
-	protected String redocPath;
-	
-	@Inject
-	@Named("application.path")
-	protected String applicationPath;
-	 
-	@Inject
-	protected RoutingHandler router;
-
-	@Inject
-	@Named("registeredEndpoints")
-	protected Set<EndpointInfo> registeredEndpoints;
-
-	@Inject
-	@Named("registeredControllers")
-	protected Set<Class<?>> registeredControllers;
-
-	@Inject(optional = true)
-	@Named("jackson.jsonView.queryParameterName")
-	protected String jsonViewQueryParameterName;
-
-	@Inject
-	@Named("registeredHandlerWrappers")
-	protected Map<String, HandlerWrapper> registeredHandlerWrappers;
-
-
-
-	public OpenAPIService()
-	{
-		mapper = Json.mapper();
-
-		mapper.registerModule(new Jdk8Module());
-
-		yamlMapper = Yaml.mapper();
-		writer = Yaml.pretty();
-	}
-
-	protected void generateHTML()
-	{
-		try
-		{
-
-			try (InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/index.html"))
-			{
-
-				byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
-				String templateString = new String(templateBytes, Charset.defaultCharset());
-
-				templateString = templateString.replaceAll("\\{\\{ basePath \\}\\}", basePath);
-				templateString = templateString.replaceAll("\\{\\{ title \\}\\}", applicationName + " Swagger UI");
-				this.indexHTML = templateString;
-			}
-			
-			try (InputStream templateInputStream = getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/redoc.html"))
-			{
-				byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
- 
-				this.redocHTML = new String(templateBytes, Charset.defaultCharset());
-			}
-
-			URL url = this.getClass().getClassLoader().getResource(resourcePrefix);
+public class OpenAPIService extends DefaultService implements Supplier<RoutingHandler> {
 
-			if (url.toExternalForm().contains("!"))
-			{
-				log.debug("Copying OpenAPI resources...");
+    private static Logger log = LoggerFactory.getLogger(OpenAPIService.class.getCanonicalName());
 
-				String jarPathString = url.toExternalForm().substring(0, url.toExternalForm().indexOf("!")).replaceAll("file:", "").replaceAll("jar:", "");
-				File srcFile = new File(jarPathString);
+    protected final String resourcePathPrefix = "openapi";
 
-				try (JarFile jarFile = new JarFile(srcFile, false))
-				{
+    protected ObjectMapper mapper;
+    protected ObjectWriter writer;
+    protected ObjectMapper yamlMapper;
+    protected Path resourcePath = null;
+    protected ClassLoader serviceClassLoader = null;
+    protected OpenAPI openApi = null;
+    protected String spec = null;
+    protected String indexHTML = null;
+    protected String redocHTML = null;
 
-					String appName = config.getString("application.name").replaceAll(" ", "_");
-					Path tmpDirParent = Files.createTempDirectory(appName);
-					Path tmpDir = tmpDirParent.resolve("openapi/");
+    protected final String resourcePrefix = "io/sinistral/proteus/openapi";
 
-					if (tmpDir.toFile().exists())
-					{
-						log.debug("Deleting existing OpenAPI directory at " + tmpDir);
+    @Inject
+    @Named("openapi.basePath")
+    protected String basePath;
 
-						try
-						{
-							FileUtils.deleteDirectory(tmpDir.toFile());
-						} catch (IllegalArgumentException e)
-						{
+    @Inject
+    @Named("openapi.specFilename")
+    protected String specFilename;
 
-							log.debug("Tmp directory is not a directory...");
-							tmpDir.toFile().delete();
-						}
-					}
+    @Inject
+    @Named("openapi")
+    protected Config openAPIConfig;
 
-					Files.createDirectory(tmpDir);
+    @Inject
+    @Named("application.name")
+    protected String applicationName;
 
-					this.resourcePath = tmpDir;
+    @Inject
+    @Named("openapi.port")
+    protected Integer port;
 
-					jarFile.stream().filter(ze -> ze.getName().endsWith("js") || ze.getName().endsWith("css") || ze.getName().endsWith("map") || ze.getName().endsWith("html"))
-							.forEach(ze ->
-							{
-								try
-								{
+    @Inject
+    @Named("openapi.redocPath")
+    protected String redocPath;
 
-									final InputStream entryInputStream = jarFile.getInputStream(ze);
-									String filename = ze.getName().substring(resourcePrefix.length() + 1);
-									Path entryFilePath = tmpDir.resolve(filename);
+    @Inject
+    @Named("application.path")
+    protected String applicationPath;
 
-									Files.createDirectories(entryFilePath.getParent());
-									Files.copy(entryInputStream, entryFilePath, StandardCopyOption.REPLACE_EXISTING);
+    @Inject
+    protected RoutingHandler router;
 
-								} catch (Exception e)
-								{
-									log.error(e.getMessage() + " for entry " + ze.getName());
-								}
-							});
-				}
-			}
-			else
-			{
-				this.resourcePath = Paths.get(this.getClass().getClassLoader().getResource(this.resourcePrefix).toURI());
+    @Inject
+    @Named("registeredEndpoints")
+    protected Set<EndpointInfo> registeredEndpoints;
 
-				this.serviceClassLoader = this.getClass().getClassLoader();
-			}
+    @Inject
+    @Named("registeredControllers")
+    protected Set<Class<?>> registeredControllers;
 
-		} catch (Exception e)
-		{
-			log.error(e.getMessage(), e);
-		}
-	}
+    @Inject(optional = true)
+    @Named("jackson.jsonView.queryParameterName")
+    protected String jsonViewQueryParameterName;
 
-	@SuppressWarnings("rawtypes")
-	protected void generateSpec() throws Exception
-	{
-		Set<Class<?>> classes = this.registeredControllers;
+    @Inject
+    @Named("registeredHandlerWrappers")
+    protected Map<String, HandlerWrapper> registeredHandlerWrappers;
 
-		OpenAPIExtensions.setExtensions(Collections.singletonList(new ServerParameterExtension()));
+    public OpenAPIService()
+    {
 
-		OpenAPI openApi = new OpenAPI();
-		Info info = mapper.convertValue(openAPIConfig.getValue("info").unwrapped(), Info.class);
+        mapper = Json.mapper();
 
-		openApi.setInfo(info);
+        mapper.registerModule(new Jdk8Module());
 
-		Map<String, SecurityScheme> securitySchemes = mapper.convertValue(	openAPIConfig.getValue("securitySchemes").unwrapped(),new TypeReference<Map<String, SecurityScheme>>(){});
+        yamlMapper = Yaml.mapper();
+        writer = Yaml.pretty();
+    }
 
-		if (openApi.getComponents() == null)
-		{
-			openApi.setComponents(new Components());
-		}
+    protected void generateHTML()
+    {
 
-		openApi.getComponents().setSecuritySchemes(securitySchemes);
+        try
+        {
 
-		List<Server> servers = mapper.convertValue(openAPIConfig.getValue("servers").unwrapped(), new TypeReference<List<Server>>(){});
+            try (InputStream templateInputStream = this.getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/index.html"))
+            {
 
-		openApi.setServers(servers);
+                byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
+                String templateString = new String(templateBytes, Charset.defaultCharset());
 
-		SwaggerConfiguration config = new SwaggerConfiguration().resourceClasses(classes.stream().map(Class::getName).collect(Collectors.toSet())).openAPI(openApi);
+                templateString = templateString.replaceAll("\\{\\{ basePath \\}\\}", basePath);
+                templateString = templateString.replaceAll("\\{\\{ title \\}\\}", applicationName + " Swagger UI");
+                this.indexHTML = templateString;
+            }
 
-		if(jsonViewQueryParameterName != null) {
+            try (InputStream templateInputStream = getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/redoc.html"))
+            {
+                byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
 
-			if(config.getUserDefinedOptions() == null)
-			{
-				config.setUserDefinedOptions(new HashMap<>());
-			}
+                this.redocHTML = new String(templateBytes, Charset.defaultCharset());
+            }
 
-			config.getUserDefinedOptions().put("jsonViewQueryParameterName", jsonViewQueryParameterName);
-		}
+            URL url = this.getClass().getClassLoader().getResource(resourcePrefix);
 
-		Set<String> modelConverterClasses = new HashSet<>();
+            if (url.toExternalForm().contains("!"))
+            {
+                log.debug("Copying OpenAPI resources...");
 
-		modelConverterClasses.add(ServerModelResolver.class.getName());
+                String jarPathString = url.toExternalForm().substring(0, url.toExternalForm().indexOf("!")).replaceAll("file:", "").replaceAll("jar:", "");
+                File srcFile = new File(jarPathString);
 
-		List<String> additionalConverterClasses = openAPIConfig.getStringList("converterClasses");
+                try (JarFile jarFile = new JarFile(srcFile, false))
+                {
 
-		modelConverterClasses.addAll(additionalConverterClasses);
+                    String appName = config.getString("application.name").replaceAll(" ", "_");
+                    Path tmpDirParent = Files.createTempDirectory(appName);
+                    Path tmpDir = tmpDirParent.resolve("openapi/");
 
-		config.setModelConverterClassess(modelConverterClasses);
+                    if (tmpDir.toFile().exists())
+                    {
+                        log.debug("Deleting existing OpenAPI directory at " + tmpDir);
 
-		OpenApiContext ctx = new GenericOpenApiContext().openApiConfiguration(config)
-				.openApiReader(new Reader(config))
-				.openApiScanner(new JaxrsApplicationAndAnnotationScanner().openApiConfiguration(config))
-				.init();
+                        try
+                        {
+                            FileUtils.deleteDirectory(tmpDir.toFile());
+                        } catch (IllegalArgumentException e)
+                        {
 
-		openApi = ctx.read();
-		this.openApi = openApi;
-		this.spec = writer.writeValueAsString(openApi);
-	}
+                            log.debug("Tmp directory is not a directory...");
+                            tmpDir.toFile().delete();
+                        }
+                    }
 
-	@Override
-	protected void startUp() throws Exception
-	{
-		super.startUp();
+                    Files.createDirectory(tmpDir);
 
-		generateHTML();
+                    this.resourcePath = tmpDir;
 
-		CompletableFuture.runAsync(() ->
-		{
-			try
-			{
-				generateSpec();
+                    jarFile.stream().filter(ze -> ze.getName().endsWith("js") || ze.getName().endsWith("css") || ze.getName().endsWith("map") || ze.getName().endsWith("html"))
+                           .forEach(ze ->
+                           {
+                               try
+                               {
 
-				log.debug("\nOpenAPI Spec:\n" + writer.writeValueAsString(this.openApi));
+                                   final InputStream entryInputStream = jarFile.getInputStream(ze);
+                                   String filename = ze.getName().substring(resourcePrefix.length() + 1);
+                                   Path entryFilePath = tmpDir.resolve(filename);
 
-			} catch (Exception e)
-			{
-				log.error("Error generating OpenAPI spec", e);
-			}
+                                   Files.createDirectories(entryFilePath.getParent());
+                                   Files.copy(entryInputStream, entryFilePath, StandardCopyOption.REPLACE_EXISTING);
 
-		},this.executor());
+                               } catch (Exception e)
+                               {
+                                   log.error(e.getMessage() + " for entry " + ze.getName());
+                               }
+                           });
 
-		router.addAll(this.get());
-	}
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
-	public RoutingHandler get()
-	{
-		RoutingHandler router = new RoutingHandler();
+                        try
+                        {
+                            FileUtils.deleteDirectory(tmpDirParent.toFile());
+                        } catch (IOException ex)
+                        {
+                            log.error("Failed to delete temp openapi directory",ex);
+                        }
+                    }));
+                }
+            }
+            else
+            {
+                this.resourcePath = Paths.get(this.getClass().getClassLoader().getResource(this.resourcePrefix).toURI());
 
-		/*
-		 * YAML path
-		 */
-		String pathTemplate = this.applicationPath + "/" + this.specFilename;
+                this.serviceClassLoader = this.getClass().getClassLoader();
+            }
 
-		FileResourceManager resourceManager = new FileResourceManager(this.resourcePath.toFile(), 1024);
+        } catch (Exception e)
+        {
+            log.error(e.getMessage(), e);
+        }
+    }
 
-		router.add(	HttpMethod.GET, pathTemplate, (HttpServerExchange exchange) ->
-		{
-			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType());
+    @SuppressWarnings("rawtypes")
+    protected void generateSpec() throws Exception
+    {
 
-			exchange.getResponseSender().send(spec);
-		});
+        Set<Class<?>> classes = this.registeredControllers;
 
-		this.registeredEndpoints.add(EndpointInfo.builder()
-				.withConsumes("*/*")
-				.withPathTemplate(pathTemplate)
-				.withControllerName(this.getClass().getSimpleName())
-				.withMethod(Methods.GET)
-				.withProduces(io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType())
-				.build());
- 
+        OpenAPIExtensions.setExtensions(Collections.singletonList(new ServerParameterExtension()));
 
-		router.add(	HttpMethod.GET,basePath, (HttpServerExchange exchange) ->
-		{
-			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
-			exchange.getResponseSender().send(indexHTML);
-		});
+        OpenAPI openApi = new OpenAPI();
+        Info info = mapper.convertValue(openAPIConfig.getValue("info").unwrapped(), Info.class);
 
-		this.registeredEndpoints.add(EndpointInfo.builder()
-				.withConsumes(MediaType.WILDCARD)
-				.withProduces(MediaType.TEXT_HTML)
-				.withPathTemplate(pathTemplate)
-				.withControllerName(this.getClass().getSimpleName())
-				.withMethod(Methods.GET)
-				.build());
-		 
-		final String specPath = pathTemplate;
-		
-		router.add(	HttpMethod.GET,this.basePath + "/" + this.redocPath, (HttpServerExchange exchange) ->
-		{
-			exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+        openApi.setInfo(info);
 
-			final String fullPath = String.format("%s://%s%s",exchange.getRequestScheme(), exchange.getHostAndPort(), specPath);
+        Map<String, SecurityScheme> securitySchemes = mapper.convertValue(openAPIConfig.getValue("securitySchemes").unwrapped(), new TypeReference<Map<String, SecurityScheme>>() {});
 
-			final String html = redocHTML.replaceAll("\\{\\{ specPath \\}\\}",  fullPath);
+        if (openApi.getComponents() == null)
+        {
+            openApi.setComponents(new Components());
+        }
 
-			exchange.getResponseSender().send(html);
-		});
+        openApi.getComponents().setSecuritySchemes(securitySchemes);
 
-		this.registeredEndpoints.add(EndpointInfo.builder()
-				.withConsumes(MediaType.WILDCARD)
-				.withProduces(MediaType.TEXT_HTML)
-				.withPathTemplate(this.basePath + "/" + this.redocPath)
-				.withControllerName(this.getClass().getSimpleName())
-				.withMethod(Methods.GET)
-				.build());
+        List<Server> servers = mapper.convertValue(openAPIConfig.getValue("servers").unwrapped(), new TypeReference<List<Server>>() {});
 
-		try
-		{
+        openApi.setServers(servers);
 
-			pathTemplate = this.basePath + "/*";
+        SwaggerConfiguration config = new SwaggerConfiguration().resourceClasses(classes.stream().map(Class::getName).collect(Collectors.toSet())).openAPI(openApi);
 
-			router.add(	HttpMethod.GET,
-						pathTemplate,
-						new ResourceHandler(resourceManager)
-						{
-							@Override
-							public void handleRequest(HttpServerExchange exchange) throws Exception
-							{
-								String canonicalPath = CanonicalPathUtils.canonicalize((exchange.getRelativePath()));
+        if (jsonViewQueryParameterName != null)
+        {
 
-								canonicalPath = canonicalPath.split(basePath)[1];
+            if (config.getUserDefinedOptions() == null)
+            {
+                config.setUserDefinedOptions(new HashMap<>());
+            }
 
-								exchange.setRelativePath(canonicalPath);
+            config.getUserDefinedOptions().put("jsonViewQueryParameterName", jsonViewQueryParameterName);
+        }
 
-								if (serviceClassLoader == null)
-								{
-									super.handleRequest(exchange);
-								}
-								else
-								{
-									canonicalPath = resourcePrefix + canonicalPath;
+        Set<String> modelConverterClasses = new HashSet<>();
 
-									try (final InputStream resourceInputStream = serviceClassLoader.getResourceAsStream(canonicalPath))
-									{
+        modelConverterClasses.add(ServerModelResolver.class.getName());
 
-										if (resourceInputStream == null)
-										{
-											ResponseCodeHandler.HANDLE_404.handleRequest(exchange);
+        List<String> additionalConverterClasses = openAPIConfig.getStringList("converterClasses");
 
-											return;
-										}
+        modelConverterClasses.addAll(additionalConverterClasses);
 
-										byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream);
+        config.setModelConverterClassess(modelConverterClasses);
 
-										io.sinistral.proteus.protocol.MediaType mediaType = io.sinistral.proteus.protocol.MediaType.getByFileName(canonicalPath);
+        OpenApiContext ctx = new GenericOpenApiContext().openApiConfiguration(config)
+                                                        .openApiReader(new Reader(config))
+                                                        .openApiScanner(new JaxrsApplicationAndAnnotationScanner().openApiConfiguration(config))
+                                                        .init();
 
-										exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, mediaType.toString());
-										exchange.getResponseSender().send(ByteBuffer.wrap(resourceBytes));
-									}
-								}
-							}
-						});
+        openApi = ctx.read();
+        this.openApi = openApi;
+        this.spec = writer.writeValueAsString(openApi);
 
-			this.registeredEndpoints.add(EndpointInfo.builder()
-					.withConsumes(MediaType.WILDCARD)
-					.withProduces(MediaType.WILDCARD)
-					.withPathTemplate(pathTemplate)
-					.withControllerName(this.getClass().getSimpleName())
-					.withMethod(Methods.GET)
-					.build());
+    }
 
-		} catch (Exception e)
-		{
-			log.error(e.getMessage(), e);
-		}
+    @Override
+    protected void startUp() throws Exception
+    {
 
-		return router;
-	}
+        super.startUp();
+
+        generateHTML();
+
+        CompletableFuture.runAsync(() ->
+        {
+            try
+            {
+                generateSpec();
+
+                log.debug("\nOpenAPI Spec:\n" + writer.writeValueAsString(this.openApi));
+
+            } catch (Exception e)
+            {
+                log.error("Error generating OpenAPI spec", e);
+            }
+
+        }, this.executor());
+
+        router.addAll(this.get());
+    }
+
+    public RoutingHandler get()
+    {
+
+        RoutingHandler router = new RoutingHandler();
+
+        /*
+         * YAML path
+         */
+        String pathTemplate = this.applicationPath + "/" + this.specFilename;
+
+        FileResourceManager resourceManager = new FileResourceManager(this.resourcePath.toFile(), 1024);
+
+        router.add(HttpMethod.GET, pathTemplate, (HttpServerExchange exchange) ->
+        {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType());
+
+            exchange.getResponseSender().send(spec);
+        });
+
+        this.registeredEndpoints.add(EndpointInfo.builder()
+                                                 .withConsumes("*/*")
+                                                 .withPathTemplate(pathTemplate)
+                                                 .withControllerName(this.getClass().getSimpleName())
+                                                 .withMethod(Methods.GET)
+                                                 .withProduces(io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType())
+                                                 .build());
+
+        router.add(HttpMethod.GET, basePath, (HttpServerExchange exchange) ->
+        {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+            exchange.getResponseSender().send(indexHTML);
+        });
+
+        this.registeredEndpoints.add(EndpointInfo.builder()
+                                                 .withConsumes(MediaType.WILDCARD)
+                                                 .withProduces(MediaType.TEXT_HTML)
+                                                 .withPathTemplate(pathTemplate)
+                                                 .withControllerName(this.getClass().getSimpleName())
+                                                 .withMethod(Methods.GET)
+                                                 .build());
+
+        final String specPath = pathTemplate;
+
+        router.add(HttpMethod.GET, this.basePath + "/" + this.redocPath, (HttpServerExchange exchange) ->
+        {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+
+            final String fullPath = String.format("%s://%s%s", exchange.getRequestScheme(), exchange.getHostAndPort(), specPath);
+
+            final String html = redocHTML.replaceAll("\\{\\{ specPath \\}\\}", fullPath);
+
+            exchange.getResponseSender().send(html);
+        });
+
+        this.registeredEndpoints.add(EndpointInfo.builder()
+                                                 .withConsumes(MediaType.WILDCARD)
+                                                 .withProduces(MediaType.TEXT_HTML)
+                                                 .withPathTemplate(this.basePath + "/" + this.redocPath)
+                                                 .withControllerName(this.getClass().getSimpleName())
+                                                 .withMethod(Methods.GET)
+                                                 .build());
+
+        try
+        {
+
+            pathTemplate = this.basePath + "/*";
+
+            router.add(HttpMethod.GET,
+                    pathTemplate,
+                    new ResourceHandler(resourceManager) {
+                        @Override
+                        public void handleRequest(HttpServerExchange exchange) throws Exception
+                        {
+
+                            String canonicalPath = CanonicalPathUtils.canonicalize((exchange.getRelativePath()));
+
+                            canonicalPath = canonicalPath.split(basePath)[1];
+
+                            exchange.setRelativePath(canonicalPath);
+
+                            if (serviceClassLoader == null)
+                            {
+                                super.handleRequest(exchange);
+                            }
+                            else
+                            {
+                                canonicalPath = resourcePrefix + canonicalPath;
+
+                                try (final InputStream resourceInputStream = serviceClassLoader.getResourceAsStream(canonicalPath))
+                                {
+
+                                    if (resourceInputStream == null)
+                                    {
+                                        ResponseCodeHandler.HANDLE_404.handleRequest(exchange);
+
+                                        return;
+                                    }
+
+                                    byte[] resourceBytes = IOUtils.toByteArray(resourceInputStream);
+
+                                    io.sinistral.proteus.protocol.MediaType mediaType = io.sinistral.proteus.protocol.MediaType.getByFileName(canonicalPath);
+
+                                    exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, mediaType.toString());
+                                    exchange.getResponseSender().send(ByteBuffer.wrap(resourceBytes));
+                                }
+                            }
+                        }
+                    });
+
+            this.registeredEndpoints.add(EndpointInfo.builder()
+                                                     .withConsumes(MediaType.WILDCARD)
+                                                     .withProduces(MediaType.WILDCARD)
+                                                     .withPathTemplate(pathTemplate)
+                                                     .withControllerName(this.getClass().getSimpleName())
+                                                     .withMethod(Methods.GET)
+                                                     .build());
+
+        } catch (Exception e)
+        {
+            log.error(e.getMessage(), e);
+        }
+
+        return router;
+    }
+
 }

@@ -3,12 +3,14 @@
  */
 package io.sinistral.proteus.server.endpoints;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.undertow.util.HttpString;
 
 /**
  * @author jbauer
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EndpointInfo implements Comparable<EndpointInfo>
 {
     private String consumes = "*/*";

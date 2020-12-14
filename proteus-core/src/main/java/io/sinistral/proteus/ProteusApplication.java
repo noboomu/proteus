@@ -1,5 +1,6 @@
 package io.sinistral.proteus;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -244,12 +245,17 @@ public class ProteusApplication {
 
         undertow.start();
 
+        Duration timeout = config.getDuration("application.services.timeout");
+
         try
         {
-            serviceManager.startAsync().awaitHealthy(config.getDuration("application.services.timeout"));
-        } catch( Exception e )
+            serviceManager.startAsync().awaitHealthy(timeout);
+        } catch( TimeoutException e )
         {
-            log.error("Failed start to services within 2 minutes",e);
+            log.error("Failed start to services within {} minutes",timeout,e);
+        } catch (Exception e)
+        {
+            log.error("Failed to start services",e);
         }
 
 //        serviceManager.startAsync();
@@ -477,7 +483,15 @@ public class ProteusApplication {
                 router.add(Methods.GET, statusPath, (final HttpServerExchange exchange) ->
                 {
                     exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, MediaType.TEXT_PLAIN);
-                    exchange.getResponseSender().send("OK");
+
+                    if(this.serviceManager.servicesByState().values().stream().allMatch(Service::isRunning))
+                    {
+                        exchange.setStatusCode(200).getResponseSender().send("OK");
+                    }
+                    else
+                    {
+                        exchange.setStatusCode(500).getResponseSender().send("NOT_HEALTHY");
+                    }
                 });
 
                 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/plain").withPathTemplate(statusPath).withControllerName("Internal").withMethod(Methods.GET).build());
@@ -686,5 +700,7 @@ public class ProteusApplication {
 
         log.info(sb.toString());
     }
+
+
 
 }

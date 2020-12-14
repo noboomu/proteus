@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Removed swagger module and updated dependencies.**
+
+
+[999223901c55f4c](https://github.com/noboomu/proteus/commit/999223901c55f4c) Joshua Bauer *2020-11-20 21:38:54*
+
 **Async service timeouts.**
 
 

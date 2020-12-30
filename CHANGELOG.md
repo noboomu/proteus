@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve health information.**
+
+
+[52977106d9337f8](https://github.com/noboomu/proteus/commit/52977106d9337f8) Joshua Bauer *2020-12-14 18:15:36*
+
 **Removed swagger module and updated dependencies.**
 
 

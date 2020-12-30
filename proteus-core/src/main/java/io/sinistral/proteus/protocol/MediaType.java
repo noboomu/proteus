@@ -970,7 +970,7 @@ public class MediaType
     public static final MediaType IMAGE_G3FAX = create("image/g3fax", "g3");
     public static final MediaType IMAGE_GIF = create("image/gif", "gif");
     public static final MediaType IMAGE_IEF = create("image/ief", "ief");
-    public static final MediaType IMAGE_JPEG = create("image/jpeg", "jpeg", "jpg", "jpe");
+    public static final MediaType IMAGE_JPEG = create("image/jpeg",  "jpg","jpeg", "jpe");
     public static final MediaType IMAGE_JBIG = create("image/jbig", "jbig", "jbg");
     public static final MediaType IMAGE_KTX = create("image/ktx", "ktx");
     public static final MediaType IMAGE_PCX = create("image/pcx", "pcx");

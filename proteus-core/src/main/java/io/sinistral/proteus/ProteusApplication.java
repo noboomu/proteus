@@ -46,6 +46,7 @@ import java.security.KeyStore;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,10 +111,8 @@ public class ProteusApplication {
 
     public ProteusApplication()
     {
-
         injector = Guice.createInjector(new ConfigModule());
         injector.injectMembers(this);
-
     }
 
     public ProteusApplication(String configFile)
@@ -131,6 +130,15 @@ public class ProteusApplication {
         injector.injectMembers(this);
 
     }
+
+    public ProteusApplication(Module ... modules)
+    {
+
+        injector = Guice.createInjector(modules);
+        injector.injectMembers(this);
+
+    }
+
 
     public void start()
     {

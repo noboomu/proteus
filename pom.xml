@@ -75,6 +75,7 @@
         <undertow.version>2.1.0.Final</undertow.version>
         <woodstox.version>6.0.3</woodstox.version>
 
+        <micrometer-core.version>1.6.2</micrometer-core.version>
     </properties>
 
 
@@ -100,6 +101,13 @@
             <version>5.3.1</version>
             <scope>test</scope>
         </dependency>
+
+                <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${micrometer-core.version}</version>
+        </dependency>
+
 
     </dependencies>
 

@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -109,6 +110,8 @@ public class ProteusApplication {
 
     public Duration startupDuration;
 
+    final Instant startTime = Instant.now();
+
     public ProteusApplication()
     {
         injector = Guice.createInjector(new ConfigModule());
@@ -151,9 +154,8 @@ public class ProteusApplication {
 
         final Thread mainThread = Thread.currentThread();
 
-        final long startTime = System.currentTimeMillis();
 
-        log.info("Configuring modules: " + registeredModules);
+        log.info("Installing modules: {}", registeredModules.stream().map(Class::getSimpleName).collect(Collectors.joining(",")));
 
         Set<Module> modules = registeredModules.stream().map(mc -> injector.getInstance(mc)).collect(Collectors.toSet());
 
@@ -161,15 +163,15 @@ public class ProteusApplication {
 
         if (rootHandlerClass == null && rootHandler == null)
         {
-            log.warn("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
+            log.debug("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
             rootHandlerClass = ServerDefaultHttpHandler.class;
         }
 
-        log.info("Starting services...");
+        log.info("Installing services: {}", registeredServices.stream().map(Class::getSimpleName).collect(Collectors.joining(",")));
 
         Set<BaseService> services = registeredServices.stream().map(sc -> injector.getInstance(sc)).collect(Collectors.toSet());
 
-        injector = injector.createChildInjector(services);
+        //injector = injector.createChildInjector(services);
 
         serviceManager = new ServiceManager(services);
 
@@ -185,7 +187,7 @@ public class ProteusApplication {
 
                 log.info("Services are healthy");
 
-                startupDuration = Duration.ofMillis(System.currentTimeMillis() - startTime);
+                startupDuration = Duration.between(startTime,Instant.now());
 
                 for (ListenerInfo info : undertow.getListenerInfo())
                 {
@@ -208,7 +210,7 @@ public class ProteusApplication {
 
                 log.error("Service failure: " + service);
 
-                startupDuration = Duration.ofMillis(System.currentTimeMillis() - startTime);
+                startupDuration = Duration.between(startTime,Instant.now());
 
                 for (ListenerInfo info : undertow.getListenerInfo())
                 {
@@ -281,7 +283,7 @@ public class ProteusApplication {
 
         log.info("Shutting down...");
 
-        serviceManager.stopAsync().awaitStopped(1, TimeUnit.SECONDS);
+        serviceManager.stopAsync().awaitStopped(2, TimeUnit.SECONDS);
 
         this.running.set(false);
 
@@ -297,13 +299,15 @@ public class ProteusApplication {
     public void buildServer()
     {
 
-        ExecutorService handlerExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        final Instant compilationStartTime = Instant.now();
+
+        ExecutorService handlerExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
 
         CountDownLatch countDownLatch = new CountDownLatch(registeredControllers.size());
 
         CopyOnWriteArrayList<Class<? extends Supplier<RoutingHandler>>> routerClasses = new CopyOnWriteArrayList<>();
 
-        log.info("Generating route handlers...");
+        log.info("Compiling route handlers...");
 
         for (Class<?> controllerClass : registeredControllers)
         {
@@ -313,7 +317,7 @@ public class ProteusApplication {
                 try
                 {
 
-                    log.debug("Compiling {}...", controllerClass);
+                    //log.debug("Compiling {}...", controllerClass);
 
                     HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
 
@@ -321,7 +325,7 @@ public class ProteusApplication {
 
                     routerClasses.add(generator.compileClass());
 
-                    log.debug("Compiled {}", controllerClass);
+                    //log.debug("Compiled {}", controllerClass);
 
                 } catch (Exception e)
                 {
@@ -340,6 +344,8 @@ public class ProteusApplication {
         {
             log.error("Failed waiting for handlers to generate", e);
         }
+
+        log.debug("Compilation completed in {}", DurationFormatUtils.formatDurationHMS(Duration.between(compilationStartTime,Instant.now()).toMillis()));
 
         for (Class<? extends Supplier<RoutingHandler>> clazz : routerClasses)
         {
@@ -369,7 +375,7 @@ public class ProteusApplication {
             sessionAttachmentHandler = injector.getInstance(SessionAttachmentHandler.class);
         } catch (Exception e)
         {
-            log.info("No session attachment handler found.");
+            log.warn("No session attachment handler found.");
         }
 
         if (sessionAttachmentHandler != null)
@@ -704,7 +710,7 @@ public class ProteusApplication {
 
         printer = new TablePrinter(tableHeaders, tableRows);
 
-        sb.append(printer.toString()).append("\nListening On: " + this.ports).append("\nApplication Startup Time: " + DurationFormatUtils.formatDurationHMS(this.startupDuration.toMillis()) + "\n");
+        sb.append(printer.toString()).append("\nListening On: " + this.ports).append("\nApplication Startup Time: ").append(DurationFormatUtils.formatDurationHMS(this.startupDuration.toMillis())).append( "\n");
 
         log.info(sb.toString());
     }

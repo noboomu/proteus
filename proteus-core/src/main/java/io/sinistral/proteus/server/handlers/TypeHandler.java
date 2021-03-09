@@ -5,11 +5,12 @@ package io.sinistral.proteus.server.handlers;
 
 import com.squareup.javapoet.MethodSpec;
 import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -23,14 +24,20 @@ import java.util.Optional;
 
 public enum TypeHandler {
 
+
+
     LongType("Long $L = $T.longValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     IntegerType("Integer $L = $T.integerValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     StringType("String $L =  $T.string(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     BooleanType("Boolean $L =  $T.booleanValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     FilePathType("$T $L = $T.filePath(exchange,$S)", true, java.nio.file.Path.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+
+
     AnyType("$T $L = $T.any(exchange)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
     JsonNodeType("$T $L = $T.jsonNode(exchange)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
+    NamedJsonNodeType("$T $L = $T.namedJsonNode(exchange,$S)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class,StatementParameterType.STRING),
     ModelType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
+    NamedModelType("$T $L = io.sinistral.proteus.server.Extractors.namedModel(exchange,$L,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL,StatementParameterType.STRING),
 
     // EnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true,
     // StatementParameterType.TYPE,
@@ -39,7 +46,9 @@ public enum TypeHandler {
 
     FileType("$T $L =  $T.file(exchange,$S)", true, java.io.File.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 
-    ByteBufferType("$T $L =  $T.byteBuffer(exchange,$S)", true, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+    ByteBufferType("$T $L =  $T.byteBuffer(exchange)", true, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
+    NamedByteBufferType("$T $L =  $T.namedByteBuffer(exchange,$S)", true, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
+
     DateType("$T $L =  $T.date(exchange,$S)", false, java.util.Date.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     ZonedDateTimeType("$T $L = $T.zonedDateTime(exchange,$S)", false, java.time.ZonedDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     OffsetDateTimeType("$T $L = $T.offsetDateTime(exchange,$S)", false, java.time.OffsetDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
@@ -100,7 +109,9 @@ public enum TypeHandler {
     OptionalBooleanType("$T<Boolean> $L = $T.booleanValue(exchange,$S)", false, Optional.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
     OptionalFilePathType("$T<$T> $L = $T.filePath(exchange,$S)", true, Optional.class, java.nio.file.Path.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 
-    OptionalByteBufferType("$T<$T> $L = $T.byteBuffer(exchange,$S)", true, Optional.class, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+    OptionalNamedByteBufferType("$T<$T> $L = $T.namedByteBuffer(exchange,$S)", true, Optional.class, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
+
+    OptionalByteBufferType("$T<$T> $L = $T.byteBuffer(exchange)", true, Optional.class, java.nio.ByteBuffer.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class),
 
     OptionalFileType("$T<$T> $L = $T.file(exchange,$S)", true, Optional.class, java.io.File.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 
@@ -113,7 +124,10 @@ public enum TypeHandler {
     OptionalZonedDateTimeType("$T<$T> $L = $T.zonedDateTime(exchange,$S)", false, Optional.class, java.time.ZonedDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
     OptionalOffsetDateTimeType("$T<$T> $L = $T.offsetDateTime(exchange,$S)", false, Optional.class, java.time.OffsetDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 
-    OptionalModelType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
+    OptionalModelType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL,StatementParameterType.STRING),
+
+    OptionalNamedJsonNodeType("$T<$T> $L = $T.namedJsonNode(exchange,$s)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class,StatementParameterType.STRING),
+    OptionalNamedModelType("java.util.Optional<$L> $L = $T.namedModel(exchange,$L,$S)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
     OptionalValueOfType("$T<$T> $L = $T.string(exchange,$S).map($T::valueOf)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
     OptionalFromStringType("$T<$T> $L = $T.string(exchange,$S).map($T::fromString)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
@@ -124,6 +138,8 @@ public enum TypeHandler {
     // StatementParameterType.RAW, StatementParameterType.STRING),
 
     ;
+
+    private static final Logger log = LoggerFactory.getLogger(TypeHandler.class.getName());
 
     public boolean isBlocking()
     {
@@ -174,6 +190,7 @@ public enum TypeHandler {
         String pName = parameter.getName();
 
         for (int i = 0; i < handler.parameterTypes.length; i++) {
+
             if (handler.parameterTypes[i] instanceof StatementParameterType) {
 
                 if (parameter.isAnnotationPresent(QueryParam.class)) {
@@ -274,6 +291,35 @@ public enum TypeHandler {
 
         TypeHandler handler = TypeHandler.forType(parameter.getParameterizedType(), isBeanParameter);
 
+        FormParam formParam = parameter.getAnnotation(FormParam.class);
+
+        if(formParam != null)
+        {
+                 switch(handler)
+                {
+                    case JsonNodeType:
+                    {
+                        handler = NamedJsonNodeType;
+                        break;
+                    }
+                    case ByteBufferType:
+                    {
+                        handler = NamedByteBufferType;
+                        break;
+                    }
+                    case OptionalJsonNodeType:
+                    {
+                        handler = OptionalNamedJsonNodeType;
+                        break;
+                    }
+                    case OptionalByteBufferType:
+                    {
+                        handler = OptionalNamedByteBufferType;
+                        break;
+                    }
+            }
+        }
+
 //			if(handler.equals(TypeHandler.ModelType))
 //			{
 //				HandlerGenerator.log.warn("found modeltype for " + parameter.getParameterizedType());
@@ -316,8 +362,6 @@ public enum TypeHandler {
 
         if (isArray && !isOptional) {
             try {
-
-
                 Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);
 
                 if (HandlerGenerator.hasValueOfMethod(erasedType)) {
@@ -509,7 +553,7 @@ public enum TypeHandler {
         } else if (type.equals(java.time.OffsetDateTime.class)) {
             return OffsetDateTimeType;
         } else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class)) {
-            return AnyType;
+            return JsonNodeType;
         } else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class)) {
             return JsonNodeType;
         } else if (isOptional) {

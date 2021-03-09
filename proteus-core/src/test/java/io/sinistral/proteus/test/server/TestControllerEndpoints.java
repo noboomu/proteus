@@ -1,14 +1,22 @@
 /**
- * 
+ *
  */
 package io.sinistral.proteus.test.server;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.sinistral.proteus.protocol.MediaType;
+import io.sinistral.proteus.test.models.User;
+import io.sinistral.proteus.test.models.User.UserType;
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.CoreMatchers;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -28,370 +36,392 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import io.restassured.RestAssured;
-import org.apache.commons.io.IOUtils;
-import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.restassured.http.ContentType;
-import io.sinistral.proteus.test.models.User;
-import io.sinistral.proteus.test.models.User.UserType;
- 
 /*
  * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;
  */
+
 /**
  * @author jbauer
  */
 @RunWith(DefaultServer.class)
-public class TestControllerEndpoints
-{
- 
-	private File file = null;
+@Ignore
+public class TestControllerEndpoints {
 
-	private List<File> files = new ArrayList<>();
-	
-	private Set<Long> idSet = new HashSet<>();
+    private File file = null;
 
-	@Before
-	public void setUp()
-	{
-		RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+    private List<File> files = new ArrayList<>();
 
-		try
-		{
- 			for(int i = 0; i < 4; i++)
-			{
-				byte[] bytes  = new byte[8388608];
-			Random random = new Random();
-			random.nextBytes(bytes);
+    private Set<Long> idSet = new HashSet<>();
 
-			files.add(Files.createTempFile("test-asset", ".mp4").toFile());
+    @Before
+    public void setUp()
+    {
 
-			LongStream.range(1L,10L).forEach( l -> {
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
-				idSet.add(l);
-			});
-			}
+        try
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                byte[] bytes = new byte[8388608];
+                Random random = new Random();
+                random.nextBytes(bytes);
 
- 			file = files.get(0);
+                files.add(Files.createTempFile("test-asset", ".mp4").toFile());
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+                LongStream.range(1L, 10L).forEach(l -> {
 
-	
-	@Test
-	public void testDebugEndpoint()
-	{
-		given().accept(ContentType.JSON).when().get("v1/tests/response/debug").then().statusCode(200).body(containsString("testValue"));
-	}
+                    idSet.add(l);
+                });
+            }
 
-	@Test
-	public void testDebugBlockingEndpoint()
-	{
-		given().accept(ContentType.JSON).when().get("v1/tests/response/debug/blocking").then().statusCode(200);
-	}
+            file = files.get(0);
 
-	
-	@Test
-	public void exchangeUserJson()
-	{
-		User user = given().accept(ContentType.JSON).when().get("v1/tests/exchange/user/json").as(User.class);
-		assertThat(user.getId(), CoreMatchers.is(123L));
-	}
-	
-	@Test
-	public void genericSet()
-	{
-		given().accept(ContentType.JSON).when().queryParam("ids", idSet).get("v1/tests/generic/set").then().statusCode(200).body(containsString("1"));
-	}
-	
-	@Test
-	public void genericBeanSet()
-	{
-		Set<Long> randomLongs = new HashSet<>();
-		
-		Random random = new Random();
-		
-		Long firstNumber = null;
-		
-		for(int i = 0; i < 10; i++)
-		{
-			Long v = random.nextLong();
-			
-			randomLongs.add(v);
-			
-			if(firstNumber == null)
-			{
-				firstNumber = v;
-			}
-		}
-		
-		ObjectMapper mapper = new ObjectMapper();
-		
-		try
-		{
-			
-		 
-		String body = mapper.writeValueAsString(randomLongs);
-		
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/set/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
-		
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
-	
-	@Test
-	public void genericBeanList()
-	{
-		List<Long> randomLongs = new ArrayList<>();
-		
-		Random random = new Random();
-		
-		Long firstNumber = null;
-		
-		for(int i = 0; i < 10; i++)
-		{
-			Long v = random.nextLong();
-			
-			randomLongs.add(v);
-			
-			if(firstNumber == null)
-			{
-				firstNumber = v;
-			}
-		}
-		
-		ObjectMapper mapper = new ObjectMapper();
-		
-		try
-		{
-			
-		 
-		String body = mapper.writeValueAsString(randomLongs);
-		
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/list/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
-		
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 
-	@Test
-	public void genericBeanMap()
-	{
-		Map<String,Long> randomLongs = new java.util.HashMap<>();
+    @Test
+    public void testDebugEndpoint()
+    {
 
-		Random random = new Random();
+        given().accept(ContentType.JSON).when().get("v1/tests/response/debug").then().statusCode(200).body(containsString("testValue"));
+    }
 
-		Long firstNumber = null;
+    @Test
+    public void testDebugBlockingEndpoint()
+    {
 
-		for(int i = 0; i < 10; i++)
-		{
-			Long v = random.nextLong();
+        given().accept(ContentType.JSON).when().get("v1/tests/response/debug/blocking").then().statusCode(200);
+    }
 
-			randomLongs.put(v.toString(),v);
+    @Test
+    public void exchangeUserJson()
+    {
 
-			if(firstNumber == null)
-			{
-				firstNumber = v;
-			}
-		}
+        User user = given().accept(ContentType.JSON).when().get("v1/tests/exchange/user/json").as(User.class);
+        assertThat(user.getId(), CoreMatchers.is(123L));
+    }
 
-		ObjectMapper mapper = new ObjectMapper();
+    @Test
+    public void genericSet()
+    {
 
-		try
-		{
+        given().accept(ContentType.JSON).when().queryParam("ids", idSet).get("v1/tests/generic/set").then().statusCode(200).body(containsString("1"));
+    }
 
+    @Test
+    public void genericBeanSet()
+    {
 
-		String body = mapper.writeValueAsString(randomLongs);
+        Set<Long> randomLongs = new HashSet<>();
 
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/map/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+        Random random = new Random();
 
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
-	
-	@Test
-	public void optionalGenericSet()
-	{
-		given().accept(ContentType.JSON).when().queryParam("ids",idSet).get("v1/tests/optional/set").then().statusCode(200).body(containsString("1"));
-	}
+        Long firstNumber = null;
 
-	@Test
-	public void exchangeUserXml()
-	{
-		User user = given().accept(ContentType.XML).when().get("v1/tests/exchange/user/xml").as(User.class);
-		assertThat(user.getId(), CoreMatchers.is(123L));
-	}
+        for (int i = 0; i < 10; i++)
+        {
+            Long v = random.nextLong();
 
-	@Test
-	public void responseUserJson()
-	{
-		User user = given().accept(ContentType.JSON).when().get("v1/tests/response/user/json").as(User.class);
-		assertThat(user.getId(), CoreMatchers.is(123L));
-	}
+            randomLongs.add(v);
 
-	@Test
-	public void responseWorkerFuture()
-	{
-		Map response  = given().accept(ContentType.JSON).when().get("v1/tests/response/future/worker").as(Map.class);
-		assertThat(response.get("status").toString(), CoreMatchers.is("OK"));
-	}
+            if (firstNumber == null)
+            {
+                firstNumber = v;
+            }
+        }
 
-	@Test
-	public void responseWorkerFutureBlocking()
-	{
-		Map response  = given().accept(ContentType.JSON).when().get("v1/tests/response/future/worker/blocking").as(Map.class);
-		assertThat(response.get("status").toString(), CoreMatchers.is("OK"));
-	}
+        ObjectMapper mapper = new ObjectMapper();
 
-	@Test
-	public void healthCheck()
-	{
-		  given().accept(ContentType.TEXT).when().get("health").then().statusCode(200).and().body(containsString("OK"));;
- 	}
+        try
+        {
 
-	@Test
-	public void responseUserXml()
-	{
-		User user = given().accept(ContentType.XML).when().get("v1/tests/response/user/xml").as(User.class);
-		assertThat(user.getId(), CoreMatchers.is(123L));
-	}
+            String body = mapper.writeValueAsString(randomLongs);
 
-	@Test
-	public void badRequest()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/response/badrequest").then().statusCode(400);
-	}
+            given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/set/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
 
-	@Test
-	public void badRequestBlocking()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/response/badrequest/blocking").then().statusCode(400);
-	}
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 
-	@Test
-	public void badRequestFuture()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/future/badrequest").then().statusCode(400);
-	}
+    @Test
+    public void genericBeanList()
+    {
 
-	@Test
-	public void notFoundFuture()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/future/notfound/blocking").then().statusCode(404);
-	}
+        List<Long> randomLongs = new ArrayList<>();
 
-	@Test
-	public void badRequestFutureBlocking()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/future/badrequest/blocking").then().statusCode(400);
-	}
+        Random random = new Random();
 
-	@Test
-	public void exchangePlaintext()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/exchange/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
-	}
-	
-	@Test
-	public void exchangePlaintext2()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/exchange/plaintext2").then().statusCode(200).and().body(containsString("Hello, World!"));
-	}
+        Long firstNumber = null;
 
-	@Test
-	public void responsePlaintext()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/response/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
-	}
-	
-	@Test
-	public void responseEchoModel()
-	{
-		User model = new User(101L,UserType.ADMIN);
-		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("v1/tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+        for (int i = 0; i < 10; i++)
+        {
+            Long v = random.nextLong();
 
-	}
-	
-	@Test
-	public void responseBeanParam()
-	{
-		User model = new User();
-		model.setId(101L);
-		  
-		given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("v1/tests/response/json/beanparam").then().statusCode(200).and().body(containsString("101"));
+            randomLongs.add(v);
 
-	}
-	 
+            if (firstNumber == null)
+            {
+                firstNumber = v;
+            }
+        }
 
-	@Test
-	public void responseFutureUser()
-	{
-		given().accept(ContentType.JSON).when().get("v1/tests/response/future/user").then().statusCode(200).and().body(containsString("123"));
+        ObjectMapper mapper = new ObjectMapper();
 
-	}
+        try
+        {
 
-	@Test
-	public void responseMap()
-	{
-		given().accept(ContentType.JSON).when().get("v1/tests/response/map").then().statusCode(200).and().body("message", is("success"));
-	}
-	
+            String body = mapper.writeValueAsString(randomLongs);
 
-	@Test
-	public void responseFutureMap()
-	{
-		given().accept(ContentType.JSON).when().get("v1/tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
-	}
+            given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/list/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
 
-	@Test
-	public void responseFutureResponseMap()
-	{
-		given().accept(ContentType.JSON).when().get("v1/tests/response/future/response").then().statusCode(200).and().body("message", is("success"));
-	}
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 
+    @Test
+    public void genericBeanMap()
+    {
 
-	@Test
-	public void testRedirect()
-	{
-		given().when().get("v1/tests/redirect").then().statusCode(200).and().header("Server", "gws");
-	}
-	
-	@Test
-	public void testRedirectFoundCode()
-	{
-		given().when().redirects().follow(false).get("v1/tests/redirect").then().statusCode(302);
-	}
-	
-	@Test
-	public void testRedirectMovedPermanentlyCode()
-	{
-		given().when().redirects().follow(false).get("v1/tests/redirect/permanent").then().statusCode(301);
-	}
+        Map<String, Long> randomLongs = new java.util.HashMap<>();
 
-	@Test
-	public void pathParam()
-	{
-		given().accept(ContentType.TEXT).when().get("v1/tests/response/params/path/foobar").then().statusCode(200).and().body(containsString("foobar"));
+        Random random = new Random();
 
-	}
+        Long firstNumber = null;
+
+        for (int i = 0; i < 10; i++)
+        {
+            Long v = random.nextLong();
+
+            randomLongs.put(v.toString(), v);
+
+            if (firstNumber == null)
+            {
+                firstNumber = v;
+            }
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        try
+        {
+
+            String body = mapper.writeValueAsString(randomLongs);
+
+            given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/map/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void optionalGenericSet()
+    {
+
+        given().accept(ContentType.JSON).when().queryParam("ids", idSet).get("v1/tests/optional/set").then().statusCode(200).body(containsString("1"));
+    }
+
+    @Test
+    public void exchangeUserXml()
+    {
+
+        User user = given().accept(ContentType.XML).when().get("v1/tests/exchange/user/xml").as(User.class);
+        assertThat(user.getId(), CoreMatchers.is(123L));
+    }
+
+    @Test
+    public void responseUserJson()
+    {
+
+        User user = given().accept(ContentType.JSON).when().get("v1/tests/response/user/json").as(User.class);
+        assertThat(user.getId(), CoreMatchers.is(123L));
+    }
+
+    @Test
+    public void responseWorkerFuture()
+    {
+
+        Map response = given().accept(ContentType.JSON).when().get("v1/tests/response/future/worker").as(Map.class);
+        assertThat(response.get("status").toString(), CoreMatchers.is("OK"));
+    }
+
+    @Test
+    public void responseWorkerFutureBlocking()
+    {
+
+        Map response = given().accept(ContentType.JSON).when().get("v1/tests/response/future/worker/blocking").as(Map.class);
+        assertThat(response.get("status").toString(), CoreMatchers.is("OK"));
+    }
+
+    @Test
+    public void healthCheck()
+    {
+
+        given().accept(ContentType.TEXT).when().get("health").then().statusCode(200).and().body(containsString("OK"));
+        ;
+    }
+
+    @Test
+    public void responseUserXml()
+    {
+
+        User user = given().accept(ContentType.XML).when().get("v1/tests/response/user/xml").as(User.class);
+        assertThat(user.getId(), CoreMatchers.is(123L));
+    }
+
+    @Test
+    public void badRequest()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/response/badrequest").then().statusCode(400);
+    }
+
+    @Test
+    public void badRequestBlocking()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/response/badrequest/blocking").then().statusCode(400);
+    }
+
+    @Test
+    public void badRequestFuture()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/future/badrequest").then().statusCode(400);
+    }
+
+    @Test
+    public void notFoundFuture()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/future/notfound/blocking").then().statusCode(404);
+    }
+
+    @Test
+    public void badRequestFutureBlocking()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/future/badrequest/blocking").then().statusCode(400);
+    }
+
+    @Test
+    public void exchangePlaintext()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/exchange/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
+    }
+
+    @Test
+    public void exchangePlaintext2()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/exchange/plaintext2").then().statusCode(200).and().body(containsString("Hello, World!"));
+    }
+
+    @Test
+    public void responsePlaintext()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/response/plaintext").then().statusCode(200).and().body(containsString("Hello, World!"));
+    }
+
+    @Test
+    public void responseEchoModel()
+    {
+
+        User model = new User(101L, UserType.ADMIN);
+
+        given().contentType(ContentType.JSON).accept(ContentType.JSON).multiPart("user", model).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/json/echo").then().statusCode(200).and().body(containsString("101"));
+
+    }
+
+    @Test
+    public void responseBeanParam()
+    {
+
+        User model = new User();
+        model.setId(101L);
+
+        given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("v1/tests/response/json/beanparam").then().statusCode(200).and().body(containsString("101"));
+
+    }
+
+    @Test
+    public void responseFutureUser()
+    {
+
+        given().accept(ContentType.JSON).when().get("v1/tests/response/future/user").then().statusCode(200).and().body(containsString("123"));
+
+    }
+
+    @Test
+    public void responseMap()
+    {
+
+        given().accept(ContentType.JSON).when().get("v1/tests/response/map").then().statusCode(200).and().body("message", is("success"));
+    }
+
+    @Test
+    public void responseFutureMap()
+    {
+
+        given().accept(ContentType.JSON).when().get("v1/tests/response/future/map").then().statusCode(200).and().body("message", is("success"));
+    }
+
+    @Test
+    public void responseFutureResponseMap()
+    {
+
+        given().accept(ContentType.JSON).when().get("v1/tests/response/future/response").then().statusCode(200).and().body("message", is("success"));
+    }
+
+    @Test
+    public void testRedirect()
+    {
+
+        given().when().get("v1/tests/redirect").then().statusCode(200).and().header("Server", "gws");
+    }
+
+    @Test
+    public void testRedirectFoundCode()
+    {
+
+        given().when().redirects().follow(false).get("v1/tests/redirect").then().statusCode(302);
+    }
+
+    @Test
+    public void testRedirectMovedPermanentlyCode()
+    {
+
+        given().when().redirects().follow(false).get("v1/tests/redirect/permanent").then().statusCode(301);
+    }
+
+    @Test
+    public void pathParam()
+    {
+
+        given().accept(ContentType.TEXT).when().get("v1/tests/response/params/path/foobar").then().statusCode(200).and().body(containsString("foobar"));
+
+    }
 
 //	@Test
 //	public void regexPathParam()
@@ -407,439 +437,603 @@ public class TestControllerEndpoints
 //
 //	}
 
- 	@Test
-	public void responseUploadFilePathParameter()
-	{
+    @Test
+    public void responseUploadFilePathParameter()
+    {
 
-		try
-		{
+        try
+        {
 
-			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("v1/tests/response/file/path").asInputStream();
+            final InputStream is = given().multiPart("file", file).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).accept(ContentType.ANY).when().post("v1/tests/response/file/path").asInputStream();
 
-			try(final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
-			{
-				IOUtils.copy(is, byteArrayOutputStream);
-			  
-				assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
-			}
+            try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
+            {
+                IOUtils.copy(is, byteArrayOutputStream);
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+                assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+            }
 
-	}
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
-	@Test
-	public void uploadMultipleFileList()
-	{
+    }
 
-		try
-		{
+    @Test
+    public void uploadMultipleFileList()
+    {
 
+        try
+        {
 
-			Map map = given().multiPart("files", files.get(0)).multiPart("files",files.get(1)).multiPart("files",files.get(2)).multiPart("files",files.get(3))
-							 .multiPart("names",files.get(0).getName())
-							 .multiPart("names",files.get(1).getName())
-							 .multiPart("names",files.get(2).getName())
-							 .multiPart("names",files.get(3).getName())
-							 .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
+            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
+                             .multiPart("names", files.get(0).getName())
+                             .multiPart("names", files.get(1).getName())
+                             .multiPart("names", files.get(2).getName())
+                             .multiPart("names", files.get(3).getName())
+                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                             .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
 
+            assertThat(map.size(), equalTo(4));
 
-			assertThat(map.size(), equalTo(4));
+            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
 
-			assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace()+""));
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+    }
 
-	}
+    @Test
+    public void uploadMultiplePathList()
+    {
 
-	@Test
-	public void uploadMultiplePathList()
-	{
+        try
+        {
 
-		try
-		{
+            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
+                             .multiPart("names", files.get(0).getName())
+                             .multiPart("names", files.get(1).getName())
+                             .multiPart("names", files.get(2).getName())
+                             .multiPart("names", files.get(3).getName())
+                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                             .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
 
+            assertThat(map.size(), equalTo(4));
 
-			Map map = given().multiPart("files", files.get(0)).multiPart("files",files.get(1)).multiPart("files",files.get(2)).multiPart("files",files.get(3))
-							 .multiPart("names",files.get(0).getName())
-							 .multiPart("names",files.get(1).getName())
-							 .multiPart("names",files.get(2).getName())
-							 .multiPart("names",files.get(3).getName())
-							 .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
+            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
 
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
-			assertThat(map.size(), equalTo(4));
+    }
 
-			assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace()+""));
+    @Test
+    public void uploadMultipleFileMap()
+    {
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+        try
+        {
 
-	}
+            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
+                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                             .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
 
-	@Test
-	public void uploadMultipleFileMap()
-	{
+            assertThat(map.size(), equalTo(4));
 
-		try
-		{
+            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
 
-			Map map = given().multiPart("files", files.get(0)).multiPart("files",files.get(1)).multiPart("files",files.get(2)).multiPart("files",files.get(3))
-							 .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
+    }
 
-			assertThat(map.size(), equalTo(4));
+    @Test
+    public void uploadMultiplePathMap()
+    {
 
-			assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace()+""));
+        try
+        {
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
+.contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                             .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
 
-	}
+            assertThat(map.size(), equalTo(4));
 
-	@Test
-	public void uploadMultiplePathMap()
-	{
+            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
 
-		try
-		{
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
+    }
 
-			Map map = given().multiPart("files", files.get(0)).multiPart("files",files.get(1)).multiPart("files",files.get(2)).multiPart("files",files.get(3))
+    @Test
+    public void responseUploadOptionalFilePathParameter()
+    {
 
-							 .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
+        try
+        {
 
+            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/file/path/optional").asInputStream();
 
-			assertThat(map.size(), equalTo(4));
+            try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
+            {
+                IOUtils.copy(is, byteArrayOutputStream);
 
-			assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace()+""));
+                assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+            }
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
-	}
-	
- 	@Test
-	public void responseUploadOptionalFilePathParameter()
-	{
+    }
 
-		try
-		{
+    @Test
+    public void responseParseListParameter()
+    {
 
-			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("v1/tests/response/file/path/optional").asInputStream();
+        try
+        {
+            List<Long> values = new Random().longs(10, 0L, 20L).boxed().collect(Collectors.toList());
 
-			try(final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
-			{
-				IOUtils.copy(is, byteArrayOutputStream); 
+            given().contentType(ContentType.JSON).accept(ContentType.JSON).body(values).when().post("v1/tests/response/parse/ids").then().statusCode(200);
 
-				assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
-			}
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    }
 
-	}
-	
-	@Test
-	public void responseParseListParameter()
-	{
-		try
-		{
-			List<Long> values = new Random().longs(10, 0L, 20L).boxed().collect(Collectors.toList());
-			 
-			given().contentType(ContentType.JSON).accept(ContentType.JSON).body(values).when().post("v1/tests/response/parse/ids").then().statusCode(200);
+    @SuppressWarnings("resource")
+    @Test
+    public void responseUploadByteBufferParameter()
+    {
 
+        try
+        {
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/bytebuffer").asInputStream();
 
-	}
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(is, byteArrayOutputStream);
+            IOUtils.closeQuietly(byteArrayOutputStream);
+            IOUtils.closeQuietly(is);
 
-	@SuppressWarnings("resource")
-	@Test
-	public void responseUploadByteBufferParameter()
-	{
+            assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
 
-		try
-		{
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
-			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("v1/tests/response/bytebuffer").asInputStream();
+    }
 
-			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-			IOUtils.copy(is, byteArrayOutputStream);
-			IOUtils.closeQuietly(byteArrayOutputStream);
-			IOUtils.closeQuietly(is);
+    @SuppressWarnings("resource")
+    @Test
+    public void responseUploadFileParameter()
+    {
 
-			assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+        try
+        {
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/file").asInputStream();
 
-	}
-	
-	@SuppressWarnings("resource")
-	@Test
-	public void responseUploadFileParameter()
-	{
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(is, byteArrayOutputStream);
+            IOUtils.closeQuietly(byteArrayOutputStream);
+            IOUtils.closeQuietly(is);
 
-		try
-		{
+            assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
 
-			final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).when().post("v1/tests/response/file").asInputStream();
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
 
-			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-			IOUtils.copy(is, byteArrayOutputStream);
-			IOUtils.closeQuietly(byteArrayOutputStream);
-			IOUtils.closeQuietly(is);
+    }
 
-			assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+    @Test
+    public void responseParseInstant()
+    {
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        Instant instant = Instant.now();
 
-	}
+        given()
 
-	@Test
-	public void responseParseInstant()
-	{
+                .queryParam("instant", instant.toString())
 
-	 
-		Instant instant = Instant.now();
+                .when()
 
-		 given()
+                .get("v1/tests/response/parse/instant").
 
-				
-				 
-				.queryParam("instant", instant.toString())
+                        then().statusCode(200).and().body(containsString(instant.toString()));
 
-				.when()
+    }
 
-				.get("v1/tests/response/parse/instant").
-				
-				then().statusCode(200).and().body(containsString(instant.toString()));
+    @Test
+    public void responseParseTimestamp()
+    {
 
-		
- 	}
-	
-	@Test
-	public void responseParseTimestamp()
-	{
+        Timestamp ts = new Timestamp(System.currentTimeMillis());
 
-	 
-		Timestamp ts = new Timestamp(System.currentTimeMillis());
+        given()
 
-			given()
-  
-				.queryParam("timestamp", ts.toString()) 
-				.when()
+                .queryParam("timestamp", ts.toString())
+                .when()
 
-				.get("v1/tests/response/parse/timestamp").
-				then().statusCode(200).and().body(containsString(ts.toString()));
+                .get("v1/tests/response/parse/timestamp").
+                        then().statusCode(200).and().body(containsString(ts.toString()));
 
-		 
-	}
+    }
 
-	@Test
-	public void responseParseBigDecimal()
-	{
+    @Test
+    public void responseParseBigDecimal()
+    {
 
+        BigDecimal value = new BigDecimal(23234.34);
 
-		BigDecimal value = new BigDecimal(23234.34);
+        given()
 
-		given()
+                .queryParam("value", value.toString())
 
+                .when()
 
+                .get("v1/tests/response/parse/big-decimal").
 
-				.queryParam("value", value.toString())
+                        then().statusCode(200).and().body(containsString(value.toString()));
+    }
 
-				.when()
+    @Test
+    public void responseParseDouble()
+    {
 
-				.get("v1/tests/response/parse/big-decimal").
+        Double value = 23234.34;
 
-						then().statusCode(200).and().body(containsString(value.toString()));
-	}
+        given()
 
-	@Test
-	public void responseParseDouble()
-	{
+                .queryParam("value", Double.toString(value))
 
+                .when()
 
-		Double value = 23234.34;
+                .get("v1/tests/response/parse/double").
 
-		given()
+                        then().statusCode(200).and().body(containsString(value.toString()));
+    }
 
+    @Test
+    public void notFound()
+    {
 
+        given().accept(ContentType.JSON).when().get("v1/tests/response/error/404").then().statusCode(404).log().body().content(containsString("No entity found"));
 
-				.queryParam("value", Double.toString(value))
+    }
 
-				.when()
+    @Test
+    public void unauthorized()
+    {
 
-				.get("v1/tests/response/parse/double").
+        given().accept(ContentType.JSON).when().get("v1/tests/response/error/401").then().statusCode(401).log().body().content(containsString("Unauthorized"));
 
-						then().statusCode(200).and().body(containsString(value.toString()));
-	}
+    }
 
-	@Test
-	public void notFound()
-	{
-		given().accept(ContentType.JSON).when().get("v1/tests/response/error/404").then().statusCode(404).log().body().content(containsString("No entity found"));
+    @Test
+    public void maxValueError()
+    {
 
-	}
+        given().queryParam("param", 105).when().get("v1/tests/response/max").then().statusCode(400).log();
 
+    }
 
-	@Test
-	public void unauthorized()
-	{
-		given().accept(ContentType.JSON).when().get("v1/tests/response/error/401").then().statusCode(401).log().body().content(containsString("Unauthorized"));
+    @Test
+    public void minValueError()
+    {
 
-	}
+        given().queryParam("param", 5).when().get("v1/tests/response/min").then().statusCode(400).log();
 
-	@Test
-	public void maxValueError()
-	{
-		given().queryParam("param",105).when().get("v1/tests/response/max").then().statusCode(400).log();
+    }
 
-	}
+    @Test
+    public void maxValue()
+    {
 
-	@Test
-	public void minValueError()
-	{
-		given().queryParam("param",5).when().get("v1/tests/response/min").then().statusCode(400).log();
+        given().queryParam("param", 50).when().get("v1/tests/response/max").then().statusCode(200).log();
 
-	}
-	@Test
-	public void maxValue()
-	{
-		given().queryParam("param",50).when().get("v1/tests/response/max").then().statusCode(200).log();
+    }
 
-	}
+    @Test
+    public void minValue()
+    {
 
-	@Test
-	public void minValue()
-	{
-		given().queryParam("param",15).when().get("v1/tests/response/min").then().statusCode(200).log();
+        given().queryParam("param", 15).when().get("v1/tests/response/min").then().statusCode(200).log();
 
-	}
+    }
 
-	
-	@Test
-	public void responseComplexParameters()
-	{
+    @Test
+    public void responseComplexParameters()
+    {
 
-		UUID randomUUID = UUID.randomUUID();
-		Long longValue = 123456789L;
-		List<Integer> integerList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
-		String stringValue = "v1/testsTRING123!#$";
+        UUID randomUUID = UUID.randomUUID();
+        Long longValue = 123456789L;
+        List<Integer> integerList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        String stringValue = "v1/testsTRING123!#$";
 
-		Map map = given()
+        Map map = given()
 
-				
-				
-				.accept(ContentType.JSON)
+                .accept(ContentType.JSON)
 
-				.contentType("application/json")
+                .contentType("application/json")
 
-				.queryParam("queryUUID", randomUUID)
+                .queryParam("queryUUID", randomUUID)
 
-				.queryParam("optionalQueryUUID", randomUUID)
+                .queryParam("optionalQueryUUID", randomUUID)
 
-				.queryParam("queryLong", longValue)
+                .queryParam("queryLong", longValue)
 
-				.queryParam("optionalQueryLong", longValue)
+                .queryParam("optionalQueryLong", longValue)
 
-				.queryParam("optionalQueryDate", "1970-01-01T00:00:00.000+00:00")
+                .queryParam("optionalQueryDate", "1970-01-01T00:00:00.000+00:00")
 
-				.queryParam("queryEnum", UserType.ADMIN)
+                .queryParam("queryEnum", UserType.ADMIN)
 
-				.queryParam("optionalQueryEnum", UserType.ADMIN)
+                .queryParam("optionalQueryEnum", UserType.ADMIN)
 
-				.queryParam("queryIntegerList", integerList)
+                .queryParam("queryIntegerList", integerList)
 
-				.queryParam("optionalQueryString", stringValue)
+                .queryParam("optionalQueryString", stringValue)
 
-				.header("headerString", stringValue)
+                .header("headerString", stringValue)
 
-				.header("optionalHeaderString", stringValue)
+                .header("optionalHeaderString", stringValue)
 
-				.header("optionalHeaderUUID", randomUUID)
+                .header("optionalHeaderUUID", randomUUID)
 
-				.when()
+                .when()
 
-				.get("v1/tests/response/parameters/complex/" + longValue.toString())
+                .get("v1/tests/response/parameters/complex/" + longValue.toString())
 
-				.as(Map.class);
+                .as(Map.class);
 
-		assertThat((map.get("queryUUID").toString()), CoreMatchers.is(randomUUID.toString()));
+        assertThat((map.get("queryUUID").toString()), CoreMatchers.is(randomUUID.toString()));
 
-		assertThat((map.get("optionalQueryUUID").toString()), CoreMatchers.is(randomUUID.toString()));
+        assertThat((map.get("optionalQueryUUID").toString()), CoreMatchers.is(randomUUID.toString()));
 
-		assertThat((map.get("optionalHeaderUUID").toString()), CoreMatchers.is(randomUUID.toString()));
+        assertThat((map.get("optionalHeaderUUID").toString()), CoreMatchers.is(randomUUID.toString()));
 
-		assertThat((map.get("pathLong").toString()), CoreMatchers.is(longValue.toString()));
+        assertThat((map.get("pathLong").toString()), CoreMatchers.is(longValue.toString()));
 
-		assertThat((map.get("optionalQueryLong").toString()), CoreMatchers.is(longValue.toString()));
+        assertThat((map.get("optionalQueryLong").toString()), CoreMatchers.is(longValue.toString()));
 
-		assertThat((map.get("optionalQueryEnum").toString()), CoreMatchers.is(UserType.ADMIN.name()));
+        assertThat((map.get("optionalQueryEnum").toString()), CoreMatchers.is(UserType.ADMIN.name()));
 
-		assertThat((map.get("queryEnum").toString()), CoreMatchers.is(UserType.ADMIN.name()));
+        assertThat((map.get("queryEnum").toString()), CoreMatchers.is(UserType.ADMIN.name()));
 
-		assertThat((map.get("headerString").toString()), CoreMatchers.is(stringValue));
+        assertThat((map.get("headerString").toString()), CoreMatchers.is(stringValue));
 
-		assertThat((map.get("optionalHeaderString").toString()), CoreMatchers.is(stringValue));
+        assertThat((map.get("optionalHeaderString").toString()), CoreMatchers.is(stringValue));
 
-		assertThat((map.get("optionalQueryString").toString()), CoreMatchers.is(stringValue));
+        assertThat((map.get("optionalQueryString").toString()), CoreMatchers.is(stringValue));
 
-		assertThat((map.get("optionalQueryDate").toString()), containsString("1970-01-01"));
+        assertThat((map.get("optionalQueryDate").toString()), containsString("1970-01-01"));
 
-	}
-	
-	@After
-	public void tearDown()
-	{
-		try
-		{
- 			if(file.exists())
- 			{
- 				file.delete();
- 			}
+    }
 
-		} catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    @SuppressWarnings("resource")
+    @Test
+    public void uploadMultipartByteBuffer()
+    {
+
+        try
+        {
+
+            Map map = given().multiPart("buffer", file,MediaType.APPLICATION_OCTET_STREAM.contentType())
+                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/byteBuffer").as(Map.class);
+
+            assertThat(map.size(), equalTo(1));
+
+            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
+
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+    }
+
+    @SuppressWarnings("resource")
+    @Test
+    public void uploadMultipartFutureByteBuffer()
+    {
+
+        try
+        {
+
+            Map map = given().multiPart("buffer", file,MediaType.APPLICATION_OCTET_STREAM.contentType())
+                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/byteBuffer").as(Map.class);
+
+            assertThat(map.size(), equalTo(1));
+
+            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
+
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+    }
+
+    @SuppressWarnings("resource")
+    @Test
+    public void uploadMultipartMixed()
+    {
+
+        try
+        {
+
+            User model = new User(101L, UserType.ADMIN);
+
+            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
+                             .multiPart("user", model, MediaType.JSON.contentType())
+                             .multiPart("userId", 101)
+                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/mixed").as(Map.class);
+
+            assertThat(map.size(), equalTo(3));
+
+            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
+            assertThat(map.get("user").toString(), containsString("101"));
+            assertThat(map.get("userId").toString(), equalTo("101"));
+
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+    }
+
+    @SuppressWarnings("resource")
+    @Test
+    public void uploadMultipartFutureMixed()
+    {
+
+        try
+        {
+
+            User model = new User(101L, UserType.ADMIN);
+
+            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
+                             .multiPart("user", model, MediaType.JSON.contentType())
+                             .multiPart("userId", 101)
+                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/mixed").as(Map.class);
+
+            assertThat(map.size(), equalTo(3));
+
+            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
+            assertThat(map.get("user").toString(), containsString("101"));
+            assertThat(map.get("userId").toString(), equalTo("101"));
+
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+    }
+
+    @SuppressWarnings("resource")
+    @Test
+    public void uploadMultipartJson()
+    {
+
+        try
+        {
+
+            User model = new User(101L, UserType.ADMIN);
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            JsonNode node = mapper.valueToTree(model);
+
+            JsonNode responseNode = given()
+                    .multiPart("json", node.toString(),MediaType.JSON.contentType()).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).accept(ContentType.JSON).when().post("v1/tests/multipart/json").as(JsonNode.class);
+
+        assertThat(responseNode.get("id").textValue(), equalTo("101"));
+
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+    }
+
+    @SuppressWarnings("resource")
+    @Test
+    public void uploadMultipartFutureJson()
+    {
+
+        try
+        {
+
+            User model = new User(101L, UserType.ADMIN);
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            JsonNode node = mapper.valueToTree(model);
+
+            JsonNode responseNode = given()
+                    .multiPart("json", node.toString(), MediaType.JSON.contentType()).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).accept(ContentType.JSON).when().post("v1/tests/multipart/future/json").as(JsonNode.class);
+
+            assertThat(responseNode.get("id").textValue(), equalTo("101"));
+
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+    }
+
+    // @Path("multipart/json")
+
+    @After
+    public void tearDown()
+    {
+
+        try
+        {
+            if (file.exists())
+            {
+                file.delete();
+            }
+
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 
 }

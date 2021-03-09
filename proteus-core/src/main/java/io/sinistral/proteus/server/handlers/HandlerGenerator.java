@@ -6,7 +6,16 @@ package io.sinistral.proteus.server.handlers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.Extractors;
@@ -22,7 +31,6 @@ import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import net.openhft.compiler.CachedCompiler;
-import net.openhft.compiler.CompilerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -30,15 +38,28 @@ import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
 import javax.ws.rs.BeanParam;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -52,16 +73,14 @@ import java.util.stream.Stream;
  * annotation (i.e. <code>javax.ws.rs.GET</code>)
  * @author jbauer
  */
-public class HandlerGenerator
-{
+public class HandlerGenerator {
 
     static Logger log = LoggerFactory.getLogger(HandlerGenerator.class.getCanonicalName());
 
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
 
-    public enum StatementParameterType
-    {
+    public enum StatementParameterType {
         STRING, LITERAL, TYPE, RAW
     }
 
@@ -99,6 +118,7 @@ public class HandlerGenerator
      */
     public HandlerGenerator(String packageName, Class<?> controllerClass)
     {
+
         this.packageName = packageName;
         this.controllerClass = controllerClass;
         this.className = controllerClass.getSimpleName() + "RouteSupplier";
@@ -110,15 +130,18 @@ public class HandlerGenerator
      */
     public Class<? extends Supplier<RoutingHandler>> compileClass()
     {
-        try {
+
+        try
+        {
             this.generateRoutes();
 
             log.debug("\n\nGenerated Class Source:\n\n{}", this.sourceString);
 
-            return new CachedCompiler(null,null).loadFromJava(packageName + "." + className, this.sourceString);
+            return new CachedCompiler(null, null).loadFromJava(packageName + "." + className, this.sourceString);
 
-        } catch (Exception e) {
-            log.error("Failed to compile {}\nSource:\n{}",packageName + "." + className,this.sourceString, e);
+        } catch (Exception e)
+        {
+            log.error("Failed to compile {}\nSource:\n{}", packageName + "." + className, this.sourceString, e);
             return null;
         }
     }
@@ -129,65 +152,64 @@ public class HandlerGenerator
     protected void generateRoutes() throws Exception
     {
 
-            TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
-                    .addSuperinterface(ParameterizedTypeName.get(Supplier.class, RoutingHandler.class));
+        TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
+                                               .addSuperinterface(ParameterizedTypeName.get(Supplier.class, RoutingHandler.class));
 
-            ClassName extractorClass = ClassName.get("io.sinistral.proteus.server", "Extractors");
+        ClassName extractorClass = ClassName.get("io.sinistral.proteus.server", "Extractors");
 
-            ClassName injectClass = ClassName.get("com.google.inject", "Inject");
+        ClassName injectClass = ClassName.get("com.google.inject", "Inject");
 
+        MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addAnnotation(injectClass);
 
-            MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addAnnotation(injectClass);
+        String className = this.controllerClass.getSimpleName().toLowerCase() + "Controller";
 
-            String className = this.controllerClass.getSimpleName().toLowerCase() + "Controller";
+        typeBuilder.addField(this.controllerClass, className, Modifier.PROTECTED, Modifier.FINAL);
 
-            typeBuilder.addField(this.controllerClass, className, Modifier.PROTECTED, Modifier.FINAL);
+        ClassName wrapperClass = ClassName.get("io.undertow.server", "HandlerWrapper");
+        ClassName stringClass = ClassName.get("java.lang", "String");
+        ClassName mapClass = ClassName.get("java.util", "Map");
 
-            ClassName wrapperClass = ClassName.get("io.undertow.server", "HandlerWrapper");
-            ClassName stringClass = ClassName.get("java.lang", "String");
-            ClassName mapClass = ClassName.get("java.util", "Map");
+        TypeName mapOfWrappers = ParameterizedTypeName.get(mapClass, stringClass, wrapperClass);
 
-            TypeName mapOfWrappers = ParameterizedTypeName.get(mapClass, stringClass, wrapperClass);
+        TypeName annotatedMapOfWrappers = mapOfWrappers
+                .annotated(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S", "registeredHandlerWrappers").build());
 
-            TypeName annotatedMapOfWrappers = mapOfWrappers
-                    .annotated(AnnotationSpec.builder(com.google.inject.name.Named.class).addMember("value", "$S", "registeredHandlerWrappers").build());
+        typeBuilder.addField(mapOfWrappers, "registeredHandlerWrappers", Modifier.PROTECTED, Modifier.FINAL);
 
-            typeBuilder.addField(mapOfWrappers, "registeredHandlerWrappers", Modifier.PROTECTED, Modifier.FINAL);
+        constructor.addParameter(this.controllerClass, className);
+        constructor.addParameter(annotatedMapOfWrappers, "registeredHandlerWrappers");
 
-            constructor.addParameter(this.controllerClass, className);
-            constructor.addParameter(annotatedMapOfWrappers, "registeredHandlerWrappers");
+        constructor.addStatement("this.$N = $N", className, className);
+        constructor.addStatement("this.$N = $N", "registeredHandlerWrappers", "registeredHandlerWrappers");
 
-            constructor.addStatement("this.$N = $N", className, className);
-            constructor.addStatement("this.$N = $N", "registeredHandlerWrappers", "registeredHandlerWrappers");
+        addClassMethodHandlers(typeBuilder, this.controllerClass);
 
-            addClassMethodHandlers(typeBuilder, this.controllerClass);
+        registeredWrapperTypes.forEach((key, value) -> {
 
-            registeredWrapperTypes.forEach((key, value) -> {
+            TypeName typeName = TypeName.get(value);
 
-                TypeName typeName = TypeName.get(value);
+            typeBuilder.addField(typeName, key, Modifier.PROTECTED, Modifier.FINAL);
 
-                typeBuilder.addField(typeName, key, Modifier.PROTECTED, Modifier.FINAL);
+            constructor.addParameter(typeName, key);
 
-                constructor.addParameter(typeName, key);
+            constructor.addStatement("this.$N = $N", key, key);
+        });
 
-                constructor.addStatement("this.$N = $N", key, key);
-            });
+        typeBuilder.addMethod(constructor.build());
 
-            typeBuilder.addMethod(constructor.build());
+        JavaFile javaFile = JavaFile.builder(packageName, typeBuilder.build()).addStaticImport(extractorClass, "*").build();
 
-            JavaFile javaFile = JavaFile.builder(packageName, typeBuilder.build()).addStaticImport(extractorClass, "*").build();
+        StringBuilder sb = new StringBuilder();
 
-            StringBuilder sb = new StringBuilder();
+        javaFile.writeTo(sb);
 
-            javaFile.writeTo(sb);
-
-            this.sourceString = sb.toString();
-
+        this.sourceString = sb.toString();
 
     }
 
-    protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz)
+    protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz) throws Exception
     {
+
         ClassName httpHandlerClass = ClassName.get("io.undertow.server", "HttpHandler");
 
         String controllerName = clazz.getSimpleName().toLowerCase() + "Controller";
@@ -197,82 +219,97 @@ public class HandlerGenerator
         HashSet<String> handlerNameSet = new HashSet<>();
 
         MethodSpec.Builder initBuilder = MethodSpec.methodBuilder("get").addModifiers(Modifier.PUBLIC).returns(RoutingHandler.class)
-                .addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
+                                                   .addStatement("final $T router = new $T()", io.undertow.server.RoutingHandler.class, io.undertow.server.RoutingHandler.class);
 
         final Map<Type, String> parameterizedLiteralsNameMap = Arrays.stream(clazz.getDeclaredMethods())
-                .filter(m -> m.getAnnotation(Path.class) != null)
-                .flatMap(
-                        m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)
-                                .filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
-                .distinct().filter(t ->
+                                                                     .filter(m -> m.getAnnotation(Path.class) != null)
+                                                                     .flatMap(
+                                                                             m -> Arrays.stream(m.getParameters()).map(Parameter::getParameterizedType)
+                                                                                        .filter(t -> t.getTypeName().contains("<") && !t.getTypeName().contains("concurrent")))
+                                                                     .distinct().filter(t ->
                 {
 
                     TypeHandler handler = TypeHandler.forType(t);
-                    return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType));
+                    return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType) || handler.equals(TypeHandler.NamedModelType) || handler.equals(TypeHandler.OptionalNamedModelType));
 
                 }).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
 
-
         Arrays.stream(clazz.getDeclaredMethods())
-                .filter(m -> m.getAnnotation(Path.class) != null)
-                .flatMap(m -> Arrays.stream(m.getParameters()))
-                .forEach(p ->
-                {
+              .filter(m -> m.getAnnotation(Path.class) != null)
+              .flatMap(m -> Arrays.stream(m.getParameters()))
+              .forEach(p ->
+              {
 
-                    BeanParam beanParam = p.getAnnotation(BeanParam.class);
+                  BeanParam beanParam = p.getAnnotation(BeanParam.class);
 
-                    boolean isBeanParameter = beanParam != null;
+                  boolean isBeanParameter = beanParam != null;
 
-                    if (isBeanParameter) {
-                        TypeHandler handler = TypeHandler.forType(p.getParameterizedType(), true);
+                  if (isBeanParameter)
+                  {
+                      TypeHandler handler = TypeHandler.forType(p.getParameterizedType(), true);
 
-                        if (handler.equals(TypeHandler.BeanListValueOfType)
-                                || handler.equals(TypeHandler.BeanListFromStringType)
-                                || handler.equals(TypeHandler.OptionalBeanListValueOfType)
-                                || handler.equals(TypeHandler.OptionalBeanListFromStringType))
-                        {
-                            parameterizedLiteralsNameMap.put(p.getParameterizedType(), HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
-                        }
-                    }
+                      if (handler.equals(TypeHandler.BeanListValueOfType)
+                              || handler.equals(TypeHandler.BeanListFromStringType)
+                              || handler.equals(TypeHandler.OptionalBeanListValueOfType)
+                              || handler.equals(TypeHandler.OptionalBeanListFromStringType))
+                      {
+                          parameterizedLiteralsNameMap.put(p.getParameterizedType(), HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
+                      }
+                  }
 
-                });
+              });
 
         final Map<Type, String> literalsNameMap = Arrays.stream(clazz.getDeclaredMethods())
-                .filter(m -> m.getAnnotation(Path.class) != null)
-                .flatMap(m -> Arrays.stream(m.getParameters())
-                        .map(Parameter::getParameterizedType)).filter(t ->
+                                                        .filter(m -> m.getAnnotation(Path.class) != null)
+                                                        .flatMap(m -> Arrays.stream(m.getParameters())
+                                                                            .map(Parameter::getParameterizedType)).filter(t ->
                 {
 
-                    if (t.getTypeName().contains("java.util")) {
+                    if (t.getTypeName().contains("java.util"))
+                    {
                         return false;
                     }
 
-                    try {
+                    try
+                    {
                         Class<?> optionalType = (Class<?>) extractErasedType(t);
 
-                        if (optionalType != null) {
+                        if (optionalType != null)
+                        {
                             t = optionalType;
                         }
 
-                    } catch (Exception ignored) {
+                    } catch (Exception ignored)
+                    {
 
                     }
 
-                    if (t.getTypeName().contains("java.lang")) {
+                    if (t.getTypeName().contains("java.lang"))
+                    {
                         return false;
-                    } else if (t.getTypeName().contains("java.nio")) {
+                    }
+                    else if (t.getTypeName().contains("java.nio"))
+                    {
                         return false;
-                    } else if (t.getTypeName().contains("java.io")) {
+                    }
+                    else if (t.getTypeName().contains("java.io"))
+                    {
                         return false;
-                    } else if (t.getTypeName().contains("java.util")) {
+                    }
+                    else if (t.getTypeName().contains("java.util"))
+                    {
                         return false;
-                    } else if (t.equals(HttpServerExchange.class) || t.equals(ServerRequest.class)) {
+                    }
+                    else if (t.equals(HttpServerExchange.class) || t.equals(ServerRequest.class))
+                    {
                         return false;
                     }
 
-                    if (t instanceof Class) {
+                    if (t instanceof Class)
+                    {
                         Class<?> pClazz = (Class<?>) t;
-                        if (pClazz.isPrimitive()) {
+                        if (pClazz.isPrimitive())
+                        {
                             return false;
                         }
                         return !pClazz.isEnum();
@@ -282,8 +319,8 @@ public class HandlerGenerator
                     return true;
 
                 })
-                .distinct()
-                .collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForType));
+                                                        .distinct()
+                                                        .collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForType));
 
         parameterizedLiteralsNameMap
                 .forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeReference = new $T<$L>(){}", TypeReference.class, t, n, TypeReference.class, t));
@@ -296,16 +333,18 @@ public class HandlerGenerator
         CLASS LEVEL WRAPPERS
          */
 
-        if (typeLevelWrapAnnotation.isPresent()) {
+        if (typeLevelWrapAnnotation.isPresent())
+        {
             io.sinistral.proteus.annotations.Chain w = typeLevelWrapAnnotation.get();
 
             Class<? extends HandlerWrapper>[] wrapperClasses = w.value();
 
-            for (Class<? extends HandlerWrapper> wrapperClass : wrapperClasses) {
+            for (Class<? extends HandlerWrapper> wrapperClass : wrapperClasses)
+            {
 
                 String wrapperName = generateFieldName(wrapperClass.getCanonicalName());
 
-                registeredWrapperTypes.put(wrapperName,wrapperClass);
+                registeredWrapperTypes.put(wrapperName, wrapperClass);
 
                 typeLevelHandlerWrapperMap.put(wrapperClass, wrapperName);
             }
@@ -324,26 +363,32 @@ public class HandlerGenerator
 
         List<String> typeLevelSecurityDefinitions = new ArrayList<>();
 
-        if (Optional.ofNullable(clazz.getAnnotation(Path.class)).isPresent()) {
+        if (Optional.ofNullable(clazz.getAnnotation(Path.class)).isPresent())
+        {
 
             Annotation[] annotations = clazz.getAnnotations();
 
             Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter(a -> a.getClass().getName().contains("SecurityRequirement" +
                     "")).findFirst().orElse(null);
 
-            if (securityRequirementAnnotation != null) {
+            if (securityRequirementAnnotation != null)
+            {
 
-                if (securityRequirementAnnotation != null) {
+                if (securityRequirementAnnotation != null)
+                {
 
-                    try {
+                    try
+                    {
                         Field nameField = securityRequirementAnnotation.getClass().getField("name");
 
-                        if (nameField != null) {
+                        if (nameField != null)
+                        {
                             Object securityRequirement = nameField.get(securityRequirementAnnotation);
                             typeLevelSecurityDefinitions.add(securityRequirement.toString());
                         }
 
-                    } catch (Exception e) {
+                    } catch (Exception e)
+                    {
                         log.warn("No name field on security requirement");
                     }
 
@@ -356,9 +401,11 @@ public class HandlerGenerator
 
         int nameIndex = 1;
 
-        for (Method m : clazz.getDeclaredMethods()) {
+        for (Method m : clazz.getDeclaredMethods())
+        {
 
-            if (!Optional.ofNullable(m.getAnnotation(javax.ws.rs.Path.class)).isPresent()) {
+            if (!Optional.ofNullable(m.getAnnotation(javax.ws.rs.Path.class)).isPresent())
+            {
                 continue;
             }
 
@@ -374,29 +421,35 @@ public class HandlerGenerator
 
             Optional<Blocking> blockingAnnotation = Optional.ofNullable(m.getAnnotation(Blocking.class));
 
-            if (blockingAnnotation.isPresent()) {
+            if (blockingAnnotation.isPresent())
+            {
                 isBlocking = blockingAnnotation.get().value();
             }
 
             Optional<Debug> debugAnnotation = Optional.ofNullable(m.getAnnotation(Debug.class));
 
-            if (debugAnnotation.isPresent()) {
+            if (debugAnnotation.isPresent())
+            {
                 isDebug = debugAnnotation.get().value();
             }
 
             Optional<javax.ws.rs.Produces> producesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Produces.class));
 
-            if (!producesAnnotation.isPresent()) {
+            if (!producesAnnotation.isPresent())
+            {
                 producesAnnotation = Optional.ofNullable(clazz.getAnnotation(javax.ws.rs.Produces.class));
 
-                if (producesAnnotation.isPresent()) {
+                if (producesAnnotation.isPresent())
+                {
 
                     producesContentTypes = Arrays.stream(producesAnnotation.get().value()).flatMap(v -> Arrays.stream((v.split(",")))).collect(Collectors.toList());
 
                     producesContentType = String.join(",", producesContentTypes);
                 }
 
-            } else {
+            }
+            else
+            {
 
                 producesContentTypes = Arrays.stream(producesAnnotation.get().value()).flatMap(v -> Arrays.stream((v.split(",")))).collect(Collectors.toList());
 
@@ -407,15 +460,19 @@ public class HandlerGenerator
 
             Optional<javax.ws.rs.Consumes> consumesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Consumes.class));
 
-            if (!consumesAnnotation.isPresent()) {
+            if (!consumesAnnotation.isPresent())
+            {
                 consumesAnnotation = Optional.ofNullable(clazz.getAnnotation(javax.ws.rs.Consumes.class));
 
-                if (consumesAnnotation.isPresent()) {
+                if (consumesAnnotation.isPresent())
+                {
                     consumesContentTypes = Arrays.stream(consumesAnnotation.get().value()).flatMap(v -> Arrays.stream((v.split(",")))).collect(Collectors.toList());
 
                     consumesContentType = String.join(",", consumesContentTypes);
                 }
-            } else {
+            }
+            else
+            {
                 consumesContentTypes = Arrays.stream(consumesAnnotation.get().value()).flatMap(v -> Arrays.stream((v.split(",")))).collect(Collectors.toList());
 
                 consumesContentType = String.join(",", consumesContentTypes);
@@ -425,9 +482,11 @@ public class HandlerGenerator
 
             String methodPath;
 
-            try {
+            try
+            {
                 methodPath = Extractors.pathTemplateFromMethod.apply(m).replaceAll("\\/\\/", "\\/");
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 log.error(e.getMessage() + " for " + m, e);
                 continue;
             }
@@ -452,7 +511,7 @@ public class HandlerGenerator
             endpointInfo.setControllerMethod(m.getName());
 
             String handlerName = String.format("%c%s%sHandler_%s", Character.toLowerCase(clazz.getSimpleName().charAt(0)), clazz.getSimpleName()
-                    .substring(1), StringUtils.capitalize(m.getName()), String.valueOf(nameIndex++));
+                                                                                                                                .substring(1), StringUtils.capitalize(m.getName()), String.valueOf(nameIndex++));
 
             handlerNameSet.add(handlerName);
 
@@ -463,9 +522,9 @@ public class HandlerGenerator
              * Rewrite with lambdas or method references.
              *
              * 		final io.undertow.server.HttpHandler benchmarksDbPostgresHandler = (final HttpServerExchange exchange) ->
-             * 		{
+             *        {
              * 			benchmarksController.dbPostgres;
-             * 		});
+             *        });
              *
              * 	OR
              *
@@ -473,10 +532,11 @@ public class HandlerGenerator
              **/
 
             MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("handleRequest").addModifiers(Modifier.PUBLIC).addException(ClassName.get("java.lang", "Exception"))
-                    .addAnnotation(Override.class)
-                    .addParameter(ParameterSpec.builder(HttpServerExchange.class, "exchange", Modifier.FINAL).build());
+                                                         .addAnnotation(Override.class)
+                                                         .addParameter(ParameterSpec.builder(HttpServerExchange.class, "exchange", Modifier.FINAL).build());
 
-            for (Parameter p : m.getParameters()) {
+            for (Parameter p : m.getParameters())
+            {
 
                 if (p.getParameterizedType().equals(ServerRequest.class)
                         || p.getParameterizedType().equals(HttpServerExchange.class)
@@ -485,26 +545,30 @@ public class HandlerGenerator
                     continue;
                 }
 
-                try {
+                try
+                {
                     BeanParam beanParam = p.getAnnotation(BeanParam.class);
 
                     boolean isBeanParameter = beanParam != null;
 
                     TypeHandler t = TypeHandler.forType(p.getParameterizedType(), isBeanParameter);
 
-                    if (t.isBlocking()) {
+                    if (t.isBlocking())
+                    {
                         isBlocking = true;
                         break;
                     }
 
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
                     log.error(e.getMessage(), e);
                 }
             }
 
             log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 
-            if (isBlocking) {
+            if (isBlocking)
+            {
 
                 methodBuilder.addStatement("exchange.startBlocking()");
 
@@ -514,7 +578,6 @@ public class HandlerGenerator
 
                 methodBuilder.nextControlFlow("else");
 
-
             }
 
             Arrays.stream(m.getParameters()).forEachOrdered(p ->
@@ -522,66 +585,129 @@ public class HandlerGenerator
 
                 Type type = p.getParameterizedType();
 
-                try {
+                try
+                {
 
                     log.debug("Parameter " + p.getName() + " of type " + type);
 
-                    if (p.getType().equals(ServerRequest.class)) {
+                    if (p.getType().equals(ServerRequest.class))
+                    {
                         methodBuilder.addStatement("$T $L = new $T(exchange)", ServerRequest.class, p.getName(), ServerRequest.class);
 
-                    } else if (p.getType().equals(HttpHandler.class)) {
+                    }
+                    else if (p.getType().equals(HttpHandler.class))
+                    {
                         methodBuilder.addStatement("$T $L = this", HttpHandler.class, p.getName());
-                    } else if (!p.getType().equals(HttpServerExchange.class)) {
-                        if (p.isAnnotationPresent(HeaderParam.class)) {
+                    }
+                    else if (!p.getType().equals(HttpServerExchange.class))
+                    {
+                        if (p.isAnnotationPresent(HeaderParam.class))
+                        {
 
                             TypeHandler handler = TypeHandler.forType(type);
 
-                            if (handler.equals(TypeHandler.OptionalStringType)) {
+                            if (handler.equals(TypeHandler.OptionalStringType))
+                            {
                                 handler = TypeHandler.OptionalHeaderStringType;
 
                                 TypeHandler.addStatement(methodBuilder, p, handler);
 
-                            } else if (handler.equals(TypeHandler.OptionalValueOfType)) {
+                            }
+                            else if (handler.equals(TypeHandler.OptionalValueOfType))
+                            {
                                 handler = TypeHandler.OptionalHeaderValueOfType;
 
                                 TypeHandler.addStatement(methodBuilder, p, handler);
 
-                            } else if (handler.equals(TypeHandler.OptionalFromStringType)) {
+                            }
+                            else if (handler.equals(TypeHandler.OptionalFromStringType))
+                            {
                                 handler = TypeHandler.OptionalHeaderFromStringType;
                                 TypeHandler.addStatement(methodBuilder, p, handler);
 
-                            } else if (handler.equals(TypeHandler.StringType)) {
+                            }
+                            else if (handler.equals(TypeHandler.StringType))
+                            {
                                 handler = TypeHandler.HeaderStringType;
                                 TypeHandler.addStatement(methodBuilder, p, handler);
 
-                            } else if (handler.equals(TypeHandler.ValueOfType)) {
+                            }
+                            else if (handler.equals(TypeHandler.ValueOfType))
+                            {
                                 handler = TypeHandler.HeaderValueOfType;
                                 TypeHandler.addStatement(methodBuilder, p, handler);
 
-                            } else if (handler.equals(TypeHandler.FromStringType)) {
+                            }
+                            else if (handler.equals(TypeHandler.FromStringType))
+                            {
                                 handler = TypeHandler.HeaderFromStringType;
                                 TypeHandler.addStatement(methodBuilder, p, handler);
-                            } else {
+                            }
+                            else
+                            {
                                 handler = TypeHandler.HeaderStringType;
 
                                 TypeHandler.addStatement(methodBuilder, p, handler);
                             }
 
-                        } else {
+                        }
+                        else
+                        {
                             BeanParam beanParam = p.getAnnotation(BeanParam.class);
+
+                            FormParam formParam = p.getAnnotation(FormParam.class);
 
                             boolean isBeanParameter = beanParam != null;
 
                             TypeHandler t = TypeHandler.forType(type, isBeanParameter);
 
+                            if (formParam != null)
+                            {
+                                switch (t)
+                                {
+                                    case ModelType:
+                                    {
+                                        t = TypeHandler.NamedModelType;
+                                        break;
+                                    }
+                                    case JsonNodeType:
+                                    {
+                                        t = TypeHandler.NamedJsonNodeType;
+                                        break;
+                                    }
+                                    case ByteBufferType:
+                                    {
+                                        t = TypeHandler.NamedByteBufferType;
+                                        break;
+                                    }
+                                    case OptionalModelType:
+                                    {
+                                        t = TypeHandler.OptionalNamedModelType;
+                                        break;
+                                    }
+                                    case OptionalJsonNodeType:
+                                    {
+                                        t = TypeHandler.OptionalNamedJsonNodeType;
+                                        break;
+                                    }
+                                    case OptionalByteBufferType:
+                                    {
+                                        t = TypeHandler.OptionalNamedByteBufferType;
+                                        break;
+                                    }
+                                }
+                            }
+
                             log.debug("beanParam handler: " + t);
 
-                            if (t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType)) {
+                            if (t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType))
+                            {
                                 String interfaceType = parameterizedLiteralsNameMap.get(type);
 
                                 String typeName = type.getTypeName();
 
-                                if (typeName.contains("$")) {
+                                if (typeName.contains("$"))
+                                {
                                     typeName = typeName.replace("$", ".");
                                 }
 
@@ -589,12 +715,31 @@ public class HandlerGenerator
 
                                 methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 
-                            } else if (t.equals(TypeHandler.BeanListFromStringType) || t.equals(TypeHandler.BeanListValueOfType)) {
+                            }
+                            else if (t.equals(TypeHandler.OptionalNamedModelType) || t.equals(TypeHandler.NamedModelType))
+                            {
                                 String interfaceType = parameterizedLiteralsNameMap.get(type);
 
                                 String typeName = type.getTypeName();
 
-                                if (typeName.contains("$")) {
+                                if (typeName.contains("$"))
+                                {
+                                    typeName = typeName.replace("$", ".");
+                                }
+
+                                String pType = interfaceType != null ? interfaceType + "TypeReference" : typeName + ".class";
+
+                                methodBuilder.addStatement(t.statement, type, p.getName(), pType, p.getName());
+
+                            }
+                            else if (t.equals(TypeHandler.BeanListFromStringType) || t.equals(TypeHandler.BeanListValueOfType))
+                            {
+                                String interfaceType = parameterizedLiteralsNameMap.get(type);
+
+                                String typeName = type.getTypeName();
+
+                                if (typeName.contains("$"))
+                                {
                                     typeName = typeName.replace("$", ".");
                                 }
 
@@ -602,17 +747,21 @@ public class HandlerGenerator
 
                                 methodBuilder.addStatement(t.statement, type, p.getName(), pType);
 
-                            } else if (t.equals(TypeHandler.OptionalFromStringType) || t.equals(TypeHandler.OptionalValueOfType)) {
+                            }
+                            else if (t.equals(TypeHandler.OptionalFromStringType) || t.equals(TypeHandler.OptionalValueOfType))
+                            {
 
                                 TypeHandler.addStatement(methodBuilder, p);
-                            } else if (t.equals(TypeHandler.QueryOptionalListFromStringType)
+                            }
+                            else if (t.equals(TypeHandler.QueryOptionalListFromStringType)
                                     || t.equals(TypeHandler.QueryOptionalListValueOfType)
                                     || t.equals(TypeHandler.QueryOptionalSetValueOfType)
                                     || t.equals(TypeHandler.QueryOptionalSetFromStringType))
                             {
                                 ParameterizedType pType = (ParameterizedType) type;
 
-                                if (type instanceof ParameterizedType) {
+                                if (type instanceof ParameterizedType)
+                                {
                                     pType = (ParameterizedType) type;
                                     type = pType.getActualTypeArguments()[0];
                                 }
@@ -621,31 +770,39 @@ public class HandlerGenerator
 
                                 methodBuilder.addStatement(t.statement, pType, p.getName(), p.getName(), erasedType);
 
-                            } else if (t.equals(TypeHandler.OptionalBeanListFromStringType) || t.equals(TypeHandler.OptionalBeanListValueOfType)) {
+                            }
+                            else if (t.equals(TypeHandler.OptionalBeanListFromStringType) || t.equals(TypeHandler.OptionalBeanListValueOfType))
+                            {
                                 ParameterizedType pType = (ParameterizedType) type;
 
-                                if (type instanceof ParameterizedType) {
+                                if (type instanceof ParameterizedType)
+                                {
                                     pType = (ParameterizedType) type;
                                     type = pType.getActualTypeArguments()[0];
                                 }
 
                                 Class<?> erasedType = (Class<?>) extractErasedType(type);
 
-                                try {
+                                try
+                                {
 
                                     methodBuilder.addStatement(t.statement, pType, p.getName(), p.getName(), erasedType);
 
-                                } catch (Exception e) {
+                                } catch (Exception e)
+                                {
                                     log.error("method builder: \nstatement: " + t.statement + "\npType: " + pType + "\np.name(): " + p.getName() + "\nerasedType: " + erasedType);
                                 }
 
-                            } else {
+                            }
+                            else
+                            {
                                 TypeHandler.addStatement(methodBuilder, p);
                             }
                         }
                     }
 
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
                     log.error(e.getMessage(), e);
                 }
 
@@ -657,7 +814,8 @@ public class HandlerGenerator
 
             String controllerMethodArgs = Arrays.stream(m.getParameters()).map(Parameter::getName).collect(Collectors.joining(","));
 
-            if (!m.getReturnType().toString().equalsIgnoreCase("void")) {
+            if (!m.getReturnType().toString().equalsIgnoreCase("void"))
+            {
                 if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
                         || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
                 {
@@ -665,7 +823,9 @@ public class HandlerGenerator
 
                     functionBlockBuilder.add("$T $L = $L.$L($L);", futureType, "response", controllerName, m.getName(), controllerMethodArgs);
 
-                } else {
+                }
+                else
+                {
                     functionBlockBuilder.add("$T $L = $L.$L($L);", m.getGenericReturnType(), "response", controllerName, m.getName(), controllerMethodArgs);
                 }
 
@@ -673,11 +833,12 @@ public class HandlerGenerator
 
                 methodBuilder.addCode("$L", "\n");
 
-
-                if (m.getReturnType().equals(ServerResponse.class)) {
+                if (m.getReturnType().equals(ServerResponse.class))
+                {
                     methodBuilder.addStatement("$L.send($L)", "response", "exchange");
 
-                } else if ((m.getGenericReturnType().toString().contains("java.util.concurrent.CompletionStage") && m.getGenericReturnType().toString().contains("ServerResponse"))
+                }
+                else if ((m.getGenericReturnType().toString().contains("java.util.concurrent.CompletionStage") && m.getGenericReturnType().toString().contains("ServerResponse"))
                         || (m.getGenericReturnType().toString().contains("java.util.concurrent.CompletableFuture") && m.getGenericReturnType().toString().contains("ServerResponse")))
 
                 {
@@ -685,78 +846,90 @@ public class HandlerGenerator
                     methodBuilder.beginControlFlow("", "");
 
                     methodBuilder.addCode(
-                                "$L.whenComplete( (r,ex) -> ",
-                                "response");
-                        methodBuilder.beginControlFlow("", "");
+                            "$L.whenComplete( (r,ex) -> ",
+                            "response");
+                    methodBuilder.beginControlFlow("", "");
 
-                        methodBuilder.beginControlFlow("if(ex != null)");
-                        methodBuilder.addCode("\t\texchange.putAttachment(io.undertow.server.handlers.ExceptionHandler.THROWABLE, ex);");
-                        methodBuilder.addCode("\t\texchange.setResponseCode(500);\n\t");
-                        methodBuilder.addCode("\t\texchange.endExchange();\n\t");
-                        methodBuilder.nextControlFlow("else");
-                        methodBuilder.addCode("\t\tr.send($L);","exchange");
-                        methodBuilder.endControlFlow();
-                        methodBuilder.endControlFlow(")", "");
-                        methodBuilder.endControlFlow(")", "");
+                    methodBuilder.beginControlFlow("if(ex != null)");
+                    methodBuilder.addCode("\t\texchange.putAttachment(io.undertow.server.handlers.ExceptionHandler.THROWABLE, ex);");
+                    methodBuilder.addCode("\t\texchange.setResponseCode(500);\n\t");
+                    methodBuilder.addCode("\t\texchange.endExchange();\n\t");
+                    methodBuilder.nextControlFlow("else");
+                    methodBuilder.addCode("\t\tr.send($L);", "exchange");
+                    methodBuilder.endControlFlow();
+                    methodBuilder.endControlFlow(")", "");
+                    methodBuilder.endControlFlow(")", "");
 
                 }
                 else if (m.getReturnType().getTypeName().contains("java.util.concurrent.CompletionStage")
                         || m.getReturnType().getTypeName().contains("java.util.concurrent.CompletableFuture"))
                 {
 
+                    String postProcess = ".";
 
-                        String postProcess = ".";
-
-                        if (!producesContentType.contains(",")) {
-                            if (producesContentType.contains(MediaType.APPLICATION_JSON)) {
-                                postProcess = ".applicationJson().";
-                            } else if (producesContentType.contains(MediaType.APPLICATION_XML)) {
-                                postProcess = ".applicationXml().";
-                            } else if (producesContentType.contains(MediaType.TEXT_HTML)) {
-                                postProcess = ".textHtml().";
-                            } else if (producesContentType != null) {
-                                postProcess = String.format(".contentType(\"%s\").", producesContentType);
-                            } else {
-                                postProcess = ".";
-                            }
+                    if (!producesContentType.contains(","))
+                    {
+                        if (producesContentType.contains(MediaType.APPLICATION_JSON))
+                        {
+                            postProcess = ".applicationJson().";
                         }
+                        else if (producesContentType.contains(MediaType.APPLICATION_XML))
+                        {
+                            postProcess = ".applicationXml().";
+                        }
+                        else if (producesContentType.contains(MediaType.TEXT_HTML))
+                        {
+                            postProcess = ".textHtml().";
+                        }
+                        else if (producesContentType != null)
+                        {
+                            postProcess = String.format(".contentType(\"%s\").", producesContentType);
+                        }
+                        else
+                        {
+                            postProcess = ".";
+                        }
+                    }
 
-                        methodBuilder.addCode("exchange.dispatch( exchange.getConnection().getWorker(), () -> ");
-                        methodBuilder.beginControlFlow("", "");
+                    methodBuilder.addCode("exchange.dispatch( exchange.getConnection().getWorker(), () -> ");
+                    methodBuilder.beginControlFlow("", "");
 
+                    methodBuilder.addCode(
+                            "$L.whenComplete( (r,ex) -> ",
+                            "response");
+                    methodBuilder.beginControlFlow("", "");
 
-                        methodBuilder.addCode(
-                                "$L.whenComplete( (r,ex) -> ",
-                                "response");
-                        methodBuilder.beginControlFlow("", "");
+                    methodBuilder.beginControlFlow("if(ex != null)");
+                    methodBuilder.addCode("\texchange.putAttachment(io.undertow.server.handlers.ExceptionHandler.THROWABLE, ex);\n");
+                    methodBuilder.addCode("\texchange.setResponseCode(500);\n");
+                    methodBuilder.addCode("\texchange.endExchange();\n");
+                    methodBuilder.nextControlFlow("else");
+                    methodBuilder.addCode("\t\tio.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send($L);", "exchange");
+                    methodBuilder.endControlFlow();
+                    methodBuilder.endControlFlow(")", "");
 
-                        methodBuilder.beginControlFlow("if(ex != null)");
-                        methodBuilder.addCode("\texchange.putAttachment(io.undertow.server.handlers.ExceptionHandler.THROWABLE, ex);\n");
-                        methodBuilder.addCode("\texchange.setResponseCode(500);\n");
-                        methodBuilder.addCode("\texchange.endExchange();\n");
-                        methodBuilder.nextControlFlow("else");
-                        methodBuilder.addCode("\t\tio.sinistral.proteus.server.ServerResponse.response(r)" + postProcess + "send($L);","exchange");
-                        methodBuilder.endControlFlow();
-                        methodBuilder.endControlFlow(")", "");
+                    methodBuilder.endControlFlow(")", "");
 
-                        methodBuilder.endControlFlow(")", "");
-
-
-
-                } else {
+                }
+                else
+                {
 
                     methodBuilder.addStatement("exchange.getResponseHeaders().put($T.CONTENT_TYPE, $S)", Headers.class, producesContentType);
 
-                    if (m.getReturnType().equals(String.class)) {
+                    if (m.getReturnType().equals(String.class))
+                    {
                         methodBuilder.addStatement("exchange.getResponseSender().send($L)", "response");
-                    } else {
+                    }
+                    else
+                    {
                         methodBuilder.addStatement("exchange.getResponseSender().send($L.toString())", "response");
                     }
 
                 }
 
-
-            } else {
+            }
+            else
+            {
 
                 functionBlockBuilder.add("$L.$L($L);", controllerName, m.getName(), controllerMethodArgs);
 
@@ -764,18 +937,15 @@ public class HandlerGenerator
 
                 methodBuilder.addCode("$L", "\n");
 
-
             }
 
-
-            if (isBlocking) {
+            if (isBlocking)
+            {
                 methodBuilder.endControlFlow();
 
             }
 
-
             handlerClassBuilder.addMethod(methodBuilder.build());
-
 
             FieldSpec handlerField = FieldSpec.builder(httpHandlerClass, handlerName, Modifier.FINAL).initializer("$L", handlerClassBuilder.build()).build();
 
@@ -793,93 +963,112 @@ public class HandlerGenerator
              * @TODO wrap blocking in BlockingHandler?
              */
 
-            if (Optional.ofNullable(m.getAnnotation(Path.class)).isPresent()) {
+            if (Optional.ofNullable(m.getAnnotation(Path.class)).isPresent())
+            {
 
                 Annotation[] annotations = clazz.getAnnotations();
 
                 Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter(a -> a.getClass().getName().contains("SecurityRequirement")).findFirst().orElse(null);
 
+                if (securityRequirementAnnotation != null)
+                {
 
-                    if (securityRequirementAnnotation != null) {
+                    try
+                    {
+                        Field nameField = securityRequirementAnnotation.getClass().getField("name");
 
-                        try {
-                            Field nameField = securityRequirementAnnotation.getClass().getField("name");
-
-                            if (nameField != null) {
-                                Object securityRequirement = nameField.get(securityRequirementAnnotation);
-                                securityDefinitions.add(securityRequirement.toString());
-                            }
-
-                        } catch (Exception e) {
-                            log.warn("No name field on security requirement");
+                        if (nameField != null)
+                        {
+                            Object securityRequirement = nameField.get(securityRequirementAnnotation);
+                            securityDefinitions.add(securityRequirement.toString());
                         }
+
+                    } catch (Exception e)
+                    {
+                        log.warn("No name field on security requirement");
+                    }
 
                 }
 
             }
 
-            if (securityDefinitions.isEmpty()) {
+            if (securityDefinitions.isEmpty())
+            {
                 securityDefinitions.addAll(typeLevelSecurityDefinitions);
             }
 
-            if (isBlocking && isDebug) {
+            if (isBlocking && isDebug)
+            {
                 handlerName = "new io.undertow.server.handlers.RequestDumpingHandler(new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(8).wrap(" + handlerName + "))";
-            } else if (isBlocking) {
+            }
+            else if (isBlocking)
+            {
                 handlerName = "new io.undertow.server.handlers.RequestBufferingHandler.Wrapper(8).wrap(" + handlerName + ")";
 
-            } else if (isDebug) {
+            }
+            else if (isDebug)
+            {
                 handlerName = "new io.undertow.server.handlers.RequestDumpingHandler(" + handlerName + ")";
 
             }
 
-
-
-            if (wrapAnnotation.isPresent() || typeLevelHandlerWrapperMap.size() > 0 || securityDefinitions.size() > 0) {
+            if (wrapAnnotation.isPresent() || typeLevelHandlerWrapperMap.size() > 0 || securityDefinitions.size() > 0)
+            {
                 initBuilder.addStatement("currentHandler = $L", handlerName);
 
-                if (wrapAnnotation.isPresent()) {
+                if (wrapAnnotation.isPresent())
+                {
                     io.sinistral.proteus.annotations.Chain w = wrapAnnotation.get();
 
                     Class<? extends HandlerWrapper>[] wrapperClasses = w.value();
 
-                    for (Class<? extends HandlerWrapper> wrapperClass : wrapperClasses) {
+                    for (Class<? extends HandlerWrapper> wrapperClass : wrapperClasses)
+                    {
                         String wrapperName = typeLevelHandlerWrapperMap.get(wrapperClass);
 
-                        if (wrapperName == null) {
+                        if (wrapperName == null)
+                        {
                             wrapperName = String.format("%s_%d", generateFieldName(wrapperClass.getCanonicalName()), handlerWrapperIndex++);
-
 
                         }
 
                         initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler");
 
-                        registeredWrapperTypes.put(wrapperName,wrapperClass);
+                        registeredWrapperTypes.put(wrapperName, wrapperClass);
 
                     }
                 }
 
-                for (Class<? extends HandlerWrapper> wrapperClass : typeLevelHandlerWrapperMap.keySet()) {
+                for (Class<? extends HandlerWrapper> wrapperClass : typeLevelHandlerWrapperMap.keySet())
+                {
                     String wrapperName = typeLevelHandlerWrapperMap.get(wrapperClass);
                     initBuilder.addStatement("currentHandler = $L.wrap($L)", wrapperName, "currentHandler");
 
-                    registeredWrapperTypes.put(wrapperName,wrapperClass);
+                    registeredWrapperTypes.put(wrapperName, wrapperClass);
 
                 }
 
-                for (String securityDefinitionName : securityDefinitions) {
+                for (String securityDefinitionName : securityDefinitions)
+                {
                     initBuilder.addStatement("currentHandler = registeredHandlerWrappers.get($S).wrap($L)", securityDefinitionName, "currentHandler");
                 }
 
                 initBuilder.addStatement("$L.add(io.undertow.util.Methods.$L,$S,$L)", "router", httpMethod, methodPath, "currentHandler");
-            } else {
+            }
+            else
+            {
                 initBuilder.addStatement("$L.add(io.undertow.util.Methods.$L,$S,$L)", "router", httpMethod, methodPath, handlerName);
             }
 
-
-
             initBuilder.addCode("$L", "\n");
 
-            registeredEndpoints.add(endpointInfo);
+            try
+            {
+                registeredEndpoints.add(endpointInfo);
+            } catch (Exception e)
+            {
+                log.error("Failed to register endpoint {}", endpointInfo, e);
+            }
 
         }
 
@@ -894,6 +1083,7 @@ public class HandlerGenerator
      */
     public String getPackageName()
     {
+
         return packageName;
     }
 
@@ -903,6 +1093,7 @@ public class HandlerGenerator
      */
     public void setPackageName(String packageName)
     {
+
         this.packageName = packageName;
     }
 
@@ -911,6 +1102,7 @@ public class HandlerGenerator
      */
     public String getClassName()
     {
+
         return className;
     }
 
@@ -920,11 +1112,13 @@ public class HandlerGenerator
      */
     public void setClassName(String className)
     {
+
         this.className = className;
     }
 
     protected static ArrayList<String> getClassNamesFromPackage(String packageName) throws Exception
     {
+
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         URL packageURL;
         ArrayList<String> names = new ArrayList<>();
@@ -940,8 +1134,10 @@ public class HandlerGenerator
         File[] contenuti = folder.listFiles();
         String entryName;
         assert contenuti != null;
-        for (File actual : contenuti) {
-            if (actual.isDirectory()) {
+        for (File actual : contenuti)
+        {
+            if (actual.isDirectory())
+            {
                 continue;
             }
 
@@ -959,7 +1155,8 @@ public class HandlerGenerator
         Reflections ref = new Reflections(basePath);
         Stream<Class<?>> stream = ref.getTypesAnnotatedWith(Path.class).stream();
 
-        if (pathPredicate != null) {
+        if (pathPredicate != null)
+        {
             stream = stream.filter(clazz ->
             {
 
@@ -976,44 +1173,57 @@ public class HandlerGenerator
 
     protected static Type extractErasedType(Type type)
     {
+
         String typeName = type.getTypeName();
 
         Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
 
-        if (matcher.find()) {
+        if (matcher.find())
+        {
 
             int matches = matcher.groupCount();
 
-            if (matches == 2) {
+            if (matches == 2)
+            {
 
                 String erasedType = matcher.group(2);
 
                 String clearDollarType = erasedType.replaceAll("\\$", ".");
 
-                try {
+                try
+                {
                     return Class.forName(clearDollarType);
 
-                } catch (Exception e1) {
-                    try {
+                } catch (Exception e1)
+                {
+                    try
+                    {
 
                         return Class.forName(erasedType);
 
-                    } catch (Exception e2) {
+                    } catch (Exception e2)
+                    {
                         return type;
                     }
                 }
 
-            } else if (matches > 2) {
+            }
+            else if (matches > 2)
+            {
                 String erasedType = matcher.group(3);
 
                 String clearDollarType = erasedType.replaceAll("\\$", ".");
 
-                try {
+                try
+                {
                     return Class.forName(clearDollarType);
-                } catch (Exception e1) {
-                    try {
+                } catch (Exception e1)
+                {
+                    try
+                    {
                         return Class.forName(erasedType);
-                    } catch (Exception e2) {
+                    } catch (Exception e2)
+                    {
                         return type;
                     }
                 }
@@ -1028,17 +1238,20 @@ public class HandlerGenerator
 
         String typeName = type.getTypeName();
 
-        if (typeName.contains("Optional")) {
+        if (typeName.contains("Optional"))
+        {
             log.warn("For an optional named: " + typeName);
         }
 
         Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
 
-        if (matcher.find()) {
+        if (matcher.find())
+        {
 
             int matches = matcher.groupCount();
 
-            if (matches == 2) {
+            if (matches == 2)
+            {
                 String genericInterface = matcher.group(1);
                 String erasedType = matcher.group(2).replaceAll("\\$", ".");
 
@@ -1048,9 +1261,12 @@ public class HandlerGenerator
                 String genericTypeName = genericParts[genericParts.length - 1];
                 String erasedTypeName;
 
-                if (erasedParts.length > 1) {
+                if (erasedParts.length > 1)
+                {
                     erasedTypeName = erasedParts[erasedParts.length - 2] + erasedParts[erasedParts.length - 1];
-                } else {
+                }
+                else
+                {
                     erasedTypeName = erasedParts[0];
                 }
 
@@ -1063,11 +1279,13 @@ public class HandlerGenerator
 
         matcher = CONCURRENT_TYPE_NAME_PATTERN.matcher(typeName);
 
-        if (matcher.find()) {
+        if (matcher.find())
+        {
 
             int matches = matcher.groupCount();
 
-            if (matches == 2) {
+            if (matches == 2)
+            {
                 String genericInterface = matcher.group(1);
                 String erasedType = matcher.group(2).replaceAll("\\$", ".");
 
@@ -1077,9 +1295,12 @@ public class HandlerGenerator
                 String genericTypeName = genericParts[genericParts.length - 1];
                 String erasedTypeName;
 
-                if (erasedParts.length > 1) {
+                if (erasedParts.length > 1)
+                {
                     erasedTypeName = erasedParts[erasedParts.length - 2] + erasedParts[erasedParts.length - 1];
-                } else {
+                }
+                else
+                {
                     erasedTypeName = erasedParts[0];
                 }
 
@@ -1094,15 +1315,19 @@ public class HandlerGenerator
 
     protected static String typeReferenceNameForType(Type type)
     {
+
         String typeName = type.getTypeName();
 
         String[] erasedParts = typeName.split("\\.");
 
         String erasedTypeName;
 
-        if (erasedParts.length > 1) {
+        if (erasedParts.length > 1)
+        {
             erasedTypeName = erasedParts[erasedParts.length - 2] + erasedParts[erasedParts.length - 1];
-        } else {
+        }
+        else
+        {
             erasedTypeName = erasedParts[0];
         }
 
@@ -1113,16 +1338,21 @@ public class HandlerGenerator
 
     protected static String generateFieldName(String name)
     {
+
         String[] parts = name.split("\\.");
 
         StringBuilder sb = new StringBuilder();
 
-        for (int i = 0; i < parts.length; i++) {
+        for (int i = 0; i < parts.length; i++)
+        {
             String part = parts[i];
 
-            if (i == 0) {
+            if (i == 0)
+            {
                 sb.append(String.format("%s%s", Character.toLowerCase(part.charAt(0)), part.substring(1)));
-            } else {
+            }
+            else
+            {
                 sb.append(String.format("%s%s", Character.toUpperCase(part.charAt(0)), part.substring(1)));
             }
         }
@@ -1148,11 +1378,13 @@ public class HandlerGenerator
 
     protected static boolean hasValueOfMethod(Class<?> clazz)
     {
+
         return Arrays.stream(clazz.getMethods()).anyMatch(m -> m.getName().equals("valueOf"));
     }
 
     protected static boolean hasFromStringMethod(Class<?> clazz)
     {
+
         return Arrays.stream(clazz.getMethods()).anyMatch(m -> m.getName().equals("fromString"));
     }
 

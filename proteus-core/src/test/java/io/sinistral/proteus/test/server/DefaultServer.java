@@ -6,6 +6,7 @@ package io.sinistral.proteus.test.server;
 import java.util.List;
 
 import io.sinistral.proteus.test.controllers.Tests;
+import io.sinistral.proteus.test.controllers.Tests2;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
@@ -74,7 +75,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 
 			app.addService(AssetsService.class);
 
-			app.addController(Tests.class);
+			app.addController(Tests2.class);
 
 			app.start();
 			

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve startup time.**
+
+
+[85843b22c7e4cb6](https://github.com/noboomu/proteus/commit/85843b22c7e4cb6) Joshua Bauer *2021-02-02 18:41:29*
+
 **Allow overriding of initial modules. Updated mime types.**
 
 

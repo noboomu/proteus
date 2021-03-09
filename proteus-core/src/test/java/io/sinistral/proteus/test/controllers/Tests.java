@@ -35,6 +35,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
@@ -43,6 +44,7 @@ import com.google.inject.Singleton;
 
 import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.annotations.Chain;
+import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.exceptions.ServerException;
@@ -377,7 +379,6 @@ public class Tests
 		 
 
 	}
-
 
 	@POST
 	@Path("list/file")
@@ -770,5 +771,136 @@ public class Tests
 		responseMap.put("secure",true);
 
 		return response(responseMap);
+	}
+
+	@POST
+	@Path("multipart/bytebuffer")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	@Debug
+	public ServerResponse<Map<String,Integer>> multipartUploadByteBuffer(ServerRequest request, @FormParam("buffer") ByteBuffer buffer ) throws Exception
+	{
+
+		return response(Map.of("size",buffer.array().length)).applicationJson().ok();
+
+
+	}
+
+	@POST
+	@Path("multipart/future/bytebuffer")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public CompletableFuture<ServerResponse<Map<String,Integer>>> multipartFutureUploadByteBuffer(ServerRequest request, @FormParam("buffer") ByteBuffer buffer ) throws Exception
+	{
+
+		CompletableFuture<ServerResponse<Map<String,Integer>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response(Map.of("size",buffer.array().length)).applicationJson().ok());
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+
+	}
+
+
+	@POST
+	@Path("multipart/mixed")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Debug
+	@Blocking
+	public ServerResponse<Map<String,Object>> multipartUploadMixed(ServerRequest request, @FormParam("buffer") ByteBuffer buffer, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+		return response(Map.of("buffer",buffer.array().length,"user",user,"userId",userId)).applicationJson().ok();
+
+
+	}
+
+
+	@POST
+	@Path("multipart/future/mixed")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Debug
+	@Blocking
+	public CompletableFuture<ServerResponse<Map<String,Object>>> multipartUploadFutureMixed(ServerRequest request, @FormParam("buffer") ByteBuffer buffer, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+		CompletableFuture<ServerResponse<Map<String,Object>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response(Map.of("buffer",buffer.array().length,"user",user,"userId",userId)).applicationJson().ok());
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+	}
+
+	@POST
+	@Path("multipart/json")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public ServerResponse<JsonNode> multipartUploadJson(ServerRequest request, @FormParam("json") JsonNode node  ) throws Exception
+	{
+
+		return response(node).applicationJson().ok();
+
+
+	}
+
+	@POST
+	@Path("multipart/future/json")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public CompletableFuture<ServerResponse<JsonNode>> multipartUploadFutureJson(ServerRequest request, @FormParam("json") JsonNode json ) throws Exception
+	{
+
+		CompletableFuture<ServerResponse<JsonNode>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response(json).applicationJson().ok());
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+
+
 	}
 }

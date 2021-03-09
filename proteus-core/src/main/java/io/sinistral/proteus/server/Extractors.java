@@ -4,6 +4,7 @@
 package io.sinistral.proteus.server;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -12,14 +13,19 @@ import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
+import io.undertow.util.HeaderValues;
+import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -34,15 +40,22 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * @author jbauer
  */
-public class Extractors
-{
+public class Extractors {
+
     private static Logger log = LoggerFactory.getLogger(Extractors.class.getCanonicalName());
+
+    private final static Pattern XML_PATTERN = Pattern.compile("^(application/(xml|xhtml\\+xml)|text/xml)(;.*)?$", Pattern.CASE_INSENSITIVE);
+    private final static Pattern JSON_PATTERN = Pattern.compile("^(application/(json|x-javascript)|text/(json|x-javascript|x-json))(;.*)?$", Pattern.CASE_INSENSITIVE);
+
+    private static final Map<Type, JavaType> JAVA_TYPE_MAP = new ConcurrentHashMap<>();
 
     @Inject
     private static XmlMapper XML_MAPPER;
@@ -50,98 +63,399 @@ public class Extractors
     @Inject
     private static ObjectMapper OBJECT_MAPPER;
 
+    private static ByteBuffer streamToBuffer(InputStream stream) throws Exception {
+
+        try (ByteArrayOutputStream buffer = new ByteArrayOutputStream())
+        {
+            int nRead;
+            byte[] data = new byte[16384];
+            while ((nRead = stream.read(data, 0, data.length)) != -1)
+            {
+                buffer.write(data, 0, nRead);
+            }
+
+            buffer.flush();
+
+            return ByteBuffer.wrap(buffer.toByteArray());
+        }
+    }
+
     private static JsonNode parseJson(byte[] bytes)
     {
-        try {
+
+        try
+        {
             return OBJECT_MAPPER.readTree(bytes);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
+        } catch (Exception e)
+        {
+            log.error("Failed to parse JSON", e);
             return null;
         }
     }
 
-    public static class Optional
+    private static <T> T parseTypedJson(final Class<T> type, byte[] bytes)
     {
+
+        try
+        {
+            return OBJECT_MAPPER.readValue(bytes, type);
+        } catch (Exception e)
+        {
+            log.error("Failed to parse JSON for type {}", type, e);
+            return null;
+        }
+    }
+
+    private static <T> T parseTypedJson(final TypeReference<T> type, byte[] bytes)
+    {
+
+        try
+        {
+            final Type _rawType = type.getType();
+
+            JavaType _javaType = JAVA_TYPE_MAP.get(_rawType);
+
+            if (_javaType == null)
+            {
+                _javaType = OBJECT_MAPPER.getTypeFactory().constructType(type.getType());
+                JAVA_TYPE_MAP.put(_rawType, _javaType);
+            }
+
+            return OBJECT_MAPPER.readValue(bytes, _javaType);
+        } catch (Exception e)
+        {
+            log.error("Failed to parse JSON for type {}", type, e);
+            return null;
+        }
+    }
+
+    private static <T> T parseTypedXML(final Class<T> type, byte[] bytes)
+    {
+
+        try
+        {
+            return XML_MAPPER.readValue(bytes, type);
+        } catch (Exception e)
+        {
+            log.error("Failed to parse XML for type {}", type, e);
+            return null;
+        }
+    }
+
+    private static <T> T parseTypedXML(final TypeReference<T> type, byte[] bytes)
+    {
+
+        try
+        {
+            final Type _rawType = type.getType();
+
+            JavaType _javaType = JAVA_TYPE_MAP.get(_rawType);
+
+            if (_javaType == null)
+            {
+                _javaType = OBJECT_MAPPER.getTypeFactory().constructType(type.getType());
+                JAVA_TYPE_MAP.put(_rawType, _javaType);
+            }
+
+            return XML_MAPPER.readValue(bytes, _javaType);
+        } catch (Exception e)
+        {
+            log.error("Failed to parse XML for type {}", type, e);
+            return null;
+        }
+    }
+
+    private static ByteBuffer readFileBytes(Path fp) {
+
+        try (final FileChannel fileChannel = FileChannel.open(fp, StandardOpenOption.READ))
+        {
+            final ByteBuffer buffer = ByteBuffer.allocate((int) fileChannel.size());
+
+            fileChannel.read(buffer);
+
+            buffer.flip();
+
+            return buffer;
+
+        } catch (Exception e)
+        {
+            log.error("Failed to read bytes", e);
+            return null;
+        }
+    }
+
+    ;
+
+    private static java.util.Optional<ByteBuffer> formBufferValue(final HttpServerExchange exchange, final String name)
+    {
+
+        return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map(fi -> {
+
+            try
+            {
+
+                if (fi.isFileItem())
+                {
+                    FormData.FileItem fileItem = fi.getFileItem();
+
+                    if(fileItem.isInMemory())
+                    {
+                        ByteBuffer buffer =  streamToBuffer(fileItem.getInputStream());
+                        log.info("memory buffer: {}",buffer);
+
+                        return buffer;
+                    }
+                    else
+                    {
+                        log.info("file: {}",fileItem.getFile());
+                        File f = fileItem.getFile().toFile();
+
+                        log.info("exists: {} length: {}",f.exists(), f.length());
+                        ByteBuffer buffer = readFileBytes(fileItem.getFile().toFile().toPath());
+                        log.info("file buffer: {}",buffer);
+
+                        return buffer;
+                    }
+                }
+
+            } catch (Exception e)
+            {
+                log.error("Failed to parse buffer for name {}", name);
+            }
+
+            return null;
+
+        });
+
+    }
+
+    private static java.util.Optional<FormData.FormValue> formValue(final HttpServerExchange exchange, final String name)
+    {
+
+        return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst);
+
+    }
+
+    private static <T> T formValueModel(final FormData.FormValue formValue, final TypeReference<T> type, final String name)
+    {
+
+        if (formValue.getHeaders().get(Headers.CONTENT_TYPE) != null && XML_PATTERN.matcher(formValue.getHeaders().getFirst(Headers.CONTENT_TYPE)).matches())
+        {
+            if (formValue.isFileItem())
+            {
+                try
+                {
+                    ByteBuffer byteBuffer = streamToBuffer(formValue.getFileItem().getInputStream());
+
+                    return parseTypedXML(type, byteBuffer.array());
+
+                } catch (Exception e)
+                {
+                    log.error("Failed to parse buffered XML for {}", name, e);
+                    return null;
+                }
+            }
+            else
+            {
+                try
+                {
+                    return parseTypedXML(type, formValue.getValue().getBytes());
+                } catch (Exception e)
+                {
+                    log.error("Failed to parse XML for {}", name, e);
+                    return null;
+                }
+            }
+        }
+        else if (formValue.getHeaders().get(Headers.CONTENT_TYPE) == null || (formValue.getHeaders().get(Headers.CONTENT_TYPE) != null && JSON_PATTERN.matcher(formValue.getHeaders().getFirst(Headers.CONTENT_TYPE)).matches()))
+        {
+            if (formValue.isFileItem())
+            {
+                try
+                {
+                    ByteBuffer byteBuffer = streamToBuffer(formValue.getFileItem().getInputStream());
+
+                    return parseTypedJson(type, byteBuffer.array());
+
+                } catch (Exception e)
+                {
+                    log.error("Failed to parse buffered json for {}", name, e);
+                    return null;
+                }
+            }
+            else
+            {
+                return parseTypedJson(type, formValue.getValue().getBytes());
+            }
+        }
+        else
+        {
+            log.warn("Unable to find suitable content for {}", name);
+            return null;
+        }
+    }
+
+    private static <T> T formValueModel(final FormData.FormValue formValue, final Class<T> type, final String name)
+    {
+
+        if (formValue.getHeaders().get(Headers.CONTENT_TYPE) != null && XML_PATTERN.matcher(formValue.getHeaders().getFirst(Headers.CONTENT_TYPE)).matches())
+        {
+            if (formValue.isFileItem())
+            {
+                try
+                {
+                    ByteBuffer byteBuffer = streamToBuffer(formValue.getFileItem().getInputStream());
+
+                    return parseTypedXML(type, byteBuffer.array());
+
+                } catch (Exception e)
+                {
+                    log.error("Failed to parse buffered XML for {}", name, e);
+                    return null;
+                }
+            }
+            else
+            {
+                try
+                {
+                    return parseTypedXML(type, formValue.getValue().getBytes());
+                } catch (Exception e)
+                {
+                    log.error("Failed to parse XML for {}", name, e);
+                    return null;
+                }
+            }
+        }
+        else if (formValue.getHeaders().get(Headers.CONTENT_TYPE) == null || (formValue.getHeaders().get(Headers.CONTENT_TYPE) != null && JSON_PATTERN.matcher(formValue.getHeaders().getFirst(Headers.CONTENT_TYPE)).matches()))
+        {
+            if (formValue.isFileItem())
+            {
+                try
+                {
+                    ByteBuffer byteBuffer = streamToBuffer(formValue.getFileItem().getInputStream());
+
+                    return parseTypedJson(type, byteBuffer.array());
+
+                } catch (Exception e)
+                {
+                    log.error("Failed to parse buffered json for {}", name, e);
+                    return null;
+                }
+            }
+            else
+            {
+                return parseTypedJson(type, formValue.getValue().getBytes());
+            }
+        }
+        else
+        {
+            log.warn("Unable to find suitable content for {}", name);
+            return null;
+        }
+    }
+
+    public static class Header {
+
+        public static String string(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
+        {
+
+            return java.util.Optional.ofNullable(exchange.getRequestHeaders().get(name)).map(HeaderValues::getFirst).orElseThrow(() -> new IllegalArgumentException("Missing parameter " + name));
+        }
+
+        public static class Optional {
+
+            public static java.util.Optional<String> string(final HttpServerExchange exchange, final String name)
+            {
+
+                return java.util.Optional.ofNullable(exchange.getRequestHeaders().get(name)).map(HeaderValues::getFirst);
+            }
+
+        }
+
+    }
+
+    public static class Optional {
 
         public static <T> java.util.Optional<T> extractWithFunction(final HttpServerExchange exchange, final String name, Function<String, T> function)
         {
+
             return string(exchange, name).map(function);
         }
 
-        public static java.util.Optional<JsonNode> jsonNode(final HttpServerExchange exchange)
+        public static java.util.Optional<JsonNode> namedJsonNode(final HttpServerExchange exchange)
         {
-            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(o -> parseJson(o));
+
+            return jsonModel(exchange, JsonNode.class);
+        }
+
+        public static java.util.Optional<JsonNode> namedJsonNode(final HttpServerExchange exchange, final String name)
+        {
+
+            return formValue(exchange, name).map(fv -> formValueModel(fv, JsonNode.class, name));
         }
 
         public static <T> java.util.Optional<T> model(final HttpServerExchange exchange, final TypeReference<T> type)
         {
-            if (ServerPredicates.XML_PREDICATE.resolve(exchange)) {
+
+            if (ServerPredicates.XML_PREDICATE.resolve(exchange))
+            {
                 return xmlModel(exchange, type);
-            } else {
+            }
+            else
+            {
                 return jsonModel(exchange, type);
             }
         }
 
         public static <T> java.util.Optional<T> model(final HttpServerExchange exchange, final Class<T> type)
         {
-            if (ServerPredicates.XML_PREDICATE.resolve(exchange)) {
 
+            if (ServerPredicates.XML_PREDICATE.resolve(exchange))
+            {
                 return xmlModel(exchange, type);
-            } else {
+            }
+            else
+            {
                 return jsonModel(exchange, type);
             }
         }
 
+        public static <T> java.util.Optional<T> namedModel(final HttpServerExchange exchange, final Class<T> type, final String name)
+        {
+
+            return formValue(exchange, name).map(fv -> formValueModel(fv, type, name));
+        }
+
+        public static <T> java.util.Optional<T> namedModel(final HttpServerExchange exchange, final TypeReference<T> type, final String name)
+        {
+
+            return formValue(exchange, name).map(fv -> formValueModel(fv, type, name));
+
+        }
 
         public static <T> java.util.Optional<T> jsonModel(final HttpServerExchange exchange, final TypeReference<T> type)
         {
-            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(b -> {
-                try {
-                    return OBJECT_MAPPER.readValue(b, type);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                    return null;
-                }
-            });
+
+            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(b -> parseTypedJson(type, b));
         }
 
         public static <T> java.util.Optional<T> jsonModel(final HttpServerExchange exchange, final Class<T> type)
         {
-            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(b -> {
-                try {
-                    return OBJECT_MAPPER.readValue(b, type);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                    return null;
-                }
-            });
+
+            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(b -> parseTypedJson(type, b));
         }
 
         public static <T> java.util.Optional<T> xmlModel(final HttpServerExchange exchange, final TypeReference<T> type)
         {
-            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(b -> {
-                try {
-                    return XML_MAPPER.readValue(b, XML_MAPPER.getTypeFactory().constructType(type.getType()));
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                    return null;
-                }
-            });
+
+            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(b -> parseTypedXML(type, b));
         }
 
         public static <T> java.util.Optional<T> xmlModel(final HttpServerExchange exchange, final Class<T> type)
         {
-            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(b -> {
-                try {
-                    return XML_MAPPER.readValue(b, type);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                    return null;
-                }
-            });
 
+            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(ByteBuffer::array).map(b -> parseTypedXML(type, b));
         }
-
 
         public static java.util.Optional<Date> date(final HttpServerExchange exchange, final String name)
         {
@@ -157,7 +471,6 @@ public class Extractors
 
         }
 
-
         public static java.util.Optional<ZonedDateTime> zonedDateTime(final HttpServerExchange exchange, final String name)
         {
 
@@ -170,43 +483,45 @@ public class Extractors
             return string(exchange, name).map(Instant::parse);
         }
 
-        public static java.util.Optional<JsonNode> any(final HttpServerExchange exchange)
-        {
-            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY)).map(b -> parseJson(b.array()));
-        }
-
         public static java.util.Optional<Integer> integerValue(final HttpServerExchange exchange, final String name)
         {
+
             return string(exchange, name).map(Integer::parseInt);
         }
 
         public static java.util.Optional<Short> shortValue(final HttpServerExchange exchange, final String name)
         {
+
             return string(exchange, name).map(Short::parseShort);
         }
 
         public static java.util.Optional<Float> floatValue(final HttpServerExchange exchange, final String name)
         {
+
             return string(exchange, name).map(Float::parseFloat);
         }
 
         public static java.util.Optional<Double> doubleValue(final HttpServerExchange exchange, final String name)
         {
+
             return string(exchange, name).map(Double::parseDouble);
         }
 
         public static java.util.Optional<BigDecimal> bigDecimalValue(final HttpServerExchange exchange, final String name)
         {
+
             return string(exchange, name).map(BigDecimal::new);
         }
 
         public static java.util.Optional<Long> longValue(final HttpServerExchange exchange, final String name)
         {
+
             return string(exchange, name).map(Long::parseLong);
         }
 
         public static java.util.Optional<Boolean> booleanValue(final HttpServerExchange exchange, final String name)
         {
+
             return string(exchange, name).map(Boolean::parseBoolean);
         }
 
@@ -217,60 +532,33 @@ public class Extractors
 
         public static java.util.Optional<String> string(final HttpServerExchange exchange, final String name)
         {
+
             return java.util.Optional.ofNullable(exchange.getQueryParameters().get(name)).map(Deque::getFirst);
         }
 
-
         public static java.util.Optional<Path> filePath(final HttpServerExchange exchange, final String name)
         {
+
             return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map(fv -> fv.getFileItem().getFile());
         }
 
         public static java.util.Optional<File> file(final HttpServerExchange exchange, final String name)
         {
+
             return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map(fv -> fv.getFileItem().getFile().toFile());
         }
 
-        public static java.util.Optional<ByteBuffer> byteBuffer(final HttpServerExchange exchange, final String name)
-        {
-            return Optional.filePath(exchange, name).map(fp -> {
-
-                try (final FileChannel fileChannel = FileChannel.open(fp, StandardOpenOption.READ)) {
-                    final ByteBuffer buffer = ByteBuffer.allocate((int) fileChannel.size());
-
-                    fileChannel.read(buffer);
-
-                    buffer.flip();
-
-                    return buffer;
-
-                } catch (Exception e) {
-                    return null;
-                }
-            });
-        }
-    }
-
-    public static class Header
-    {
-        public static String string(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
-        {
-            try {
-                return exchange.getRequestHeaders().get(name).getFirst();
-            } catch (NullPointerException e) {
-                throw new IllegalArgumentException("Missing parameter " + name, e);
-            }
-        }
-
-        public static class Optional
+        public static java.util.Optional<ByteBuffer> byteBuffer(final HttpServerExchange exchange) throws IOException
         {
 
-            public static java.util.Optional<String> string(final HttpServerExchange exchange, final String name)
-            {
-                return java.util.Optional.ofNullable(exchange.getRequestHeaders().get(name)).map(Deque::getFirst);
-            }
+            return java.util.Optional.ofNullable(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY));
         }
 
+        public static java.util.Optional<ByteBuffer> namedByteBuffer(final HttpServerExchange exchange, final String name) throws IOException
+        {
+
+            return formBufferValue(exchange, name);
+        }
 
     }
 
@@ -279,7 +567,6 @@ public class Extractors
 
         return Date.from(OffsetDateTime.parse(string(exchange, name)).toInstant());
     }
-
 
     public static ZonedDateTime zonedDateTime(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
@@ -295,65 +582,25 @@ public class Extractors
 
     }
 
-    public static <T> T jsonModel(final HttpServerExchange exchange, final TypeReference<T> type) throws IllegalArgumentException, IOException
-    {
-        final byte[] attachment = exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array();
-
-        return OBJECT_MAPPER.readValue(attachment, type);
-    }
-
-    public static <T> T jsonModel(final HttpServerExchange exchange, final Class<T> type) throws IllegalArgumentException, IOException
-    {
-        final byte[] attachment = exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array();
-
-        return OBJECT_MAPPER.readValue(attachment, type);
-    }
-
-
-    public static <T> T xmlModel(final HttpServerExchange exchange, final Class<T> type) throws IllegalArgumentException, IOException
-    {
-        final byte[] attachment = exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array();
-
-        return XML_MAPPER.readValue(attachment, type);
-    }
-
-    public static <T> T xmlModel(final HttpServerExchange exchange, final TypeReference<T> type) throws IllegalArgumentException, IOException
-    {
-        final byte[] attachment = exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array();
-
-        return XML_MAPPER.readValue(attachment, XML_MAPPER.getTypeFactory().constructType(type.getType()));
-    }
-
-    public static JsonNode any(final HttpServerExchange exchange)
-    {
-        try {
-            return parseJson(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
-        } catch (Exception e) {
-            log.warn(e.getMessage(), e);
-            return OBJECT_MAPPER.createObjectNode();
-        }
-    }
-
-    public static JsonNode jsonNode(final HttpServerExchange exchange)
-    {
-        return parseJson(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
-    }
-
     public static Path filePath(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
-        try {
+
+        try
+        {
             return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getFileItem().getFile();
-        } catch (NullPointerException e) {
+        } catch (NullPointerException e)
+        {
             throw new IllegalArgumentException("Missing parameter " + name, e);
         }
     }
 
     public static List<Path> pathList(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         try
         {
-           return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().map( i -> i.getFileItem().getFile()).collect(Collectors.toList());
-        } catch( Exception e )
+            return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().map(i -> i.getFileItem().getFile()).collect(Collectors.toList());
+        } catch (Exception e)
         {
             throw new IllegalArgumentException("Missing parameter " + name, e);
         }
@@ -361,32 +608,35 @@ public class Extractors
 
     public static List<File> fileList(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         try
         {
-           return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().map( i -> i.getFileItem().getFile().toFile()).collect(Collectors.toList());
-        } catch( Exception e )
+            return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().map(i -> i.getFileItem().getFile().toFile()).collect(Collectors.toList());
+        } catch (Exception e)
         {
             throw new IllegalArgumentException("Missing parameter " + name, e);
         }
     }
 
-    public static Map<String,Path> pathMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
+    public static Map<String, Path> pathMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         try
         {
-           return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().collect(Collectors.toMap(FormData.FormValue::getFileName, i -> i.getFileItem().getFile()));
-        } catch( Exception e )
+            return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().collect(Collectors.toMap(FormData.FormValue::getFileName, i -> i.getFileItem().getFile()));
+        } catch (Exception e)
         {
             throw new IllegalArgumentException("Missing parameter " + name, e);
         }
     }
 
-    public static Map<String,File> fileMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
+    public static Map<String, File> fileMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         try
         {
-           return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().collect(Collectors.toMap(FormData.FormValue::getFileName, i -> i.getFileItem().getFile().toFile()));
-        } catch( Exception e )
+            return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).stream().collect(Collectors.toMap(FormData.FormValue::getFileName, i -> i.getFileItem().getFile().toFile()));
+        } catch (Exception e)
         {
             throw new IllegalArgumentException("Missing parameter " + name, e);
         }
@@ -394,128 +644,217 @@ public class Extractors
 
     public static File file(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
-        try {
+
+        try
+        {
             return exchange.getAttachment(FormDataParser.FORM_DATA).get(name).getFirst().getFileItem().getFile().toFile();
-        } catch (NullPointerException e) {
+        } catch (NullPointerException e)
+        {
             throw new IllegalArgumentException("Missing parameter " + name, e);
         }
     }
 
-    public static ByteBuffer byteBuffer(final HttpServerExchange exchange, final String name) throws IOException
+    public static ByteBuffer byteBuffer(final HttpServerExchange exchange) throws IOException
     {
-        final Path filePath = filePath(exchange, name);
 
-        try (final FileChannel fileChannel = FileChannel.open(filePath, StandardOpenOption.READ)) {
-            final ByteBuffer buffer = ByteBuffer.allocate((int) fileChannel.size());
-
-            fileChannel.read(buffer);
-
-            buffer.flip();
-
-            return buffer;
-        }
-
+        return exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY);
     }
 
+    public static ByteBuffer namedByteBuffer(final HttpServerExchange exchange, final String name) throws IOException
+    {
+
+        return  formBufferValue(exchange, name).orElseThrow(() -> new IllegalArgumentException("Missing parameter " + name));
+    }
 
     public static String string(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
-        try {
+
+        try
+        {
             return exchange.getQueryParameters().get(name).getFirst();
-        } catch (NullPointerException e) {
+        } catch (NullPointerException e)
+        {
             throw new IllegalArgumentException("Missing parameter " + name, e);
         }
     }
 
     public static <T> T extractWithFunction(final HttpServerExchange exchange, final String name, Function<String, T> function) throws IllegalArgumentException
     {
+
         return function.apply(string(exchange, name));
     }
 
     public static Float floatValue(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         return Float.parseFloat(string(exchange, name));
     }
 
     public static Double doubleValue(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         return Double.parseDouble(string(exchange, name));
     }
 
     public static BigDecimal bigDecimalValue(final HttpServerExchange exchange, final String name)
     {
+
         return new BigDecimal(string(exchange, name));
     }
 
-
     public static Long longValue(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         return Long.parseLong(string(exchange, name));
     }
 
     public static Instant instant(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         return Instant.parse(string(exchange, name));
     }
 
     public static Integer integerValue(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         return Integer.parseInt(string(exchange, name));
 
     }
 
     public static Short shortValue(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         return Short.parseShort(string(exchange, name));
 
     }
 
     public static Boolean booleanValue(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         return Boolean.parseBoolean(string(exchange, name));
+    }
+
+    public static <T> T jsonModel(final HttpServerExchange exchange, final TypeReference<T> type) throws IllegalArgumentException, IOException
+    {
+
+        return parseTypedJson(type, exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
+
+    }
+
+    public static <T> T jsonModel(final HttpServerExchange exchange, final Class<T> type) throws IllegalArgumentException, IOException
+    {
+
+        return parseTypedJson(type, exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
+
+    }
+
+    public static <T> T xmlModel(final HttpServerExchange exchange, final Class<T> type) throws IllegalArgumentException, IOException
+    {
+
+        return parseTypedXML(type, exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
+
+    }
+
+    public static <T> T xmlModel(final HttpServerExchange exchange, final TypeReference<T> type) throws IllegalArgumentException, IOException
+    {
+
+        return parseTypedXML(type, exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
+
+    }
+
+    public static JsonNode any(final HttpServerExchange exchange)
+    {
+
+        return parseJson(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
+    }
+
+    public static JsonNode jsonNode(final HttpServerExchange exchange)
+    {
+
+        return parseJson(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
+    }
+
+    public static JsonNode namedJsonNode(final HttpServerExchange exchange, final String name)
+    {
+
+        return formValue(exchange, name).map(fv -> formValueModel(fv, JsonNode.class, name)).orElseThrow(() -> new IllegalArgumentException("Missing parameter " + name));
     }
 
     public static <T> T model(final HttpServerExchange exchange, final TypeReference<T> type) throws IllegalArgumentException, IOException
     {
-        if (ServerPredicates.XML_PREDICATE.resolve(exchange)) {
+
+        if (ServerPredicates.XML_PREDICATE.resolve(exchange))
+        {
             return xmlModel(exchange, type);
-        } else {
+        }
+        else
+        {
             return jsonModel(exchange, type);
         }
     }
 
     public static <T> T model(final HttpServerExchange exchange, final Class<T> type) throws IllegalArgumentException, IOException
     {
-        if (ServerPredicates.XML_PREDICATE.resolve(exchange)) {
+
+        if (ServerPredicates.XML_PREDICATE.resolve(exchange))
+        {
             return xmlModel(exchange, type);
-        } else {
+        }
+        else
+        {
             return jsonModel(exchange, type);
         }
     }
 
+    public static <T> T namedModel(final HttpServerExchange exchange, final TypeReference<T> type, final String name) throws IllegalArgumentException, IOException
+    {
+
+        return formValue(exchange, name).map(fv -> formValueModel(fv, type, name)).orElseThrow(() -> new IllegalArgumentException("Missing parameter " + name));
+    }
+
+    public static <T> T namedModel(final HttpServerExchange exchange, final Class<T> type, final String name) throws IllegalArgumentException, IOException
+    {
+
+        return formValue(exchange, name).map(fv -> formValueModel(fv, type, name)).orElseThrow(() -> new IllegalArgumentException("Missing parameter " + name));
+    }
 
     public static Function<Method, HttpString> httpMethodFromMethod = (m) ->
             Arrays.stream(m.getDeclaredAnnotations()).map(a -> {
 
-
-                if (a instanceof javax.ws.rs.POST) {
+                if (a instanceof javax.ws.rs.POST)
+                {
                     return Methods.POST;
-                } else if (a instanceof javax.ws.rs.GET) {
+                }
+                else if (a instanceof javax.ws.rs.GET)
+                {
                     return Methods.GET;
-                } else if (a instanceof javax.ws.rs.PUT) {
+                }
+                else if (a instanceof javax.ws.rs.PUT)
+                {
                     return Methods.PUT;
-                } else if (a instanceof javax.ws.rs.DELETE) {
+                }
+                else if (a instanceof javax.ws.rs.DELETE)
+                {
                     return Methods.DELETE;
-                } else if (a instanceof javax.ws.rs.OPTIONS) {
+                }
+                else if (a instanceof javax.ws.rs.OPTIONS)
+                {
                     return Methods.OPTIONS;
-                } else if (a instanceof javax.ws.rs.HEAD) {
+                }
+                else if (a instanceof javax.ws.rs.HEAD)
+                {
                     return Methods.HEAD;
-                } else {
+                }
+                else if (a instanceof javax.ws.rs.PATCH)
+                {
+                    return Methods.PATCH;
+                }
+                else
+                {
                     return null;
                 }
 
             }).filter(Objects::nonNull).findFirst().get();
-
 
     public static Function<Method, String> pathTemplateFromMethod = (m) ->
     {
@@ -523,8 +862,9 @@ public class Extractors
 
         javax.ws.rs.Path parentPath = m.getDeclaringClass().getDeclaredAnnotation(javax.ws.rs.Path.class);
 
-        if (!childPath.value().equals("/")) {
-            return (parentPath.value() + '/' + childPath.value()).replaceAll("\\/\\/", "\\/");
+        if (!childPath.value().equals("/"))
+        {
+            return (String.format("%s/%s", parentPath.value(), childPath.value())).replaceAll("//", "\\/");
         }
 
         return (parentPath.value());

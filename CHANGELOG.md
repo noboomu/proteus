@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Rework form processing.**
+
+
+[60edfa65d52d089](https://github.com/noboomu/proteus/commit/60edfa65d52d089) Joshua Bauer *2021-03-10 00:28:19*
+
+**Forms**
+
+
+[289e3a356924979](https://github.com/noboomu/proteus/commit/289e3a356924979) Joshua Bauer *2021-03-09 03:05:30*
+
 **Improve startup time.**
 
 

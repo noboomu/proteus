@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -49,8 +50,8 @@ import static org.junit.Assert.fail;
  * @author jbauer
  */
 @RunWith(DefaultServer.class)
-@Ignore
-public class TestControllerEndpoints {
+
+public class StandardEndpointsTest {
 
     private File file = null;
 
@@ -64,15 +65,22 @@ public class TestControllerEndpoints {
 
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
+
         try
         {
-            for (int i = 0; i < 4; i++)
+         for (int i = 0; i < 4; i++)
             {
-                byte[] bytes = new byte[8388608];
+                byte[] bytes = new byte[1388608];
                 Random random = new Random();
                 random.nextBytes(bytes);
 
-                files.add(Files.createTempFile("test-asset", ".mp4").toFile());
+                Path tmpPath = Files.createTempFile("test-asset", ".mp4");
+
+                tmpPath.toFile().deleteOnExit();
+
+                Files.write(tmpPath, bytes);
+
+                files.add(tmpPath.toFile());
 
                 LongStream.range(1L, 10L).forEach(l -> {
 
@@ -437,159 +445,6 @@ public class TestControllerEndpoints {
 //
 //	}
 
-    @Test
-    public void responseUploadFilePathParameter()
-    {
-
-        try
-        {
-
-            final InputStream is = given().multiPart("file", file).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).accept(ContentType.ANY).when().post("v1/tests/response/file/path").asInputStream();
-
-            try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
-            {
-                IOUtils.copy(is, byteArrayOutputStream);
-
-                assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
-            }
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @Test
-    public void uploadMultipleFileList()
-    {
-
-        try
-        {
-
-            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-                             .multiPart("names", files.get(0).getName())
-                             .multiPart("names", files.get(1).getName())
-                             .multiPart("names", files.get(2).getName())
-                             .multiPart("names", files.get(3).getName())
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
-
-            assertThat(map.size(), equalTo(4));
-
-            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @Test
-    public void uploadMultiplePathList()
-    {
-
-        try
-        {
-
-            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-                             .multiPart("names", files.get(0).getName())
-                             .multiPart("names", files.get(1).getName())
-                             .multiPart("names", files.get(2).getName())
-                             .multiPart("names", files.get(3).getName())
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
-
-            assertThat(map.size(), equalTo(4));
-
-            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @Test
-    public void uploadMultipleFileMap()
-    {
-
-        try
-        {
-
-            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
-
-            assertThat(map.size(), equalTo(4));
-
-            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @Test
-    public void uploadMultiplePathMap()
-    {
-
-        try
-        {
-
-            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-.contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
-
-            assertThat(map.size(), equalTo(4));
-
-            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @Test
-    public void responseUploadOptionalFilePathParameter()
-    {
-
-        try
-        {
-
-            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/file/path/optional").asInputStream();
-
-            try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
-            {
-                IOUtils.copy(is, byteArrayOutputStream);
-
-                assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
-            }
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
 
     @Test
     public void responseParseListParameter()
@@ -610,57 +465,6 @@ public class TestControllerEndpoints {
 
     }
 
-    @SuppressWarnings("resource")
-    @Test
-    public void responseUploadByteBufferParameter()
-    {
-
-        try
-        {
-
-            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/bytebuffer").asInputStream();
-
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            IOUtils.copy(is, byteArrayOutputStream);
-            IOUtils.closeQuietly(byteArrayOutputStream);
-            IOUtils.closeQuietly(is);
-
-            assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @SuppressWarnings("resource")
-    @Test
-    public void responseUploadFileParameter()
-    {
-
-        try
-        {
-
-            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/file").asInputStream();
-
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            IOUtils.copy(is, byteArrayOutputStream);
-            IOUtils.closeQuietly(byteArrayOutputStream);
-            IOUtils.closeQuietly(is);
-
-            assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
 
     @Test
     public void responseParseInstant()
@@ -847,173 +651,7 @@ public class TestControllerEndpoints {
 
     }
 
-    @SuppressWarnings("resource")
-    @Test
-    public void uploadMultipartByteBuffer()
-    {
 
-        try
-        {
-
-            Map map = given().multiPart("buffer", file,MediaType.APPLICATION_OCTET_STREAM.contentType())
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/byteBuffer").as(Map.class);
-
-            assertThat(map.size(), equalTo(1));
-
-            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @SuppressWarnings("resource")
-    @Test
-    public void uploadMultipartFutureByteBuffer()
-    {
-
-        try
-        {
-
-            Map map = given().multiPart("buffer", file,MediaType.APPLICATION_OCTET_STREAM.contentType())
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/byteBuffer").as(Map.class);
-
-            assertThat(map.size(), equalTo(1));
-
-            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @SuppressWarnings("resource")
-    @Test
-    public void uploadMultipartMixed()
-    {
-
-        try
-        {
-
-            User model = new User(101L, UserType.ADMIN);
-
-            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
-                             .multiPart("user", model, MediaType.JSON.contentType())
-                             .multiPart("userId", 101)
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/mixed").as(Map.class);
-
-            assertThat(map.size(), equalTo(3));
-
-            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
-            assertThat(map.get("user").toString(), containsString("101"));
-            assertThat(map.get("userId").toString(), equalTo("101"));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @SuppressWarnings("resource")
-    @Test
-    public void uploadMultipartFutureMixed()
-    {
-
-        try
-        {
-
-            User model = new User(101L, UserType.ADMIN);
-
-            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
-                             .multiPart("user", model, MediaType.JSON.contentType())
-                             .multiPart("userId", 101)
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/mixed").as(Map.class);
-
-            assertThat(map.size(), equalTo(3));
-
-            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
-            assertThat(map.get("user").toString(), containsString("101"));
-            assertThat(map.get("userId").toString(), equalTo("101"));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @SuppressWarnings("resource")
-    @Test
-    public void uploadMultipartJson()
-    {
-
-        try
-        {
-
-            User model = new User(101L, UserType.ADMIN);
-
-            ObjectMapper mapper = new ObjectMapper();
-
-            JsonNode node = mapper.valueToTree(model);
-
-            JsonNode responseNode = given()
-                    .multiPart("json", node.toString(),MediaType.JSON.contentType()).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).accept(ContentType.JSON).when().post("v1/tests/multipart/json").as(JsonNode.class);
-
-        assertThat(responseNode.get("id").textValue(), equalTo("101"));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
-
-    @SuppressWarnings("resource")
-    @Test
-    public void uploadMultipartFutureJson()
-    {
-
-        try
-        {
-
-            User model = new User(101L, UserType.ADMIN);
-
-            ObjectMapper mapper = new ObjectMapper();
-
-            JsonNode node = mapper.valueToTree(model);
-
-            JsonNode responseNode = given()
-                    .multiPart("json", node.toString(), MediaType.JSON.contentType()).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).accept(ContentType.JSON).when().post("v1/tests/multipart/future/json").as(JsonNode.class);
-
-            assertThat(responseNode.get("id").textValue(), equalTo("101"));
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-
-    }
 
     // @Path("multipart/json")
 

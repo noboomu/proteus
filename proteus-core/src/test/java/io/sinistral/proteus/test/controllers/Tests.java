@@ -903,4 +903,129 @@ public class Tests
 
 
 	}
+
+
+	@POST
+	@Path("multipart/path-mixed")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public ServerResponse<Map<String,Object>> multipartUploadMixedWithPath(ServerRequest request, @FormParam("path") java.nio.file.Path path, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+		return response(Map.of("path",path.toFile().length(),"user",user,"userId",userId)).applicationJson().ok();
+
+
+	}
+
+
+	@POST
+	@Path("multipart/future/path-mixed")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public CompletableFuture<ServerResponse<Map<String,Object>>> multipartUploadFutureMixedWithPath(ServerRequest request, @FormParam("path") java.nio.file.Path path, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+		CompletableFuture<ServerResponse<Map<String,Object>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response(Map.of("path",path.toFile().length(),"user",user,"userId",userId)).applicationJson().ok());
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+	}
+
+	@POST
+	@Path("multipart/file-mixed")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public ServerResponse<Map<String,Object>> multipartUploadMixedWithFile(ServerRequest request, @FormParam("file") java.io.File file, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+		return response(Map.of("file",file.length(),"user",user,"userId",userId)).applicationJson().ok();
+
+
+	}
+
+
+	@POST
+	@Path("multipart/future/file-mixed")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public CompletableFuture<ServerResponse<Map<String,Object>>> multipartUploadFutureMixedWithFile(ServerRequest request, @FormParam("file") java.io.File file, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+		CompletableFuture<ServerResponse<Map<String,Object>>> future = new CompletableFuture<>();
+
+		request.getWorker().execute( () -> {
+
+			try
+			{
+
+			    Thread.sleep(2000L);
+
+			    future.complete(response(Map.of("file",file.length(),"user",user,"userId",userId)).applicationJson().ok());
+
+			} catch( Exception e )
+			{
+			    future.completeExceptionally(e);
+			}
+		});
+
+		return future;
+	}
+
+	@POST
+	@Path("multipart/multiple-buffers")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public ServerResponse<Map<String,Object>> multipartUploadMultipleBuffers(ServerRequest request, @FormParam("file1") ByteBuffer file1,@FormParam("file2") ByteBuffer file2,@FormParam("file3") ByteBuffer file3, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+
+		return response(Map.of("file1",file1.array().length,"file2",file2.array().length,"file3",file3.array().length,"user",user,"userId",userId)).applicationJson().ok();
+
+
+	}
+
+	@POST
+	@Path("multipart/multiple-files")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public ServerResponse<Map<String,Object>> multipartUploadMultipleFiles(ServerRequest request, @FormParam("file1") File file1,@FormParam("file2") File file2,@FormParam("file3") File file3, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+		return response(Map.of("file1",file1.length(),"file2",file2.length(),"file3",file3.length(),"user",user,"userId",userId)).applicationJson().ok();
+
+
+	}
+
+	@POST
+	@Path("multipart/multiple-paths")
+ 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public ServerResponse<Map<String,Object>> multipartUploadMultipleFiles(ServerRequest request, @FormParam("file1") java.nio.file.Path file1,@FormParam("file2") java.nio.file.Path file2,@FormParam("file3") java.nio.file.Path file3, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
+	{
+
+		return response(Map.of("file1",file1.toFile().length(),"file2",file2.toFile().length(),"file3",file3.toFile().length(),"user",user,"userId",userId)).applicationJson().ok();
+
+
+	}
 }

@@ -20,6 +20,7 @@ import io.undertow.server.ServerConnection;
 import io.undertow.server.handlers.Cookie;
 import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.server.handlers.form.FormData;
+import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.AttachmentKey;
@@ -48,12 +49,15 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+
+import static io.undertow.server.handlers.form.FormDataParser.FORM_DATA;
 
 /**
  *
@@ -66,28 +70,11 @@ public class ServerRequest {
 
     public static final AttachmentKey<ByteBuffer> BYTE_BUFFER_KEY = AttachmentKey.create(ByteBuffer.class);
 
-    static String streamToString(InputStream stream) throws Exception {
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-        StringBuilder out = new StringBuilder();
-        String line;
-
-        while ((line = reader.readLine()) != null)
-        {
-            out.append(line);
-        }
-
-        reader.close();
-
-        return out.toString();
-
-    }
-
     protected static final Receiver.ErrorCallback ERROR_CALLBACK = (exchange, e) -> {
         exchange.putAttachment(ExceptionHandler.THROWABLE, e);
         exchange.endExchange();
     };
-    protected static final String CHARSET = "UTF-8";
+
     protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
     public final HttpServerExchange exchange;
@@ -95,7 +82,6 @@ public class ServerRequest {
     protected final String contentType;
     protected final String method;
     protected final String accept;
-    protected FormData form;
 
     public ServerRequest()
     {
@@ -128,20 +114,21 @@ public class ServerRequest {
             }
             else if (exchange.getRequestContentLength() > 0)
             {
-                this.extractBytes();
+                this.exchange.getRequestReceiver().receiveFullBytes((ex, message) -> {
+                    ByteBuffer buffer = ByteBuffer.wrap(message);
+                    ex.putAttachment(BYTE_BUFFER_KEY, buffer);
+                }, ERROR_CALLBACK);
             }
         }
     }
 
     public String accept()
     {
-
         return this.accept;
     }
 
     public String contentType()
     {
-
         return this.contentType;
     }
 
@@ -151,70 +138,14 @@ public class ServerRequest {
         return exchange;
     }
 
-    private void extractBytes() throws IOException
-    {
-
-        this.exchange.getRequestReceiver().receiveFullBytes((exchange, message) -> {
-            ByteBuffer buffer = ByteBuffer.wrap(message);
-
-            exchange.putAttachment(BYTE_BUFFER_KEY, buffer);
-        }, ERROR_CALLBACK);
-    }
-
-    private void extractFormParameters(final FormData formData)
-    {
-
-        if (formData != null)
-        {
-            for (String key : formData)
-            {
-                final Deque<FormData.FormValue> formValues = formData.get(key);
-                final Deque<String> values = formValues.stream()
-                                                       .filter(fv -> !fv.isFileItem())
-                                                       .map(FormData.FormValue::getValue)
-                                                       .collect(Collectors.toCollection(FastConcurrentDirectDeque::new));
-
-                if(values.size() > 0)
-                {
-                    exchange.getQueryParameters().put(key, values);
-
-                }
-                else
-                {
-                    final Deque<String> stringValues = formValues.stream()
-                                                                 .filter(fv -> fv.isFileItem())
-                                                                 .filter(fv -> fv.getHeaders().contains(Headers.CONTENT_TYPE) && fv.getHeaders().get(Headers.CONTENT_TYPE).getFirst().equals(MediaType.TEXT_PLAIN))
-                                                                 .map(FormData.FormValue::getFileItem)
-
-                                                                 .map(fi -> {
-
-                                                                     try
-                                                                     {
-                                                                         return streamToString(fi.getInputStream());
-                                                                     } catch (Exception e)
-                                                                     {
-                                                                         logger.error("Failed to extract string for form parameter");
-                                                                         return null;
-                                                                     }
-
-                                                                 })
-
-                                                                 .filter(Objects::nonNull).collect(Collectors.toCollection(FastConcurrentDirectDeque::new));
-
-                    exchange.getQueryParameters().put(key, stringValues);
-                }
-
-                logger.info("for key {} values: {}",key, exchange.getQueryParameters().get(key));
-            }
-        }
-    }
 
     public Deque<FormData.FormValue> files(final String name)
     {
+        FormData formData = this.exchange.getAttachment(FORM_DATA);
 
-        if (this.form != null)
+        if (formData != null)
         {
-            return form.get(name);
+            return formData.get(name);
         }
 
         return null;
@@ -224,34 +155,6 @@ public class ServerRequest {
     {
 
         return this.method;
-    }
-
-    private void parseEncodedForm() throws IOException
-    {
-
-        this.exchange.startBlocking();
-
-        final FormData formData = new FormEncodedDataDefinition().setDefaultEncoding(this.exchange.getRequestCharset()).create(exchange).parseBlocking();
-
-        extractFormParameters(formData);
-    }
-
-    private void parseMultipartForm() throws IOException
-    {
-
-        this.exchange.startBlocking();
-
-        final MultiPartParserDefinition multiPartParserDefinition = new MultiPartParserDefinition()
-                .setTempFileLocation(new File(TMP_DIR).toPath()).setDefaultEncoding(CHARSET);
-
-        final long thresholdSize = exchange.getConnection().getUndertowOptions().get(UndertowOptions.MAX_BUFFERED_REQUEST_SIZE, 0);
-
-        multiPartParserDefinition.setFileSizeThreshold(thresholdSize);
-
-        final FormData formData = multiPartParserDefinition.create(this.exchange).parseBlocking();
-
-        extractFormParameters(formData);
-
     }
 
     public String path()
@@ -337,7 +240,6 @@ public class ServerRequest {
      */
     public SecurityContext getSecurityContext()
     {
-
         return exchange.getSecurityContext();
     }
 
@@ -868,6 +770,61 @@ public class ServerRequest {
         exchange.addToAttachmentList(key, value);
     }
 
+    private void extractFormParameters(final FormData formData)
+    {
+        if (formData != null)
+        {
+            for (String key : formData)
+            {
+                final Deque<FormData.FormValue> formValues = formData.get(key);
+                final Deque<String> values = formValues.stream()
+                                                       .filter(fv -> !fv.isFileItem())
+                                                       .map(FormData.FormValue::getValue)
+                                                       .collect(Collectors.toCollection(FastConcurrentDirectDeque::new));
+
+                if (values.size() > 0)
+                {
+                    exchange.getQueryParameters().put(key, values);
+                }
+
+            }
+        }
+    }
+
+    private void parseEncodedForm() throws IOException
+    {
+
+        this.exchange.startBlocking();
+
+        final FormDataParser formDataParser = new FormEncodedDataDefinition().setDefaultEncoding(this.exchange.getRequestCharset()).create(exchange);
+
+        if(formDataParser != null)
+        {
+            final FormData formData = formDataParser.parseBlocking();
+            extractFormParameters(formData);
+        }
+    }
+
+    private void parseMultipartForm() throws IOException
+    {
+        this.exchange.startBlocking();
+
+        final MultiPartParserDefinition multiPartParserDefinition = new MultiPartParserDefinition()
+                .setTempFileLocation(new File(TMP_DIR).toPath()).setDefaultEncoding(this.exchange.getRequestCharset());
+
+        final long thresholdSize = exchange.getConnection().getUndertowOptions().get(UndertowOptions.MAX_BUFFERED_REQUEST_SIZE, 0);
+
+        multiPartParserDefinition.setFileSizeThreshold(thresholdSize);
+
+        final FormDataParser formDataParser = multiPartParserDefinition.create(this.exchange);
+
+        if(formDataParser != null)
+        {
+            final FormData formData = formDataParser.parseBlocking();
+            extractFormParameters(formData);
+        }
+
+    }
 }
 
 

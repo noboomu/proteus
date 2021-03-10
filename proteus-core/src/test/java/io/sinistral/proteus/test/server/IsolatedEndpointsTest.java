@@ -10,33 +10,27 @@ import io.restassured.http.ContentType;
 import io.sinistral.proteus.protocol.MediaType;
 import io.sinistral.proteus.test.models.User;
 import io.sinistral.proteus.test.models.User.UserType;
-import org.apache.commons.io.IOUtils;
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -48,7 +42,8 @@ import static org.junit.Assert.fail;
  * @author jbauer
  */
 @RunWith(DefaultServer.class)
-public class TestControllerEndpoints2 {
+@Ignore
+public class IsolatedEndpointsTest {
 
     private File file = null;
 
@@ -66,11 +61,17 @@ public class TestControllerEndpoints2 {
         {
             for (int i = 0; i < 4; i++)
             {
-                byte[] bytes = new byte[8388608];
+                byte[] bytes = new byte[1388608];
                 Random random = new Random();
                 random.nextBytes(bytes);
 
-                files.add(Files.createTempFile("test-asset", ".mp4").toFile());
+                Path tmpPath = Files.createTempFile("test-asset", ".mp4");
+
+                tmpPath.toFile().deleteOnExit();
+
+                Files.write(tmpPath, bytes);
+
+                files.add(tmpPath.toFile());
 
                 LongStream.range(1L, 10L).forEach(l -> {
 
@@ -91,26 +92,19 @@ public class TestControllerEndpoints2 {
 
     @SuppressWarnings("resource")
     @Test
-    public void uploadMultipartMixed()
+    public void uploadMultipartByteBuffer()
     {
 
         try
         {
 
-            User model = new User(101L, UserType.ADMIN);
-
-            Map map = given().multiPart("buffer", file)
-                             .multiPart("user", model, MediaType.JSON.contentType())
-                             .multiPart("userId", 101)
-                             .log().all(true)
+            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
                              .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/mixed").as(Map.class);
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/bytebuffer").as(Map.class);
 
-            assertThat(map.size(), equalTo(3));
+            assertThat(map.size(), equalTo(1));
 
-            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
-            assertThat(map.get("user").toString(), containsString("101"));
-            assertThat(map.get("userId").toString(), equalTo("101"));
+            assertThat(map.get("size"), equalTo(file.length() + ""));
 
         } catch (Exception e)
         {
@@ -123,7 +117,7 @@ public class TestControllerEndpoints2 {
 
     @SuppressWarnings("resource")
     @Test
-    public void uploadMultipartFutureMixed()
+    public void uploadMultipartJson()
     {
 
         try
@@ -131,18 +125,22 @@ public class TestControllerEndpoints2 {
 
             User model = new User(101L, UserType.ADMIN);
 
-            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
-                             .multiPart("user", model, MediaType.JSON.contentType())
-                             .multiPart("userId", 101)
-                             .log().all(true)
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/mixed").as(Map.class);
+            ObjectMapper mapper = new ObjectMapper();
 
-            assertThat(map.size(), equalTo(3));
+            JsonNode node = mapper.valueToTree(model);
 
-            assertThat(map.get("buffer"), equalTo(file.getTotalSpace() + ""));
-            assertThat(map.get("user").toString(), containsString("101"));
-            assertThat(map.get("userId").toString(), equalTo("101"));
+              InputStream is = given()
+                    .multiPart("json", node.toString(), MediaType.JSON.contentType())
+                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                    .accept(ContentType.JSON)
+                    .when().post("v1/tests/multipart/json")
+                    .andReturn().asInputStream();
+
+              JsonNode responseNode = mapper.readTree(is);
+
+
+
+          assertThat(responseNode.get("id").toString(), containsString("101"));
 
         } catch (Exception e)
         {
@@ -153,6 +151,40 @@ public class TestControllerEndpoints2 {
 
     }
 
+    @SuppressWarnings("resource")
+    @Test
+    public void uploadMultipartFutureJson()
+    {
+
+        try
+        {
+
+            User model = new User(101L, UserType.ADMIN);
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            JsonNode node = mapper.valueToTree(model);
+
+
+              InputStream is = given()
+                    .multiPart("json", node.toString(), MediaType.JSON.contentType())
+                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                    .accept(ContentType.JSON)
+                    .when().post("v1/tests/multipart/future/json")
+                    .andReturn().asInputStream();
+
+              JsonNode responseNode = mapper.readTree(is);
+
+            assertThat(responseNode.get("id").toString(), containsString("101"));
+
+        } catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+    }
 
     @After
     public void tearDown()

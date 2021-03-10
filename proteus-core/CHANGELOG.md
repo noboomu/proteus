@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Forms**
+
+
+[289e3a356924979](https://github.com/noboomu/proteus/commit/289e3a356924979) Joshua Bauer *2021-03-09 03:05:30*
+
 **Improve startup time.**
 
 

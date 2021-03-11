@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bump swagger version and hide swagger models.**
+
+
+[e69020001b4eb66](https://github.com/noboomu/proteus/commit/e69020001b4eb66) Joshua Bauer *2021-03-11 00:11:44*
+
 **Bump version.**
 
 

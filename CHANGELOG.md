@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bump version.**
+
+
+[7574ab99246d6a3](https://github.com/noboomu/proteus/commit/7574ab99246d6a3) Joshua Bauer *2021-03-10 00:35:10*
+
 **Rework form processing.**
 
 

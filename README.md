@@ -32,7 +32,6 @@ Getting Started
 ```
 
 - Open [http://localhost:8090/v1/openapi](http://localhost:8090/v1/openapi) for a v3 OpenAPI UI.
-- Open [http://localhost:8090/v1/swagger](http://localhost:8090/v1/openapi) for a v2 Swagger UI.
 
 ### As a dependency
 
@@ -40,16 +39,7 @@ Getting Started
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-core</artifactId>
-    <version>0.4.5</version>
-</dependency>
-```
-
-Swagger v2 Support
-```xml
-<dependency>
-    <groupId>io.sinistral</groupId>
-    <artifactId>proteus-swagger</artifactId>
-    <version>0.4.5</version>
+    <version>0.5.1</version>
 </dependency>
 ```
 
@@ -58,7 +48,7 @@ OpenAPI v3 Support
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-openapi</artifactId>
-    <version>0.4.5</version>
+    <version>0.5.1</version>
 </dependency>
 ```
 
@@ -89,8 +79,6 @@ public ServerResponse<ByteBuffer> plaintext(ServerRequest request)
 	return response("Hello, World!").textPlain();
 }
 ```
-
-> Swagger v2 annotations are supported when using the `proteus-swagger` module.
 
 > OpenAPI v3 annotations are supported when using the `proteus-openapi` module.
 
@@ -292,7 +280,7 @@ public ServerResponse<Map<String,Object>> complexParameters(
 Services
 -------------
 
-Proteus has three standard services that extend the ```io.sinistral.proteus.services.DefaultService``` class.
+Proteus has two standard services that extend the ```io.sinistral.proteus.services.DefaultService``` class.
 The ```io.sinistral.proteus.services.DefaultService``` extends ```com.google.common.util.concurrent.AbstractIdleService``` and implements the ```io.sinistral.proteus.services.BaseService``` interface.
 The ProteusApplication class expects services that implement ```io.sinistral.proteus.services.BaseService```.
 
@@ -315,43 +303,7 @@ The ProteusApplication class expects services that implement ```io.sinistral.pro
   	  }
 	}
 	```
-- __SwaggerService__   
 
-    Included in the `proteus-swagger` module.
-
-	The SwaggerService generates a swagger-spec file from your endpoints and serves a swagger-ui and spec.
-
-	The default configuration serves the spec at `{application.path}/swagger.json` and the ui at `${application.path}/swagger`.
-
-	The service is configured in your ```application.conf``` file.
-
-	The default configuration:
-	```
-	swagger {
-   	 # the path that has an index.html template and theme css files
-   	 # swagger version
-    	swagger: "2.0"
-   	 info {
-   	     # swagger info title
-   	     title = ${application.name}
-   	     # swagger info version
-    	    version = ${application.version}
-  	  }
-  	  # swagger-ui theme from ostranmes swagger-ui-themes, the following are built-in 
-  	  # [feeling-blue, flattop, material, monokai, muted, newspaper, outline]
-  	  # specifying a different name causes the SwaggerService to search in 
-  	  # {swagger.resourcePrefix}/themes for a file named "theme-{swagger.theme}.css"
-  	  theme="default"
-  	  # where the swagger endpoints will be mounted
-  	  basePath= ${application.path}"/swagger"
-  	  #the name of the spec file
-   	 specFilename="swagger.json"
-   	 consumes = ["application/json"]
-   	 produces = ["application/json"]
-   	 # supported schemes
-   	 schemes = ["http"]
-   	 }
-	```
  
 - __OpenAPIService__   
 

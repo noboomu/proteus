@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Rollback swagger ui version.**
+
+
+[81396a503e7b6aa](https://github.com/noboomu/proteus/commit/81396a503e7b6aa) Joshua Bauer *2021-03-11 00:48:39*
+
 **Bump swagger version and hide swagger models.**
 
 

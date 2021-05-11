@@ -229,6 +229,15 @@ public class Tests
 	{  
 		return response(user).applicationJson();
 	}
+
+	@POST
+	@Path("response/json/beanparam-optional")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+ 	@Consumes(MediaType.APPLICATION_JSON)
+	public ServerResponse<User> responseInnerClassOptionalTest(ServerRequest request, @BeanParam Optional<User> user ) throws Exception
+	{
+		return response(user.orElse(null)).applicationJson();
+	}
 	
 	  
 	@GET
@@ -1028,4 +1037,6 @@ public class Tests
 
 
 	}
+
+
 }

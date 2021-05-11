@@ -124,7 +124,7 @@ public enum TypeHandler {
     OptionalZonedDateTimeType("$T<$T> $L = $T.zonedDateTime(exchange,$S)", false, Optional.class, java.time.ZonedDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
     OptionalOffsetDateTimeType("$T<$T> $L = $T.offsetDateTime(exchange,$S)", false, Optional.class, java.time.OffsetDateTime.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
 
-    OptionalModelType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL,StatementParameterType.STRING),
+    OptionalModelType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
     OptionalNamedJsonNodeType("$T<$T> $L = $T.namedJsonNode(exchange,$s)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class,StatementParameterType.STRING),
     OptionalNamedModelType("java.util.Optional<$L> $L = $T.namedModel(exchange,$L,$S)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
@@ -588,6 +588,8 @@ public enum TypeHandler {
             } else {
                 try {
 
+
+
                     Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);
 
                     if (HandlerGenerator.hasValueOfMethod(erasedType)) {
@@ -595,7 +597,11 @@ public enum TypeHandler {
 
                     } else if (HandlerGenerator.hasFromStringMethod(erasedType)) {
                         return OptionalFromStringType;
+                    }
 
+                    if(isBeanParam)
+                    {
+                        return OptionalModelType;
                     }
 
                 } catch (Exception e) {

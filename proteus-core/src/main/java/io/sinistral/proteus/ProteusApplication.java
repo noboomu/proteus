@@ -312,20 +312,24 @@ public class ProteusApplication {
         for (Class<?> controllerClass : registeredControllers)
         {
 
-            handlerExecutor.execute(() -> {
+            handlerExecutor.submit(() -> {
 
                 try
                 {
 
-                    //log.debug("Compiling {}...", controllerClass);
+                  //  log.debug("Generating {}...", controllerClass);
 
                     HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
 
                     injector.injectMembers(generator);
 
-                    routerClasses.add(generator.compileClass());
+                 //   log.debug("Compiling {}...", controllerClass);
 
-                    //log.debug("Compiled {}", controllerClass);
+                    Class<? extends Supplier<RoutingHandler>> routerClass = generator.compileClass();
+
+                    routerClasses.add(routerClass);
+
+                //    log.debug("Compiled {}", controllerClass);
 
                 } catch (Exception e)
                 {

@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bump dependency versions. Update favicon.**
+
+
+[4777bce4c516e99](https://github.com/noboomu/proteus/commit/4777bce4c516e99) Joshua Bauer *2021-04-02 18:19:35*
+
+**Update README.md**
+
+
+[8915888e8190521](https://github.com/noboomu/proteus/commit/8915888e8190521) JL Bauer *2021-03-20 05:19:59*
+
 **Rollback swagger ui version.**
 
 

@@ -374,6 +374,18 @@ public class StandardEndpointsTest {
     }
 
     @Test
+    public void responseOptionalBeanParam()
+    {
+
+        User model = new User();
+        model.setId(101L);
+
+        given().contentType(ContentType.JSON).accept(ContentType.JSON).body(model).when().post("v1/tests/response/json/beanparam-optional").then().statusCode(200).and().body(containsString("101"));
+
+    }
+
+
+    @Test
     public void responseFutureUser()
     {
 

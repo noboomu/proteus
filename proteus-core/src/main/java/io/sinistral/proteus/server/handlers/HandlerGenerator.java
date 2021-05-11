@@ -128,7 +128,7 @@ public class HandlerGenerator {
      * Compiles the generated source into a new {@link Class}
      * @return a new {@code Supplier<RoutingHandler>} class
      */
-    public Class<? extends Supplier<RoutingHandler>> compileClass()
+    public Class<? extends Supplier<RoutingHandler>> compileClass() throws Exception
     {
 
         try
@@ -137,12 +137,14 @@ public class HandlerGenerator {
 
             log.debug("\n\nGenerated Class Source:\n\n{}", this.sourceString);
 
-            return new CachedCompiler(null, null).loadFromJava(packageName + "." + className, this.sourceString);
+            CachedCompiler cachedCompiler = new CachedCompiler(null, null);
+
+            return cachedCompiler.loadFromJava(packageName + "." + className, this.sourceString);
 
         } catch (Exception e)
         {
             log.error("Failed to compile {}\nSource:\n{}", packageName + "." + className, this.sourceString, e);
-            return null;
+            throw e;
         }
     }
 
@@ -711,9 +713,26 @@ public class HandlerGenerator {
                                     typeName = typeName.replace("$", ".");
                                 }
 
-                                String pType = interfaceType != null ? interfaceType + "TypeReference" : typeName + ".class";
+                                if (t.equals(TypeHandler.OptionalModelType))
+                                {
+                                    ParameterizedType pType = (ParameterizedType) type;
 
-                                methodBuilder.addStatement(t.statement, type, p.getName(), pType);
+                                    if (type instanceof ParameterizedType)
+                                    {
+                                        pType = (ParameterizedType) type;
+                                        type = pType.getActualTypeArguments()[0];
+                                    }
+
+                                    String pTypeName = type.getTypeName() + ".class";
+
+                                    methodBuilder.addStatement(t.statement, type.getTypeName(), p.getName(), io.sinistral.proteus.server.Extractors.Optional.class, pTypeName);
+
+                                }
+                                else
+                                {
+                                    String pType = interfaceType != null ? interfaceType + "TypeReference" : typeName + ".class";
+                                    methodBuilder.addStatement(t.statement, type, p.getName(), pType);
+                                }
 
                             }
                             else if (t.equals(TypeHandler.OptionalNamedModelType) || t.equals(TypeHandler.NamedModelType))

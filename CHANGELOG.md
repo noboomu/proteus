@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve Optional bean parsing.**
+
+
+[24f076fb72fc3c1](https://github.com/noboomu/proteus/commit/24f076fb72fc3c1) Joshua Bauer *2021-05-11 21:29:17*
+
 **Bump dependency versions. Update favicon.**
 
 

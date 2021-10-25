@@ -182,7 +182,7 @@ public class ServerRequest {
     }
 
     /**
-     * Abort current request and respond with redirect. Returns empty @ServerResponse for convenience.
+     * Abort current request and respond with 302 redirect. Returns empty @ServerResponse for convenience.
      * @param location
      * @param includeParameters
      * @return serverResponse
@@ -191,8 +191,25 @@ public class ServerRequest {
     {
 
         exchange.setRelativePath("/");
-        exchange.getResponseHeaders().put(Headers.LOCATION, RedirectBuilder.redirect(exchange, location, includeParameters));
         exchange.setStatusCode(302);
+        exchange.getResponseHeaders().put(Headers.LOCATION, RedirectBuilder.redirect(exchange, location, includeParameters));
+        exchange.endExchange();
+
+        return new ServerResponse<>();
+    }
+
+    /**
+     * Abort current request and respond with 301 redirect. Returns empty @ServerResponse for convenience.
+     * @param location
+     * @param includeParameters
+     * @return serverResponse
+     */
+    public <T> ServerResponse<T> redirectPermanently(String location, boolean includeParameters)
+    {
+
+        exchange.setRelativePath("/");
+        exchange.setStatusCode(301);
+        exchange.getResponseHeaders().put(Headers.LOCATION, RedirectBuilder.redirect(exchange, location, includeParameters));
         exchange.endExchange();
 
         return new ServerResponse<>();

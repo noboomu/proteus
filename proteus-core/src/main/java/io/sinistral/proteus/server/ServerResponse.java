@@ -586,6 +586,14 @@ public class ServerResponse<T>
             return;
         }
 
+//        if(location != null && (status == 301 || status == 302))
+//        {
+//            exchange.setRelativePath("/");
+//            exchange.setStatusCode(status);
+//            exchange.getResponseHeaders().put(Headers.LOCATION, RedirectBuilder.redirect(exchange, location, true));
+//            exchange.endExchange();
+//        }
+
         if (this.location != null) {
             exchange.getResponseHeaders().put(Headers.LOCATION, this.location);
         }

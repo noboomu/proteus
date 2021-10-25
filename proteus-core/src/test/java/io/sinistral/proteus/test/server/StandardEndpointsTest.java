@@ -418,21 +418,21 @@ public class StandardEndpointsTest {
     public void testRedirect()
     {
 
-        given().when().get("v1/tests/redirect").then().statusCode(200).and().header("Server", "gws");
+        given().when().redirects().follow(false).get("v1/tests/redirect").then().statusCode(302).and().header("Server", "proteus").and().header("Location","v1/response/debug/blocking");
     }
 
     @Test
     public void testRedirectFoundCode()
     {
 
-        given().when().redirects().follow(false).get("v1/tests/redirect").then().statusCode(302);
+        given().when().redirects().follow(false).get("v1/tests/redirect").then().statusCode(302).and().header("Location","v1/response/debug/blocking");
     }
 
     @Test
     public void testRedirectMovedPermanentlyCode()
     {
 
-        given().when().redirects().follow(false).get("v1/tests/redirect/permanent").then().statusCode(301);
+        given().when().redirects().follow(false).get("v1/tests/redirect/permanent").then().statusCode(301).and().header("Location","v1/response/debug/blocking");
     }
 
     @Test

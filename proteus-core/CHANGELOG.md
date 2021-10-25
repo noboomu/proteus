@@ -4,6 +4,41 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve Optional bean parsing.**
+
+
+[24f076fb72fc3c1](https://github.com/noboomu/proteus/commit/24f076fb72fc3c1) Joshua Bauer *2021-05-11 21:29:17*
+
+**Bump dependency versions. Update favicon.**
+
+
+[4777bce4c516e99](https://github.com/noboomu/proteus/commit/4777bce4c516e99) Joshua Bauer *2021-04-02 18:19:35*
+
+**Update README.md**
+
+
+[8915888e8190521](https://github.com/noboomu/proteus/commit/8915888e8190521) JL Bauer *2021-03-20 05:19:59*
+
+**Rollback swagger ui version.**
+
+
+[81396a503e7b6aa](https://github.com/noboomu/proteus/commit/81396a503e7b6aa) Joshua Bauer *2021-03-11 00:48:39*
+
+**Bump swagger version and hide swagger models.**
+
+
+[e69020001b4eb66](https://github.com/noboomu/proteus/commit/e69020001b4eb66) Joshua Bauer *2021-03-11 00:11:44*
+
+**Bump version.**
+
+
+[7574ab99246d6a3](https://github.com/noboomu/proteus/commit/7574ab99246d6a3) Joshua Bauer *2021-03-10 00:35:10*
+
+**Rework form processing.**
+
+
+[60edfa65d52d089](https://github.com/noboomu/proteus/commit/60edfa65d52d089) Joshua Bauer *2021-03-10 00:28:19*
+
 **Forms**
 
 

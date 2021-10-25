@@ -152,6 +152,8 @@ public class Tests
 		response("Hello, World!").textPlain().send(exchange);
 
 	}
+
+
 	
 	@GET
 	@Path("exchange/plaintext2")
@@ -291,7 +293,7 @@ public class Tests
 	@Produces(MediaType.WILDCARD) 
 	public ServerResponse<Void> testPermanentRedirect()
 	{ 
-		return response().redirectPermanently("https://google.com");
+		return response().redirectPermanently("v1/response/debug/blocking");
 	}
 	
 	@GET
@@ -299,7 +301,7 @@ public class Tests
 	@Produces(MediaType.WILDCARD) 
 	public ServerResponse<Void> testRedirect()
 	{ 
-		return response().redirect("https://google.com");
+		return response().redirect("v1/response/debug/blocking");
 	}
 	
 	@POST

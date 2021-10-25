@@ -179,7 +179,7 @@ public class ProteusApplication {
             public void stopped()
             {
                 log.info("Services are stopped");
-                undertow.stop();
+
             }
 
             public void healthy()
@@ -202,7 +202,6 @@ public class ProteusApplication {
 
                 printStatus();
 
-                running.set(true);
             }
 
             public void failure(Service service)
@@ -253,6 +252,7 @@ public class ProteusApplication {
 
         buildServer();
 
+
         undertow.start();
 
         Duration timeout = config.getDuration("application.services.timeout");
@@ -268,6 +268,10 @@ public class ProteusApplication {
             log.error("Failed to start services",e);
         }
 
+
+
+        this.running.set(true);
+
 //        serviceManager.startAsync();
 
     }
@@ -282,6 +286,8 @@ public class ProteusApplication {
         }
 
         log.info("Shutting down...");
+
+        undertow.stop();
 
         serviceManager.stopAsync().awaitStopped(2, TimeUnit.SECONDS);
 

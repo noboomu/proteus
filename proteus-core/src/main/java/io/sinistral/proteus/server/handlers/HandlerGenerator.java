@@ -399,7 +399,7 @@ public class HandlerGenerator {
             }
         }
 
-        log.debug("Scanning methods for class " + clazz.getName());
+        log.debug("Scanning methods for class {}", clazz.getName());
 
         int nameIndex = 1;
 
@@ -411,15 +411,15 @@ public class HandlerGenerator {
                 continue;
             }
 
-            log.debug("Scanning method " + m.getName() + "\n");
+            log.debug("\n\nScanning method: {}\n", m.getName());
 
             EndpointInfo endpointInfo = new EndpointInfo();
 
             String producesContentType = "*/*";
             String consumesContentType = "*/*";
 
-            Boolean isBlocking = false;
-            Boolean isDebug = false;
+            boolean isBlocking = false;
+            boolean isDebug = false;
 
             Optional<Blocking> blockingAnnotation = Optional.ofNullable(m.getAnnotation(Blocking.class));
 
@@ -489,7 +489,7 @@ public class HandlerGenerator {
                 methodPath = Extractors.pathTemplateFromMethod.apply(m).replaceAll("\\/\\/", "\\/");
             } catch (Exception e)
             {
-                log.error(e.getMessage() + " for " + m, e);
+                log.error("Error parsing method path for {}",m.getName(), e);
                 continue;
             }
 
@@ -563,7 +563,8 @@ public class HandlerGenerator {
 
                 } catch (Exception e)
                 {
-                    log.error(e.getMessage(), e);
+                    log.error("Error processing path parameter {} for method {}",p.getName(),m.getName(),e);
+                    throw e;
                 }
             }
 
@@ -582,7 +583,9 @@ public class HandlerGenerator {
 
             }
 
-            Arrays.stream(m.getParameters()).forEachOrdered(p ->
+            List<Parameter> parameters = Arrays.stream(m.getParameters()).collect(Collectors.toList());
+
+            for(Parameter p : parameters)
             {
 
                 Type type = p.getParameterizedType();
@@ -590,7 +593,7 @@ public class HandlerGenerator {
                 try
                 {
 
-                    log.debug("Parameter " + p.getName() + " of type " + type);
+                    log.debug("Method {} parameter {} type {}", m.getName(), p.getName() , type);
 
                     if (p.getType().equals(ServerRequest.class))
                     {
@@ -700,7 +703,7 @@ public class HandlerGenerator {
                                 }
                             }
 
-                            log.debug("beanParam handler: " + t);
+                            log.debug("beanParam handler: {}",t);
 
                             if (t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType))
                             {
@@ -809,7 +812,8 @@ public class HandlerGenerator {
 
                                 } catch (Exception e)
                                 {
-                                    log.error("method builder: \nstatement: " + t.statement + "\npType: " + pType + "\np.name(): " + p.getName() + "\nerasedType: " + erasedType);
+                                    log.error("error adding statement to method {} for parameter {}:\nstatement: {}\ntype: {} erased type: {}\n",m.getName(),  p.getName(), t.statement,   pType, erasedType,e);
+                                    throw e;
                                 }
 
                             }
@@ -822,10 +826,11 @@ public class HandlerGenerator {
 
                 } catch (Exception e)
                 {
-                    log.error(e.getMessage(), e);
+                    log.error("Failed to generate statement for method {}",m.getName(),e);
+                    throw e;
                 }
 
-            });
+            }
 
             methodBuilder.addCode("$L", "\n");
 
@@ -1087,6 +1092,7 @@ public class HandlerGenerator {
             } catch (Exception e)
             {
                 log.error("Failed to register endpoint {}", endpointInfo, e);
+                throw e;
             }
 
         }
@@ -1259,7 +1265,7 @@ public class HandlerGenerator {
 
         if (typeName.contains("Optional"))
         {
-            log.warn("For an optional named: " + typeName);
+            log.warn("Type is for an optional named {}", typeName);
         }
 
         Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);

@@ -51,7 +51,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.jar.JarFile;
@@ -68,16 +73,20 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
     private static Logger log = LoggerFactory.getLogger(OpenAPIService.class.getCanonicalName());
 
-    protected final String resourcePathPrefix = "openapi";
+    protected ObjectMapper jsonMapper;
 
-    protected ObjectMapper mapper;
-    protected ObjectWriter writer;
-    protected ObjectMapper yamlMapper;
     protected Path resourcePath = null;
+
     protected ClassLoader serviceClassLoader = null;
+
     protected OpenAPI openApi = null;
-    protected String spec = null;
+
+    protected String yamlSpec = null;
+
+    protected String jsonSpec = null;
+
     protected String indexHTML = null;
+
     protected String redocHTML = null;
 
     protected final String resourcePrefix = "io/sinistral/proteus/openapi";
@@ -131,13 +140,9 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
     public OpenAPIService()
     {
+        jsonMapper = Json.mapper();
 
-        mapper = Json.mapper();
-
-        mapper.registerModule(new Jdk8Module());
-
-        yamlMapper = Yaml.mapper();
-        writer = Yaml.pretty();
+        jsonMapper.registerModule(new Jdk8Module());
     }
 
     protected void generateHTML()
@@ -225,7 +230,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
                             FileUtils.deleteDirectory(tmpDirParent.toFile());
                         } catch (IOException ex)
                         {
-                            log.error("Failed to delete temp openapi directory",ex);
+                            log.error("Failed to delete temp openapi directory", ex);
                         }
                     }));
                 }
@@ -252,11 +257,12 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
         OpenAPIExtensions.setExtensions(Collections.singletonList(new ServerParameterExtension()));
 
         OpenAPI openApi = new OpenAPI();
-        Info info = mapper.convertValue(openAPIConfig.getValue("info").unwrapped(), Info.class);
+
+        Info info = jsonMapper.convertValue(openAPIConfig.getValue("info").unwrapped(), Info.class);
 
         openApi.setInfo(info);
 
-        Map<String, SecurityScheme> securitySchemes = mapper.convertValue(openAPIConfig.getValue("securitySchemes").unwrapped(), new TypeReference<Map<String, SecurityScheme>>() {});
+        Map<String, SecurityScheme> securitySchemes = jsonMapper.convertValue(openAPIConfig.getValue("securitySchemes").unwrapped(), new TypeReference<Map<String, SecurityScheme>>() {});
 
         if (openApi.getComponents() == null)
         {
@@ -265,7 +271,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         openApi.getComponents().setSecuritySchemes(securitySchemes);
 
-        List<Server> servers = mapper.convertValue(openAPIConfig.getValue("servers").unwrapped(), new TypeReference<List<Server>>() {});
+        List<Server> servers = jsonMapper.convertValue(openAPIConfig.getValue("servers").unwrapped(), new TypeReference<List<Server>>() {});
 
         openApi.setServers(servers);
 
@@ -298,8 +304,12 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
                                                         .init();
 
         openApi = ctx.read();
+
         this.openApi = openApi;
-        this.spec = writer.writeValueAsString(openApi);
+
+        this.yamlSpec = Yaml.pretty().writeValueAsString(openApi);
+
+        this.jsonSpec = Json.pretty().writeValueAsString(openApi);
 
     }
 
@@ -317,14 +327,14 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
             {
                 generateSpec();
 
-                log.debug("\nOpenAPI Spec:\n" + writer.writeValueAsString(this.openApi));
+                log.debug("\nOpenAPI Spec:\n{}", Yaml.pretty().writeValueAsString(this.openApi));
 
             } catch (Exception e)
             {
                 log.error("Error generating OpenAPI spec", e);
             }
 
-        }, this.executor());
+        });
 
         router.addAll(this.get());
     }
@@ -332,29 +342,9 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
     public RoutingHandler get()
     {
 
-        RoutingHandler router = new RoutingHandler();
-
-        /*
-         * YAML path
-         */
-        String pathTemplate = this.applicationPath + "/" + this.specFilename;
-
         FileResourceManager resourceManager = new FileResourceManager(this.resourcePath.toFile(), 1024);
 
-        router.add(HttpMethod.GET, pathTemplate, (HttpServerExchange exchange) ->
-        {
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType());
-
-            exchange.getResponseSender().send(spec);
-        });
-
-        this.registeredEndpoints.add(EndpointInfo.builder()
-                                                 .withConsumes("*/*")
-                                                 .withPathTemplate(pathTemplate)
-                                                 .withControllerName(this.getClass().getSimpleName())
-                                                 .withMethod(Methods.GET)
-                                                 .withProduces(io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType())
-                                                 .build());
+        RoutingHandler router = new RoutingHandler();
 
         router.add(HttpMethod.GET, basePath, (HttpServerExchange exchange) ->
         {
@@ -362,15 +352,54 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
             exchange.getResponseSender().send(indexHTML);
         });
 
+        /*
+         * YAML path
+         */
+
+        String yamlTemplatePath = String.format("%s/%s.yaml", this.applicationPath, this.specFilename);
+
+        router.add(HttpMethod.GET, yamlTemplatePath, (HttpServerExchange exchange) ->
+        {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType());
+
+            exchange.getResponseSender().send(yamlSpec);
+        });
+
+        this.registeredEndpoints.add(EndpointInfo.builder()
+                                                 .withConsumes("*/*")
+                                                 .withPathTemplate(yamlTemplatePath)
+                                                 .withControllerName(this.getClass().getSimpleName())
+                                                 .withMethod(Methods.GET)
+                                                 .withProduces(io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType())
+                                                 .build());
+
         this.registeredEndpoints.add(EndpointInfo.builder()
                                                  .withConsumes(MediaType.WILDCARD)
                                                  .withProduces(MediaType.TEXT_HTML)
-                                                 .withPathTemplate(pathTemplate)
+                                                 .withPathTemplate(yamlTemplatePath)
                                                  .withControllerName(this.getClass().getSimpleName())
                                                  .withMethod(Methods.GET)
                                                  .build());
 
-        final String specPath = pathTemplate;
+        String jsonTemplatePath = String.format("%s/%s.json", this.applicationPath, this.specFilename);
+
+        router.add(HttpMethod.GET, jsonTemplatePath, (HttpServerExchange exchange) ->
+        {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.JSON.contentType());
+
+            exchange.getResponseSender().send(jsonSpec);
+        });
+
+        this.registeredEndpoints.add(EndpointInfo.builder()
+                                                 .withConsumes("*/*")
+                                                 .withPathTemplate(jsonTemplatePath)
+                                                 .withControllerName(this.getClass().getSimpleName())
+                                                 .withMethod(Methods.GET)
+                                                 .withProduces(io.sinistral.proteus.protocol.MediaType.JSON.contentType())
+                                                 .build());
+
+
+        final String specPath = yamlTemplatePath;
 
         router.add(HttpMethod.GET, this.basePath + "/" + this.redocPath, (HttpServerExchange exchange) ->
         {
@@ -394,10 +423,10 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
         try
         {
 
-            pathTemplate = this.basePath + "/*";
+            String wildcardPathTemplate = this.basePath + "/*";
 
             router.add(HttpMethod.GET,
-                    pathTemplate,
+                    wildcardPathTemplate,
                     new ResourceHandler(resourceManager) {
                         @Override
                         public void handleRequest(HttpServerExchange exchange) throws Exception
@@ -441,7 +470,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
             this.registeredEndpoints.add(EndpointInfo.builder()
                                                      .withConsumes(MediaType.WILDCARD)
                                                      .withProduces(MediaType.WILDCARD)
-                                                     .withPathTemplate(pathTemplate)
+                                                     .withPathTemplate(wildcardPathTemplate)
                                                      .withControllerName(this.getClass().getSimpleName())
                                                      .withMethod(Methods.GET)
                                                      .build());

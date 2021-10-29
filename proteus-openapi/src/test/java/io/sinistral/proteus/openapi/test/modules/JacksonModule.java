@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
-import org.zalando.jackson.datatype.money.MoneyModule;
 
 @Singleton
 public class JacksonModule extends AbstractModule
@@ -25,7 +24,7 @@ public class JacksonModule extends AbstractModule
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
 
-        objectMapper.registerModule(new MoneyModule())
+        objectMapper
                 .registerModule(new AfterburnerModule())
                 .registerModule(new Jdk8Module());
 

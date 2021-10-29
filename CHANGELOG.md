@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improved error logging and shutdown process.**
+
+
+[09f630e8f400db9](https://github.com/noboomu/proteus/commit/09f630e8f400db9) Joshua Bauer *2021-10-25 19:29:23*
+
 **Improve Optional bean parsing.**
 
 

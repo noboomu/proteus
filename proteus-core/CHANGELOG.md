@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Cleanup OpenAPI module and add json spec support.**
+
+
+[4d8d408ed25e1e2](https://github.com/noboomu/proteus/commit/4d8d408ed25e1e2) Joshua Bauer *2021-10-29 16:07:16*
+
+**Improved error logging and shutdown process.**
+
+
+[09f630e8f400db9](https://github.com/noboomu/proteus/commit/09f630e8f400db9) Joshua Bauer *2021-10-25 19:29:23*
+
 **Improve Optional bean parsing.**
 
 

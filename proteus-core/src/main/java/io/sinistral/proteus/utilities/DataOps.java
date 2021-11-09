@@ -26,21 +26,11 @@ public class DataOps {
 
     }
 
-
     public static ByteBuffer streamToBuffer(InputStream stream) throws IOException {
 
-        AsyncByteOutputStream buffer = new AsyncByteOutputStream(16384);
-
-        int nRead;
-        byte[] data = new byte[16384];
-        while ((nRead = stream.read(data, 0, data.length)) != -1)
-        {
-            buffer.write(data, 0, nRead);
-        }
-
-        buffer.flush();
-
-        return ByteBuffer.wrap(buffer.toByteArray());
+        final io.sinistral.proteus.utilities.AsyncByteOutputStream byteArrayOutputStream = new io.sinistral.proteus.utilities.AsyncByteOutputStream(65536);
+        stream.transferTo(byteArrayOutputStream);
+        return ByteBuffer.wrap(byteArrayOutputStream.toByteArray());
     }
 
     public static ByteBuffer readAllBytes(Path fp) throws IOException {

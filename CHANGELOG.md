@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bump compiler version for JDK 17 support.**
+
+
+[742130deaad3aae](https://github.com/noboomu/proteus/commit/742130deaad3aae) Joshua Bauer *2021-10-30 21:28:03*
+
 **Cleanup OpenAPI module and add json spec support.**
 
 

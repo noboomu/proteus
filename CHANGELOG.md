@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve uploading of binary files**
+
+
+[c305504d2d62424](https://github.com/noboomu/proteus/commit/c305504d2d62424) Joshua Bauer *2021-11-09 23:40:40*
+
 **Bump compiler version for JDK 17 support.**
 
 

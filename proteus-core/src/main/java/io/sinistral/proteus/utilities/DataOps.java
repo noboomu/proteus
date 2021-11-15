@@ -1,5 +1,7 @@
 package io.sinistral.proteus.utilities;
 
+import io.undertow.server.handlers.form.FormData;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -27,10 +29,20 @@ public class DataOps {
     }
 
     public static ByteBuffer streamToBuffer(InputStream stream) throws IOException {
+        return ByteBuffer.wrap(stream.readAllBytes());
+    }
 
-        final io.sinistral.proteus.utilities.AsyncByteOutputStream byteArrayOutputStream = new io.sinistral.proteus.utilities.AsyncByteOutputStream(65536);
-        stream.transferTo(byteArrayOutputStream);
-        return ByteBuffer.wrap(byteArrayOutputStream.toByteArray());
+    public static ByteBuffer fileItemToBuffer(FormData.FileItem fileItem) throws Exception
+    {
+        if(fileItem.isInMemory())
+        {
+            return ByteBuffer.wrap(fileItem.getInputStream().readAllBytes());
+        }
+        else
+        {
+            return readAllBytes(fileItem.getFile());
+        }
+
     }
 
     public static ByteBuffer readAllBytes(Path fp) throws IOException {

@@ -210,14 +210,7 @@ public class Extractors {
                 {
                     FormData.FileItem fileItem = fi.getFileItem();
 
-                    if (fileItem.isInMemory())
-                    {
-                        return DataOps.streamToBuffer(fileItem.getInputStream());
-                    }
-                    else
-                    {
-                        return DataOps.readAllBytes(fileItem.getFile().toFile().toPath());
-                    }
+                    return DataOps.fileItemToBuffer(fileItem);
                 }
 
             } catch (Exception e)
@@ -260,7 +253,7 @@ public class Extractors {
             {
                 try
                 {
-                    ByteBuffer byteBuffer = DataOps.streamToBuffer(formValue.getFileItem().getInputStream());
+                    ByteBuffer byteBuffer = DataOps.fileItemToBuffer(formValue.getFileItem());
 
                     return parseTypedXML(type, byteBuffer.array());
 
@@ -288,7 +281,7 @@ public class Extractors {
             {
                 try
                 {
-                    ByteBuffer byteBuffer = DataOps.streamToBuffer(formValue.getFileItem().getInputStream());
+                    ByteBuffer byteBuffer = DataOps.fileItemToBuffer(formValue.getFileItem());
 
                     return parseTypedJson(type, byteBuffer.array());
 
@@ -319,7 +312,7 @@ public class Extractors {
             {
                 try
                 {
-                    ByteBuffer byteBuffer = DataOps.streamToBuffer(formValue.getFileItem().getInputStream());
+                    ByteBuffer byteBuffer = DataOps.fileItemToBuffer(formValue.getFileItem());
 
                     return parseTypedXML(type, byteBuffer.array());
 
@@ -347,7 +340,7 @@ public class Extractors {
             {
                 try
                 {
-                    ByteBuffer byteBuffer = DataOps.streamToBuffer(formValue.getFileItem().getInputStream());
+                    ByteBuffer byteBuffer = DataOps.fileItemToBuffer(formValue.getFileItem());
 
                     return parseTypedJson(type, byteBuffer.array());
 

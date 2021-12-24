@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve handling of FormData files and buffers**
+
+
+[a71c05b020e813c](https://github.com/noboomu/proteus/commit/a71c05b020e813c) Joshua Bauer *2021-11-15 15:51:16*
+
 **Improve uploading of binary files**
 
 

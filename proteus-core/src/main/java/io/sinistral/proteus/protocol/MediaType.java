@@ -965,6 +965,7 @@ public class MediaType
     public static final MediaType CHEMICAL_X_VMD = create("chemical/x-vmd", "vmd");
     public static final MediaType CHEMICAL_X_XTEL = create("chemical/x-xtel", "xtel");
     public static final MediaType CHEMICAL_X_XYZ = create("chemical/x-xyz", "xyz");
+    public static final MediaType IMAGE_AVIF = create("image/avif", "avif");
     public static final MediaType IMAGE_BMP = create("image/bmp", "bmp");
     public static final MediaType IMAGE_CGM = create("image/cgm", "cgm");
     public static final MediaType IMAGE_G3FAX = create("image/g3fax", "g3");

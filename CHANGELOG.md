@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added AVIF format**
+
+
+[f0c191a37c3e244](https://github.com/noboomu/proteus/commit/f0c191a37c3e244) Joshua Bauer *2021-12-24 00:25:14*
+
 **Improve handling of FormData files and buffers**
 
 

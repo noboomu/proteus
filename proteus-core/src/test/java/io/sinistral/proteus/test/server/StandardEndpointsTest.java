@@ -579,6 +579,13 @@ public class StandardEndpointsTest {
     }
 
     @Test
+    public void lastModified()
+    {
+
+        given().accept(ContentType.JSON).when().get("v1/tests/headers/last-modified").then().statusCode(200).body(containsString("value")).header("last-modified", CoreMatchers.anything());
+    }
+
+    @Test
     public void maxValue()
     {
 

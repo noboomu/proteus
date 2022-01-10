@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added HEIC format**
+
+
+[1aa07d8f82ab1cc](https://github.com/noboomu/proteus/commit/1aa07d8f82ab1cc) Joshua Bauer *2021-12-24 00:44:12*
+
 **Added AVIF format**
 
 

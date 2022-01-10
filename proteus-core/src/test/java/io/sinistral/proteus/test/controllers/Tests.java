@@ -115,6 +115,8 @@ public class Tests
 	{  
 		response( new User(123L) ).applicationJson().send(exchange); 
 	}
+
+
 	
 	@GET 
 	@Path("exchange/user/xml")
@@ -671,7 +673,8 @@ public class Tests
 
 		return future;
 	}
-	
+
+
 	@GET
 	@Path("response/future/user")
 	@Produces((MediaType.APPLICATION_JSON)) 
@@ -1037,6 +1040,16 @@ public class Tests
 
 		return response(Map.of("file1",file1.toFile().length(),"file2",file2.toFile().length(),"file3",file3.toFile().length(),"user",user,"userId",userId)).applicationJson().ok();
 
+
+	}
+
+	@GET
+	@Path("headers/last-modified")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public ServerResponse<Map<String,String>> lastModifiedResponse(ServerRequest request)
+	{
+		return response(Map.of("key","value")).lastModified(Instant.now());
 
 	}
 

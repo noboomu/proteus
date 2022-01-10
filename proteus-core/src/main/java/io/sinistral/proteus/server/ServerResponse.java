@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
+import io.sinistral.proteus.protocol.HttpHeaders;
 import io.sinistral.proteus.protocol.MediaType;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
@@ -20,6 +21,11 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -35,6 +41,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ServerResponse<T>
 {
     private static Logger log = LoggerFactory.getLogger(ServerResponse.class.getCanonicalName());
+
+    private final static String RFC1123_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z";
+
+    private static final ThreadLocal<DateTimeFormatter> RFC1123_PATTERN_FORMATTER =ThreadLocal.withInitial( () -> DateTimeFormatter.ofPattern(RFC1123_PATTERN));
 
     @Inject
     protected static XmlMapper XML_MAPPER;
@@ -176,7 +186,6 @@ public class ServerResponse<T>
         this.status = status.getStatusCode();
     }
 
-
     public ServerResponse<T> body(ByteBuffer body)
     {
         this.body = body;
@@ -219,18 +228,32 @@ public class ServerResponse<T>
     public ServerResponse<T> lastModified(Date date)
     {
         this.headers.put(Headers.LAST_MODIFIED, date.getTime());
+        this.hasHeaders = true;
         return this;
+    }
+
+    /**
+     * @param instant
+     *            the instant to set
+     */
+    public ServerResponse<T> lastModified(Instant instant)
+    {
+       this.headers.put(Headers.LAST_MODIFIED,RFC1123_PATTERN_FORMATTER.get().format(ZonedDateTime.ofInstant(instant, ZoneId.of("GMT"))));
+       this.hasHeaders = true;
+       return this;
     }
 
     public ServerResponse<T> contentLanguage(Locale locale)
     {
         this.headers.put(Headers.CONTENT_LANGUAGE, locale.toLanguageTag());
+        this.hasHeaders = true;
         return this;
     }
 
     public ServerResponse<T> contentLanguage(String language)
     {
         this.headers.put(Headers.CONTENT_LANGUAGE, language);
+        this.hasHeaders = true;
         return this;
     }
 

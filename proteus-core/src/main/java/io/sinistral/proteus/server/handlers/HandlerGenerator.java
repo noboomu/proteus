@@ -4,6 +4,7 @@
 package io.sinistral.proteus.server.handlers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.squareup.javapoet.AnnotationSpec;
@@ -51,6 +52,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,6 +74,7 @@ import java.util.stream.Stream;
  * Generates code and compiles a <code>Supplier<RoutingHandler></code> class
  * from the target class's methods that are annotated with a JAX-RS method
  * annotation (i.e. <code>javax.ws.rs.GET</code>)
+ *
  * @author jbauer
  */
 public class HandlerGenerator {
@@ -78,10 +82,18 @@ public class HandlerGenerator {
     static Logger log = LoggerFactory.getLogger(HandlerGenerator.class.getCanonicalName());
 
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
+
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
 
+    private static final String TMP_DIRECTORY_NAME = "proteus_generated_classes";
+
+    private static java.nio.file.Path TMP_DIRECTORY = null;
+
     public enum StatementParameterType {
-        STRING, LITERAL, TYPE, RAW
+        STRING,
+        LITERAL,
+        TYPE,
+        RAW
     }
 
     @Inject
@@ -89,7 +101,9 @@ public class HandlerGenerator {
     protected String applicationPath;
 
     protected String packageName;
+
     protected String className;
+
     protected String sourceString;
 
     @Inject
@@ -111,10 +125,9 @@ public class HandlerGenerator {
     /**
      * Create a new {@code HandlerGenerator} instance used to generate a
      * {@code Supplier<RoutingHandler>} class
-     * @param packageName
-     *            generated class package name
-     * @param controllerClass
-     *            the class handlers will be generated from this class
+     *
+     * @param packageName     generated class package name
+     * @param controllerClass the class handlers will be generated from this class
      */
     public HandlerGenerator(String packageName, Class<?> controllerClass)
     {
@@ -122,28 +135,38 @@ public class HandlerGenerator {
         this.packageName = packageName;
         this.controllerClass = controllerClass;
         this.className = controllerClass.getSimpleName() + "RouteSupplier";
+
     }
 
     /**
      * Compiles the generated source into a new {@link Class}
+     *
      * @return a new {@code Supplier<RoutingHandler>} class
      */
     public Class<? extends Supplier<RoutingHandler>> compileClass() throws Exception
     {
 
+        String source = null;
+
         try
         {
-            this.generateRoutes();
 
-            log.debug("\n\nGenerated Class Source:\n\n{}", this.sourceString);
+            if (TMP_DIRECTORY == null)
+            {
+                TMP_DIRECTORY = getTemporaryDirectoryPath();
+            }
+
+            source = this.generateClassSource();
+
+            log.debug("\n\nGenerated Class Source:\n\n{}", source);
 
             CachedCompiler cachedCompiler = new CachedCompiler(null, null);
 
-            return cachedCompiler.loadFromJava(packageName + "." + className, this.sourceString);
+            return cachedCompiler.loadFromJava(packageName + "." + className, source);
 
         } catch (Exception e)
         {
-            log.error("Failed to compile {}\nSource:\n{}", packageName + "." + className, this.sourceString, e);
+            log.error("Failed to compile {}\nSource:\n{}", packageName + "." + className, source, e);
             throw e;
         }
     }
@@ -151,7 +174,7 @@ public class HandlerGenerator {
     /**
      * Generates the routing Java source code
      */
-    protected void generateRoutes() throws Exception
+    protected String generateClassSource() throws Exception
     {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
@@ -205,8 +228,27 @@ public class HandlerGenerator {
 
         javaFile.writeTo(sb);
 
-        this.sourceString = sb.toString();
+        javaFile.writeToPath(TMP_DIRECTORY);
 
+        return sb.toString();
+
+    }
+
+    protected java.nio.file.Path getTemporaryDirectoryPath() throws Exception
+    {
+
+        String tmpDirLocation = System.getProperty("java.io.tmpdir");
+
+        java.nio.file.Path tmpPath = Paths.get(tmpDirLocation).resolve(TMP_DIRECTORY_NAME);
+
+        if (Files.exists(tmpPath))
+        {
+            return tmpPath;
+        }
+        else
+        {
+            return Files.createDirectory(tmpPath);
+        }
     }
 
     protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz) throws Exception
@@ -489,7 +531,7 @@ public class HandlerGenerator {
                 methodPath = Extractors.pathTemplateFromMethod.apply(m).replaceAll("\\/\\/", "\\/");
             } catch (Exception e)
             {
-                log.error("Error parsing method path for {}",m.getName(), e);
+                log.error("Error parsing method path for {}", m.getName(), e);
                 continue;
             }
 
@@ -563,7 +605,7 @@ public class HandlerGenerator {
 
                 } catch (Exception e)
                 {
-                    log.error("Error processing path parameter {} for method {}",p.getName(),m.getName(),e);
+                    log.error("Error processing path parameter {} for method {}", p.getName(), m.getName(), e);
                     throw e;
                 }
             }
@@ -585,7 +627,7 @@ public class HandlerGenerator {
 
             List<Parameter> parameters = Arrays.stream(m.getParameters()).collect(Collectors.toList());
 
-            for(Parameter p : parameters)
+            for (Parameter p : parameters)
             {
 
                 Type type = p.getParameterizedType();
@@ -593,7 +635,7 @@ public class HandlerGenerator {
                 try
                 {
 
-                    log.debug("Method {} parameter {} type {}", m.getName(), p.getName() , type);
+                    log.debug("Method {} parameter {} type {}", m.getName(), p.getName(), type);
 
                     if (p.getType().equals(ServerRequest.class))
                     {
@@ -703,7 +745,7 @@ public class HandlerGenerator {
                                 }
                             }
 
-                            log.debug("beanParam handler: {}",t);
+                            log.debug("beanParam handler: {}", t);
 
                             if (t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType))
                             {
@@ -812,7 +854,7 @@ public class HandlerGenerator {
 
                                 } catch (Exception e)
                                 {
-                                    log.error("error adding statement to method {} for parameter {}:\nstatement: {}\ntype: {} erased type: {}\n",m.getName(),  p.getName(), t.statement,   pType, erasedType,e);
+                                    log.error("error adding statement to method {} for parameter {}:\nstatement: {}\ntype: {} erased type: {}\n", m.getName(), p.getName(), t.statement, pType, erasedType, e);
                                     throw e;
                                 }
 
@@ -826,7 +868,7 @@ public class HandlerGenerator {
 
                 } catch (Exception e)
                 {
-                    log.error("Failed to generate statement for method {}",m.getName(),e);
+                    log.error("Failed to generate statement for method {}", m.getName(), e);
                     throw e;
                 }
 
@@ -1113,8 +1155,7 @@ public class HandlerGenerator {
     }
 
     /**
-     * @param packageName
-     *            the packageName to set
+     * @param packageName the packageName to set
      */
     public void setPackageName(String packageName)
     {
@@ -1132,8 +1173,7 @@ public class HandlerGenerator {
     }
 
     /**
-     * @param className
-     *            the className to set
+     * @param className the className to set
      */
     public void setClassName(String className)
     {
@@ -1258,10 +1298,14 @@ public class HandlerGenerator {
         return null;
     }
 
+
     protected static String typeReferenceNameForParameterizedType(Type type)
     {
 
         String typeName = type.getTypeName();
+
+
+
 
         if (typeName.contains("Optional"))
         {
@@ -1335,13 +1379,30 @@ public class HandlerGenerator {
 
         }
 
+        if(type instanceof  ParameterizedType)
+        {
+            ParameterizedType pType = (ParameterizedType) type;
+            Class<?>  genericType = (Class<?>)pType.getActualTypeArguments()[0];
+            Class<?> rawType = (Class<?>)pType.getRawType();
+            Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(genericType);
+
+            if(!(pType.getRawType() instanceof ParameterizedType))
+            {
+                return Character.toLowerCase(rawType.getSimpleName().charAt(0)) + rawType.getSimpleName().substring(1) + genericType.getSimpleName();
+            }
+
+
+         }
+
         return typeName;
     }
 
     protected static String typeReferenceNameForType(Type type)
     {
-
         String typeName = type.getTypeName();
+
+
+
 
         String[] erasedParts = typeName.split("\\.");
 
@@ -1398,6 +1459,71 @@ public class HandlerGenerator {
     {
 
         builder.addCode(CodeBlock.of("\n\nType $LType = $T.", clazz, clazz));
+
+    }
+
+    protected static java.nio.file.Path generateSourcePath(Class<?> clazz) {
+
+        return java.nio.file.Paths.get(clazz.getPackageName().replaceAll("[.$]", "/"));
+
+    }
+
+    protected java.nio.file.Path getPackageSourcePath() {
+
+        return java.nio.file.Paths.get(getPackageName().replaceAll("[.$]", "/"));
+
+    }
+
+    protected CachedCompiler getCachedCompiler() {
+
+        java.nio.file.Path rootPath = Paths.get(System.getProperty("user.dir"));
+
+        if (!rootPath.resolve("src").toFile().exists())
+        {
+            return new CachedCompiler(null, null);
+        }
+
+        try
+        {
+
+            java.nio.file.Path targetPath = rootPath.resolve("target");
+
+            if (!targetPath.toFile().exists())
+            {
+                File file = targetPath.toFile();
+                file.mkdir();
+            }
+
+            java.nio.file.Path sourcePath = targetPath.resolve("generated-sources");
+
+            if (!sourcePath.toFile().exists())
+            {
+                File file = sourcePath.toFile();
+                file.mkdir();
+            }
+
+            java.nio.file.Path classPath = targetPath.resolve("generated-classes");
+
+            if (!classPath.toFile().exists())
+            {
+                File file = classPath.toFile();
+                file.mkdir();
+
+            }
+
+            java.nio.file.Path packagePath = getPackageSourcePath();
+
+            if (!packagePath.toFile().exists())
+            {
+                packagePath.toFile().mkdirs();
+            }
+
+            return new CachedCompiler(sourcePath.toFile(), classPath.toFile());
+
+        } catch (Exception e)
+        {
+            return new CachedCompiler(null, null);
+        }
 
     }
 

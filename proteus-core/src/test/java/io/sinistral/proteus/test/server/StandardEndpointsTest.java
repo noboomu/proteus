@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.protocol.MediaType;
+import io.sinistral.proteus.test.controllers.GenericBean;
 import io.sinistral.proteus.test.models.User;
 import io.sinistral.proteus.test.models.User.UserType;
 import org.apache.commons.io.IOUtils;
@@ -157,6 +158,32 @@ public class StandardEndpointsTest {
             String body = mapper.writeValueAsString(randomLongs);
 
             given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/set/bean").then().statusCode(200).body(containsString(firstNumber.toString()));
+
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+     @Test
+    public void genericBean()
+    {
+
+        GenericBean<Long> genericBean = new GenericBean<>();
+
+        Long value = 1234234L;
+
+        genericBean.setValue(value);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        try
+        {
+
+            String body = mapper.writeValueAsString(genericBean);
+
+            given().contentType(ContentType.JSON).accept(ContentType.JSON).body(body).post("v1/tests/generic/bean").then().statusCode(200).body(containsString(genericBean.getValue().toString()));
 
         } catch (Exception e)
         {

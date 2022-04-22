@@ -24,20 +24,17 @@ import java.util.Optional;
 
 public enum TypeHandler {
 
-
-
     LongType("Long $L = $T.longValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     IntegerType("Integer $L = $T.integerValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     StringType("String $L =  $T.string(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     BooleanType("Boolean $L =  $T.booleanValue(exchange,$S)", false, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     FilePathType("$T $L = $T.filePath(exchange,$S)", true, java.nio.file.Path.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
 
-
     AnyType("$T $L = $T.any(exchange)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
     JsonNodeType("$T $L = $T.jsonNode(exchange)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class),
-    NamedJsonNodeType("$T $L = $T.namedJsonNode(exchange,$S)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class,StatementParameterType.STRING),
+    NamedJsonNodeType("$T $L = $T.namedJsonNode(exchange,$S)", true, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.class, StatementParameterType.STRING),
     ModelType("$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL),
-    NamedModelType("$T $L = io.sinistral.proteus.server.Extractors.namedModel(exchange,$L,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL,StatementParameterType.STRING),
+    NamedModelType("$T $L = io.sinistral.proteus.server.Extractors.namedModel(exchange,$L,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.LITERAL, StatementParameterType.STRING),
 
     // EnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true,
     // StatementParameterType.TYPE,
@@ -126,12 +123,14 @@ public enum TypeHandler {
 
     OptionalModelType("java.util.Optional<$L> $L = $T.model(exchange,$L)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
-    OptionalNamedJsonNodeType("$T<$T> $L = $T.namedJsonNode(exchange,$s)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class,StatementParameterType.STRING),
+    OptionalNamedJsonNodeType("$T<$T> $L = $T.namedJsonNode(exchange,$s)", true, Optional.class, com.fasterxml.jackson.databind.JsonNode.class, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING),
     OptionalNamedModelType("java.util.Optional<$L> $L = $T.namedModel(exchange,$L,$S)", false, StatementParameterType.LITERAL, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.LITERAL),
 
     OptionalValueOfType("$T<$T> $L = $T.string(exchange,$S).map($T::valueOf)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
     OptionalFromStringType("$T<$T> $L = $T.string(exchange,$S).map($T::fromString)", false, Optional.class, StatementParameterType.RAW, StatementParameterType.LITERAL, io.sinistral.proteus.server.Extractors.Optional.class, StatementParameterType.STRING, StatementParameterType.RAW),
 
+    OptionalFileMapType("$T $L = io.sinistral.proteus.server.Extractors.fileMap(exchange,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.STRING),
+    OptionalPathMapType("$T $L = io.sinistral.proteus.server.Extractors.pathMap(exchange,$S)", true, StatementParameterType.TYPE, StatementParameterType.LITERAL, StatementParameterType.STRING),
     // OptionalEnumType("$T $L = $T.enumValue(exchange,$T.class,$S)", true,
     // StatementParameterType.TYPE, StatementParameterType.LITERAL,
     // io.sinistral.proteus.server.Extractors.Optional.class,
@@ -143,11 +142,13 @@ public enum TypeHandler {
 
     public boolean isBlocking()
     {
+
         return this.isBlocking;
     }
 
     public String statement()
     {
+
         return this.statement;
     }
 
@@ -170,6 +171,7 @@ public enum TypeHandler {
 
     TypeHandler(String statement, boolean isBlocking, Object... types)
     {
+
         this.statement = statement;
         this.isBlocking = isBlocking;
         this.parameterTypes = types;
@@ -178,6 +180,7 @@ public enum TypeHandler {
     /**
      * Helper function to bind values to a
      * {@link com.squareup.javapoet.MethodSpec.Builder}
+     *
      * @param builder
      * @param parameter
      * @param handler
@@ -185,33 +188,46 @@ public enum TypeHandler {
      */
     public static void addStatement(MethodSpec.Builder builder, Parameter parameter, TypeHandler handler) throws Exception
     {
+
         Object[] args = new Object[handler.parameterTypes.length];
 
         String pName = parameter.getName();
 
-        for (int i = 0; i < handler.parameterTypes.length; i++) {
+        for (int i = 0; i < handler.parameterTypes.length; i++)
+        {
 
-            if (handler.parameterTypes[i] instanceof StatementParameterType) {
+            if (handler.parameterTypes[i] instanceof StatementParameterType)
+            {
 
-                if (parameter.isAnnotationPresent(QueryParam.class)) {
+                if (parameter.isAnnotationPresent(QueryParam.class))
+                {
                     QueryParam qp = parameter.getAnnotation(QueryParam.class);
                     pName = qp.value();
-                } else if (parameter.isAnnotationPresent(HeaderParam.class)) {
+                }
+                else if (parameter.isAnnotationPresent(HeaderParam.class))
+                {
                     HeaderParam hp = parameter.getAnnotation(HeaderParam.class);
                     pName = hp.value();
-                } else if (parameter.isAnnotationPresent(PathParam.class)) {
+                }
+                else if (parameter.isAnnotationPresent(PathParam.class))
+                {
                     PathParam pp = parameter.getAnnotation(PathParam.class);
                     pName = pp.value();
-                } else if (parameter.isAnnotationPresent(CookieParam.class)) {
+                }
+                else if (parameter.isAnnotationPresent(CookieParam.class))
+                {
                     CookieParam cp = parameter.getAnnotation(CookieParam.class);
                     pName = cp.value();
-                } else if (parameter.isAnnotationPresent(FormParam.class)) {
+                }
+                else if (parameter.isAnnotationPresent(FormParam.class))
+                {
                     FormParam fp = parameter.getAnnotation(FormParam.class);
                     pName = fp.value();
                 }
 
                 StatementParameterType pType = (StatementParameterType) handler.parameterTypes[i];
-                switch (pType) {
+                switch (pType)
+                {
                     case LITERAL:
                         args[i] = parameter.getName();
                         break;
@@ -221,7 +237,8 @@ public enum TypeHandler {
                     case TYPE:
                         args[i] = parameter.getParameterizedType();
                         break;
-                    case RAW: {
+                    case RAW:
+                    {
                         Type type = parameter.getParameterizedType();
                         type = HandlerGenerator.extractErasedType(type);
                         args[i] = type;
@@ -230,7 +247,9 @@ public enum TypeHandler {
                     default:
                         break;
                 }
-            } else if (handler.parameterTypes[i] instanceof Class) {
+            }
+            else if (handler.parameterTypes[i] instanceof Class)
+            {
                 Class<?> clazz = (Class<?>) handler.parameterTypes[i];
 
                 args[i] = clazz;
@@ -238,7 +257,8 @@ public enum TypeHandler {
             }
         }
 
-        if (handler.equals(BeanListValueOfType)) {
+        if (handler.equals(BeanListValueOfType))
+        {
             HandlerGenerator.log.debug(parameter.getName() + " " + Arrays.toString(args) + " " + handler);
         }
 
@@ -248,29 +268,39 @@ public enum TypeHandler {
 
         Min min = parameter.isAnnotationPresent(Min.class) ? parameter.getAnnotationsByType(Min.class)[0] : null;
 
-        if (max != null || min != null) {
-            if (max != null && min != null) {
+        if (max != null || min != null)
+        {
+            if (max != null && min != null)
+            {
                 long maxValue = min.value();
                 long minValue = min.value();
 
                 builder.beginControlFlow("if( $L < $L )", pName, minValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", min.message().equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", min.message()
+                                                                                                                                                             .equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
                 builder.endControlFlow();
                 builder.beginControlFlow("else if( $L > $L )", pName, maxValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", max.message().equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", max.message()
+                                                                                                                                                             .equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
                 builder.endControlFlow();
 
-            } else if (max != null) {
+            }
+            else if (max != null)
+            {
                 long maxValue = max.value();
 
                 builder.beginControlFlow("if( $L > $L )", pName, maxValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", max.message().equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", max.message()
+                                                                                                                                                             .equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
                 builder.endControlFlow();
-            } else {
+            }
+            else
+            {
                 long minValue = min.value();
 
                 builder.beginControlFlow("if( $L < $L )", pName, minValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", min.message().equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", min.message()
+                                                                                                                                                             .equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
                 builder.endControlFlow();
             }
         }
@@ -279,12 +309,14 @@ public enum TypeHandler {
     /**
      * Helper function to bind a {@link Parameter} to a
      * {@link com.squareup.javapoet.MethodSpec.Builder}
+     *
      * @param builder
      * @param parameter
      * @throws Exception
      */
     public static void addStatement(MethodSpec.Builder builder, Parameter parameter) throws Exception
     {
+
         BeanParam beanParam = parameter.getAnnotation(BeanParam.class);
 
         boolean isBeanParameter = beanParam != null;
@@ -293,30 +325,30 @@ public enum TypeHandler {
 
         FormParam formParam = parameter.getAnnotation(FormParam.class);
 
-        if(formParam != null)
+        if (formParam != null)
         {
-                 switch(handler)
+            switch (handler)
+            {
+                case JsonNodeType:
                 {
-                    case JsonNodeType:
-                    {
-                        handler = NamedJsonNodeType;
-                        break;
-                    }
-                    case ByteBufferType:
-                    {
-                        handler = NamedByteBufferType;
-                        break;
-                    }
-                    case OptionalJsonNodeType:
-                    {
-                        handler = OptionalNamedJsonNodeType;
-                        break;
-                    }
-                    case OptionalByteBufferType:
-                    {
-                        handler = OptionalNamedByteBufferType;
-                        break;
-                    }
+                    handler = NamedJsonNodeType;
+                    break;
+                }
+                case ByteBufferType:
+                {
+                    handler = NamedByteBufferType;
+                    break;
+                }
+                case OptionalJsonNodeType:
+                {
+                    handler = OptionalNamedJsonNodeType;
+                    break;
+                }
+                case OptionalByteBufferType:
+                {
+                    handler = OptionalNamedByteBufferType;
+                    break;
+                }
             }
         }
 
@@ -330,6 +362,7 @@ public enum TypeHandler {
 
     public static TypeHandler forType(Type type)
     {
+
         return forType(type, false);
     }
 
@@ -345,277 +378,425 @@ public enum TypeHandler {
         boolean isArray = type.getTypeName().contains("java.util.List");
         boolean isSet = type.getTypeName().contains("java.util.Set");
         boolean isMap = type.getTypeName().contains("java.util.Map");
+        boolean isParameterized = type instanceof ParameterizedType;
 
-        if (!isOptional && !isArray && !isSet && !isMap) {
-            try {
+        if (!isOptional && !isArray && !isSet && !isMap && !isParameterized)
+        {
+            try
+            {
+
+
                 Class<?> clazz = Class.forName(type.getTypeName());
 
                 hasValueOf = HandlerGenerator.hasValueOfMethod(clazz);
 
                 hasFromString = HandlerGenerator.hasFromStringMethod(clazz);
 
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 HandlerGenerator.log.error(e.getMessage(), e);
 
             }
         }
 
-        if (isArray && !isOptional) {
-            try {
+        if (isArray && !isOptional)
+        {
+            try
+            {
                 Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);
 
-                if (HandlerGenerator.hasValueOfMethod(erasedType)) {
-                    if (!isBeanParam) {
+                if (HandlerGenerator.hasValueOfMethod(erasedType))
+                {
+                    if (!isBeanParam)
+                    {
                         return QueryListValueOfType;
-                    } else {
+                    }
+                    else
+                    {
 
                         return BeanListValueOfType;
 
                     }
-                } else if (HandlerGenerator.hasFromStringMethod(erasedType)) {
-                    if (!isBeanParam) {
+                }
+                else if (HandlerGenerator.hasFromStringMethod(erasedType))
+                {
+                    if (!isBeanParam)
+                    {
                         return QueryListFromStringType;
 
-                    } else {
+                    }
+                    else
+                    {
                         return BeanListFromStringType;
                     }
-                } else if (erasedType.getTypeName().contains("java.nio.file.Path")) {
+                }
+                else if (erasedType.getTypeName().contains("java.nio.file.Path"))
+                {
                     return PathListType;
-                } else if (erasedType.getTypeName().contains("java.io.File")) {
+                }
+                else if (erasedType.getTypeName().contains("java.io.File"))
+                {
                     return FileListType;
-                } else {
+                }
+                else
+                {
                     return ModelType;
                 }
 
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 HandlerGenerator.log.error(e.getMessage(), e);
                 throw e;
             }
         }
 
-        if (isMap && !isOptional) {
-            try {
-
+        if (isMap && !isOptional)
+        {
+            try
+            {
 
                 ParameterizedType erasedType = (ParameterizedType) HandlerGenerator.extractErasedType(type);
 
                 Type[] types = erasedType.getActualTypeArguments();
 
-                if (types[1].getTypeName().contains("java.nio.file.Path")) {
+                if (types[1].getTypeName().contains("java.nio.file.Path"))
+                {
                     return PathMapType;
-                } else if (types[1].getTypeName().contains("java.io.File")) {
+                }
+                else if (types[1].getTypeName().contains("java.io.File"))
+                {
                     return FileMapType;
                 }
-                else {
+                else
+                {
                     return ModelType;
                 }
 
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 HandlerGenerator.log.error(e.getMessage(), e);
                 throw e;
             }
         }
 
-        if (isSet && !isOptional) {
-            try {
+        if (isSet && !isOptional)
+        {
+            try
+            {
                 Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);
 
-                if (HandlerGenerator.hasValueOfMethod(erasedType)) {
-                    if (!isBeanParam) {
+                if (HandlerGenerator.hasValueOfMethod(erasedType))
+                {
+                    if (!isBeanParam)
+                    {
                         return QuerySetValueOfType;
 
-                    } else {
+                    }
+                    else
+                    {
                         return BeanListValueOfType;
                     }
-                } else if (HandlerGenerator.hasFromStringMethod(erasedType)) {
-                    if (!isBeanParam) {
+                }
+                else if (HandlerGenerator.hasFromStringMethod(erasedType))
+                {
+                    if (!isBeanParam)
+                    {
                         return QuerySetFromStringType;
 
-                    } else {
+                    }
+                    else
+                    {
                         return BeanListFromStringType;
                     }
-                } else {
+                }
+                else
+                {
                     return ModelType;
                 }
 
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 HandlerGenerator.log.error(e.getMessage(), e);
                 throw e;
 
             }
-        } else if (isArray) {
-            try {
+        }
+        else if (isArray)
+        {
+            try
+            {
 
-                if (type instanceof ParameterizedType) {
+                if (type instanceof ParameterizedType)
+                {
                     ParameterizedType pType = (ParameterizedType) type;
                     type = pType.getActualTypeArguments()[0];
                 }
 
                 Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);
 
-                if (HandlerGenerator.hasValueOfMethod(erasedType)) {
-                    if (!isBeanParam) {
+                if (HandlerGenerator.hasValueOfMethod(erasedType))
+                {
+                    if (!isBeanParam)
+                    {
                         return QueryOptionalListValueOfType;
 
-                    } else {
+                    }
+                    else
+                    {
                         return OptionalBeanListValueOfType;
                     }
 
-                } else if (HandlerGenerator.hasFromStringMethod(erasedType)) {
-                    if (!isBeanParam) {
+                }
+                else if (HandlerGenerator.hasFromStringMethod(erasedType))
+                {
+                    if (!isBeanParam)
+                    {
                         return QueryOptionalListFromStringType;
 
-                    } else {
+                    }
+                    else
+                    {
                         return OptionalBeanListFromStringType;
                     }
-                } else {
+                }
+                else
+                {
                     return ModelType;
                 }
 
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 HandlerGenerator.log.error(e.getMessage(), e);
                 throw e;
             }
-        } else if (isMap) {
-            try {
+        }
+        else if (isMap)
+        {
+            try
+            {
 
                 return ModelType;
 
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 HandlerGenerator.log.error(e.getMessage(), e);
                 throw e;
             }
-        } else if (isSet) {
-            try {
+        }
+        else if (isSet)
+        {
+            try
+            {
 
-                if (type instanceof ParameterizedType) {
+                if (type instanceof ParameterizedType)
+                {
                     ParameterizedType pType = (ParameterizedType) type;
                     type = pType.getActualTypeArguments()[0];
                 }
 
                 Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);
 
-                if (HandlerGenerator.hasValueOfMethod(erasedType)) {
-                    if (!isBeanParam) {
+                if (HandlerGenerator.hasValueOfMethod(erasedType))
+                {
+                    if (!isBeanParam)
+                    {
                         return QueryOptionalSetValueOfType;
 
-                    } else {
+                    }
+                    else
+                    {
                         return OptionalBeanListValueOfType;
                     }
 
-                } else if (HandlerGenerator.hasFromStringMethod(erasedType)) {
-                    if (!isBeanParam) {
+                }
+                else if (HandlerGenerator.hasFromStringMethod(erasedType))
+                {
+                    if (!isBeanParam)
+                    {
                         return QueryOptionalSetFromStringType;
 
-                    } else {
+                    }
+                    else
+                    {
                         return OptionalBeanListFromStringType;
                     }
-                } else {
+                }
+                else
+                {
                     return ModelType;
                 }
 
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 HandlerGenerator.log.error(e.getMessage(), e);
                 throw e;
 
             }
         }
 
-        // log.debug("type: " + type.getTypeName() + " valueOf: " +
-        // hasValueOf + " fromString: " + hasFromString);
-
-        if (type.equals(Long.class)) {
+        if (type.equals(Long.class))
+        {
             return LongType;
-        } else if (type.equals(Integer.class)) {
+        }
+        else if (type.equals(Integer.class))
+        {
             return IntegerType;
-        } else if (type.equals(Float.class)) {
+        }
+        else if (type.equals(Float.class))
+        {
             return FloatType;
-        } else if (type.equals(Double.class)) {
+        }
+        else if (type.equals(Double.class))
+        {
             return DoubleType;
-        } else if (type.equals(BigDecimal.class)) {
+        }
+        else if (type.equals(BigDecimal.class))
+        {
             return BigDecimalType;
-        } else if (type.equals(java.nio.ByteBuffer.class)) {
+        }
+        else if (type.equals(java.nio.ByteBuffer.class))
+        {
             return ByteBufferType;
-        } else if (type.equals(Boolean.class)) {
+        }
+        else if (type.equals(Boolean.class))
+        {
             return BooleanType;
-        } else if (type.equals(String.class)) {
+        }
+        else if (type.equals(String.class))
+        {
             return StringType;
-        } else if (type.equals(java.nio.file.Path.class)) {
+        }
+        else if (type.equals(java.nio.file.Path.class))
+        {
             return FilePathType;
-        } else if (type.equals(java.io.File.class)) {
+        }
+        else if (type.equals(java.io.File.class))
+        {
             return FileType;
-        } else if (type.equals(java.time.Instant.class)) {
+        }
+        else if (type.equals(java.time.Instant.class))
+        {
             return InstantType;
-        } else if (type.equals(java.util.Date.class)) {
+        }
+        else if (type.equals(java.util.Date.class))
+        {
             return DateType;
-        } else if (type.equals(java.time.ZonedDateTime.class)) {
+        }
+        else if (type.equals(java.time.ZonedDateTime.class))
+        {
             return ZonedDateTimeType;
-        } else if (type.equals(java.time.OffsetDateTime.class)) {
+        }
+        else if (type.equals(java.time.OffsetDateTime.class))
+        {
             return OffsetDateTimeType;
-        } else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class)) {
+        }
+        else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class))
+        {
             return JsonNodeType;
-        } else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class)) {
+        }
+        else if (type.equals(com.fasterxml.jackson.databind.JsonNode.class))
+        {
             return JsonNodeType;
-        } else if (isOptional) {
-            if (type.getTypeName().contains("java.lang.Long")) {
+        }
+        else if (isOptional)
+        {
+            if (type.getTypeName().contains("java.lang.Long"))
+            {
                 return OptionalLongType;
-            } else if (type.getTypeName().contains("java.lang.String")) {
+            }
+            else if (type.getTypeName().contains("java.lang.String"))
+            {
                 return OptionalStringType;
-            } else if (type.getTypeName().contains("java.util.Date")) {
+            }
+            else if (type.getTypeName().contains("java.util.Date"))
+            {
                 return OptionalDateType;
-            } else if (type.getTypeName().contains("java.time.OffsetDateTime")) {
+            }
+            else if (type.getTypeName().contains("java.time.OffsetDateTime"))
+            {
                 return OptionalOffsetDateTimeType;
-            } else if (type.getTypeName().contains("java.time.Instant")) {
+            }
+            else if (type.getTypeName().contains("java.time.Instant"))
+            {
                 return OptionalInstantType;
-            } else if (type.getTypeName().contains("java.time.ZonedDateTime")) {
+            }
+            else if (type.getTypeName().contains("java.time.ZonedDateTime"))
+            {
                 return ZonedDateTimeType;
-            } else if (type.getTypeName().contains("java.lang.Boolean")) {
+            }
+            else if (type.getTypeName().contains("java.lang.Boolean"))
+            {
                 return OptionalBooleanType;
-            } else if (type.getTypeName().contains("java.lang.Float")) {
+            }
+            else if (type.getTypeName().contains("java.lang.Float"))
+            {
                 return OptionalFloatType;
-            } else if (type.getTypeName().contains("java.lang.Double")) {
+            }
+            else if (type.getTypeName().contains("java.lang.Double"))
+            {
                 return OptionalDoubleType;
-            } else if (type.getTypeName().contains("java.math.BigDecimal")) {
+            }
+            else if (type.getTypeName().contains("java.math.BigDecimal"))
+            {
                 return OptionalBigDecimalType;
-            } else if (type.getTypeName().contains("java.lang.Integer")) {
+            }
+            else if (type.getTypeName().contains("java.lang.Integer"))
+            {
                 return OptionalIntegerType;
-            } else if (type.getTypeName().contains("java.nio.file.Path")) {
+            }
+            else if (type.getTypeName().contains("java.nio.file.Path"))
+            {
                 return OptionalFilePathType;
-            } else if (type.getTypeName().contains("java.nio.ByteBuffer")) {
+            }
+            else if (type.getTypeName().contains("java.nio.ByteBuffer"))
+            {
                 return OptionalByteBufferType;
-            } else if (type.getTypeName().contains("java.io.File")) {
+            }
+            else if (type.getTypeName().contains("java.io.File"))
+            {
                 return OptionalFileType;
-            } else {
-                try {
-
-
+            }
+            else
+            {
+                try
+                {
 
                     Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(type);
 
-                    if (HandlerGenerator.hasValueOfMethod(erasedType)) {
+                    if (HandlerGenerator.hasValueOfMethod(erasedType))
+                    {
                         return OptionalValueOfType;
 
-                    } else if (HandlerGenerator.hasFromStringMethod(erasedType)) {
+                    }
+                    else if (HandlerGenerator.hasFromStringMethod(erasedType))
+                    {
                         return OptionalFromStringType;
                     }
 
-                    if(isBeanParam)
+                    if (isBeanParam)
                     {
                         return OptionalModelType;
                     }
 
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
                     HandlerGenerator.log.error("error : " + e.getMessage(), e);
                     return OptionalStringType;
                 }
 
                 return OptionalStringType;
             }
-        } else if (hasValueOf) {
+        }
+        else if (hasValueOf)
+        {
             return ValueOfType;
-        } else if (hasFromString) {
+        }
+        else if (hasFromString)
+        {
             return FromStringType;
-        } else {
+        }
+        else
+        {
             return ModelType;
         }
     }

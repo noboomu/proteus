@@ -32,9 +32,11 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -556,6 +558,8 @@ public class Extractors {
             return formValueFilePath(exchange, name).map(Path::toFile);
         }
 
+
+
         public static java.util.Optional<ByteBuffer> byteBuffer(final HttpServerExchange exchange) throws IOException
         {
 
@@ -598,24 +602,24 @@ public class Extractors {
     public static List<Path> pathList(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
 
-        return formValueFilePaths(exchange, name).map(s -> s.collect(Collectors.toList())).orElseThrow(() -> new IllegalArgumentException("Invalid parameter " + name));
+        return formValueFilePaths(exchange, name).map(s -> s.collect(Collectors.toList())).orElse(new ArrayList<>());
     }
 
     public static List<File> fileList(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
 
-        return formValueFilePaths(exchange, name).map(s -> s.map(Path::toFile).collect(Collectors.toList())).orElseThrow(() -> new IllegalArgumentException("Invalid parameter " + name));
+        return formValueFilePaths(exchange, name).map(s -> s.map(Path::toFile).collect(Collectors.toList())).orElse(new ArrayList<>());
     }
 
     public static Map<String, Path> pathMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
-        return formValuePathMap(exchange,name).orElseThrow(() -> new IllegalArgumentException("Invalid parameter " + name));
+        return formValuePathMap(exchange,name).orElse(new HashMap<>());
     }
 
     public static Map<String, File> fileMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
 
-        return formValueFileMap(exchange,name).orElseThrow(() -> new IllegalArgumentException("Invalid parameter " + name));
+        return formValueFileMap(exchange,name).orElse(new HashMap<>());
     }
 
     public static File file(final HttpServerExchange exchange, final String name) throws IllegalArgumentException

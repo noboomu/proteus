@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added support for last-modified using java.time.Instant.**
+
+
+[6941bb69b2739a5](https://github.com/noboomu/proteus/commit/6941bb69b2739a5) Joshua Bauer *2022-01-10 18:02:01*
+
 **Added HEIC format**
 
 

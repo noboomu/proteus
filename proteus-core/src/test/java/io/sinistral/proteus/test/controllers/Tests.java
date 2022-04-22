@@ -68,7 +68,8 @@ import io.undertow.server.HttpServerExchange;
 @Chain({TestClassWrapper.class})
 public class Tests
 {
-	 private static final ByteBuffer buffer;
+
+	private static final ByteBuffer buffer;
 	  static {
 	    String message = "Hello, World!";
 	    byte[] messageBytes = message.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
@@ -273,14 +274,25 @@ public class Tests
 	
 	
 	@POST
-	@Path("generic/list/bean")
+	@Path("generic/bean")
 	@Produces((MediaType.APPLICATION_JSON)) 
  	@Consumes(MediaType.APPLICATION_JSON)
-	public ServerResponse<List<Long>>  genericBeanList( ServerRequest request, @BeanParam List<Long> ids )  throws Exception
+	public ServerResponse<GenericBean<Long>>  genericBeanList( ServerRequest request, @BeanParam GenericBean<Long> genericBean )  throws Exception
 	{  
-		return response( ids ).applicationJson(); 
+		return response( genericBean ).applicationJson();
 	}
-	  
+
+
+
+	@POST
+	@Path("generic/list/bean")
+	@Produces((MediaType.APPLICATION_JSON))
+ 	@Consumes(MediaType.APPLICATION_JSON)
+	public ServerResponse<List<Long>>  genericBeanList( ServerRequest request, @BeanParam List<Long> ids )  throws Exception
+	{
+		return response( ids ).applicationJson();
+	}
+
 	@GET
 	@Path("optional/set")
 	@Produces((MediaType.APPLICATION_JSON))

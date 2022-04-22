@@ -121,8 +121,10 @@ public class ApplicationModule extends AbstractModule
 
         } catch (Exception e) {
 
-            this.binder().addError(e);
             log.error(e.getMessage(), e);
+
+            this.bind(DefaultResponseListener.class).to(io.sinistral.proteus.server.handlers.ServerDefaultResponseListener.class).in(Singleton.class);
+
         }
 
         try {

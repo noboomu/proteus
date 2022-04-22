@@ -4,6 +4,36 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added support for last-modified using java.time.Instant.**
+
+
+[6941bb69b2739a5](https://github.com/noboomu/proteus/commit/6941bb69b2739a5) Joshua Bauer *2022-01-10 18:02:01*
+
+**Added HEIC format**
+
+
+[1aa07d8f82ab1cc](https://github.com/noboomu/proteus/commit/1aa07d8f82ab1cc) Joshua Bauer *2021-12-24 00:44:12*
+
+**Added AVIF format**
+
+
+[f0c191a37c3e244](https://github.com/noboomu/proteus/commit/f0c191a37c3e244) Joshua Bauer *2021-12-24 00:25:14*
+
+**Improve handling of FormData files and buffers**
+
+
+[a71c05b020e813c](https://github.com/noboomu/proteus/commit/a71c05b020e813c) Joshua Bauer *2021-11-15 15:51:16*
+
+**Improve uploading of binary files**
+
+
+[c305504d2d62424](https://github.com/noboomu/proteus/commit/c305504d2d62424) Joshua Bauer *2021-11-09 23:40:40*
+
+**Bump compiler version for JDK 17 support.**
+
+
+[742130deaad3aae](https://github.com/noboomu/proteus/commit/742130deaad3aae) Joshua Bauer *2021-10-30 21:28:03*
+
 **Cleanup OpenAPI module and add json spec support.**
 
 

@@ -239,17 +239,19 @@ public class HandlerGenerator {
 
         String tmpDirLocation = System.getProperty("java.io.tmpdir");
 
-        java.nio.file.Path tmpPath = Paths.get(tmpDirLocation).resolve(TMP_DIRECTORY_NAME);
+        java.nio.file.Path tmpPath = Paths.get(tmpDirLocation);
 
-        if (Files.exists(tmpPath))
+        try
+        {
+           return Files.createDirectory(tmpPath.resolve(TMP_DIRECTORY_NAME));
+
+        } catch (Exception e)
         {
             return tmpPath;
         }
-        else
-        {
-            return Files.createDirectory(tmpPath);
-        }
-    }
+     }
+
+}
 
     protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz) throws Exception
     {
@@ -367,9 +369,9 @@ public class HandlerGenerator {
                                                         .collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForType));
 
         parameterizedLiteralsNameMap
-                .forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeReference = new $T<$L>(){}", TypeReference.class, t, n, TypeReference.class, t));
+                .forEach((t, n) -> initBuilder.addStatement("final $T<$L> $LTypeReference = new $T<$L>(){}", TypeReference.class, t, n.replaceAll("[<>]+", ""), TypeReference.class, t));
 
-        literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeReference = new $T<$T>(){}", TypeReference.class, t, n, TypeReference.class, t));
+        literalsNameMap.forEach((t, n) -> initBuilder.addStatement("final $T<$T> $LTypeReference = new $T<$T>(){}", TypeReference.class, t, n.replaceAll("[<>]+", ""), TypeReference.class, t));
 
         Optional<io.sinistral.proteus.annotations.Chain> typeLevelWrapAnnotation = Optional.ofNullable(clazz.getAnnotation(io.sinistral.proteus.annotations.Chain.class));
 
@@ -1298,14 +1300,10 @@ public class HandlerGenerator {
         return null;
     }
 
-
     protected static String typeReferenceNameForParameterizedType(Type type)
     {
 
         String typeName = type.getTypeName();
-
-
-
 
         if (typeName.contains("Optional"))
         {
@@ -1379,30 +1377,28 @@ public class HandlerGenerator {
 
         }
 
-        if(type instanceof  ParameterizedType)
-        {
-            ParameterizedType pType = (ParameterizedType) type;
-            Class<?>  genericType = (Class<?>)pType.getActualTypeArguments()[0];
-            Class<?> rawType = (Class<?>)pType.getRawType();
-            Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(genericType);
-
-            if(!(pType.getRawType() instanceof ParameterizedType))
-            {
-                return Character.toLowerCase(rawType.getSimpleName().charAt(0)) + rawType.getSimpleName().substring(1) + genericType.getSimpleName();
-            }
-
-
-         }
+//        if(type instanceof  ParameterizedType)
+//        {
+//            ParameterizedType pType = (ParameterizedType) type;
+//            Class<?>  genericType = (Class<?>)pType.getActualTypeArguments()[0];
+//            Class<?> rawType = (Class<?>)pType.getRawType();
+//            Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(genericType);
+//
+//            if(!(pType.getRawType() instanceof ParameterizedType))
+//            {
+//                return Character.toLowerCase(rawType.getSimpleName().charAt(0)) + rawType.getSimpleName().substring(1) + genericType.getSimpleName();
+//            }
+//
+//
+//         }
 
         return typeName;
     }
 
     protected static String typeReferenceNameForType(Type type)
     {
+
         String typeName = type.getTypeName();
-
-
-
 
         String[] erasedParts = typeName.split("\\.");
 

@@ -378,9 +378,9 @@ public enum TypeHandler {
         boolean isArray = type.getTypeName().contains("java.util.List");
         boolean isSet = type.getTypeName().contains("java.util.Set");
         boolean isMap = type.getTypeName().contains("java.util.Map");
-        boolean isParameterized = type instanceof ParameterizedType;
+     //   boolean isParameterized = type instanceof ParameterizedType;
 
-        if (!isOptional && !isArray && !isSet && !isMap && !isParameterized)
+        if (!isOptional && !isArray && !isSet && !isMap )
         {
             try
             {

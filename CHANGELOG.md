@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Better generic support.**
+
+
+[f4f363ccb6e99eb](https://github.com/noboomu/proteus/commit/f4f363ccb6e99eb) Joshua Bauer *2022-04-22 00:00:28*
+
 **Added support for last-modified using java.time.Instant.**
 
 

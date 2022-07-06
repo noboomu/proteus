@@ -9,6 +9,7 @@ import static io.sinistral.proteus.test.wrappers.TestWrapper.DEBUG_TEST_KEY;
 import java.io.File;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -53,6 +54,9 @@ import io.sinistral.proteus.test.models.User;
 import io.sinistral.proteus.test.wrappers.TestClassWrapper;
 import io.sinistral.proteus.test.wrappers.TestWrapper;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.form.FormData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author jbauer
@@ -68,6 +72,7 @@ import io.undertow.server.HttpServerExchange;
 @Chain({TestClassWrapper.class})
 public class Tests
 {
+	private static final Logger logger = LoggerFactory.getLogger(Tests.class.getName());
 
 	private static final ByteBuffer buffer;
 	  static {
@@ -193,11 +198,33 @@ public class Tests
 	}
 	
 	@POST
+	@Debug
 	@Path("response/file/path")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public ServerResponse<ByteBuffer> responseUploadFilePath(ServerRequest request, @FormParam("file") java.nio.file.Path file ) throws Exception
-	{  
+	{
+
+		FormData.FormValue formValue = request.files("file").getFirst();
+
+		logger.info("path: {} file: {} files: {}",file,file.toFile(), formValue.getFileName());
+
+
+		File f = file.toFile();
+
+		File f2 = Paths.get(System.getProperty("user.home")+"/Desktop/tmp.mp4").toFile();
+
+		if(!f2.exists())
+		{
+			f2.createNewFile();
+		}
+
+		logger.info("responseUploadFilePath: {} {} {}",f.getAbsolutePath(), f.length(), f.getName());
+
+		Files.copy(f, f2);
+
+
+
 		return response(ByteBuffer.wrap(Files.toByteArray(file.toFile()))).applicationOctetStream(); 
 	}
 	
@@ -454,6 +481,8 @@ public class Tests
 	@Blocking
 	public ServerResponse<Map<String,String>> uploadMultipleFileMap(ServerRequest request, @FormParam("files") Map<String,File> files ) throws Exception
 	{
+
+
 
 		Map<String,String> map = new HashMap<>();
 

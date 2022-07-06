@@ -33,6 +33,9 @@ import io.undertow.util.Methods;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xnio.Xnio;
+import org.xnio.XnioWorker;
+
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -665,6 +668,26 @@ public class ProteusApplication {
     {
 
         return ports;
+    }
+
+    public void stop() {
+
+        undertow.stop();
+    }
+
+    public Xnio getXnio() {
+
+        return undertow.getXnio();
+    }
+
+    public XnioWorker getWorker() {
+
+        return undertow.getWorker();
+    }
+
+    public List<ListenerInfo> getListenerInfo() {
+
+        return undertow.getListenerInfo();
     }
 
     /**

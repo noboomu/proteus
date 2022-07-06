@@ -5,6 +5,7 @@ package io.sinistral.proteus.test.server;
 
 import java.util.List;
 
+import io.restassured.parsing.Parser;
 import io.sinistral.proteus.test.controllers.Tests;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
@@ -27,6 +28,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 	private static Logger log = LoggerFactory.getLogger(DefaultServer.class.getCanonicalName());
 
 	static {
+RestAssured.defaultParser = Parser.JSON;
 		        System.setProperty("logback.configurationFile", "./conf/logback-test.xml");
 
 	}
@@ -88,7 +90,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner
 			{
 				Thread.sleep(5000);
 				
-				System.out.println(app.getPorts());
+				
 				
 				List<Integer> ports = app.getPorts();
 				

@@ -150,7 +150,7 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
     @Override
     protected boolean shouldIgnoreClass(Type type)
     {
-        // System.out.println("should ignore " + type);
+        // 
         JavaType classType = TypeFactory.defaultInstance().constructType(type);
         String canonicalName = classType.toCanonical();
 

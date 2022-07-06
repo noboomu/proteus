@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -43,51 +44,9 @@ import static org.junit.Assert.fail;
  */
 @RunWith(DefaultServer.class)
 @Ignore
-public class IsolatedEndpointsTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 
-    private File file = null;
-
-    private List<File> files = new ArrayList<>();
-
-    private Set<Long> idSet = new HashSet<>();
-
-    @Before
-    public void setUp()
-    {
-
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-
-        try
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                byte[] bytes = new byte[1388608];
-                Random random = new Random();
-                random.nextBytes(bytes);
-
-                Path tmpPath = Files.createTempFile("test-asset", ".mp4");
-
-                tmpPath.toFile().deleteOnExit();
-
-                Files.write(tmpPath, bytes);
-
-                files.add(tmpPath.toFile());
-
-                LongStream.range(1L, 10L).forEach(l -> {
-
-                    idSet.add(l);
-                });
-            }
-
-            file = files.get(0);
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
+public class IsolatedEndpointsTest extends AbstractEndpointTest{
 
 
     @SuppressWarnings("resource")

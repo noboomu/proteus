@@ -1,6 +1,8 @@
 package io.sinistral.proteus.utilities;
 
 import io.undertow.server.handlers.form.FormData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 public class DataOps {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataOps.class.getName());
 
     public static void writeStreamToPath(InputStream inputStream, Path path) throws IOException
     {

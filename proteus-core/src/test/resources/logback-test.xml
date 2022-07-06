@@ -5,8 +5,8 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<withJansi>true</withJansi>
 		<encoder>
-			<pattern>%date{ISO8601} %highlight(%-5level) [%boldCyan(%logger)] [%boldYellow(%method %F) ] - %boldWhite(%message) %n %red(%ex)
-			</pattern>
+			<pattern>%date{ISO8601} [%thread] %highlight(%-5level) [%boldCyan(%logger{36})] [%boldYellow(%method %F) %line] - %boldWhite(%message) %n %red(%rEx) %nopex
+						</pattern>
 		</encoder>
 	</appender>
 
@@ -17,12 +17,12 @@
 	<logger name="io.netty" level="ERROR" />
 	<logger name="io.netty.handler" level="ERROR" />
 	<logger name="io.sinistral.proteus.server.handlers" level="DEBUG" />
-	<logger name="io.sinistral.proteus.services" level="ERROR" />
+	<logger name="io.sinistral.proteus.services" level="DEBUG" />
 
 	<logger name="com.sun.jersey" level="ERROR" />
 
 	<logger name="org.xnio" level="ERROR" />
-	<logger name="io.undertow" level="ERROR" />
+	<logger name="io.undertow" level="DEBUG" />
 	<logger name="org.reflections" level="OFF" />
 	<logger name="io.swagger.converter" level="ERROR" />
 	<logger name="io.swagger.jackson" level="ERROR" />
@@ -45,7 +45,7 @@
 	<logger name="com.google.inject.internal" level="ERROR" />
 	<logger name="com.google.inject" level="ERROR" />
 	
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 

@@ -48,6 +48,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -60,15 +61,16 @@ import java.util.stream.Collectors;
 import static io.undertow.server.handlers.form.FormDataParser.FORM_DATA;
 
 /**
- *
  * @author jbauer
- *
  */
 public class ServerRequest {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerRequest.class.getName());
 
     public static final AttachmentKey<ByteBuffer> BYTE_BUFFER_KEY = AttachmentKey.create(ByteBuffer.class);
+
+
+    public static final AttachmentKey<ServerRequest> SERVER_REQUEST_ATTACHMENT_KEY = AttachmentKey.create(ServerRequest.class);
 
     protected static final Receiver.ErrorCallback ERROR_CALLBACK = (exchange, e) -> {
         exchange.putAttachment(ExceptionHandler.THROWABLE, e);
@@ -78,9 +80,13 @@ public class ServerRequest {
     protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
     public final HttpServerExchange exchange;
+
     protected final String path;
+
     protected final String contentType;
+
     protected final String method;
+
     protected final String accept;
 
     public ServerRequest()
@@ -124,11 +130,13 @@ public class ServerRequest {
 
     public String accept()
     {
+
         return this.accept;
     }
 
     public String contentType()
     {
+
         return this.contentType;
     }
 
@@ -138,9 +146,9 @@ public class ServerRequest {
         return exchange;
     }
 
-
     public Deque<FormData.FormValue> files(final String name)
     {
+
         FormData formData = this.exchange.getAttachment(FORM_DATA);
 
         if (formData != null)
@@ -183,6 +191,7 @@ public class ServerRequest {
 
     /**
      * Abort current request and respond with 302 redirect. Returns empty @ServerResponse for convenience.
+     *
      * @param location
      * @param includeParameters
      * @return serverResponse
@@ -200,6 +209,7 @@ public class ServerRequest {
 
     /**
      * Abort current request and respond with 301 redirect. Returns empty @ServerResponse for convenience.
+     *
      * @param location
      * @param includeParameters
      * @return serverResponse
@@ -257,6 +267,7 @@ public class ServerRequest {
      */
     public SecurityContext getSecurityContext()
     {
+
         return exchange.getSecurityContext();
     }
 
@@ -789,6 +800,7 @@ public class ServerRequest {
 
     private void extractFormParameters(final FormData formData)
     {
+
         if (formData != null)
         {
             for (String key : formData)
@@ -811,23 +823,29 @@ public class ServerRequest {
     private void parseEncodedForm() throws IOException
     {
 
-        this.exchange.startBlocking();
-
-        final FormDataParser formDataParser = new FormEncodedDataDefinition().setDefaultEncoding(this.exchange.getRequestCharset()).create(exchange);
-
-        if(formDataParser != null)
+        try (BlockingHttpExchange blockingHttpExchange = this.exchange.startBlocking())
         {
-            final FormData formData = formDataParser.parseBlocking();
-            extractFormParameters(formData);
+            try (FormDataParser formDataParser = new FormEncodedDataDefinition().setDefaultEncoding(this.exchange.getRequestCharset()).create(exchange))
+            {
+                if (formDataParser != null)
+                {
+                    final FormData formData = formDataParser.parseBlocking();
+                    extractFormParameters(formData);
+                }
+            }
         }
     }
 
     private void parseMultipartForm() throws IOException
     {
-        this.exchange.startBlocking();
+
+        final String charset = exchange.getRequestCharset();
+
+       this.exchange.startBlocking();
+
 
         final MultiPartParserDefinition multiPartParserDefinition = new MultiPartParserDefinition()
-                .setTempFileLocation(new File(TMP_DIR).toPath()).setDefaultEncoding(this.exchange.getRequestCharset());
+                .setTempFileLocation(Path.of(TMP_DIR)).setDefaultEncoding(charset);
 
         final long thresholdSize = exchange.getConnection().getUndertowOptions().get(UndertowOptions.MAX_BUFFERED_REQUEST_SIZE, 0);
 
@@ -839,9 +857,13 @@ public class ServerRequest {
         {
             final FormData formData = formDataParser.parseBlocking();
             extractFormParameters(formData);
+
         }
 
+
+
     }
+
 }
 
 

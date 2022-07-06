@@ -378,9 +378,9 @@ public enum TypeHandler {
         boolean isArray = type.getTypeName().contains("java.util.List");
         boolean isSet = type.getTypeName().contains("java.util.Set");
         boolean isMap = type.getTypeName().contains("java.util.Map");
-     //   boolean isParameterized = type instanceof ParameterizedType;
+        boolean isParameterized = type instanceof ParameterizedType;
 
-        if (!isOptional && !isArray && !isSet && !isMap )
+        if (!isOptional && !isArray && !isSet && !isMap && !isParameterized)
         {
             try
             {
@@ -394,7 +394,7 @@ public enum TypeHandler {
 
             } catch (Exception e)
             {
-                HandlerGenerator.log.error(e.getMessage(), e);
+                HandlerGenerator.log.error("failed to get class {}", type.getTypeName() , e);
 
             }
         }
@@ -445,7 +445,7 @@ public enum TypeHandler {
 
             } catch (Exception e)
             {
-                HandlerGenerator.log.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
                 throw e;
             }
         }

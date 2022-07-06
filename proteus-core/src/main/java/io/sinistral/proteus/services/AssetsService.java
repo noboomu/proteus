@@ -10,7 +10,11 @@ import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.Methods;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -23,6 +27,9 @@ import java.util.function.Supplier;
 @Singleton
 public class AssetsService extends DefaultService implements Supplier<RoutingHandler>
 {
+
+    private static final Logger log = LoggerFactory.getLogger(AssetsService.class.getName());
+
     @Inject
     @Named("registeredEndpoints")
     protected Set<EndpointInfo> registeredEndpoints;
@@ -52,7 +59,23 @@ public class AssetsService extends DefaultService implements Supplier<RoutingHan
         final String assetsPath = serviceConfig.getString("path");
         final String assetsDirectoryName = serviceConfig.getString("dir");
         final Integer assetsCacheTime = serviceConfig.getInt("cache.time");
-        final FileResourceManager fileResourceManager = new FileResourceManager(Paths.get(assetsDirectoryName).toFile());
+
+        Path path = Paths.get(assetsDirectoryName);
+        File pathFile = path.toFile();
+
+        if(!pathFile.exists())
+        {
+            try
+            {
+                pathFile.mkdirs();
+
+            } catch( Exception e )
+            {
+                log.error("Failed to create assets directory",e);
+            }
+        }
+
+        final FileResourceManager fileResourceManager = new FileResourceManager(pathFile);
 
         router.add(Methods.GET,
                 assetsPath + "/*",

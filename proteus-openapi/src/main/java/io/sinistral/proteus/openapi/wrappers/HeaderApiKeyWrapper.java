@@ -49,7 +49,7 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
 
             Optional<String> keyValue = Optional.ofNullable(exchange.getRequestHeaders().getFirst(API_KEY_HEADER));
 
-            if(!keyValue.isPresent() || !keyValue.get().equals(API_KEY))
+            if(keyValue.isEmpty() || !keyValue.get().equals(API_KEY))
             {
 
                 logger.error("Missing security credentials");

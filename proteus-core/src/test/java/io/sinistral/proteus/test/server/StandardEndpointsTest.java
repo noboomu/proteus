@@ -17,6 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.runner.RunWith;
 
 import java.io.ByteArrayOutputStream;
@@ -50,56 +51,10 @@ import static org.junit.Assert.fail;
 /**
  * @author jbauer
  */
-@RunWith(DefaultServer.class)
 
-public class StandardEndpointsTest {
-
-    private File file = null;
-
-    private List<File> files = new ArrayList<>();
-
-    private Set<Long> idSet = new HashSet<>();
-
-    @Before
-    public void setUp()
-    {
-
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-
-
-        try
-        {
-         for (int i = 0; i < 4; i++)
-            {
-                byte[] bytes = new byte[1388608];
-                Random random = new Random();
-                random.nextBytes(bytes);
-
-                Path tmpPath = Files.createTempFile("test-asset", ".mp4");
-
-                tmpPath.toFile().deleteOnExit();
-
-                Files.write(tmpPath, bytes);
-
-                files.add(tmpPath.toFile());
-
-                LongStream.range(1L, 10L).forEach(l -> {
-
-                    idSet.add(l);
-                });
-            }
-
-            file = files.get(0);
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
-
-    @Test
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class StandardEndpointsTest extends AbstractEndpointTest {
+@Test
     public void testDebugEndpoint()
     {
 
@@ -696,28 +651,4 @@ public class StandardEndpointsTest {
         assertThat((map.get("optionalQueryDate").toString()), containsString("1970-01-01"));
 
     }
-
-
-
-    // @Path("multipart/json")
-
-    @After
-    public void tearDown()
-    {
-
-        try
-        {
-            if (file.exists())
-            {
-                file.delete();
-            }
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
-
 }

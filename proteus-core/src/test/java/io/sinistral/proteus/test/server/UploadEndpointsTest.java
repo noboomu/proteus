@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import io.sinistral.proteus.protocol.MediaType;
 import io.sinistral.proteus.test.models.User;
 import io.sinistral.proteus.test.models.User.UserType;
@@ -15,7 +16,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -33,8 +37,7 @@ import java.util.stream.LongStream;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /*
  * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;
@@ -44,51 +47,18 @@ import static org.junit.Assert.fail;
  * @author jbauer
  */
 @RunWith(DefaultServer.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 
-public class UploadEndpointsTest {
+public class UploadEndpointsTest extends AbstractEndpointTest{
 
-    private File file = null;
+    private static final Logger log = LoggerFactory.getLogger(UploadEndpointsTest.class.getName());
 
-    private List<File> files = new ArrayList<>();
 
-    private Set<Long> idSet = new HashSet<>();
-
-    @Before
-    public void setUp()
+    @Test
+    public void testDebugEndpoint()
     {
 
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-
-        try
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                byte[] bytes = new byte[1388608];
-                Random random = new Random();
-                random.nextBytes(bytes);
-
-                Path tmpPath = Files.createTempFile("test-asset", ".mp4");
-
-                tmpPath.toFile().deleteOnExit();
-
-                Files.write(tmpPath, bytes);
-
-                files.add(tmpPath.toFile());
-
-                LongStream.range(1L, 10L).forEach(l -> {
-
-                    idSet.add(l);
-                });
-            }
-
-            file = files.get(0);
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        given().accept(ContentType.JSON).when().log().all().get("v1/tests/response/debug").then().statusCode(200).body(containsString("testValue"));
     }
 
     @Test
@@ -98,7 +68,12 @@ public class UploadEndpointsTest {
         try
         {
 
-            final InputStream is = given().multiPart("file", file).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).accept(ContentType.ANY).when().post("v1/tests/response/file/path").asInputStream();
+            log.info("file: {}",file);
+
+            final InputStream is = given().log().all()
+                                          .multiPart("file", file,MediaType.AUDIO_MP4.contentType())
+                                          .accept(ContentType.JSON).when().post("v1/tests/response/file/path")
+                    .then().extract().asInputStream();
 
             try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream())
             {
@@ -179,13 +154,21 @@ public class UploadEndpointsTest {
         try
         {
 
-            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-                             .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
+            
 
-            assertThat(map.size(), equalTo(4));
+            Response mapResponse = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
+                                  .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                                  .accept(ContentType.JSON).when().post("v1/tests/map/file");
 
-            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
+//            
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            JsonNode node = mapper.readTree(mapResponse.asByteArray());
+
+            assertThat(node.size(), equalTo(4));
+
+            assertEquals(node.get(files.get(0).getName()).asText(),  files.get(0).getTotalSpace() + "");
 
         } catch (Exception e)
         {
@@ -698,6 +681,8 @@ public class UploadEndpointsTest {
                     .andReturn().asInputStream();
 
               JsonNode responseNode = mapper.readTree(is);
+
+              
 
             assertThat(responseNode.get("id").toString(), containsString("101"));
 

@@ -4,7 +4,9 @@
 package io.sinistral.proteus.server.handlers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Strings;
+import com.google.common.reflect.Invokable;
+import com.google.common.reflect.MutableTypeToInstanceMap;
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.squareup.javapoet.AnnotationSpec;
@@ -61,8 +63,10 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -77,9 +81,12 @@ import java.util.stream.Stream;
  *
  * @author jbauer
  */
+@SuppressWarnings("UnstableApiUsage")
 public class HandlerGenerator {
 
     static Logger log = LoggerFactory.getLogger(HandlerGenerator.class.getCanonicalName());
+
+    static final java.util.regex.Pattern IGNORED_TYPE_NAME_PATTERN = java.util.regex.Pattern.compile("java\\.(util|net|lang|nio|io)", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
 
@@ -122,6 +129,8 @@ public class HandlerGenerator {
 
     protected Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<>();
 
+    final Map<Type,TypeToken<?>> typeTokenMap = new ConcurrentHashMap<>();
+
     /**
      * Create a new {@code HandlerGenerator} instance used to generate a
      * {@code Supplier<RoutingHandler>} class
@@ -143,7 +152,7 @@ public class HandlerGenerator {
      *
      * @return a new {@code Supplier<RoutingHandler>} class
      */
-    public Class<? extends Supplier<RoutingHandler>> compileClass() throws Exception
+    public Class compileClass() throws Exception
     {
 
         String source = null;
@@ -158,11 +167,13 @@ public class HandlerGenerator {
 
             source = this.generateClassSource();
 
-            log.debug("\n\nGenerated Class Source:\n\n{}", source);
+            //  log.debug("\n\nGenerated Class Source:\n\n{}", source);
 
-            CachedCompiler cachedCompiler = new CachedCompiler(null, null);
+            try (CachedCompiler cachedCompiler = new CachedCompiler(null, null))
+            {
 
-            return cachedCompiler.loadFromJava(packageName + "." + className, source);
+                return cachedCompiler.loadFromJava(packageName + "." + className, source);
+            }
 
         } catch (Exception e)
         {
@@ -243,15 +254,14 @@ public class HandlerGenerator {
 
         try
         {
-           return Files.createDirectory(tmpPath.resolve(TMP_DIRECTORY_NAME));
+            return Files.createDirectory(tmpPath.resolve(TMP_DIRECTORY_NAME));
 
         } catch (Exception e)
         {
             return tmpPath;
         }
-     }
 
-}
+    }
 
     protected void addClassMethodHandlers(TypeSpec.Builder typeBuilder, Class<?> clazz) throws Exception
     {
@@ -275,10 +285,44 @@ public class HandlerGenerator {
                                                                      .distinct().filter(t ->
                 {
 
+
                     TypeHandler handler = TypeHandler.forType(t);
                     return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType) || handler.equals(TypeHandler.NamedModelType) || handler.equals(TypeHandler.OptionalNamedModelType));
 
                 }).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
+
+
+        java.util.regex.Pattern internalTypesPattern = java.util.regex.Pattern.compile("concurrent|<");
+
+   final Map<String, TypeToken<?>> googleParameterTypeTokens = Arrays.stream(clazz.getDeclaredMethods())
+                                                                                                      .filter(m -> m.getAnnotation(Path.class) != null)
+                                                                                                      .flatMap(
+                                                                             m -> Invokable.from(m).getParameters().stream())
+                                                                                                      .filter(p -> internalTypesPattern.matcher(p.getType().getType().getTypeName()).find() )
+           .distinct().collect(Collectors.toMap(p -> p.getType().toString(), com.google.common.reflect.Parameter::getType));
+
+
+
+log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
+            Arrays.stream(clazz.getDeclaredMethods())
+              .filter(m -> m.getAnnotation(Path.class) != null)
+              .forEach(m -> {
+                  Invokable<?,Object> invokable = Invokable.from(m);
+
+                  List<? extends TypeToken<?>> parameterTokens = invokable.getParameters().stream().filter(p -> Objects.isNull(p.getAnnotation(BeanParam.class))).map(com.google.common.reflect.Parameter::getType).collect(Collectors.toList());
+
+                  log.info("parameterTokens: {}",parameterTokens);
+
+                  parameterTokens.forEach(rt -> {
+                      log.info("t:\n|{}|\n|{}|\n|{}|\ncached:\n|{}|",rt.getType(), rt.getRawType(), rt, typeTokenMap.get(rt.getType()));
+                      typeTokenMap.put(rt.getType(),rt);
+                  });
+
+                 // log.info("invokable: \ntype {}\n rawt {}\n hc {}\n params{}\n return type{}\n generic string {}\nog return type: {}",returnType.getType(),returnType.getRawType(),returnType.hashCode(),
+//                          m.getParameters(),m.getReturnType(),m.getReturnType().toGenericString(),
+//                          m.getReturnType());
+                 // typeTokenMap.put(m.getReturnType().getTypeName(),invokable.getReturnType());
+              });
 
         Arrays.stream(clazz.getDeclaredMethods())
               .filter(m -> m.getAnnotation(Path.class) != null)
@@ -292,6 +336,9 @@ public class HandlerGenerator {
 
                   if (isBeanParameter)
                   {
+
+                      // typeTokenMap.put(p.getParameterizedType(),)
+
                       TypeHandler handler = TypeHandler.forType(p.getParameterizedType(), true);
 
                       if (handler.equals(TypeHandler.BeanListValueOfType)
@@ -330,22 +377,11 @@ public class HandlerGenerator {
 
                     }
 
-                    if (t.getTypeName().contains("java.lang"))
+                    if (isIgnoredClass(t))
                     {
                         return false;
                     }
-                    else if (t.getTypeName().contains("java.nio"))
-                    {
-                        return false;
-                    }
-                    else if (t.getTypeName().contains("java.io"))
-                    {
-                        return false;
-                    }
-                    else if (t.getTypeName().contains("java.util"))
-                    {
-                        return false;
-                    }
+
                     else if (t.equals(HttpServerExchange.class) || t.equals(ServerRequest.class))
                     {
                         return false;
@@ -414,30 +450,21 @@ public class HandlerGenerator {
 
             Annotation[] annotations = clazz.getAnnotations();
 
-            Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter(a -> a.getClass().getName().contains("SecurityRequirement" +
-                    "")).findFirst().orElse(null);
+            Annotation securityRequirementAnnotation = Arrays.stream(annotations).filter(a -> a.getClass().getName().contains("SecurityRequirement")).findFirst().orElse(null);
 
             if (securityRequirementAnnotation != null)
             {
 
-                if (securityRequirementAnnotation != null)
+                try
                 {
+                    Field nameField = securityRequirementAnnotation.getClass().getField("name");
 
-                    try
-                    {
-                        Field nameField = securityRequirementAnnotation.getClass().getField("name");
+                    Object securityRequirement = nameField.get(securityRequirementAnnotation);
+                    typeLevelSecurityDefinitions.add(securityRequirement.toString());
 
-                        if (nameField != null)
-                        {
-                            Object securityRequirement = nameField.get(securityRequirementAnnotation);
-                            typeLevelSecurityDefinitions.add(securityRequirement.toString());
-                        }
-
-                    } catch (Exception e)
-                    {
-                        log.warn("No name field on security requirement");
-                    }
-
+                } catch (Exception e)
+                {
+                    log.warn("No name field on security requirement");
                 }
 
             }
@@ -481,7 +508,7 @@ public class HandlerGenerator {
 
             Optional<javax.ws.rs.Produces> producesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Produces.class));
 
-            if (!producesAnnotation.isPresent())
+            if (producesAnnotation.isEmpty())
             {
                 producesAnnotation = Optional.ofNullable(clazz.getAnnotation(javax.ws.rs.Produces.class));
 
@@ -506,7 +533,7 @@ public class HandlerGenerator {
 
             Optional<javax.ws.rs.Consumes> consumesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Consumes.class));
 
-            if (!consumesAnnotation.isPresent())
+            if (consumesAnnotation.isEmpty())
             {
                 consumesAnnotation = Optional.ofNullable(clazz.getAnnotation(javax.ws.rs.Consumes.class));
 
@@ -581,6 +608,8 @@ public class HandlerGenerator {
                                                          .addAnnotation(Override.class)
                                                          .addParameter(ParameterSpec.builder(HttpServerExchange.class, "exchange", Modifier.FINAL).build());
 
+//            MutableTypeToInstanceMap mutableTypeToInstanceMap = new MutableTypeToInstanceMap();
+
             for (Parameter p : m.getParameters())
             {
 
@@ -597,6 +626,14 @@ public class HandlerGenerator {
 
                     boolean isBeanParameter = beanParam != null;
 
+                    Invokable<?, Object> invokable = Invokable.from(m);
+
+                    TypeToken<?> token = invokable.getReturnType();
+
+                //    Object obj - MutableTypeToInstanceMap
+                   log.error("parameterized: {} \ntoken: {}\ntoken type: {}", p.getParameterizedType(), token, token.getType());
+
+
                     TypeHandler t = TypeHandler.forType(p.getParameterizedType(), isBeanParameter);
 
                     if (t.isBlocking())
@@ -612,8 +649,6 @@ public class HandlerGenerator {
                 }
             }
 
-            log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
-
             if (isBlocking)
             {
 
@@ -628,6 +663,8 @@ public class HandlerGenerator {
             }
 
             List<Parameter> parameters = Arrays.stream(m.getParameters()).collect(Collectors.toList());
+
+            log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 
             for (Parameter p : parameters)
             {
@@ -1045,11 +1082,8 @@ public class HandlerGenerator {
                     {
                         Field nameField = securityRequirementAnnotation.getClass().getField("name");
 
-                        if (nameField != null)
-                        {
-                            Object securityRequirement = nameField.get(securityRequirementAnnotation);
-                            securityDefinitions.add(securityRequirement.toString());
-                        }
+                        Object securityRequirement = nameField.get(securityRequirementAnnotation);
+                        securityDefinitions.add(securityRequirement.toString());
 
                     } catch (Exception e)
                     {
@@ -1238,7 +1272,7 @@ public class HandlerGenerator {
 
     }
 
-    protected static Type extractErasedType(Type type)
+    public static Type extractErasedType(Type type)
     {
 
         String typeName = type.getTypeName();
@@ -1300,9 +1334,10 @@ public class HandlerGenerator {
         return null;
     }
 
-    protected static String typeReferenceNameForParameterizedType(Type type)
+    public static String typeReferenceNameForParameterizedType(Type type)
     {
 
+        log.info("creating name for reference: {}", type);
         String typeName = type.getTypeName();
 
         if (typeName.contains("Optional"))
@@ -1377,20 +1412,38 @@ public class HandlerGenerator {
 
         }
 
-//        if(type instanceof  ParameterizedType)
-//        {
-//            ParameterizedType pType = (ParameterizedType) type;
-//            Class<?>  genericType = (Class<?>)pType.getActualTypeArguments()[0];
-//            Class<?> rawType = (Class<?>)pType.getRawType();
-//            Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(genericType);
-//
-//            if(!(pType.getRawType() instanceof ParameterizedType))
-//            {
-//                return Character.toLowerCase(rawType.getSimpleName().charAt(0)) + rawType.getSimpleName().substring(1) + genericType.getSimpleName();
-//            }
-//
-//
-//         }
+        if (type.getTypeName().startsWith("sun"))
+        {
+            return typeName;
+        }
+
+        if (type instanceof ParameterizedType)
+        {
+            ParameterizedType pType = (ParameterizedType) type;
+            log.debug("pType: {}", pType);
+
+            Type actualTypeArgument0 = pType.getActualTypeArguments()[0];
+
+            if (actualTypeArgument0 instanceof Class)
+            {
+                Class<?> genericType = (Class<?>) pType.getActualTypeArguments()[0];
+                Class<?> rawType = (Class<?>) pType.getRawType();
+                Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(genericType);
+
+                if (!(pType.getRawType() instanceof ParameterizedType))
+                {
+                    log.info("not a raw type that is parameterized {} {}", rawType, genericType);
+                    return Character.toLowerCase(rawType.getSimpleName().charAt(0)) + rawType.getSimpleName().substring(1) + genericType.getSimpleName();
+                }
+            }
+            else
+            {
+                log.error(
+                        "failed to process {} ptype: {}", type, pType
+                );
+            }
+
+        }
 
         return typeName;
     }
@@ -1440,6 +1493,14 @@ public class HandlerGenerator {
         }
 
         return sb.toString();
+    }
+
+    static boolean isIgnoredClass(Type type)
+    {
+
+        java.util.regex.Matcher m = IGNORED_TYPE_NAME_PATTERN.matcher(type.getTypeName());
+
+        return m.find();
     }
 
     protected static void generateTypeReference(MethodSpec.Builder builder, Type type, String name)

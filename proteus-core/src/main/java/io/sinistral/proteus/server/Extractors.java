@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,6 +55,7 @@ public class Extractors {
     private static Logger log = LoggerFactory.getLogger(Extractors.class.getCanonicalName());
 
     private final static Pattern XML_PATTERN = Pattern.compile("^(application/(xml|xhtml\\+xml)|text/xml)(;.*)?$", Pattern.CASE_INSENSITIVE);
+
     private final static Pattern JSON_PATTERN = Pattern.compile("^(application/(json|x-javascript)|text/(json|x-javascript|x-json))(;.*)?$", Pattern.CASE_INSENSITIVE);
 
     private static final Map<Type, JavaType> JAVA_TYPE_MAP = new ConcurrentHashMap<>();
@@ -190,20 +191,57 @@ public class Extractors {
 
     private static java.util.Optional<Map<String, Path>> formValuePathMap(final HttpServerExchange exchange, final String name) {
 
-        return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(deque -> deque.stream().filter(fv -> fv.getFileItem() != null).collect(Collectors.toMap(FormData.FormValue::getFileName, fv -> formValueFileItemPath(fv.getFileItem()))));
+        return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name))
+                                 .map(deque -> deque.stream().filter(fv -> fv.getFileItem() != null).collect(Collectors.toMap(FormData.FormValue::getFileName, fv -> formValueFileItemPath(fv.getFileItem()))));
 
     }
 
     private static java.util.Optional<Map<String, File>> formValueFileMap(final HttpServerExchange exchange, final String name) {
 
-        return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(deque -> deque.stream().filter(fv -> fv.getFileItem() != null).collect(Collectors.toMap(FormData.FormValue::getFileName, fv -> formValueFileItemPath(fv.getFileItem()).toFile())));
+        return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name))
+                                 .map(deque -> deque.stream().filter(fv -> fv.getFileItem() != null).collect(Collectors.toMap(FormData.FormValue::getFileName, fv -> formValueFileItemPath(fv.getFileItem()).toFile())));
 
     }
 
     private static java.util.Optional<ByteBuffer> formValueBuffer(final HttpServerExchange exchange, final String name)
     {
 
-        return java.util.Optional.ofNullable(exchange.getAttachment(FormDataParser.FORM_DATA).get(name)).map(Deque::getFirst).map(fi -> {
+      FormData formData =  exchange.getAttachment(FormDataParser.FORM_DATA);
+
+      //  
+
+        Iterator<String> itr = formData.iterator();
+
+        while(itr.hasNext())
+        {
+            String s = itr.next();
+
+           // 
+
+           Deque<FormData.FormValue> deque = formData.get(s);
+
+           var values = deque.stream().map(v -> {
+
+
+               if(v.isFileItem())
+               {
+                   return Map.of("headers",v.getHeaders(),"fileItem",v.getFileItem(),"fileName",v.getFileName());
+               }
+               else
+
+               {
+                   return Map.of("headers",v.getHeaders(),"value",v.getValue());
+               }
+
+
+           }).collect(Collectors.toList());
+
+        //   
+
+        }
+
+
+        return java.util.Optional.ofNullable(formData.get(name)).map(Deque::getFirst).map(fi -> {
 
             try
             {
@@ -212,12 +250,18 @@ public class Extractors {
                 {
                     FormData.FileItem fileItem = fi.getFileItem();
 
+                  log.trace("fileItem: {} {} ",fileItem,fileItem.getFile());
+
+                    if(fileItem.isInMemory())
+                    {
+                        log.trace("fileItem: {} is in memory {}", fileItem, fileItem.getFileSize());
+                    }
                     return DataOps.fileItemToBuffer(fileItem);
                 }
 
             } catch (Exception e)
             {
-                log.error("Failed to parse buffer for name {}", name);
+                log.error("Failed to parse buffer for name {}", name, e);
             }
 
             return null;
@@ -300,7 +344,7 @@ public class Extractors {
         }
         else
         {
-            log.warn("Unable to find suitable content for {}", name);
+            log.warn("FormValue for {} is not a file item", name);
             return null;
         }
     }
@@ -359,7 +403,7 @@ public class Extractors {
         }
         else
         {
-            log.warn("Unable to find suitable content for {}", name);
+            log.warn("FormValue for {} is not a file item", name);
             return null;
         }
     }
@@ -558,8 +602,6 @@ public class Extractors {
             return formValueFilePath(exchange, name).map(Path::toFile);
         }
 
-
-
         public static java.util.Optional<ByteBuffer> byteBuffer(final HttpServerExchange exchange) throws IOException
         {
 
@@ -596,6 +638,7 @@ public class Extractors {
 
     public static Path filePath(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
+
         return formValueFilePath(exchange, name).orElseThrow(() -> new IllegalArgumentException("Invalid parameter " + name));
     }
 
@@ -613,18 +656,20 @@ public class Extractors {
 
     public static Map<String, Path> pathMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
-        return formValuePathMap(exchange,name).orElse(new HashMap<>());
+
+        return formValuePathMap(exchange, name).orElse(new HashMap<>());
     }
 
     public static Map<String, File> fileMap(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
 
-        return formValueFileMap(exchange,name).orElse(new HashMap<>());
+        return formValueFileMap(exchange, name).orElse(new HashMap<>());
     }
 
     public static File file(final HttpServerExchange exchange, final String name) throws IllegalArgumentException
     {
-       return formValueFilePath(exchange,name).map(Path::toFile).orElseThrow(() -> new IllegalArgumentException("Invalid parameter " + name));
+
+        return formValueFilePath(exchange, name).map(Path::toFile).orElseThrow(() -> new IllegalArgumentException("Invalid parameter " + name));
     }
 
     public static ByteBuffer byteBuffer(final HttpServerExchange exchange) throws IOException
@@ -743,11 +788,13 @@ public class Extractors {
 
     public static JsonNode jsonNode(final HttpServerExchange exchange)
     {
+
         return parseJson(exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array());
     }
 
     public static JsonNode namedJsonNode(final HttpServerExchange exchange, final String name)
     {
+
         return formValue(exchange, name).map(fv -> formValueModel(fv, JsonNode.class, name)).orElseThrow(() -> new IllegalArgumentException("Invalid parameter " + name));
     }
 

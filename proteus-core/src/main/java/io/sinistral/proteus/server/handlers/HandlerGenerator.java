@@ -5,7 +5,6 @@ package io.sinistral.proteus.server.handlers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.reflect.Invokable;
-import com.google.common.reflect.MutableTypeToInstanceMap;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -25,6 +24,7 @@ import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
+import io.sinistral.proteus.utilities.ClassUtilities;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -289,7 +289,7 @@ public class HandlerGenerator {
                     TypeHandler handler = TypeHandler.forType(t);
                     return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType) || handler.equals(TypeHandler.NamedModelType) || handler.equals(TypeHandler.OptionalNamedModelType));
 
-                }).collect(Collectors.toMap(java.util.function.Function.identity(), HandlerGenerator::typeReferenceNameForParameterizedType));
+                }).collect(Collectors.toMap(java.util.function.Function.identity(), ClassUtilities::typeReferenceNameForParameterizedType));
 
 
         java.util.regex.Pattern internalTypesPattern = java.util.regex.Pattern.compile("concurrent|<");
@@ -299,7 +299,7 @@ public class HandlerGenerator {
                                                                                                       .flatMap(
                                                                              m -> Invokable.from(m).getParameters().stream())
                                                                                                       .filter(p -> internalTypesPattern.matcher(p.getType().getType().getTypeName()).find() )
-           .distinct().collect(Collectors.toMap(p -> p.getType().toString(), com.google.common.reflect.Parameter::getType));
+           .distinct().collect(Collectors.toMap(p -> p.getType().toString(), com.google.common.reflect.Parameter::getType, (p1, p2) -> p1 ));
 
 
 
@@ -346,7 +346,7 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
                               || handler.equals(TypeHandler.OptionalBeanListValueOfType)
                               || handler.equals(TypeHandler.OptionalBeanListFromStringType))
                       {
-                          parameterizedLiteralsNameMap.put(p.getParameterizedType(), HandlerGenerator.typeReferenceNameForParameterizedType(p.getParameterizedType()));
+                          parameterizedLiteralsNameMap.put(p.getParameterizedType(), ClassUtilities.typeReferenceNameForParameterizedType(p.getParameterizedType()));
                       }
                   }
 
@@ -1332,120 +1332,6 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
         }
 
         return null;
-    }
-
-    public static String typeReferenceNameForParameterizedType(Type type)
-    {
-
-        log.info("creating name for reference: {}", type);
-        String typeName = type.getTypeName();
-
-        if (typeName.contains("Optional"))
-        {
-            log.warn("Type is for an optional named {}", typeName);
-        }
-
-        Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
-
-        if (matcher.find())
-        {
-
-            int matches = matcher.groupCount();
-
-            if (matches == 2)
-            {
-                String genericInterface = matcher.group(1);
-                String erasedType = matcher.group(2).replaceAll("\\$", ".");
-
-                String[] genericParts = genericInterface.split("\\.");
-                String[] erasedParts = erasedType.split("\\.");
-
-                String genericTypeName = genericParts[genericParts.length - 1];
-                String erasedTypeName;
-
-                if (erasedParts.length > 1)
-                {
-                    erasedTypeName = erasedParts[erasedParts.length - 2] + erasedParts[erasedParts.length - 1];
-                }
-                else
-                {
-                    erasedTypeName = erasedParts[0];
-                }
-
-                typeName = String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1), genericTypeName);
-
-                return typeName;
-            }
-
-        }
-
-        matcher = CONCURRENT_TYPE_NAME_PATTERN.matcher(typeName);
-
-        if (matcher.find())
-        {
-
-            int matches = matcher.groupCount();
-
-            if (matches == 2)
-            {
-                String genericInterface = matcher.group(1);
-                String erasedType = matcher.group(2).replaceAll("\\$", ".");
-
-                String[] genericParts = genericInterface.split("\\.");
-                String[] erasedParts = erasedType.split("\\.");
-
-                String genericTypeName = genericParts[genericParts.length - 1];
-                String erasedTypeName;
-
-                if (erasedParts.length > 1)
-                {
-                    erasedTypeName = erasedParts[erasedParts.length - 2] + erasedParts[erasedParts.length - 1];
-                }
-                else
-                {
-                    erasedTypeName = erasedParts[0];
-                }
-
-                typeName = String.format("%s%s%s", Character.toLowerCase(erasedTypeName.charAt(0)), erasedTypeName.substring(1), genericTypeName);
-                return typeName;
-            }
-
-        }
-
-        if (type.getTypeName().startsWith("sun"))
-        {
-            return typeName;
-        }
-
-        if (type instanceof ParameterizedType)
-        {
-            ParameterizedType pType = (ParameterizedType) type;
-            log.debug("pType: {}", pType);
-
-            Type actualTypeArgument0 = pType.getActualTypeArguments()[0];
-
-            if (actualTypeArgument0 instanceof Class)
-            {
-                Class<?> genericType = (Class<?>) pType.getActualTypeArguments()[0];
-                Class<?> rawType = (Class<?>) pType.getRawType();
-                Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(genericType);
-
-                if (!(pType.getRawType() instanceof ParameterizedType))
-                {
-                    log.info("not a raw type that is parameterized {} {}", rawType, genericType);
-                    return Character.toLowerCase(rawType.getSimpleName().charAt(0)) + rawType.getSimpleName().substring(1) + genericType.getSimpleName();
-                }
-            }
-            else
-            {
-                log.error(
-                        "failed to process {} ptype: {}", type, pType
-                );
-            }
-
-        }
-
-        return typeName;
     }
 
     protected static String typeReferenceNameForType(Type type)

@@ -9,6 +9,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>proteus-core</artifactId>
     <name>Proteus Core</name>
+    <properties>
+    </properties>
     <packaging>jar</packaging>
 
     <build>
@@ -152,6 +154,13 @@ Proteus Changelog.
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.slf4j</groupId>

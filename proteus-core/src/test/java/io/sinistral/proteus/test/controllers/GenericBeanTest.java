@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.type.TypeBindings;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeVariableName;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
+import io.sinistral.proteus.utilities.ClassUtilities;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -179,7 +180,7 @@ class GenericBeanTest {
 String s = "";
                 if (type instanceof ParameterizedType)
                 {
-                      s = HandlerGenerator.typeReferenceNameForParameterizedType((ParameterizedType) type);
+                      s = ClassUtilities.typeReferenceNameForParameterizedType((ParameterizedType) type);
 
 
 

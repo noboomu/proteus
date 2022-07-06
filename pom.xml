@@ -44,13 +44,14 @@
 		<changelog.version>1.60</changelog.version>
 		<commons-io.version>2.11.0</commons-io.version>
 		<commons-lang3.version>3.12.0</commons-lang3.version>
+		<commons-text.version>1.9</commons-text.version>
 		<guava.version>31.1-jre</guava.version>
 		<guice.version>5.1.0</guice.version>
 		<httpcore.version>4.4.15</httpcore.version>
 		<jackson.version>2.13.3</jackson.version>
 		<jakarta-ws-rs.version>2.1.6</jakarta-ws-rs.version>
 		<jansi.version>1.18</jansi.version>
-		<java.version>11</java.version>
+		<java.version>12</java.version>
 		<javapoet.version>1.13.0</javapoet.version>
 		<logback-classic.version>1.2.11</logback-classic.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>

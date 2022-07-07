@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Fix for typo**
+
+
+[4403a37f03eb1b1](https://github.com/noboomu/proteus/commit/4403a37f03eb1b1) noboomu *2022-07-07 01:05:50*
+
 **Parsers passing all tests.**
 
 

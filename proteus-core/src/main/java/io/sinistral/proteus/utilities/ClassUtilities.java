@@ -17,17 +17,11 @@ import java.util.regex.Pattern;
 
 public class ClassUtilities {
 
-    static Map<TypeToken<?>, List<TypeToken<?>>> typeTokenMap = new LinkedHashMap<>();
-
     private static final Logger logger = LoggerFactory.getLogger(ClassUtilities.class.getName());
-
-
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)+", Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
-
     private static final Pattern CLASS_NAME_PATTERN = Pattern.compile("([^<>,\\s]+)+", Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-
+    static Map<TypeToken<?>, List<TypeToken<?>>> typeTokenMap = new LinkedHashMap<>();
 
     public static String generateVariableName(TypeToken<?> typeToken) throws Exception {
 
@@ -63,8 +57,8 @@ public class ClassUtilities {
 
         for (var entry : typeTokenMap.entrySet()) {
 
-            var k = entry.getKey();
-            var v = entry.getValue();
+            TypeToken<?> k = entry.getKey();
+            List<TypeToken<?>> v = entry.getValue();
 
             for (TypeToken<?> subType : v) {
 
@@ -125,11 +119,11 @@ public class ClassUtilities {
 
     public static String typeReferenceNameForParameterizedType(Type type) {
 
-        logger.info("creating name for reference: {}", type);
+      //  logger.info("creating name for reference: {}", type);
         String typeName = type.getTypeName();
 
         if (typeName.contains("Optional")) {
-            logger.warn("Type is for an optional named {}", typeName);
+            logger.debug("Type is for an optional named {}", typeName);
         }
 
         Matcher matcher = TYPE_NAME_PATTERN.matcher(typeName);
@@ -195,7 +189,7 @@ public class ClassUtilities {
 
         if (type instanceof ParameterizedType) {
             ParameterizedType pType = (ParameterizedType) type;
-            logger.info("pType: {}", pType);
+          //  logger.info("pType: {}", pType);
 
             Type actualTypeArgument0 = pType.getActualTypeArguments()[0];
 
@@ -205,7 +199,7 @@ public class ClassUtilities {
                 Class<?> erasedType = (Class<?>) HandlerGenerator.extractErasedType(genericType);
 
                 if (!(pType.getRawType() instanceof ParameterizedType)) {
-                    logger.info("not a raw type that is parameterized {} {}", rawType, genericType);
+//                    logger.info("not a raw type that is parameterized {} {}", rawType, genericType);
                     return Character.toLowerCase(rawType.getSimpleName().charAt(0)) + rawType.getSimpleName().substring(1) + genericType.getSimpleName();
                 }
             } else {

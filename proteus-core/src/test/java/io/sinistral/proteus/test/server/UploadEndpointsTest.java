@@ -13,9 +13,8 @@ import io.sinistral.proteus.test.models.User;
 import io.sinistral.proteus.test.models.User.UserType;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -321,11 +320,13 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
 
             User model = new User(101L, UserType.ADMIN);
 
+
+
             Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
                              .multiPart("user", model, MediaType.JSON.contentType())
                              .formParam("userId", 101)
                              .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/mixed").as(Map.class);
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/mixed").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
@@ -355,7 +356,7 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
                              .multiPart("user", model, MediaType.JSON.contentType())
                              .formParam("userId", 101)
                              .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/path-mixed").as(Map.class);
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/path-mixed").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
@@ -386,7 +387,7 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
                              .multiPart("user", model, MediaType.JSON.contentType())
                              .formParam("userId", 101)
                              .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/path-mixed").as(Map.class);
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/path-mixed").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
@@ -416,7 +417,7 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
                              .multiPart("user", model, MediaType.JSON.contentType())
                              .formParam("userId", 101)
                              .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/file-mixed").as(Map.class);
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/file-mixed").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
@@ -447,7 +448,7 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
                              .multiPart("user", model, MediaType.JSON.contentType())
                              .formParam("userId", 101)
                              .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/file-mixed").as(Map.class);
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/future/file-mixed").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
@@ -518,7 +519,7 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
                     .multiPart("user", model, MediaType.JSON.contentType())
                     .formParam("userId", 101)
                     .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/multiple-files").as(Map.class);
+                    .accept(ContentType.JSON).when().post("v1/tests/multipart/multiple-files").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(5));
 
@@ -553,7 +554,7 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
                     .multiPart("user", model, MediaType.JSON.contentType())
                     .formParam("userId", 101)
                     .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/multiple-paths").as(Map.class);
+                    .accept(ContentType.JSON).when().post("v1/tests/multipart/multiple-paths").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(5));
 
@@ -582,7 +583,7 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
 
             Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
                              .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(ContentType.JSON).when().post("v1/tests/multipart/bytebuffer").as(Map.class);
+                             .accept(ContentType.JSON).when().post("v1/tests/multipart/bytebuffer").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(1));
 
@@ -607,7 +608,7 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
 
             Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
                              .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                             .accept(MediaType.JSON.contentType()).when().post("v1/tests/multipart/future/bytebuffer").as(Map.class);
+                             .accept(MediaType.JSON.contentType()).when().post("v1/tests/multipart/future/bytebuffer").then().extract().as(Map.class);
 
             assertThat(map.size(), equalTo(1));
 
@@ -695,23 +696,5 @@ public class UploadEndpointsTest extends AbstractEndpointTest{
 
     }
 
-    @After
-    public void tearDown()
-    {
-
-        try
-        {
-            if (file.exists())
-            {
-                file.delete();
-            }
-
-        } catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
 
 }

@@ -303,7 +303,7 @@ public class HandlerGenerator {
 
 
 
-log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
+//log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
             Arrays.stream(clazz.getDeclaredMethods())
               .filter(m -> m.getAnnotation(Path.class) != null)
               .forEach(m -> {
@@ -311,11 +311,12 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
 
                   List<? extends TypeToken<?>> parameterTokens = invokable.getParameters().stream().filter(p -> Objects.isNull(p.getAnnotation(BeanParam.class))).map(com.google.common.reflect.Parameter::getType).collect(Collectors.toList());
 
-                  log.info("parameterTokens: {}",parameterTokens);
+                //  log.info("parameterTokens: {}",parameterTokens);
 
                   parameterTokens.forEach(rt -> {
-                      log.info("t:\n|{}|\n|{}|\n|{}|\ncached:\n|{}|",rt.getType(), rt.getRawType(), rt, typeTokenMap.get(rt.getType()));
+                   //   log.info("t:\n|{}|\n|{}|\n|{}|\ncached:\n|{}|",rt.getType(), rt.getRawType(), rt, typeTokenMap.get(rt.getType()));
                       typeTokenMap.put(rt.getType(),rt);
+
                   });
 
                  // log.info("invokable: \ntype {}\n rawt {}\n hc {}\n params{}\n return type{}\n generic string {}\nog return type: {}",returnType.getType(),returnType.getRawType(),returnType.hashCode(),
@@ -470,7 +471,7 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
             }
         }
 
-        log.debug("Scanning methods for class {}", clazz.getName());
+        log.trace("Scanning methods for class {}", clazz.getName());
 
         int nameIndex = 1;
 
@@ -482,7 +483,7 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
                 continue;
             }
 
-            log.debug("\n\nScanning method: {}\n", m.getName());
+         //   log.debug("\n\nScanning method: {}\n", m.getName());
 
             EndpointInfo endpointInfo = new EndpointInfo();
 
@@ -611,7 +612,7 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
 //            MutableTypeToInstanceMap mutableTypeToInstanceMap = new MutableTypeToInstanceMap();
 
             for (Parameter p : m.getParameters())
-            {
+            {git add
 
                 if (p.getParameterizedType().equals(ServerRequest.class)
                         || p.getParameterizedType().equals(HttpServerExchange.class)
@@ -626,12 +627,12 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
 
                     boolean isBeanParameter = beanParam != null;
 
-                    Invokable<?, Object> invokable = Invokable.from(m);
-
-                    TypeToken<?> token = invokable.getReturnType();
+//                    Invokable<?, Object> invokable = Invokable.from(m);
+//
+//                    TypeToken<?> token = invokable.getReturnType();
 
                 //    Object obj - MutableTypeToInstanceMap
-                   log.error("parameterized: {} \ntoken: {}\ntoken type: {}", p.getParameterizedType(), token, token.getType());
+                  // log.error("parameterized: {} \ntoken: {}\ntoken type: {}", p.getParameterizedType(), token, token.getType());
 
 
                     TypeHandler t = TypeHandler.forType(p.getParameterizedType(), isBeanParameter);
@@ -664,7 +665,7 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
 
             List<Parameter> parameters = Arrays.stream(m.getParameters()).collect(Collectors.toList());
 
-            log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
+         //   log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 
             for (Parameter p : parameters)
             {
@@ -674,7 +675,7 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
                 try
                 {
 
-                    log.debug("Method {} parameter {} type {}", m.getName(), p.getName(), type);
+                    log.trace("Method {} parameter {} type {}", m.getName(), p.getName(), type);
 
                     if (p.getType().equals(ServerRequest.class))
                     {
@@ -784,7 +785,7 @@ log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
                                 }
                             }
 
-                            log.debug("beanParam handler: {}", t);
+                            log.trace("beanParam handler: {}", t);
 
                             if (t.equals(TypeHandler.OptionalModelType) || t.equals(TypeHandler.ModelType))
                             {

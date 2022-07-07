@@ -53,6 +53,7 @@ import static org.junit.Assert.fail;
  */
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@RunWith(DefaultServer.class)
 public class StandardEndpointsTest extends AbstractEndpointTest {
 @Test
     public void testDebugEndpoint()

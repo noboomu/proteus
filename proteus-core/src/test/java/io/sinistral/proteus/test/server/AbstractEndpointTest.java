@@ -18,7 +18,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.LongStream;
 
-@RunWith(DefaultServer.class)
+
 public class AbstractEndpointTest {
 
     public static File file = null;
@@ -87,6 +87,7 @@ public class AbstractEndpointTest {
 
         try
         {
+            Thread.sleep(1000L);
             FileUtils.deleteDirectory(tmpPath.toFile());
         } catch (Exception e)
         {

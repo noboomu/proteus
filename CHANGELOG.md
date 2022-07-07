@@ -1,6 +1,491 @@
 # Changelog
 Proteus Changelog.
 
+## Unreleased
+### No issue
+
+**Parsers passing all tests.**
+
+
+[254a69e83e1d8ea](https://github.com/noboomu/proteus/commit/254a69e83e1d8ea) noboomu *2022-07-07 01:03:24*
+
+**Functioning parser.**
+
+
+[a250d32af788caf](https://github.com/noboomu/proteus/commit/a250d32af788caf) noboomu *2022-07-06 22:51:58*
+
+**Updated dependencies and new tests.**
+
+
+[054892c369e65d0](https://github.com/noboomu/proteus/commit/054892c369e65d0) Joshua Bauer *2022-07-06 02:19:08*
+
+**Updated dependencies and new tests.**
+
+
+[70af2b6c38728c1](https://github.com/noboomu/proteus/commit/70af2b6c38728c1) Joshua Bauer *2022-07-06 02:16:29*
+
+**Fix tmp file handling.**
+
+
+[8ff44d154739bf3](https://github.com/noboomu/proteus/commit/8ff44d154739bf3) Joshua Bauer *2022-05-23 17:53:30*
+
+**Better generic support.**
+
+
+[f4f363ccb6e99eb](https://github.com/noboomu/proteus/commit/f4f363ccb6e99eb) Joshua Bauer *2022-04-22 00:00:28*
+
+**Added support for last-modified using java.time.Instant.**
+
+
+[6941bb69b2739a5](https://github.com/noboomu/proteus/commit/6941bb69b2739a5) Joshua Bauer *2022-01-10 18:02:01*
+
+**Added HEIC format**
+
+
+[1aa07d8f82ab1cc](https://github.com/noboomu/proteus/commit/1aa07d8f82ab1cc) Joshua Bauer *2021-12-24 00:44:12*
+
+**Added AVIF format**
+
+
+[f0c191a37c3e244](https://github.com/noboomu/proteus/commit/f0c191a37c3e244) Joshua Bauer *2021-12-24 00:25:14*
+
+**Improve handling of FormData files and buffers**
+
+
+[a71c05b020e813c](https://github.com/noboomu/proteus/commit/a71c05b020e813c) Joshua Bauer *2021-11-15 15:51:16*
+
+**Improve uploading of binary files**
+
+
+[c305504d2d62424](https://github.com/noboomu/proteus/commit/c305504d2d62424) Joshua Bauer *2021-11-09 23:40:40*
+
+**Bump compiler version for JDK 17 support.**
+
+
+[742130deaad3aae](https://github.com/noboomu/proteus/commit/742130deaad3aae) Joshua Bauer *2021-10-30 21:28:03*
+
+**Cleanup OpenAPI module and add json spec support.**
+
+
+[4d8d408ed25e1e2](https://github.com/noboomu/proteus/commit/4d8d408ed25e1e2) Joshua Bauer *2021-10-29 16:07:16*
+
+**Improved error logging and shutdown process.**
+
+
+[09f630e8f400db9](https://github.com/noboomu/proteus/commit/09f630e8f400db9) Joshua Bauer *2021-10-25 19:29:23*
+
+**Improve Optional bean parsing.**
+
+
+[24f076fb72fc3c1](https://github.com/noboomu/proteus/commit/24f076fb72fc3c1) Joshua Bauer *2021-05-11 21:29:17*
+
+**Bump dependency versions. Update favicon.**
+
+
+[4777bce4c516e99](https://github.com/noboomu/proteus/commit/4777bce4c516e99) Joshua Bauer *2021-04-02 18:19:35*
+
+**Update README.md**
+
+
+[8915888e8190521](https://github.com/noboomu/proteus/commit/8915888e8190521) JL Bauer *2021-03-20 05:19:59*
+
+**Rollback swagger ui version.**
+
+
+[81396a503e7b6aa](https://github.com/noboomu/proteus/commit/81396a503e7b6aa) Joshua Bauer *2021-03-11 00:48:39*
+
+**Bump swagger version and hide swagger models.**
+
+
+[e69020001b4eb66](https://github.com/noboomu/proteus/commit/e69020001b4eb66) Joshua Bauer *2021-03-11 00:11:44*
+
+**Bump version.**
+
+
+[7574ab99246d6a3](https://github.com/noboomu/proteus/commit/7574ab99246d6a3) Joshua Bauer *2021-03-10 00:35:10*
+
+**Rework form processing.**
+
+
+[60edfa65d52d089](https://github.com/noboomu/proteus/commit/60edfa65d52d089) Joshua Bauer *2021-03-10 00:28:19*
+
+**Forms**
+
+
+[289e3a356924979](https://github.com/noboomu/proteus/commit/289e3a356924979) Joshua Bauer *2021-03-09 03:05:30*
+
+**Improve startup time.**
+
+
+[85843b22c7e4cb6](https://github.com/noboomu/proteus/commit/85843b22c7e4cb6) Joshua Bauer *2021-02-02 18:41:29*
+
+**Allow overriding of initial modules. Updated mime types.**
+
+
+[1913b8fdce12264](https://github.com/noboomu/proteus/commit/1913b8fdce12264) Joshua Bauer *2021-12-30 16:42:21*
+
+**Improve health information.**
+
+
+[52977106d9337f8](https://github.com/noboomu/proteus/commit/52977106d9337f8) Joshua Bauer *2020-12-14 18:15:36*
+
+**Removed swagger module and updated dependencies.**
+
+
+[999223901c55f4c](https://github.com/noboomu/proteus/commit/999223901c55f4c) Joshua Bauer *2020-11-20 21:38:54*
+
+**Async service timeouts.**
+
+
+[5b1ff1de664b009](https://github.com/noboomu/proteus/commit/5b1ff1de664b009) Joshua Bauer *2020-11-20 01:22:12*
+
+**Controllers are now compiled in parallel.**
+
+
+[a9f4e75734b3515](https://github.com/noboomu/proteus/commit/a9f4e75734b3515) Joshua Bauer *2020-11-19 21:22:26*
+
+
+## v0.4.6
+### No issue
+
+**Cleanup CHANGELOG.**
+
+
+[22eb4349dcc9e02](https://github.com/noboomu/proteus/commit/22eb4349dcc9e02) Joshua Bauer *2020-11-19 21:06:07*
+
+**Prep for next release.**
+
+
+[3d4deba169cedff](https://github.com/noboomu/proteus/commit/3d4deba169cedff) Joshua Bauer *2020-11-19 20:58:09*
+
+**Update README.md**
+
+
+[eed4d6c51456f4f](https://github.com/noboomu/proteus/commit/eed4d6c51456f4f) JL Bauer *2020-09-20 22:02:28*
+
+**Improve multipart handling.**
+
+
+[66acf750c442f54](https://github.com/noboomu/proteus/commit/66acf750c442f54) Joshua Bauer *2020-09-18 19:17:36*
+
+**Added support for multiple file uploads.**
+
+
+[2ebba11320f386e](https://github.com/noboomu/proteus/commit/2ebba11320f386e) Joshua Bauer *2020-09-16 23:33:26*
+
+**Replace whenComplete in async.**
+
+
+[96534322bf6613a](https://github.com/noboomu/proteus/commit/96534322bf6613a) Joshua Bauer *2020-09-15 18:33:35*
+
+**Ensure worker is used for async dispatch.**
+
+
+[6482aac600edd62](https://github.com/noboomu/proteus/commit/6482aac600edd62) Joshua Bauer *2020-09-15 17:16:40*
+
+**Send**
+
+
+[ee7ad65ed114816](https://github.com/noboomu/proteus/commit/ee7ad65ed114816) Joshua Bauer *2020-09-15 16:11:53*
+
+**Remove empty server responses.**
+
+
+[5ce38822c3dd229](https://github.com/noboomu/proteus/commit/5ce38822c3dd229) joshua bauer *2020-09-15 04:56:32*
+
+**Remove further looping state for server responses.**
+
+
+[487d57cae528b14](https://github.com/noboomu/proteus/commit/487d57cae528b14) joshua bauer *2020-09-15 04:55:00*
+
+**Expose socket timeouts.**
+
+
+[2621026ce02933c](https://github.com/noboomu/proteus/commit/2621026ce02933c) Joshua Bauer *2020-09-14 20:13:41*
+
+**Fix for looping requests when response wrapped in completable future.**
+
+
+[f91ff64db7a64ea](https://github.com/noboomu/proteus/commit/f91ff64db7a64ea) Joshua Bauer *2020-09-14 19:41:59*
+
+**Cleanup shutdown and expose worker in request.**
+
+
+[54979422dab4bff](https://github.com/noboomu/proteus/commit/54979422dab4bff) Joshua Bauer *2020-09-02 18:34:03*
+
+**Set config log level to trace.**
+
+
+[3590b4337ce241c](https://github.com/noboomu/proteus/commit/3590b4337ce241c) Joshua Bauer *2020-08-31 21:15:19*
+
+**Better generic parameter handling.**
+
+
+[4917d3016811cec](https://github.com/noboomu/proteus/commit/4917d3016811cec) Joshua Bauer *2020-08-31 19:35:07*
+
+**Improve error handling.**
+
+
+[94f075989e28408](https://github.com/noboomu/proteus/commit/94f075989e28408) Joshua Bauer *2020-06-24 20:28:31*
+
+**Added protocol package and custom HttpHeaders implementation.**
+
+
+[b131119887b8d43](https://github.com/noboomu/proteus/commit/b131119887b8d43) Joshua Bauer *2020-06-16 21:39:52*
+
+**Break out XmlModule**
+
+
+[cf6d3c9b4a93457](https://github.com/noboomu/proteus/commit/cf6d3c9b4a93457) Joshua Bauer *2020-05-15 00:05:32*
+
+**Incorrect File.sep() use - broken on Windows.**
+
+ * On Windows:
+ * ```
+ * GET           /v1/openapi/*                [*/*]                     [*/*]                     (OpenAPIService._)
+ * GET           /v1/openapi/redoc            [*/*]                     [text/html]               (OpenAPIService._)
+ * GET           /v1\openapi.yaml             [*/*]                     [text/yaml]               (OpenAPIService._)
+ * ```
+
+[bea9fd3de5d1d4d](https://github.com/noboomu/proteus/commit/bea9fd3de5d1d4d) nich0s *2020-05-01 13:35:04*
+
+**Better error logs.**
+
+
+[aad21cfa3e050d3](https://github.com/noboomu/proteus/commit/aad21cfa3e050d3) Joshua Bauer *2020-04-28 16:04:11*
+
+**Update README.md**
+
+
+[e3fac1fd8f268ef](https://github.com/noboomu/proteus/commit/e3fac1fd8f268ef) JL Bauer *2020-04-02 02:11:17*
+
+**Added multipart/form-data media type.**
+
+
+[544668fabf96683](https://github.com/noboomu/proteus/commit/544668fabf96683) Joshua Bauer *2020-03-30 23:14:29*
+
+
+## v0.4.5
+### No issue
+
+**Set version to 4.5 for release**
+
+
+[009626f1e52b411](https://github.com/noboomu/proteus/commit/009626f1e52b411) Joshua Bauer *2020-03-13 23:13:09*
+
+**Prep for release.**
+
+
+[d898140ed9505e9](https://github.com/noboomu/proteus/commit/d898140ed9505e9) Joshua Bauer *2020-03-13 22:18:30*
+
+**Updated swagger ui.**
+
+
+[c07a4cc717a1a52](https://github.com/noboomu/proteus/commit/c07a4cc717a1a52) Joshua Bauer *2020-03-05 20:13:40*
+
+**Fix Double conversion and add BigDecimal support.**
+
+
+[d425ee1da2fa5a7](https://github.com/noboomu/proteus/commit/d425ee1da2fa5a7) Joshua Bauer *2020-02-25 00:54:22*
+
+**Cleanup poms and improve redirect.**
+
+
+[e684d4388b28ed7](https://github.com/noboomu/proteus/commit/e684d4388b28ed7) Joshua Bauer *2020-02-14 00:28:13*
+
+**Redirect improvements.**
+
+
+[7fc1a12a7508952](https://github.com/noboomu/proteus/commit/7fc1a12a7508952) Joshua Bauer *2020-02-13 23:36:16*
+
+**Added redirect mechanism on ServerRequest.**
+
+
+[d7fcc26ab5ff4a7](https://github.com/noboomu/proteus/commit/d7fcc26ab5ff4a7) Joshua Bauer *2020-02-13 22:06:02*
+
+**Cleanup pom.**
+
+
+[3b70ce6a2f6d81d](https://github.com/noboomu/proteus/commit/3b70ce6a2f6d81d) Joshua Bauer *2020-01-31 23:55:10*
+
+**Update readme.**
+
+ * Improvements to JsonViewWrapper.
+ * Cleanup JsonViewWrapper.
+ * More JSON work.
+
+[594682feb70b27d](https://github.com/noboomu/proteus/commit/594682feb70b27d) Joshua Bauer *2020-01-31 01:23:26*
+
+**Improve JSON view handling.**
+
+
+[e713dcdbaa67453](https://github.com/noboomu/proteus/commit/e713dcdbaa67453) Joshua Bauer *2020-01-31 00:20:00*
+
+**Improve OpenAPI preprocessing.**
+
+
+[82a22bcbe66f93f](https://github.com/noboomu/proteus/commit/82a22bcbe66f93f) Joshua Bauer *2020-01-30 23:30:24*
+
+**Allow byte arrays in response bodies.**
+
+
+[fb8229f7e656a44](https://github.com/noboomu/proteus/commit/fb8229f7e656a44) Joshua Bauer *2020-01-16 21:08:44*
+
+**Improve error handlers.**
+
+
+[e1a7de453d79acf](https://github.com/noboomu/proteus/commit/e1a7de453d79acf) Joshua Bauer *2020-01-06 17:12:33*
+
+**Set default content type for exceptions.**
+
+
+[20c67536c5ec75c](https://github.com/noboomu/proteus/commit/20c67536c5ec75c) joshua bauer *2020-01-05 05:36:36*
+
+**Revert to previous openhft compiler version.**
+
+
+[ba63bd0fc852aaa](https://github.com/noboomu/proteus/commit/ba63bd0fc852aaa) joshua bauer *2020-12-30 19:35:52*
+
+**Further css fixes.**
+
+
+[2af2076b54ce120](https://github.com/noboomu/proteus/commit/2af2076b54ce120) joshua bauer *2020-12-30 07:06:52*
+
+**Revert JSONView updates.**
+
+
+[42d9de2c00cd43e](https://github.com/noboomu/proteus/commit/42d9de2c00cd43e) joshua bauer *2020-12-30 06:36:54*
+
+**Improve default JsonView handling.**
+
+
+[f341af566518055](https://github.com/noboomu/proteus/commit/f341af566518055) joshua bauer *2020-12-30 05:48:32*
+
+**Restructure pom files.**
+
+
+[f19edfc200c612a](https://github.com/noboomu/proteus/commit/f19edfc200c612a) Joshua Bauer *2020-12-30 01:17:28*
+
+**Update README.md**
+
+
+[af53f9619d7afbc](https://github.com/noboomu/proteus/commit/af53f9619d7afbc) JL Bauer *2019-12-28 07:27:28*
+
+**Next snapshot.**
+
+
+[44d0c6c1866c2d4](https://github.com/noboomu/proteus/commit/44d0c6c1866c2d4) Joshua Bauer *2019-12-26 23:23:28*
+
+**Bump to latest snapshot.**
+
+
+[ea7a9116b1b99fc](https://github.com/noboomu/proteus/commit/ea7a9116b1b99fc) Joshua Bauer *2019-12-26 22:30:11*
+
+**Release 0.4.3.**
+
+
+[d53b685da74d246](https://github.com/noboomu/proteus/commit/d53b685da74d246) Joshua Bauer *2019-12-26 22:21:40*
+
+**Bump version.**
+
+
+[734c56ab0883459](https://github.com/noboomu/proteus/commit/734c56ab0883459) Joshua Bauer *2019-12-26 20:54:55*
+
+**Improve swagger css.**
+
+
+[1a6ae84e4ac27e7](https://github.com/noboomu/proteus/commit/1a6ae84e4ac27e7) Joshua Bauer *2019-12-26 17:56:27*
+
+**Update README.md**
+
+
+[9539b97eeeb1188](https://github.com/noboomu/proteus/commit/9539b97eeeb1188) JL Bauer *2019-12-19 23:00:12*
+
+**Restructure modules to support parent artifact.**
+
+
+[e529d9ef04e7c4a](https://github.com/noboomu/proteus/commit/e529d9ef04e7c4a) joshua bauer *2019-11-21 06:22:24*
+
+**Bumped version in README.md**
+
+
+[36b065e4fe3efad](https://github.com/noboomu/proteus/commit/36b065e4fe3efad) Joshua Bauer *2019-11-20 19:47:34*
+
+**Support wrapping ServerResponse in a CompletableFuture**
+
+
+[e9ea1af37128516](https://github.com/noboomu/proteus/commit/e9ea1af37128516) Joshua Bauer *2019-10-16 23:49:35*
+
+**Added max min annotation support.**
+
+
+[23d28b1509aaaf7](https://github.com/noboomu/proteus/commit/23d28b1509aaaf7) Joshua Bauer *2019-10-16 20:45:51*
+
+**refactor(readme): Typo in maven dependency tag for OpenAPI**
+
+
+[b1f9def9a259cb7](https://github.com/noboomu/proteus/commit/b1f9def9a259cb7) Dheeraj Khardwal *2019-10-13 10:45:08*
+
+**Added travis config.**
+
+
+[d710f0f986d2a8e](https://github.com/noboomu/proteus/commit/d710f0f986d2a8e) Joshua Bauer *2019-09-17 21:32:50*
+
+**Support for JsonView in OpenAPI.**
+
+
+[2b3cad35f5039b0](https://github.com/noboomu/proteus/commit/2b3cad35f5039b0) Joshua Bauer *2019-09-17 21:26:13*
+
+**Add gzip MediaType.**
+
+
+[d94ba8d090dabad](https://github.com/noboomu/proteus/commit/d94ba8d090dabad) Joshua Bauer *2019-09-12 18:19:12*
+
+**Fix for maven parent pom.**
+
+
+[8c54d0b393d33a3](https://github.com/noboomu/proteus/commit/8c54d0b393d33a3) joshua bauer *2019-09-12 06:20:53*
+
+**Minor media handling improvements.**
+
+
+[b180b7d7f2e84c0](https://github.com/noboomu/proteus/commit/b180b7d7f2e84c0) joshua bauer *2019-09-05 22:13:02*
+
+
+## v0.4.2
+### No issue
+
+**Prepare release.**
+
+
+[27d44eba4072b87](https://github.com/noboomu/proteus/commit/27d44eba4072b87) Joshua Bauer *2019-08-30 18:38:30*
+
+**Fix scm.**
+
+
+[9453aafdd3893fc](https://github.com/noboomu/proteus/commit/9453aafdd3893fc) Joshua Bauer *2019-08-30 18:36:28*
+
+**Improve release method.**
+
+
+[d5ae4e473ab9fda](https://github.com/noboomu/proteus/commit/d5ae4e473ab9fda) Joshua Bauer *2019-08-30 18:34:33*
+
+**More MediaType improvements.**
+
+
+[128dd20b98e14b6](https://github.com/noboomu/proteus/commit/128dd20b98e14b6) Joshua Bauer *2019-08-30 18:28:18*
+
+**Fix uninitialized map in MediaType.**
+
+
+[ffc30c2c3d0608f](https://github.com/noboomu/proteus/commit/ffc30c2c3d0608f) Joshua Bauer *2019-08-14 20:16:18*
+
+**Bump version. Improve MediaType.**
+
+
+[b6ca5ecac2f9610](https://github.com/noboomu/proteus/commit/b6ca5ecac2f9610) Joshua Bauer *2019-08-14 20:10:01*
+
+
 ## v0.4.1
 ### No issue
 

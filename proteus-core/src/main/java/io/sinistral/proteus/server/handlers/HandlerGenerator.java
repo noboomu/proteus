@@ -612,7 +612,7 @@ public class HandlerGenerator {
 //            MutableTypeToInstanceMap mutableTypeToInstanceMap = new MutableTypeToInstanceMap();
 
             for (Parameter p : m.getParameters())
-            {git add
+            {
 
                 if (p.getParameterizedType().equals(ServerRequest.class)
                         || p.getParameterizedType().equals(HttpServerExchange.class)

@@ -1,5 +1,6 @@
 package io.sinistral.proteus.utilities;
 
+import com.typesafe.config.Config;
 import io.undertow.server.handlers.form.FormData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +14,11 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Optional;
 
-public class DataOps {
+public class DataUtilities {
 
-    private static final Logger logger = LoggerFactory.getLogger(DataOps.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(DataUtilities.class.getName());
 
     public static void writeStreamToPath(InputStream inputStream, Path path) throws IOException
     {
@@ -33,12 +35,14 @@ public class DataOps {
     }
 
     public static ByteBuffer streamToBuffer(InputStream stream) throws IOException {
+
         return ByteBuffer.wrap(stream.readAllBytes());
     }
 
     public static ByteBuffer fileItemToBuffer(FormData.FileItem fileItem) throws Exception
     {
-        if(fileItem.isInMemory())
+
+        if (fileItem.isInMemory())
         {
             return ByteBuffer.wrap(fileItem.getInputStream().readAllBytes());
         }
@@ -62,6 +66,7 @@ public class DataOps {
             return buffer;
         }
     }
+
 
     public static void fastChannelCopy(final ReadableByteChannel src, final WritableByteChannel destination) throws IOException {
 

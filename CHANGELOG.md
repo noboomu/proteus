@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bump version**
+
+
+[2a75891265dacc6](https://github.com/noboomu/proteus/commit/2a75891265dacc6) noboomu *2022-07-07 01:07:12*
+
 **Fix for typo**
 
 

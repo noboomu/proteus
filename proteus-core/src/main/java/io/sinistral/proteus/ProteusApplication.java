@@ -1,6 +1,5 @@
 package io.sinistral.proteus;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -19,7 +18,7 @@ import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.services.BaseService;
-import io.sinistral.proteus.utilities.SecurityOps;
+import io.sinistral.proteus.utilities.SecurityUtilities;
 import io.sinistral.proteus.utilities.TablePrinter;
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
@@ -27,6 +26,7 @@ import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.handlers.GracefulShutdownHandler;
 import io.undertow.server.session.SessionAttachmentHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
@@ -50,7 +50,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,6 +70,7 @@ import java.util.stream.Collectors;
  * @author jbauer
  */
 
+@SuppressWarnings("UnusedReturnValue")
 public class ProteusApplication {
 
     private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ProteusApplication.class.getCanonicalName());
@@ -310,7 +310,7 @@ public class ProteusApplication {
 
         final Instant compilationStartTime = Instant.now();
 
-        ExecutorService handlerExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+        ExecutorService handlerCompilationExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
         CountDownLatch countDownLatch = new CountDownLatch(registeredControllers.size());
 
@@ -321,7 +321,7 @@ public class ProteusApplication {
         for (Class<?> controllerClass : registeredControllers)
         {
 
-            handlerExecutor.submit(() -> {
+            handlerCompilationExecutor.submit(() -> {
 
                 try
                 {
@@ -388,7 +388,7 @@ public class ProteusApplication {
             sessionAttachmentHandler = injector.getInstance(SessionAttachmentHandler.class);
         } catch (Exception e)
         {
-            log.warn("No session attachment handler found.");
+            log.debug("No session attachment handler found.");
         }
 
         if (sessionAttachmentHandler != null)
@@ -397,6 +397,12 @@ public class ProteusApplication {
 
             sessionAttachmentHandler.setNext(handler);
             handler = sessionAttachmentHandler;
+        }
+
+
+        if(config.hasPath("undertow.gracefulShutdown") && config.getBoolean("undertow.gracefulShutdown"))
+        {
+            handler = new GracefulShutdownHandler(handler);
         }
 
         int httpPort = config.getInt("application.ports.http");
@@ -435,10 +441,10 @@ public class ProteusApplication {
                     httpsPort = Integer.parseInt(System.getProperty("https.port"));
                 }
 
-                KeyStore keyStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.keystorePath"), config.getString("undertow.ssl.keystorePassword"));
-                KeyStore trustStore = SecurityOps.loadKeyStore(config.getString("undertow.ssl.truststorePath"), config.getString("undertow.ssl.truststorePassword"));
+                KeyStore keyStore = SecurityUtilities.loadKeyStore(config.getString("undertow.ssl.keystorePath"), config.getString("undertow.ssl.keystorePassword"));
+                KeyStore trustStore = SecurityUtilities.loadKeyStore(config.getString("undertow.ssl.truststorePath"), config.getString("undertow.ssl.truststorePassword"));
 
-                undertowBuilder.addHttpsListener(httpsPort, config.getString("application.host"), SecurityOps.createSSLContext(keyStore, trustStore, config.getString("undertow.ssl.keystorePassword")));
+                undertowBuilder.addHttpsListener(httpsPort, config.getString("application.host"), SecurityUtilities.createSSLContext(keyStore, trustStore, config.getString("undertow.ssl.keystorePassword")));
 
             } catch (Exception e)
             {

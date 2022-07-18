@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
-import io.sinistral.proteus.utilities.DataOps;
+import io.sinistral.proteus.utilities.DataUtilities;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
@@ -161,7 +161,7 @@ public class Extractors {
 
                 path.toFile().deleteOnExit();
 
-                DataOps.writeStreamToPath(fileItem.getInputStream(), path);
+                DataUtilities.writeStreamToPath(fileItem.getInputStream(), path);
 
                 return path;
 
@@ -256,7 +256,7 @@ public class Extractors {
                     {
                         log.trace("fileItem: {} is in memory {}", fileItem, fileItem.getFileSize());
                     }
-                    return DataOps.fileItemToBuffer(fileItem);
+                    return DataUtilities.fileItemToBuffer(fileItem);
                 }
 
             } catch (Exception e)
@@ -299,7 +299,7 @@ public class Extractors {
             {
                 try
                 {
-                    ByteBuffer byteBuffer = DataOps.fileItemToBuffer(formValue.getFileItem());
+                    ByteBuffer byteBuffer = DataUtilities.fileItemToBuffer(formValue.getFileItem());
 
                     return parseTypedXML(type, byteBuffer.array());
 
@@ -327,7 +327,7 @@ public class Extractors {
             {
                 try
                 {
-                    ByteBuffer byteBuffer = DataOps.fileItemToBuffer(formValue.getFileItem());
+                    ByteBuffer byteBuffer = DataUtilities.fileItemToBuffer(formValue.getFileItem());
 
                     return parseTypedJson(type, byteBuffer.array());
 
@@ -358,7 +358,7 @@ public class Extractors {
             {
                 try
                 {
-                    ByteBuffer byteBuffer = DataOps.fileItemToBuffer(formValue.getFileItem());
+                    ByteBuffer byteBuffer = DataUtilities.fileItemToBuffer(formValue.getFileItem());
 
                     return parseTypedXML(type, byteBuffer.array());
 
@@ -386,7 +386,7 @@ public class Extractors {
             {
                 try
                 {
-                    ByteBuffer byteBuffer = DataOps.fileItemToBuffer(formValue.getFileItem());
+                    ByteBuffer byteBuffer = DataUtilities.fileItemToBuffer(formValue.getFileItem());
 
                     return parseTypedJson(type, byteBuffer.array());
 

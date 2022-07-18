@@ -13,7 +13,7 @@ import java.security.KeyStore;
 /**
  * @author jbauer
  */
-public class SecurityOps
+public class SecurityUtilities
 {
     public static SSLContext createSSLContext(final KeyStore keyStore, final KeyStore trustStore, final String password) throws Exception
     {
@@ -47,7 +47,7 @@ public class SecurityOps
         InputStream stream = null;
 
         if (!storeFile.exists()) {
-            stream = SecurityOps.class.getResourceAsStream("/" + name);
+            stream = SecurityUtilities.class.getResourceAsStream("/" + name);
         } else {
             stream = Files.newInputStream(Paths.get(name));
         }

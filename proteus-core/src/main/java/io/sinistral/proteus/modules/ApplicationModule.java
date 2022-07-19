@@ -53,7 +53,7 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.jacksonModule");
 
-            log.debug("Installing JacksonModule " + className);
+         //   log.debug("Installing JacksonModule " + className);
 
             Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
 
@@ -75,7 +75,7 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.xmlModule");
 
-            log.debug("Installing XmlModule " + className);
+         //   log.debug("Installing XmlModule " + className);
 
             Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
 
@@ -87,7 +87,7 @@ public class ApplicationModule extends AbstractModule
 
             this.binder().addError(e);
 
-            log.error(e.getMessage(), e);
+            log.error("Failed to install standard serialization modules", e);
 
             install(new XmlModule());
 
@@ -113,7 +113,7 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.defaultResponseListener");
 
-            log.debug("Installing DefaultResponseListener " + className);
+            //log.debug("Installing DefaultResponseListener " + className);
 
             Class<? extends DefaultResponseListener> clazz = (Class<? extends DefaultResponseListener>) Class.forName(className);
 
@@ -131,7 +131,7 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.fallbackHandler");
 
-            log.debug("Installing FallbackListener " + className);
+           // log.debug("Installing FallbackListener " + className);
 
             Class<? extends HttpHandler> clazz = (Class<? extends HttpHandler>) Class.forName(className);
             HttpHandler fallbackHandler = clazz.newInstance();

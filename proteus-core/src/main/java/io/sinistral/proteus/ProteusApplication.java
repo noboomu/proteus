@@ -33,6 +33,7 @@ import io.undertow.util.Methods;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xnio.Options;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 
@@ -412,11 +413,13 @@ public class ProteusApplication {
             httpPort = Integer.parseInt(System.getProperty("http.port"));
         }
 
+        final int processorCount = Runtime.getRuntime().availableProcessors();
+
         Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
 
                                                    .setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
-                                                   .setIoThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.ioThreadsMultiplier"))
-                                                   .setWorkerThreads(Runtime.getRuntime().availableProcessors() * config.getInt("undertow.workerThreadMultiplier"))
+                                                   .setIoThreads(processorCount * config.getInt("undertow.ioThreadsMultiplier"))
+                                                   .setWorkerThreads(processorCount * config.getInt("undertow.workerThreadsMultiplier"))
                                                    .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
                                                    .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
                                                    .setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
@@ -429,6 +432,7 @@ public class ProteusApplication {
                                                    .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
                                                    .setServerOption(UndertowOptions.MAX_BUFFERED_REQUEST_SIZE, config.getInt("undertow.server.maxBufferedRequestSize"))
                                                    .setHandler(handler);
+
 
         if (config.getBoolean("undertow.ssl.enabled"))
         {

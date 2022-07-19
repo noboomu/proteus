@@ -820,7 +820,7 @@ public class Tests
 	@GET
 	@Path("secure/resource")
 	@Produces(MediaType.APPLICATION_JSON)
-	public ServerResponse<Map<String,Object>> responseSecureContext()
+	public ServerResponse<Map<String,Object>> responseSecureContext(ServerRequest request)
 	{
 		Map<String,Object> responseMap = new HashMap<>();
 		responseMap.put("secure",true);

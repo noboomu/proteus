@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Add graceful shutdown option.**
+
+
+[cc429604e4feaa6](https://github.com/noboomu/proteus/commit/cc429604e4feaa6) Joshua Bauer *2022-07-18 20:30:03*
+
 **Bump version**
 
 

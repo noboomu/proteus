@@ -331,16 +331,19 @@ public class ProteusApplication {
 
                     //  log.debug("Generating {}...", controllerClass);
 
+                    final File tempFile = getTemporaryDirectoryPath().toFile();
+
                     HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
 
                     injector.injectMembers(generator);
 
                     //   log.debug("Compiling {}...", controllerClass);
 
-                    try (CachedCompiler cachedCompiler = new CachedCompiler(null, getTemporaryDirectoryPath().toFile()))
+                    try (CachedCompiler cachedCompiler = new CachedCompiler(null, tempFile))
                     {
                         final String source = generator.generateClassSource();
-                        var routerClass = cachedCompiler.loadFromJava(generator.getCanonicalName(), source);
+
+                        Class<? extends Supplier<RoutingHandler>> routerClass = cachedCompiler.loadFromJava(generator.getCanonicalName(), source);
 
                         lock.writeLock().lock();
 

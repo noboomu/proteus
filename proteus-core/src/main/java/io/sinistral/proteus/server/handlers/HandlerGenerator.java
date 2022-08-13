@@ -92,7 +92,6 @@ public class HandlerGenerator {
 
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
 
-    private static final String TMP_DIRECTORY_NAME = "proteus_generated_classes";
 
     private static java.nio.file.Path TMP_DIRECTORY = null;
 
@@ -108,6 +107,8 @@ public class HandlerGenerator {
     protected String applicationPath;
 
     protected String packageName;
+
+    protected String canonicalName;
 
     protected String className;
 
@@ -129,7 +130,7 @@ public class HandlerGenerator {
 
     protected Map<Class<? extends HandlerWrapper>, String> typeLevelHandlerWrapperMap = new LinkedHashMap<>();
 
-    final Map<Type,TypeToken<?>> typeTokenMap = new ConcurrentHashMap<>();
+    final Map<Type, TypeToken<?>> typeTokenMap = new ConcurrentHashMap<>();
 
     /**
      * Create a new {@code HandlerGenerator} instance used to generate a
@@ -144,48 +145,20 @@ public class HandlerGenerator {
         this.packageName = packageName;
         this.controllerClass = controllerClass;
         this.className = controllerClass.getSimpleName() + "RouteSupplier";
+        this.canonicalName = String.format("%s.%s", this.packageName, this.className);
 
     }
 
-    /**
-     * Compiles the generated source into a new {@link Class}
-     *
-     * @return a new {@code Supplier<RoutingHandler>} class
-     */
-    public Class compileClass() throws Exception
-    {
 
-        String source = null;
+    public String getCanonicalName() {
 
-        try
-        {
-
-            if (TMP_DIRECTORY == null)
-            {
-                TMP_DIRECTORY = getTemporaryDirectoryPath();
-            }
-
-            source = this.generateClassSource();
-
-            //  log.debug("\n\nGenerated Class Source:\n\n{}", source);
-
-            try (CachedCompiler cachedCompiler = new CachedCompiler(null, null))
-            {
-
-                return cachedCompiler.loadFromJava(packageName + "." + className, source);
-            }
-
-        } catch (Exception e)
-        {
-            log.error("Failed to compile {}\nSource:\n{}", packageName + "." + className, source, e);
-            throw e;
-        }
+        return canonicalName;
     }
 
     /**
      * Generates the routing Java source code
      */
-    protected String generateClassSource() throws Exception
+    public String generateClassSource() throws Exception
     {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC)
@@ -239,27 +212,11 @@ public class HandlerGenerator {
 
         javaFile.writeTo(sb);
 
-        javaFile.writeToPath(TMP_DIRECTORY);
+      //  javaFile.writeToPath(TMP_DIRECTORY);
 
-        return sb.toString();
+        this.sourceString = sb.toString();
 
-    }
-
-    protected java.nio.file.Path getTemporaryDirectoryPath() throws Exception
-    {
-
-        String tmpDirLocation = System.getProperty("java.io.tmpdir");
-
-        java.nio.file.Path tmpPath = Paths.get(tmpDirLocation);
-
-        try
-        {
-            return Files.createDirectory(tmpPath.resolve(TMP_DIRECTORY_NAME));
-
-        } catch (Exception e)
-        {
-            return tmpPath;
-        }
+        return this.sourceString;
 
     }
 
@@ -285,44 +242,40 @@ public class HandlerGenerator {
                                                                      .distinct().filter(t ->
                 {
 
-
                     TypeHandler handler = TypeHandler.forType(t);
                     return (handler.equals(TypeHandler.ModelType) || handler.equals(TypeHandler.OptionalModelType) || handler.equals(TypeHandler.NamedModelType) || handler.equals(TypeHandler.OptionalNamedModelType));
 
                 }).collect(Collectors.toMap(java.util.function.Function.identity(), ClassUtilities::typeReferenceNameForParameterizedType));
 
-
         java.util.regex.Pattern internalTypesPattern = java.util.regex.Pattern.compile("concurrent|<");
 
-   final Map<String, TypeToken<?>> googleParameterTypeTokens = Arrays.stream(clazz.getDeclaredMethods())
-                                                                                                      .filter(m -> m.getAnnotation(Path.class) != null)
-                                                                                                      .flatMap(
-                                                                             m -> Invokable.from(m).getParameters().stream())
-                                                                                                      .filter(p -> internalTypesPattern.matcher(p.getType().getType().getTypeName()).find() )
-           .distinct().collect(Collectors.toMap(p -> p.getType().toString(), com.google.common.reflect.Parameter::getType, (p1, p2) -> p1 ));
-
-
+        final Map<String, TypeToken<?>> googleParameterTypeTokens = Arrays.stream(clazz.getDeclaredMethods())
+                                                                          .filter(m -> m.getAnnotation(Path.class) != null)
+                                                                          .flatMap(
+                                                                                  m -> Invokable.from(m).getParameters().stream())
+                                                                          .filter(p -> internalTypesPattern.matcher(p.getType().getType().getTypeName()).find())
+                                                                          .distinct().collect(Collectors.toMap(p -> p.getType().toString(), com.google.common.reflect.Parameter::getType, (p1, p2) -> p1));
 
 //log.info("googleParameterTypeTokens: {}",googleParameterTypeTokens);
-            Arrays.stream(clazz.getDeclaredMethods())
+        Arrays.stream(clazz.getDeclaredMethods())
               .filter(m -> m.getAnnotation(Path.class) != null)
               .forEach(m -> {
-                  Invokable<?,Object> invokable = Invokable.from(m);
+                  Invokable<?, Object> invokable = Invokable.from(m);
 
                   List<? extends TypeToken<?>> parameterTokens = invokable.getParameters().stream().filter(p -> Objects.isNull(p.getAnnotation(BeanParam.class))).map(com.google.common.reflect.Parameter::getType).collect(Collectors.toList());
 
-                //  log.info("parameterTokens: {}",parameterTokens);
+                  //  log.info("parameterTokens: {}",parameterTokens);
 
                   parameterTokens.forEach(rt -> {
-                   //   log.info("t:\n|{}|\n|{}|\n|{}|\ncached:\n|{}|",rt.getType(), rt.getRawType(), rt, typeTokenMap.get(rt.getType()));
-                      typeTokenMap.put(rt.getType(),rt);
+                      //   log.info("t:\n|{}|\n|{}|\n|{}|\ncached:\n|{}|",rt.getType(), rt.getRawType(), rt, typeTokenMap.get(rt.getType()));
+                      typeTokenMap.put(rt.getType(), rt);
 
                   });
 
-                 // log.info("invokable: \ntype {}\n rawt {}\n hc {}\n params{}\n return type{}\n generic string {}\nog return type: {}",returnType.getType(),returnType.getRawType(),returnType.hashCode(),
+                  // log.info("invokable: \ntype {}\n rawt {}\n hc {}\n params{}\n return type{}\n generic string {}\nog return type: {}",returnType.getType(),returnType.getRawType(),returnType.hashCode(),
 //                          m.getParameters(),m.getReturnType(),m.getReturnType().toGenericString(),
 //                          m.getReturnType());
-                 // typeTokenMap.put(m.getReturnType().getTypeName(),invokable.getReturnType());
+                  // typeTokenMap.put(m.getReturnType().getTypeName(),invokable.getReturnType());
               });
 
         Arrays.stream(clazz.getDeclaredMethods())
@@ -483,7 +436,7 @@ public class HandlerGenerator {
                 continue;
             }
 
-         //   log.debug("\n\nScanning method: {}\n", m.getName());
+            //   log.debug("\n\nScanning method: {}\n", m.getName());
 
             EndpointInfo endpointInfo = new EndpointInfo();
 
@@ -631,9 +584,8 @@ public class HandlerGenerator {
 //
 //                    TypeToken<?> token = invokable.getReturnType();
 
-                //    Object obj - MutableTypeToInstanceMap
-                  // log.error("parameterized: {} \ntoken: {}\ntoken type: {}", p.getParameterizedType(), token, token.getType());
-
+                    //    Object obj - MutableTypeToInstanceMap
+                    // log.error("parameterized: {} \ntoken: {}\ntoken type: {}", p.getParameterizedType(), token, token.getType());
 
                     TypeHandler t = TypeHandler.forType(p.getParameterizedType(), isBeanParameter);
 
@@ -665,7 +617,7 @@ public class HandlerGenerator {
 
             List<Parameter> parameters = Arrays.stream(m.getParameters()).collect(Collectors.toList());
 
-         //   log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
+            //   log.debug("parameterizedLiteralsNameMap: " + parameterizedLiteralsNameMap);
 
             for (Parameter p : parameters)
             {

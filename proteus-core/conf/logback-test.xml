@@ -19,6 +19,8 @@
 
 	<logger name="com.sun.jersey" level="ERROR" />
 
+
+	<logger name="net.openhft.compiler" level="ERROR" />
 	<logger name="org.xnio" level="ERROR" />
 	<logger name="io.undertow" level="DEBUG" />
 	<logger name="org.reflections" level="OFF" />

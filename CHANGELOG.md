@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Reduce logging.**
+
+
+[f6a8f1986b6d0da](https://github.com/noboomu/proteus/commit/f6a8f1986b6d0da) Joshua Bauer *2022-07-19 20:15:26*
+
 **Tweak parameters.**
 
 

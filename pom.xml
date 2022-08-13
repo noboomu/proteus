@@ -64,7 +64,7 @@
 		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<openapi.version>2.2.1</openapi.version>
-		<openhft-compiler.version>2.21ea82</openhft-compiler.version>
+		<openhft-compiler.version>2.23ea0</openhft-compiler.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<proteus.version>${project.version}</proteus.version>
 		<reflections.version>0.10.2</reflections.version>

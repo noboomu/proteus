@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -313,6 +314,21 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
     }
 
+    public OpenAPI getOpenApi() {
+
+        return openApi;
+    }
+
+    public String getYamlSpec() {
+
+        return yamlSpec;
+    }
+
+    public String getJsonSpec() {
+
+        return jsonSpec;
+    }
+
     @Override
     protected void startUp() throws Exception
     {
@@ -321,7 +337,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         generateHTML();
 
-        CompletableFuture.runAsync(() ->
+       ForkJoinPool.commonPool().execute(() ->
         {
             try
             {
@@ -360,9 +376,18 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         router.add(HttpMethod.GET, yamlTemplatePath, (HttpServerExchange exchange) ->
         {
+
+            String spec = getYamlSpec();
+
+            if(spec == null)
+            {
+                exchange.setStatusCode(404).setReasonPhrase("Spec has not yet been generated").endExchange();
+                return;
+            }
+
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.TEXT_YAML.contentType());
 
-            exchange.getResponseSender().send(yamlSpec);
+            exchange.getResponseSender().send(spec);
         });
 
         this.registeredEndpoints.add(EndpointInfo.builder()
@@ -385,9 +410,17 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         router.add(HttpMethod.GET, jsonTemplatePath, (HttpServerExchange exchange) ->
         {
+            final String spec = this.getJsonSpec();
+
+            if(spec == null)
+            {
+                exchange.setStatusCode(404).setReasonPhrase("Spec has not yet been generated").endExchange();
+                return;
+            }
+
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, io.sinistral.proteus.protocol.MediaType.JSON.contentType());
 
-            exchange.getResponseSender().send(jsonSpec);
+            exchange.getResponseSender().send(spec);
         });
 
         this.registeredEndpoints.add(EndpointInfo.builder()

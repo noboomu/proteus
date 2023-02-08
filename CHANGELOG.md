@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve compatability**
+
+
+[cb61cb367557f63](https://github.com/noboomu/proteus/commit/cb61cb367557f63) Joshua Bauer *2022-08-13 01:59:47*
+
+**Safer threaded compilation and caching of generated classes**
+
+
+[d5eb3e745471280](https://github.com/noboomu/proteus/commit/d5eb3e745471280) Joshua Bauer *2022-08-13 01:58:36*
+
 **Reduce logging.**
 
 

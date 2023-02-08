@@ -35,6 +35,7 @@
 	<logger name="io.swagger.jackson" level="ERROR" />
 	<logger name="io.swagger.v3" level="ERROR" /> 
 	<logger name="swagger" level="ERROR" />
+	<logger name="net.openhft" level="ERROR" />
 
 	<logger name="javax.management" level="ERROR" />
 	<logger name="javax.management.mbeanserver" level="OFF" />

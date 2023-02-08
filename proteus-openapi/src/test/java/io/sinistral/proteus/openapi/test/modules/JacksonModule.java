@@ -3,7 +3,7 @@ package io.sinistral.proteus.openapi.test.modules;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 
@@ -25,7 +25,7 @@ public class JacksonModule extends AbstractModule
         objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
 
         objectMapper
-                .registerModule(new AfterburnerModule())
+                .registerModule(new BlackbirdModule())
                 .registerModule(new Jdk8Module());
 
         this.bind(ObjectMapper.class).toInstance(objectMapper);

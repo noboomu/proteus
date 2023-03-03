@@ -51,10 +51,19 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
 
             if(keyValue.isEmpty() || !keyValue.get().equals(API_KEY))
             {
+                StringBuilder sb = new StringBuilder();
+
+                sb.append("\n");
+
+                exchange.getRequestHeaders().forEach(h -> {
+
+                    sb.append(h.getHeaderName()).append(": ").append(h.getFirst()).append("\n");
+
+                });
 
                 logger.error("Missing security credentials");
-                exchange.putAttachment(THROWABLE, new ServerException("Unauthorized access", Response.Status.UNAUTHORIZED));
-                throw new ServerException("Unauthorized access", Response.Status.UNAUTHORIZED);
+                exchange.putAttachment(THROWABLE, new ServerException("Unauthorized access: " + sb, Response.Status.UNAUTHORIZED));
+                throw new ServerException("Unauthorized access: " + sb, Response.Status.UNAUTHORIZED);
 
             }
 

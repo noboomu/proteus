@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Silence cached compiler logs and upgrade to blackbird**
+
+
+[e9bb94e12f4589d](https://github.com/noboomu/proteus/commit/e9bb94e12f4589d) Joshua Bauer *2023-02-08 19:42:32*
+
 **Improve compatability**
 
 

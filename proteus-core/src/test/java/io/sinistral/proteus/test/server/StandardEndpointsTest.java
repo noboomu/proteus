@@ -533,7 +533,7 @@ public class StandardEndpointsTest extends AbstractEndpointTest {
     public void notFound()
     {
 
-        given().accept(ContentType.JSON).when().get("v1/tests/response/error/404").then().statusCode(404).log().body().content(containsString("No entity found"));
+        given().accept(ContentType.JSON).when().get("v1/tests/response/error/404").then().statusCode(404).body(containsString("No entity found"));
 
     }
 
@@ -541,7 +541,7 @@ public class StandardEndpointsTest extends AbstractEndpointTest {
     public void unauthorized()
     {
 
-        given().accept(ContentType.JSON).when().get("v1/tests/response/error/401").then().statusCode(401).log().body().content(containsString("Unauthorized"));
+        given().accept(ContentType.JSON).when().get("v1/tests/response/error/401").then().statusCode(401).body(containsString("Unauthorized"));
 
     }
 

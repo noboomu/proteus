@@ -1,536 +1,580 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>io.sinistral</groupId>
-	<artifactId>proteus-project</artifactId>
-	<packaging>pom</packaging>
-	<version>0.5.2-SNAPSHOT</version>
-	<name>Proteus Project</name>
+    <groupId>io.sinistral</groupId>
+    <artifactId>proteus-project</artifactId>
+    <packaging>pom</packaging>
+    <version>0.6.0-SNAPSHOT</version>
+    <name>Proteus Project</name>
 
-	<description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.</description>
-	<url>http://github.com/noboomu/proteus</url>
+    <description>Proteus is an extremely light, fast, and flexible Java REST API framework built atop Undertow.
+    </description>
+    <url>http://github.com/noboomu/proteus</url>
 
-	<modules>
-		<module>proteus-core</module>
-		<module>proteus-openapi</module>
-	</modules>
+    <modules>
+        <module>proteus-core</module>
+        <module>proteus-openapi</module>
+    </modules>
 
-	<licenses>
-		<license>
-			<name>MIT License</name>
-			<url>http://www.opensource.org/licenses/mit-license.php</url>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
 
-	<developers>
-		<developer>
-			<name>Joshua Lee Bauer</name>
-			<email>bauer@sinistral.io</email>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <name>Joshua Lee Bauer</name>
+            <email>bauer@sinistral.io</email>
+        </developer>
+    </developers>
 
-	<scm>
-		<connection>scm:git:git://github.com/noboomu/proteus.git</connection>
-		<developerConnection>scm:git:ssh://github.com/noboomu/proteus.git</developerConnection>
-		<url>http://github.com/noboomu/proteus/tree/master</url>
-		<tag>HEAD</tag>
-	</scm>
+    <scm>
+        <connection>scm:git:git://github.com/noboomu/proteus.git</connection>
+        <developerConnection>scm:git:ssh://github.com/noboomu/proteus.git</developerConnection>
+        <url>http://github.com/noboomu/proteus/tree/master</url>
+        <tag>HEAD</tag>
+    </scm>
 
-	<properties>
+    <properties>
 
-		<changelog.version>1.60</changelog.version>
-		<commons-io.version>2.11.0</commons-io.version>
-		<commons-lang3.version>3.12.0</commons-lang3.version>
-		<commons-text.version>1.9</commons-text.version>
-		<guava.version>31.1-jre</guava.version>
-		<guice.version>5.1.0</guice.version>
-		<httpcore.version>4.4.15</httpcore.version>
-		<jackson.version>2.13.3</jackson.version>
-		<jakarta-ws-rs.version>2.1.6</jakarta-ws-rs.version>
-		<jansi.version>1.18</jansi.version>
-		<java.version>12</java.version>
-		<javapoet.version>1.13.0</javapoet.version>
-		<logback-classic.version>1.2.11</logback-classic.version>
-		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
-		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
-		<maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
-		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-		<maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
-		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
-		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-		<openapi.version>2.2.1</openapi.version>
-		<openhft-compiler.version>2.23ea0</openhft-compiler.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<proteus.version>${project.version}</proteus.version>
-		<reflections.version>0.10.2</reflections.version>
-		<slf4j.version>1.7.36</slf4j.version>
-		<snakeyaml.version>1.30</snakeyaml.version>
-		<swagger.version>1.5.21</swagger.version>
-		<typesafe-config.version>1.4.2</typesafe-config.version>
-		<undertow.version>2.2.18.Final</undertow.version>
-		<woodstox.version>6.3.0</woodstox.version>
-		<micrometer-core.version>1.9.1</micrometer-core.version>
-	</properties>
+        <changelog.version>1.60</changelog.version>
+        <commons-io.version>2.11.0</commons-io.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-text.version>1.9</commons-text.version>
+        <guava.version>31.1-jre</guava.version>
+        <guice.version>5.1.0</guice.version>
+        <httpcore.version>4.4.15</httpcore.version>
+        <jackson.version>2.13.3</jackson.version>
+        <jakarta-ws-rs.version>2.1.6</jakarta-ws-rs.version>
+        <jansi.version>1.18</jansi.version>
+        <java.version>12</java.version>
+        <javapoet.version>1.13.0</javapoet.version>
+        <logback-classic.version>1.2.11</logback-classic.version>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
+        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+        <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+        <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
+        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+        <maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
+        <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        <openapi.version>2.2.1</openapi.version>
+        <openhft-compiler.version>2.23ea0</openhft-compiler.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <proteus.version>${project.version}</proteus.version>
+        <reflections.version>0.10.2</reflections.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <snakeyaml.version>1.30</snakeyaml.version>
+        <swagger.version>1.5.21</swagger.version>
+        <typesafe-config.version>1.4.2</typesafe-config.version>
+        <undertow.version>2.2.18.Final</undertow.version>
+        <woodstox.version>6.3.0</woodstox.version>
+        <micrometer-core.version>1.9.1</micrometer-core.version>
+    </properties>
 
-	<dependencies>
+    <dependencies>
 
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.8.2</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>24.0.1</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.junit.vintage</groupId>
-			<artifactId>junit-vintage-engine</artifactId>
-			<version>5.8.2</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>io.rest-assured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<version>3.2.0</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-core</artifactId>
-			<version>${micrometer-core.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>5.3.0</version>
+            <scope>test</scope>
+        </dependency>
 
-	</dependencies>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${micrometer-core.version}</version>
+        </dependency>
 
-	<dependencyManagement>
-		<dependencies>
+<!--        <dependency>-->
+<!--            <groupId>com.javax0.sourcebuddy</groupId>-->
+<!--            <artifactId>SourceBuddy</artifactId>-->
+<!--            <version>2.3.0</version>-->
+<!--        </dependency>-->
 
-			<dependency>
-				<groupId>com.fasterxml.jackson</groupId>
-				<artifactId>jackson-bom</artifactId>
-				<version>${jackson.version}</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-ri</artifactId>
+            <version>4.0.1</version>
+            <type>pom</type>
+        </dependency>
+    </dependencies>
 
-			<dependency>
-				<groupId>io.sinistral</groupId>
-				<artifactId>proteus-core</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+    <dependencyManagement>
+        <dependencies>
 
-			<dependency>
-				<groupId>io.sinistral</groupId>
-				<artifactId>proteus-openapi</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
 
-			<dependency>
-				<groupId>io.sinistral</groupId>
-				<artifactId>proteus-swagger</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>io.sinistral</groupId>
+                <artifactId>proteus-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-		</dependencies>
-	</dependencyManagement>
+            <dependency>
+                <groupId>io.sinistral</groupId>
+                <artifactId>proteus-openapi</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-	<!--    <repositories>-->
-	<!--        <repository>-->
-	<!--            <id>sonatype-releases</id>-->
-	<!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-	<!--            <snapshots>-->
-	<!--                <enabled>true</enabled>-->
-	<!--            </snapshots>-->
-	<!--            <releases>-->
-	<!--                <enabled>false</enabled>-->
-	<!--            </releases>-->
-	<!--        </repository>-->
-	<!--        <repository>-->
-	<!--            <id>sonatype-snapshots</id>-->
-	<!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-	<!--            <snapshots>-->
-	<!--                <enabled>true</enabled>-->
-	<!--            </snapshots>-->
-	<!--            <releases>-->
-	<!--                <enabled>false</enabled>-->
-	<!--            </releases>-->
-	<!--        </repository>-->
-	<!--    </repositories>-->
+            <dependency>
+                <groupId>io.sinistral</groupId>
+                <artifactId>proteus-swagger</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-	<repositories>
-		<repository>
-			<id>sonatype-snapshots</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-	</repositories>
+        </dependencies>
+    </dependencyManagement>
 
-	<build>
+    <!--    <repositories>-->
+    <!--        <repository>-->
+    <!--            <id>sonatype-releases</id>-->
+    <!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+    <!--            <snapshots>-->
+    <!--                <enabled>true</enabled>-->
+    <!--            </snapshots>-->
+    <!--            <releases>-->
+    <!--                <enabled>false</enabled>-->
+    <!--            </releases>-->
+    <!--        </repository>-->
+    <!--        <repository>-->
+    <!--            <id>sonatype-snapshots</id>-->
+    <!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+    <!--            <snapshots>-->
+    <!--                <enabled>true</enabled>-->
+    <!--            </snapshots>-->
+    <!--            <releases>-->
+    <!--                <enabled>false</enabled>-->
+    <!--            </releases>-->
+    <!--        </repository>-->
+    <!--    </repositories>-->
 
-		<plugins>
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
-				<configuration>
-					<release>${java.version}</release>
-					<compilerArgument>-parameters</compilerArgument>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
+    <build>
 
-			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven-jar-plugin.version}</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
+        <plugins>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>${maven-enforcer-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>enforce-versions</id>
-						<goals>
-							<goal>enforce</goal>
-						</goals>
-						<configuration>
-							<rules>
-								<requireJavaVersion>
-									<version>${java.version}</version>
-								</requireJavaVersion>
-							</rules>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <release>${java.version}</release>
+                    <compilerVersion>17</compilerVersion>
+                    <compilerArgument>-parameters</compilerArgument>
+                    <compilerArgs>
+                        <arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
+                    </compilerArgs>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>${maven-surefire-plugin.version}</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.maven.surefire</groupId>
-						<artifactId>surefire-junit47</artifactId>
-						<version>${maven-surefire-plugin.version}</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
-					<argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
-				</configuration>
-			</plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<source>8</source>
-					<detectJavaApiLink>false</detectJavaApiLink>
-				</configuration>
-				<version>${maven-javadoc-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<doclint>none</doclint>
-						</configuration>
-					</execution>
-				</executions>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>${java.version}</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-			</plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
+                    <argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
+                    <argLine>--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</argLine>
+                    <argLine>--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED</argLine>
+                    <argLine>--add-exports=java.base/sun.nio.ch=ALL-UNNAMED</argLine>
+                    <argLine>--add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED</argLine>
+                    <argLine>--add-opens=jdk.compiler/com.sun.tools.javac=ALL-UNNAMED</argLine>
+                    <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
+                    <argLine>--add-opens=java.base/java.lang.reflect=ALL-UNNAMED</argLine>
+                    <argLine>--add-opens=java.base/java.io=ALL-UNNAMED</argLine>
+                    <argLine>--add-opens=java.base/java.util=ALL-UNNAMED</argLine>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<version>${maven-gpg-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>sign-artifacts</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<executable>gpg</executable>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>${nexus-staging-maven-plugin.version}</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<autoReleaseAfterClose>false</autoReleaseAfterClose>
-				</configuration>
-			</plugin>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>${maven-release-plugin.version}</version>
-				<configuration>
-					<autoVersionSubmodules>true</autoVersionSubmodules>
-					<tagNameFormat>v@{project.version}</tagNameFormat>
-					<releaseProfiles>central</releaseProfiles>
-					<goals>deploy</goals>
-				</configuration>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <detectJavaApiLink>false</detectJavaApiLink>
+                </configuration>
+                <version>${maven-javadoc-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <doclint>none</doclint>
+                        </configuration>
+                    </execution>
+                </executions>
 
-		</plugins>
+            </plugin>
 
-		<pluginManagement>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven-gpg-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>gpg</executable>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${nexus-staging-maven-plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
 
-			<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <releaseProfiles>central</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
 
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-source-plugin</artifactId>
-					<version>${maven-source-plugin.version}</version>
-					<executions>
-						<execution>
-							<id>attach-sources</id>
-							<goals>
-								<goal>jar-no-fork</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
+        </plugins>
 
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-javadoc-plugin</artifactId>
-					<configuration>
-						<source>8</source>
-					</configuration>
-					<version>${maven-javadoc-plugin.version}</version>
-					<executions>
-						<execution>
-							<id>attach-javadocs</id>
-							<goals>
-								<goal>jar</goal>
-							</goals>
-							<configuration>
-								<doclint>none</doclint>
-							</configuration>
-						</execution>
-					</executions>
+        <pluginManagement>
 
-				</plugin>
+            <plugins>
 
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-gpg-plugin</artifactId>
-					<version>${maven-gpg-plugin.version}</version>
-					<executions>
-						<execution>
-							<id>sign-artifacts</id>
-							<phase>verify</phase>
-							<goals>
-								<goal>sign</goal>
-							</goals>
-						</execution>
-					</executions>
-					<configuration>
-						<executable>gpg</executable>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.sonatype.plugins</groupId>
-					<artifactId>nexus-staging-maven-plugin</artifactId>
-					<version>${nexus-staging-plugin.version}</version>
-					<extensions>true</extensions>
-					<configuration>
-						<serverId>ossrh</serverId>
-						<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-						<autoReleaseAfterClose>false</autoReleaseAfterClose>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-release-plugin</artifactId>
-					<version>${maven-release-plugin.version}</version>
-					<configuration>
-						<autoVersionSubmodules>false</autoVersionSubmodules>
-						<tagNameFormat>v@{project.version}</tagNameFormat>
-						<releaseProfiles>ossrh</releaseProfiles>
-						<goals>deploy</goals>
-					</configuration>
-				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
 
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>${maven-compiler-plugin.version}</version>
-					<configuration>
-						<source>${java.version}</source>
-						<target>${java.version}</target>
-						<compilerArgument>-parameters</compilerArgument>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <configuration>
+                        <source>8</source>
+                    </configuration>
+                    <version>${maven-javadoc-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <doclint>none</doclint>
+                            </configuration>
+                        </execution>
+                    </executions>
 
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-enforcer-plugin</artifactId>
-					<executions>
-						<execution>
-							<id>enforce-versions</id>
-							<goals>
-								<goal>enforce</goal>
-							</goals>
-							<configuration>
-								<rules>
-									<requireJavaVersion>
-										<version>${java.version}</version>
-									</requireJavaVersion>
-								</rules>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>${maven-surefire-plugin.version}</version>
-					<dependencies>
-						<dependency>
-							<groupId>org.apache.maven.surefire</groupId>
-							<artifactId>surefire-junit47</artifactId>
-							<version>${maven-surefire-plugin.version}</version>
-						</dependency>
-					</dependencies>
-					<configuration>
-						<argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
-						<argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
-					</configuration>
-				</plugin>
+                </plugin>
 
-			</plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${maven-gpg-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <executable>gpg</executable>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>${nexus-staging-plugin.version}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>ossrh</serverId>
+                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>${maven-release-plugin.version}</version>
+                    <configuration>
+                        <autoVersionSubmodules>false</autoVersionSubmodules>
+                        <tagNameFormat>v@{project.version}</tagNameFormat>
+                        <releaseProfiles>ossrh</releaseProfiles>
+                        <goals>deploy</goals>
+                    </configuration>
+                </plugin>
 
-		</pluginManagement>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <compilerArgument>-parameters</compilerArgument>
 
-	</build>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>enforce-versions</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireJavaVersion>
+                                        <version>${java.version}</version>
+                                    </requireJavaVersion>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven.surefire</groupId>
+                            <artifactId>surefire-junit47</artifactId>
+                            <version>${maven-surefire-plugin.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
+                        <argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
+                        <argLine>--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</argLine>
+                        <argLine>--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED</argLine>
+                        <argLine>--add-exports=java.base/sun.nio.ch=ALL-UNNAMED</argLine>
+                        <argLine>--add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED</argLine>
+                        <argLine>--add-opens=jdk.compiler/com.sun.tools.javac=ALL-UNNAMED</argLine>
+                        <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
+                        <argLine>--add-opens=java.base/java.lang.reflect=ALL-UNNAMED</argLine>
+                        <argLine>--add-opens=java.base/java.io=ALL-UNNAMED</argLine>
+                        <argLine>--add-opens=java.base/java.util=ALL-UNNAMED</argLine>
+                    </configuration>
+                </plugin>
 
-	<profiles>
+            </plugins>
 
-		<profile>
-			<activation>
-				<file>
-					<exists>pom.xml</exists>
-				</file>
-			</activation>
-			<id>central</id>
-			<build>
-				<plugins>
+        </pluginManagement>
 
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<version>${maven-source-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<goals>
-									<goal>jar-no-fork</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
+    </build>
 
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>${maven-javadoc-plugin.version}</version>
-						<configuration>
-							<source>8</source>
-						</configuration>
-						<executions>
-							<execution>
-								<id>attach-javadocs</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-								<configuration>
-									<doclint>none</doclint>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
+    <profiles>
 
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>${maven-gpg-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-								<configuration>
-									<executable>gpg</executable>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
+        <profile>
+            <activation>
+                <file>
+                    <exists>pom.xml</exists>
+                </file>
+            </activation>
+            <id>central</id>
+            <build>
+                <plugins>
 
-					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
-						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>${nexus-staging-maven-plugin.version}</version>
-						<extensions>true</extensions>
-						<configuration>
-							<serverId>ossrh</serverId>
-							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-							<autoReleaseAfterClose>false</autoReleaseAfterClose>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven-source-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
 
-	</profiles>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <configuration>
+                            <source>8</source>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <doclint>none</doclint>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
 
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<name>Sonatype Nexus Snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>ossrh</id>
-			<name>Nexus Release Repository</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-		<downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-project</downloadUrl>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>gpg</executable>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
 
-	</distributionManagement>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>${nexus-staging-maven-plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <name>Nexus Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-project</downloadUrl>
+
+    </distributionManagement>
 
 </project>

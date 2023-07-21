@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Named;
+//import com.javax0.sourcebuddy.Compiler;
 import com.typesafe.config.Config;
 import io.sinistral.proteus.modules.ConfigModule;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
@@ -119,42 +120,36 @@ public class ProteusApplication {
 
     final Instant startTime = Instant.now();
 
-    public ProteusApplication()
-    {
+    public ProteusApplication() {
 
         injector = Guice.createInjector(new ConfigModule());
         injector.injectMembers(this);
     }
 
-    public ProteusApplication(String configFile)
-    {
+    public ProteusApplication(String configFile) {
 
         injector = Guice.createInjector(new ConfigModule(configFile));
         injector.injectMembers(this);
 
     }
 
-    public ProteusApplication(URL configURL)
-    {
+    public ProteusApplication(URL configURL) {
 
         injector = Guice.createInjector(new ConfigModule(configURL));
         injector.injectMembers(this);
 
     }
 
-    public ProteusApplication(Module... modules)
-    {
+    public ProteusApplication(Module... modules) {
 
         injector = Guice.createInjector(modules);
         injector.injectMembers(this);
 
     }
 
-    public void start()
-    {
+    public void start() {
 
-        if (this.isRunning())
-        {
+        if (this.isRunning()) {
             log.warn("Server has already started...");
             return;
         }
@@ -167,8 +162,7 @@ public class ProteusApplication {
 
         injector = injector.createChildInjector(modules);
 
-        if (rootHandlerClass == null && rootHandler == null)
-        {
+        if (rootHandlerClass == null && rootHandler == null) {
             log.debug("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
             rootHandlerClass = ServerDefaultHttpHandler.class;
         }
@@ -182,27 +176,23 @@ public class ProteusApplication {
         serviceManager = new ServiceManager(services);
 
         serviceManager.addListener(new Listener() {
-            public void stopped()
-            {
+            public void stopped() {
 
                 log.info("Services are stopped");
 
             }
 
-            public void healthy()
-            {
+            public void healthy() {
 
                 log.info("Services are healthy");
 
                 startupDuration = Duration.between(startTime, Instant.now());
 
-                for (ListenerInfo info : undertow.getListenerInfo())
-                {
+                for (ListenerInfo info : undertow.getListenerInfo()) {
                     log.debug("listener info: " + info);
                     SocketAddress address = info.getAddress();
 
-                    if (address != null)
-                    {
+                    if (address != null) {
                         ports.add(((java.net.InetSocketAddress) address).getPort());
                     }
                 }
@@ -211,20 +201,17 @@ public class ProteusApplication {
 
             }
 
-            public void failure(Service service)
-            {
+            public void failure(Service service) {
 
                 log.error("Service failure: " + service);
 
                 startupDuration = Duration.between(startTime, Instant.now());
 
-                for (ListenerInfo info : undertow.getListenerInfo())
-                {
+                for (ListenerInfo info : undertow.getListenerInfo()) {
                     log.debug("listener info: " + info);
                     SocketAddress address = info.getAddress();
 
-                    if (address != null)
-                    {
+                    if (address != null) {
                         ports.add(((java.net.InetSocketAddress) address).getPort());
                     }
                 }
@@ -238,21 +225,17 @@ public class ProteusApplication {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
-            if (!this.isRunning())
-            {
+            if (!this.isRunning()) {
                 log.warn("Server is not running...");
                 return;
             }
 
-            try
-            {
+            try {
                 shutdown();
                 mainThread.join();
-            } catch (InterruptedException ex)
-            {
+            } catch (InterruptedException ex) {
                 log.error("Shutdown was interrupted", ex);
-            } catch (TimeoutException timeout)
-            {
+            } catch (TimeoutException timeout) {
                 log.error("Shutdown timed out", timeout);
             }
         }));
@@ -263,14 +246,11 @@ public class ProteusApplication {
 
         Duration timeout = config.getDuration("application.services.timeout");
 
-        try
-        {
+        try {
             serviceManager.startAsync().awaitHealthy(timeout);
-        } catch (TimeoutException e)
-        {
+        } catch (TimeoutException e) {
             log.error("Failed start to services within {} minutes", timeout, e);
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error("Failed to start services", e);
         }
 
@@ -280,11 +260,9 @@ public class ProteusApplication {
 
     }
 
-    public void shutdown() throws TimeoutException
-    {
+    public void shutdown() throws TimeoutException {
 
-        if (!this.isRunning())
-        {
+        if (!this.isRunning()) {
             log.warn("Server is not running...");
             return;
         }
@@ -300,14 +278,12 @@ public class ProteusApplication {
         log.info("Shutdown complete");
     }
 
-    public boolean isRunning()
-    {
+    public boolean isRunning() {
 
         return this.running.get();
     }
 
-    public void buildServer()
-    {
+    public void buildServer() {
 
         final Instant compilationStartTime = Instant.now();
 
@@ -321,42 +297,50 @@ public class ProteusApplication {
 
         log.info("Compiling route handlers...");
 
-        for (Class<?> controllerClass : registeredControllers)
-        {
+        for (Class<?> controllerClass : registeredControllers) {
 
             handlerCompilationExecutor.submit(() -> {
 
-                try
-                {
+                try {
 
-                    //  log.debug("Generating {}...", controllerClass);
-
-                    final File tempFile = getTemporaryDirectoryPath().toFile();
+                    log.debug("Generating {}...", controllerClass);
 
                     HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
 
+                    log.debug("injecting {}...", controllerClass);
+
                     injector.injectMembers(generator);
 
-                    //   log.debug("Compiling {}...", controllerClass);
+                    log.debug("Compiling {}...", controllerClass);
 
-                    try (CachedCompiler cachedCompiler = new CachedCompiler(null, tempFile))
-                    {
-                        final String source = generator.generateClassSource();
+                    log.debug("Generating {}...", controllerClass);
 
-                        Class<? extends Supplier<RoutingHandler>> routerClass = cachedCompiler.loadFromJava(generator.getCanonicalName(), source);
+                    final String source = generator.generateClassSource();
 
-                        lock.writeLock().lock();
+                    log.debug("Generated {}...", controllerClass);
+
+
+                    lock.writeLock().lock();
+
+                    try (CachedCompiler cachedCompiler = new CachedCompiler(null, getTemporaryDirectoryPath().toFile())) {
+
+                        Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) cachedCompiler.loadFromJava(generator.getCanonicalName(), source);
+
+                        log.debug("Loaded from java {}...", controllerClass);
 
                         routerClasses.add(routerClass);
 
-                        lock.writeLock().unlock();
+
+                    } catch (Exception e)
+                    {
+                        log.error("Failed to compile {}", controllerClass, e);
                     }
 
 
+                    lock.writeLock().unlock();
 
-                } catch (Exception e)
-                {
-                    log.error("Exception creating handlers for {}", controllerClass.getName(), e);
+                } catch (Exception e) {
+                    log.error("Failed to compile", e);
                 }
 
                 countDownLatch.countDown();
@@ -364,18 +348,15 @@ public class ProteusApplication {
 
         }
 
-        try
-        {
+        try {
             countDownLatch.await();
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error("Failed waiting for handlers to generate", e);
         }
 
         log.debug("Compilation completed in {}", DurationFormatUtils.formatDurationHMS(Duration.between(compilationStartTime, Instant.now()).toMillis()));
 
-        for (Class<? extends Supplier<RoutingHandler>> clazz : routerClasses)
-        {
+        for (Class<? extends Supplier<RoutingHandler>> clazz : routerClasses) {
             Supplier<RoutingHandler> generatedRouteSupplier = injector.getInstance(clazz);
             router.addAll(generatedRouteSupplier.get());
         }
@@ -386,42 +367,34 @@ public class ProteusApplication {
 
         HttpHandler handler;
 
-        if (rootHandlerClass != null)
-        {
+        if (rootHandlerClass != null) {
             handler = injector.getInstance(rootHandlerClass);
-        }
-        else
-        {
+        } else {
             handler = rootHandler;
         }
 
         SessionAttachmentHandler sessionAttachmentHandler = null;
 
-        try
-        {
+        try {
             sessionAttachmentHandler = injector.getInstance(SessionAttachmentHandler.class);
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             log.debug("No session attachment handler found.");
         }
 
-        if (sessionAttachmentHandler != null)
-        {
+        if (sessionAttachmentHandler != null) {
             log.info("Using session attachment handler.");
 
             sessionAttachmentHandler.setNext(handler);
             handler = sessionAttachmentHandler;
         }
 
-        if (config.hasPath("undertow.gracefulShutdown") && config.getBoolean("undertow.gracefulShutdown"))
-        {
+        if (config.hasPath("undertow.gracefulShutdown") && config.getBoolean("undertow.gracefulShutdown")) {
             handler = new GracefulShutdownHandler(handler);
         }
 
         int httpPort = config.getInt("application.ports.http");
 
-        if (System.getProperty("http.port") != null)
-        {
+        if (System.getProperty("http.port") != null) {
             httpPort = Integer.parseInt(System.getProperty("http.port"));
         }
 
@@ -429,30 +402,27 @@ public class ProteusApplication {
 
         Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
 
-                                                   .setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
-                                                   .setIoThreads(processorCount * config.getInt("undertow.ioThreadsMultiplier"))
-                                                   .setWorkerThreads(processorCount * config.getInt("undertow.workerThreadsMultiplier"))
-                                                   .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
-                                                   .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
-                                                   .setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
-                                                   .setSocketOption(org.xnio.Options.READ_TIMEOUT, config.getInt("undertow.socket.readTimeout"))
-                                                   .setSocketOption(org.xnio.Options.WRITE_TIMEOUT, config.getInt("undertow.socket.writeTimeout"))
-                                                   .setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
-                                                   .setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
-                                                   .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
-                                                   .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
-                                                   .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
-                                                   .setServerOption(UndertowOptions.MAX_BUFFERED_REQUEST_SIZE, config.getInt("undertow.server.maxBufferedRequestSize"))
-                                                   .setHandler(handler);
+                .setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
+                .setIoThreads(processorCount * config.getInt("undertow.ioThreadsMultiplier"))
+                .setWorkerThreads(processorCount * config.getInt("undertow.workerThreadsMultiplier"))
+                .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
+                .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
+                .setSocketOption(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
+                .setSocketOption(org.xnio.Options.READ_TIMEOUT, config.getInt("undertow.socket.readTimeout"))
+                .setSocketOption(org.xnio.Options.WRITE_TIMEOUT, config.getInt("undertow.socket.writeTimeout"))
+                .setServerOption(UndertowOptions.ENABLE_HTTP2, config.getBoolean("undertow.server.enableHttp2"))
+                .setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
+                .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
+                .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
+                .setServerOption(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
+                .setServerOption(UndertowOptions.MAX_BUFFERED_REQUEST_SIZE, config.getInt("undertow.server.maxBufferedRequestSize"))
+                .setHandler(handler);
 
-        if (config.getBoolean("undertow.ssl.enabled"))
-        {
-            try
-            {
+        if (config.getBoolean("undertow.ssl.enabled")) {
+            try {
                 int httpsPort = config.getInt("application.ports.https");
 
-                if (System.getProperty("https.port") != null)
-                {
+                if (System.getProperty("https.port") != null) {
                     httpsPort = Integer.parseInt(System.getProperty("https.port"));
                 }
 
@@ -461,14 +431,12 @@ public class ProteusApplication {
 
                 undertowBuilder.addHttpsListener(httpsPort, config.getString("application.host"), SecurityUtilities.createSSLContext(keyStore, trustStore, config.getString("undertow.ssl.keystorePassword")));
 
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         }
 
-        if (serverConfigurationFunction != null)
-        {
+        if (serverConfigurationFunction != null) {
             undertowBuilder = serverConfigurationFunction.apply(undertowBuilder);
         }
 
@@ -482,8 +450,7 @@ public class ProteusApplication {
      * @param serviceClass
      * @return the application
      */
-    public ProteusApplication addService(Class<? extends BaseService> serviceClass)
-    {
+    public ProteusApplication addService(Class<? extends BaseService> serviceClass) {
 
         registeredServices.add(serviceClass);
         return this;
@@ -495,8 +462,7 @@ public class ProteusApplication {
      * @param controllerClass
      * @return the application
      */
-    public ProteusApplication addController(Class<?> controllerClass)
-    {
+    public ProteusApplication addController(Class<?> controllerClass) {
 
         registeredControllers.add(controllerClass);
         return this;
@@ -508,8 +474,7 @@ public class ProteusApplication {
      * @param moduleClass
      * @return the application
      */
-    public ProteusApplication addModule(Class<? extends Module> moduleClass)
-    {
+    public ProteusApplication addModule(Class<? extends Module> moduleClass) {
 
         registeredModules.add(moduleClass);
         return this;
@@ -520,59 +485,46 @@ public class ProteusApplication {
      *
      * @param router
      */
-    public ProteusApplication addDefaultRoutes(RoutingHandler router)
-    {
+    public ProteusApplication addDefaultRoutes(RoutingHandler router) {
 
-        if (config.hasPath("health.statusPath"))
-        {
-            try
-            {
+        if (config.hasPath("health.statusPath")) {
+            try {
                 final String statusPath = config.getString("health.statusPath");
 
                 router.add(Methods.GET, statusPath, (final HttpServerExchange exchange) ->
                 {
                     exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, MediaType.TEXT_PLAIN);
 
-                    if (this.serviceManager.servicesByState().values().stream().allMatch(Service::isRunning))
-                    {
+                    if (this.serviceManager.servicesByState().values().stream().allMatch(Service::isRunning)) {
                         exchange.setStatusCode(200).getResponseSender().send("OK");
-                    }
-                    else
-                    {
+                    } else {
                         exchange.setStatusCode(500).getResponseSender().send("NOT_HEALTHY");
                     }
                 });
 
                 this.registeredEndpoints.add(EndpointInfo.builder().withConsumes("*/*").withProduces("text/plain").withPathTemplate(statusPath).withControllerName("Internal").withMethod(Methods.GET).build());
 
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 log.error("Error adding health status route.", e);
             }
         }
 
-        if (config.hasPath("application.favicon"))
-        {
-            try
-            {
+        if (config.hasPath("application.favicon")) {
+            try {
 
                 final ByteBuffer faviconImageBuffer;
 
                 final File faviconFile = new File(config.getString("application.favicon"));
 
-                if (!faviconFile.exists())
-                {
-                    try (final InputStream stream = this.getClass().getResourceAsStream(config.getString("application.favicon")))
-                    {
+                if (!faviconFile.exists()) {
+                    try (final InputStream stream = this.getClass().getResourceAsStream(config.getString("application.favicon"))) {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
                         byte[] buffer = new byte[4096];
                         int read = 0;
-                        while (read != -1)
-                        {
+                        while (read != -1) {
                             read = stream.read(buffer);
-                            if (read > 0)
-                            {
+                            if (read > 0) {
                                 baos.write(buffer, 0, read);
                             }
                         }
@@ -580,20 +532,15 @@ public class ProteusApplication {
                         faviconImageBuffer = ByteBuffer.wrap(baos.toByteArray());
                     }
 
-                }
-                else
-                {
-                    try (final InputStream stream = Files.newInputStream(Paths.get(config.getString("application.favicon"))))
-                    {
+                } else {
+                    try (final InputStream stream = Files.newInputStream(Paths.get(config.getString("application.favicon")))) {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
                         byte[] buffer = new byte[4096];
                         int read = 0;
-                        while (read != -1)
-                        {
+                        while (read != -1) {
                             read = stream.read(buffer);
-                            if (read > 0)
-                            {
+                            if (read > 0) {
                                 baos.write(buffer, 0, read);
                             }
                         }
@@ -608,8 +555,7 @@ public class ProteusApplication {
                     exchange.getResponseSender().send(faviconImageBuffer);
                 });
 
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 log.error("Error adding favicon route.", e);
             }
         }
@@ -623,8 +569,7 @@ public class ProteusApplication {
      * @param rootHandlerClass
      * @return the application
      */
-    public ProteusApplication setRootHandlerClass(Class<? extends HttpHandler> rootHandlerClass)
-    {
+    public ProteusApplication setRootHandlerClass(Class<? extends HttpHandler> rootHandlerClass) {
 
         this.rootHandlerClass = rootHandlerClass;
         return this;
@@ -636,8 +581,7 @@ public class ProteusApplication {
      * @param rootHandler
      * @return the application
      */
-    public ProteusApplication setRootHandler(HttpHandler rootHandler)
-    {
+    public ProteusApplication setRootHandler(HttpHandler rootHandler) {
 
         this.rootHandler = rootHandler;
         return this;
@@ -648,8 +592,7 @@ public class ProteusApplication {
      *
      * @param serverConfigurationFunction the serverConfigurationFunction
      */
-    public ProteusApplication setServerConfigurationFunction(Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction)
-    {
+    public ProteusApplication setServerConfigurationFunction(Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction) {
 
         this.serverConfigurationFunction = serverConfigurationFunction;
         return this;
@@ -658,8 +601,7 @@ public class ProteusApplication {
     /**
      * @return the serviceManager
      */
-    public ServiceManager getServiceManager()
-    {
+    public ServiceManager getServiceManager() {
 
         return serviceManager;
     }
@@ -667,8 +609,7 @@ public class ProteusApplication {
     /**
      * @return the config
      */
-    public Config getConfig()
-    {
+    public Config getConfig() {
 
         return config;
     }
@@ -676,8 +617,7 @@ public class ProteusApplication {
     /**
      * @return the router
      */
-    public RoutingHandler getRouter()
-    {
+    public RoutingHandler getRouter() {
 
         return router;
     }
@@ -685,8 +625,7 @@ public class ProteusApplication {
     /**
      * @return a list of used ports
      */
-    public List<Integer> getPorts()
-    {
+    public List<Integer> getPorts() {
 
         return ports;
     }
@@ -714,14 +653,12 @@ public class ProteusApplication {
     /**
      * @return The Undertow server
      */
-    public Undertow getUndertow()
-    {
+    public Undertow getUndertow() {
 
         return undertow;
     }
 
-    public void printStatus()
-    {
+    public void printStatus() {
 
         Config globalHeaders = config.getConfig("globalHeaders");
 
@@ -734,7 +671,7 @@ public class ProteusApplication {
         List<String> tableHeaders = Arrays.asList("Header", "Value");
 
         List<List<String>> tableRows = globalHeadersParameters.entrySet().stream().map(e -> Arrays.asList(e.getKey(), e.getValue()))
-                                                              .collect(Collectors.toList());
+                .collect(Collectors.toList());
 
         TablePrinter printer = new TablePrinter(tableHeaders, tableRows);
 
@@ -745,8 +682,8 @@ public class ProteusApplication {
         tableHeaders = Arrays.asList("Method", "Path", "Consumes", "Produces", "Controller");
 
         tableRows = this.registeredEndpoints.stream().sorted().map(e ->
-                                Arrays.asList(e.getMethod().toString(), e.getPathTemplate(), String.format("[%s]", e.getConsumes()), String.format("[%s]", e.getProduces()), String.format("(%s.%s)", e.getControllerName(), e.getControllerMethod())))
-                                            .collect(Collectors.toList());
+                        Arrays.asList(e.getMethod().toString(), e.getPathTemplate(), String.format("[%s]", e.getConsumes()), String.format("[%s]", e.getProduces()), String.format("(%s.%s)", e.getControllerName(), e.getControllerMethod())))
+                .collect(Collectors.toList());
 
         printer = new TablePrinter(tableHeaders, tableRows);
 
@@ -759,9 +696,9 @@ public class ProteusApplication {
         tableHeaders = Arrays.asList("Service", "State", "Startup Time");
 
         tableRows = serviceStateMap.asMap().entrySet().stream().flatMap(e ->
-                                           e.getValue().stream().map(s ->
-                                                   Arrays.asList(s.getClass().getSimpleName(), e.getKey().toString(), DurationFormatUtils.formatDurationHMS(serviceStartupTimeMap.get(s)))))
-                                   .collect(Collectors.toList());
+                        e.getValue().stream().map(s ->
+                                Arrays.asList(s.getClass().getSimpleName(), e.getKey().toString(), DurationFormatUtils.formatDurationHMS(serviceStartupTimeMap.get(s)))))
+                .collect(Collectors.toList());
 
         printer = new TablePrinter(tableHeaders, tableRows);
 
@@ -770,19 +707,16 @@ public class ProteusApplication {
         log.info(sb.toString());
     }
 
-    protected java.nio.file.Path getTemporaryDirectoryPath() throws Exception
-    {
+    protected java.nio.file.Path getTemporaryDirectoryPath() throws Exception {
 
         String tmpDirLocation = System.getProperty("java.io.tmpdir");
 
         java.nio.file.Path tmpPath = Paths.get(tmpDirLocation);
 
-        try
-        {
+        try {
             return Files.createDirectory(tmpPath.resolve(TMP_DIRECTORY_NAME));
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             return tmpPath;
         }
 

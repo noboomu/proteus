@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Update unauthorized access error message.**
+
+
+[cf2017a27c0c148](https://github.com/noboomu/proteus/commit/cf2017a27c0c148) Joshua Bauer *2023-03-03 22:34:40*
+
 **Silence cached compiler logs and upgrade to blackbird**
 
 

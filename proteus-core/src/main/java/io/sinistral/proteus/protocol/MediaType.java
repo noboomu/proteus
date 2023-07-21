@@ -20,8 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class MediaType
-{
+public class MediaType {
 
     private static final Map<String, MediaType> FILE_EXTENSIONS = new LinkedHashMap<>();
     private static final String[] NO_ATTR = new String[0];
@@ -972,7 +971,7 @@ public class MediaType
     public static final MediaType IMAGE_HEIC = create("image/heic", "heic");
     public static final MediaType IMAGE_GIF = create("image/gif", "gif");
     public static final MediaType IMAGE_IEF = create("image/ief", "ief");
-    public static final MediaType IMAGE_JPEG = create("image/jpeg",  "jpg","jpeg", "jpe");
+    public static final MediaType IMAGE_JPEG = create("image/jpeg", "jpg", "jpeg", "jpe");
     public static final MediaType IMAGE_JBIG = create("image/jbig", "jbig", "jbg");
     public static final MediaType IMAGE_KTX = create("image/ktx", "ktx");
     public static final MediaType IMAGE_PCX = create("image/pcx", "pcx");
@@ -1031,19 +1030,25 @@ public class MediaType
     public static final MediaType MESSAGE_RFC822 = create("message/rfc822", "eml", "mime");
     public static final MediaType MODEL_IGES = create("model/iges", "igs", "iges");
     public static final MediaType MODEL_MESH = create("model/mesh", "msh", "mesh", "silo");
+    public static final MediaType MODEL_MATERIAL = create("model/mtl", "mtl");
+    public static final MediaType MODEL_GLTF_JSON = create("model/gltf+json", "gltf");
+    public static final MediaType MODEL_GLTF_BINARY = create("model/gltf+binary", "glb");
+    public static final MediaType MODEL_OBJ = create("model/obj", "obj");
+    public static final MediaType MODEL_USD = create("model/usd", "usd");
     public static final MediaType MODEL_VND_COLLADA_XML = create("model/vnd.collada+xml", "dae");
     public static final MediaType MODEL_VND_DWF = create("model/vnd.dwf", "dwf");
     public static final MediaType MODEL_VND_GDL = create("model/vnd.gdl", "gdl");
     public static final MediaType MODEL_VND_GTW = create("model/vnd.gtw", "gtw");
     public static final MediaType MODEL_VND_MTS = create("model/vnd.mts", "mts");
     public static final MediaType MODEL_VND_VTU = create("model/vnd.vtu", "vtu");
+    public static final MediaType MODEL_VND_USDZ_ZIP = create("model/vnd.usdz+zip", "usdz");
+    public static final MediaType MODEL_VND_USDA = create("model/vnd.usda", "usda");
     public static final MediaType MODEL_VRML = create("model/vrml", "wrl", "vrml");
     public static final MediaType MODEL_X3D_BINARY = create("model/x3d+binary", "x3db", "x3dbz");
     public static final MediaType MODEL_X3D_VRML = create("model/x3d+vrml", "x3dv", "x3dvz");
     public static final MediaType MODEL_X3D_XML = create("model/x3d+xml", "x3d", "x3dz");
     public static final MediaType TEXT_CACHE_MANIFEST = create("text/cache-manifest", "appcache", "manifest");
     public static final MediaType TEXT_CALENDAR = create("text/calendar", "ics", "icz", "ifb");
-
     public static final MediaType TEXT_CSS_UTF8 = createUTF8("text/css", "css");
     public static final MediaType TEXT_CSV_UTF8 = createUTF8("text/csv", "csv");
     public static final MediaType TEXT_H323 = create("text/h323", "323");
@@ -1186,21 +1191,18 @@ public class MediaType
 
     /*******************************************************/
 
-    public static synchronized MediaType create(String type, String... fileExtensisons)
-    {
+    public static synchronized MediaType create(String type, String... fileExtensisons) {
         return create(type, NO_ATTR, fileExtensisons);
     }
 
-    public static synchronized MediaType create(String type, String[] attributes, String... fileExtensisons)
-    {
+    public static synchronized MediaType create(String type, String[] attributes, String... fileExtensisons) {
         MediaType mt = new MediaType(type, attributes);
 
-        if(fileExtensisons == null)
-        {
+        if (fileExtensisons == null) {
             fileExtensisons = new String[]{};
         }
 
-        if(!Arrays.stream(attributes).anyMatch(a -> a.equals(UTF8_ATTR[0]))) {
+        if (!Arrays.stream(attributes).anyMatch(a -> a.equals(UTF8_ATTR[0]))) {
             for (String ext : fileExtensisons) {
                 FILE_EXTENSIONS.put(ext, mt);
             }
@@ -1209,29 +1211,25 @@ public class MediaType
         return mt;
     }
 
-    public static synchronized MediaType createUTF8(String type, String... fileExtensisons)
-    {
-        if(fileExtensisons == null)
-        {
+    public static synchronized MediaType createUTF8(String type, String... fileExtensisons) {
+        if (fileExtensisons == null) {
             fileExtensisons = new String[]{};
         }
 
         for (String ext : fileExtensisons) {
-            if(!FILE_EXTENSIONS.containsKey(ext)) {
+            if (!FILE_EXTENSIONS.containsKey(ext)) {
                 FILE_EXTENSIONS.put(ext, create(type, fileExtensisons));
             }
         }
         return create(type, UTF8_ATTR, fileExtensisons);
     }
 
-    public static synchronized MediaType getByFileExtension(String fileExtension)
-    {
+    public static synchronized MediaType getByFileExtension(String fileExtension) {
         return FILE_EXTENSIONS.get(fileExtension);
 
     }
 
-    public static synchronized MediaType getByFileName(String filename)
-    {
+    public static synchronized MediaType getByFileName(String filename) {
         int dotPos = filename.lastIndexOf('.');
         if (dotPos >= 0) {
             String ext = filename.substring(dotPos + 1);
@@ -1241,18 +1239,15 @@ public class MediaType
         }
     }
 
-    public static synchronized MediaType getByMimeType(String type)
-    {
+    public static synchronized MediaType getByMimeType(String type) {
         return Optional.ofNullable(getTypeMap().get(type)).orElse(MediaType.DEFAULT);
     }
 
-    public String withCharset(String charset)
-    {
+    public String withCharset(String charset) {
         return charset != null ? String.format("%s; charset=%s", this.contentType, charset.toUpperCase()) : this.contentType;
     }
 
-    public static MediaType of(String contentType)
-    {
+    public static MediaType of(String contentType) {
         return new MediaType(contentType);
     }
 
@@ -1261,70 +1256,59 @@ public class MediaType
 
     private final String contentType;
 
-    private MediaType(String contentType)
-    {
+    private MediaType(String contentType) {
         this.bytes = contentType.getBytes();
         this.contentType = contentType;
     }
 
-    private MediaType(String name, String[] attributes)
-    {
+    private MediaType(String name, String[] attributes) {
         this.bytes = join(name, attributes).getBytes();
         this.contentType = new String(this.bytes);
     }
 
-    private String join(String name, String[] attributes)
-    {
+    private String join(String name, String[] attributes) {
 
         String attrs = Arrays.stream(attributes).collect(Collectors.joining(";"));
 
         return attrs.isEmpty() ? name : name + "; " + attrs;
     }
 
-    public byte[] getBytes()
-    {
+    public byte[] getBytes() {
         return bytes;
     }
 
     @JsonProperty("contentType")
-    public String contentType()
-    {
+    public String contentType() {
         return this.contentType;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return this.contentType;
     }
 
-    public String getFileExtension()
-    {
-        return Optional.ofNullable(getFileExtensionMap().get(this)).map( fe -> fe.get(0)).orElse(null);
+    public String getFileExtension() {
+        return Optional.ofNullable(getFileExtensionMap().get(this)).map(fe -> fe.get(0)).orElse(null);
     }
 
-    public List<String> getFileExtensions()
-    {
+    public List<String> getFileExtensions() {
         return Optional.ofNullable(getFileExtensionMap().get(this)).orElse(null);
     }
 
-    public String subType()
-    {
-        return this.contentType.substring(this.contentType.lastIndexOf("/") + 1, Math.max(this.contentType.lastIndexOf(";"),this.contentType.length()));
+    public String subType() {
+        return this.contentType.substring(this.contentType.lastIndexOf("/") + 1, Math.max(this.contentType.lastIndexOf(";"), this.contentType.length()));
     }
 
-    public String baseType()
-    {
-        return this.contentType.substring(0,this.contentType.lastIndexOf(";"));
+    public String baseType() {
+        return this.contentType.substring(0, this.contentType.lastIndexOf(";"));
     }
 
-    private static final Map<String,MediaType> TYPE_MAP = new HashMap<>();
+    private static final Map<String, MediaType> TYPE_MAP = new HashMap<>();
 
-    private static final Map<MediaType,List<String>> EXTENSION_MAP = new HashMap<>();
+    private static final Map<MediaType, List<String>> EXTENSION_MAP = new HashMap<>();
 
-    public static Map<MediaType,List<String>> getFileExtensionMap()
-    {
-        if(EXTENSION_MAP.size() == 0) {
+    public static Map<MediaType, List<String>> getFileExtensionMap() {
+        if (EXTENSION_MAP.size() == 0) {
 
             EXTENSION_MAP.putAll(FILE_EXTENSIONS.entrySet().stream().collect(Collectors.groupingBy(Map.Entry::getValue, Collectors.mapping(Map.Entry::getKey, Collectors.toList()))));
         }
@@ -1332,21 +1316,18 @@ public class MediaType
         return EXTENSION_MAP;
     }
 
-    public static Map<String,MediaType> getTypeMap()
-    {
-        if(TYPE_MAP.size() == 0) {
+    public static Map<String, MediaType> getTypeMap() {
+        if (TYPE_MAP.size() == 0) {
             Class<?> clazz = MediaType.class;
 
             Field[] fields = clazz.getDeclaredFields();
 
-            Arrays.stream(fields).filter(f -> f.getType().equals(MediaType.class)).forEach( f -> {
+            Arrays.stream(fields).filter(f -> f.getType().equals(MediaType.class)).forEach(f -> {
 
-                try
-                {
-                    MediaType mt = (MediaType)f.get(MediaType.class);
-                    TYPE_MAP.put(mt.contentType,mt);
-                } catch( Exception e )
-                {
+                try {
+                    MediaType mt = (MediaType) f.get(MediaType.class);
+                    TYPE_MAP.put(mt.contentType, mt);
+                } catch (Exception e) {
 
                 }
             });
@@ -1356,8 +1337,7 @@ public class MediaType
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + Arrays.hashCode(bytes);
@@ -1365,8 +1345,7 @@ public class MediaType
     }
 
     @Override
-    public boolean equals(Object obj)
-    {
+    public boolean equals(Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -1379,8 +1358,7 @@ public class MediaType
         return true;
     }
 
-    public String info()
-    {
+    public String info() {
         if (this == HTML_UTF_8) {
             return "html";
         }

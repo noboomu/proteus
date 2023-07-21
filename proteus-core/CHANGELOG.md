@@ -4,6 +4,81 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Update unauthorized access error message.**
+
+
+[cf2017a27c0c148](https://github.com/noboomu/proteus/commit/cf2017a27c0c148) Joshua Bauer *2023-03-03 22:34:40*
+
+**Silence cached compiler logs and upgrade to blackbird**
+
+
+[e9bb94e12f4589d](https://github.com/noboomu/proteus/commit/e9bb94e12f4589d) Joshua Bauer *2023-02-08 19:42:32*
+
+**Improve compatability**
+
+
+[cb61cb367557f63](https://github.com/noboomu/proteus/commit/cb61cb367557f63) Joshua Bauer *2022-08-13 01:59:47*
+
+**Safer threaded compilation and caching of generated classes**
+
+
+[d5eb3e745471280](https://github.com/noboomu/proteus/commit/d5eb3e745471280) Joshua Bauer *2022-08-13 01:58:36*
+
+**Reduce logging.**
+
+
+[f6a8f1986b6d0da](https://github.com/noboomu/proteus/commit/f6a8f1986b6d0da) Joshua Bauer *2022-07-19 20:15:26*
+
+**Tweak parameters.**
+
+
+[ee303d97a9b0d7b](https://github.com/noboomu/proteus/commit/ee303d97a9b0d7b) Joshua Bauer *2022-07-19 02:03:30*
+
+**Add graceful shutdown option.**
+
+
+[cc429604e4feaa6](https://github.com/noboomu/proteus/commit/cc429604e4feaa6) Joshua Bauer *2022-07-18 20:30:03*
+
+**Bump version**
+
+
+[2a75891265dacc6](https://github.com/noboomu/proteus/commit/2a75891265dacc6) noboomu *2022-07-07 01:07:12*
+
+**Fix for typo**
+
+
+[4403a37f03eb1b1](https://github.com/noboomu/proteus/commit/4403a37f03eb1b1) noboomu *2022-07-07 01:05:50*
+
+**Parsers passing all tests.**
+
+
+[254a69e83e1d8ea](https://github.com/noboomu/proteus/commit/254a69e83e1d8ea) noboomu *2022-07-07 01:03:24*
+
+**Functioning parser.**
+
+
+[a250d32af788caf](https://github.com/noboomu/proteus/commit/a250d32af788caf) noboomu *2022-07-06 22:51:58*
+
+**Updated dependencies and new tests.**
+
+
+[054892c369e65d0](https://github.com/noboomu/proteus/commit/054892c369e65d0) Joshua Bauer *2022-07-06 02:19:08*
+
+**Updated dependencies and new tests.**
+
+
+[70af2b6c38728c1](https://github.com/noboomu/proteus/commit/70af2b6c38728c1) Joshua Bauer *2022-07-06 02:16:29*
+
+**Fix tmp file handling.**
+
+
+[8ff44d154739bf3](https://github.com/noboomu/proteus/commit/8ff44d154739bf3) Joshua Bauer *2022-05-23 17:53:30*
+
+**Better generic support.**
+
+
+[f4f363ccb6e99eb](https://github.com/noboomu/proteus/commit/f4f363ccb6e99eb) Joshua Bauer *2022-04-22 00:00:28*
+
 **Added support for last-modified using java.time.Instant.**
 
 

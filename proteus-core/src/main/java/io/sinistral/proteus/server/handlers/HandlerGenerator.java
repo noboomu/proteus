@@ -33,7 +33,6 @@ import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
-import net.openhft.compiler.CachedCompiler;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -1370,58 +1369,58 @@ public class HandlerGenerator {
 
     }
 
-    protected CachedCompiler getCachedCompiler() {
-
-        java.nio.file.Path rootPath = Paths.get(System.getProperty("user.dir"));
-
-        if (!rootPath.resolve("src").toFile().exists())
-        {
-            return new CachedCompiler(null, null);
-        }
-
-        try
-        {
-
-            java.nio.file.Path targetPath = rootPath.resolve("target");
-
-            if (!targetPath.toFile().exists())
-            {
-                File file = targetPath.toFile();
-                file.mkdir();
-            }
-
-            java.nio.file.Path sourcePath = targetPath.resolve("generated-sources");
-
-            if (!sourcePath.toFile().exists())
-            {
-                File file = sourcePath.toFile();
-                file.mkdir();
-            }
-
-            java.nio.file.Path classPath = targetPath.resolve("generated-classes");
-
-            if (!classPath.toFile().exists())
-            {
-                File file = classPath.toFile();
-                file.mkdir();
-
-            }
-
-            java.nio.file.Path packagePath = getPackageSourcePath();
-
-            if (!packagePath.toFile().exists())
-            {
-                packagePath.toFile().mkdirs();
-            }
-
-            return new CachedCompiler(sourcePath.toFile(), classPath.toFile());
-
-        } catch (Exception e)
-        {
-            return new CachedCompiler(null, null);
-        }
-
-    }
+//    protected CachedCompiler getCachedCompiler() {
+//
+//        java.nio.file.Path rootPath = Paths.get(System.getProperty("user.dir"));
+//
+//        if (!rootPath.resolve("src").toFile().exists())
+//        {
+//            return new CachedCompiler(null, null);
+//        }
+//
+//        try
+//        {
+//
+//            java.nio.file.Path targetPath = rootPath.resolve("target");
+//
+//            if (!targetPath.toFile().exists())
+//            {
+//                File file = targetPath.toFile();
+//                file.mkdir();
+//            }
+//
+//            java.nio.file.Path sourcePath = targetPath.resolve("generated-sources");
+//
+//            if (!sourcePath.toFile().exists())
+//            {
+//                File file = sourcePath.toFile();
+//                file.mkdir();
+//            }
+//
+//            java.nio.file.Path classPath = targetPath.resolve("generated-classes");
+//
+//            if (!classPath.toFile().exists())
+//            {
+//                File file = classPath.toFile();
+//                file.mkdir();
+//
+//            }
+//
+//            java.nio.file.Path packagePath = getPackageSourcePath();
+//
+//            if (!packagePath.toFile().exists())
+//            {
+//                packagePath.toFile().mkdirs();
+//            }
+//
+//            return new CachedCompiler(sourcePath.toFile(), classPath.toFile());
+//
+//        } catch (Exception e)
+//        {
+//            return new CachedCompiler(null, null);
+//        }
+//
+//    }
 
     protected static boolean hasValueOfMethod(Class<?> clazz)
     {

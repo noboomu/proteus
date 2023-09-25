@@ -1,7 +1,7 @@
 
 ![Alt logo](https://raw.githubusercontent.com/noboomu/proteus/master/proteus-core/src/main/resources/proteus-logo.svg?sanitize=true)
 
-An extremely __lightweight, flexible, and high performance__ [Undertow](http://undertow.io) based Java framework for developing RESTful web applications and microservices
+Proteus is a __blazing fast minimalist__ Java API server framework built atop [Undertow](http://undertow.io) for developing back end applications and microservices.
 
 - __NO MAGIC__
 - Incredibly easy to use and get started
@@ -39,7 +39,7 @@ Getting Started
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-core</artifactId>
-    <version>0.5.1</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 
@@ -48,7 +48,7 @@ OpenAPI v3 Support
 <dependency>
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-openapi</artifactId>
-    <version>0.5.1</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 

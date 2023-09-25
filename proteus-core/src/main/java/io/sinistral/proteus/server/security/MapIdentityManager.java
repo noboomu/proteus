@@ -73,7 +73,7 @@ public class MapIdentityManager implements IdentityManager
         return null;
     }
 
-    private class UserAccount implements Account
+    private static class UserAccount implements Account
     {
         private static final long serialVersionUID = -8234851531206339721L;
         private final Principal principal;

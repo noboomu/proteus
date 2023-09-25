@@ -12,7 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Named;
-//import com.javax0.sourcebuddy.Compiler;
+import com.javax0.sourcebuddy.Compiler;
 import com.typesafe.config.Config;
 import io.sinistral.proteus.modules.ConfigModule;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
@@ -31,7 +31,6 @@ import io.undertow.server.handlers.GracefulShutdownHandler;
 import io.undertow.server.session.SessionAttachmentHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
-import net.openhft.compiler.CachedCompiler;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -322,17 +321,22 @@ public class ProteusApplication {
 
                     lock.writeLock().lock();
 
-                    try (CachedCompiler cachedCompiler = new CachedCompiler(null, getTemporaryDirectoryPath().toFile())) {
+                    try {
 
-                        Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) cachedCompiler.loadFromJava(generator.getCanonicalName(), source);
+                        final var compiled = Compiler.java().from(source).compile(); 
+
+//                        compiled.saveTo(Paths.get("./target/generated_classes"));
+
+                        Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) compiled.load().get(generator.getCanonicalName());
+
+                        //   Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) cachedCompiler.loadFromJava(generator.getCanonicalName(), source);  Compiler.java().from(source).compile().load().newInstance(PrintInterface.class);
 
                         log.debug("Loaded from java {}...", controllerClass);
 
                         routerClasses.add(routerClass);
 
 
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         log.error("Failed to compile {}", controllerClass, e);
                     }
 

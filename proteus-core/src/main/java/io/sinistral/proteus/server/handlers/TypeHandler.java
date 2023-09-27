@@ -8,9 +8,9 @@ import io.sinistral.proteus.server.handlers.HandlerGenerator.StatementParameterT
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.ws.rs.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.ws.rs.*;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -276,12 +276,12 @@ public enum TypeHandler {
                 long minValue = min.value();
 
                 builder.beginControlFlow("if( $L < $L )", pName, minValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", min.message()
-                                                                                                                                                             .equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,jakarta.ws.rs.core.Response.Status.BAD_REQUEST)", min.message()
+                                                                                                                                                             .equals("{jakarta.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
                 builder.endControlFlow();
                 builder.beginControlFlow("else if( $L > $L )", pName, maxValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", max.message()
-                                                                                                                                                             .equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,jakarta.ws.rs.core.Response.Status.BAD_REQUEST)", max.message()
+                                                                                                                                                             .equals("{jakarta.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
                 builder.endControlFlow();
 
             }
@@ -290,8 +290,8 @@ public enum TypeHandler {
                 long maxValue = max.value();
 
                 builder.beginControlFlow("if( $L > $L )", pName, maxValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", max.message()
-                                                                                                                                                             .equals("{javax.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,jakarta.ws.rs.core.Response.Status.BAD_REQUEST)", max.message()
+                                                                                                                                                             .equals("{jakarta.validation.constraints.Max.message}") ? "must be less than or equal to " + maxValue : max.message());
                 builder.endControlFlow();
             }
             else
@@ -299,8 +299,8 @@ public enum TypeHandler {
                 long minValue = min.value();
 
                 builder.beginControlFlow("if( $L < $L )", pName, minValue);
-                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,javax.ws.rs.core.Response.Status.BAD_REQUEST)", min.message()
-                                                                                                                                                             .equals("{javax.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
+                builder.addStatement("throw new io.sinistral.proteus.server.exceptions.ServerException($S,jakarta.ws.rs.core.Response.Status.BAD_REQUEST)", min.message()
+                                                                                                                                                             .equals("{jakarta.validation.constraints.Min.message}") ? "must be greater than or equal to " + minValue : min.message());
                 builder.endControlFlow();
             }
         }

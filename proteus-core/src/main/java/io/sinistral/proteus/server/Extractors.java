@@ -839,31 +839,31 @@ public class Extractors {
     public static Function<Method, HttpString> httpMethodFromMethod = (m) ->
             Arrays.stream(m.getDeclaredAnnotations()).map(a -> {
 
-                if (a instanceof javax.ws.rs.POST)
+                if (a instanceof jakarta.ws.rs.POST)
                 {
                     return Methods.POST;
                 }
-                else if (a instanceof javax.ws.rs.GET)
+                else if (a instanceof jakarta.ws.rs.GET)
                 {
                     return Methods.GET;
                 }
-                else if (a instanceof javax.ws.rs.PUT)
+                else if (a instanceof jakarta.ws.rs.PUT)
                 {
                     return Methods.PUT;
                 }
-                else if (a instanceof javax.ws.rs.DELETE)
+                else if (a instanceof jakarta.ws.rs.DELETE)
                 {
                     return Methods.DELETE;
                 }
-                else if (a instanceof javax.ws.rs.OPTIONS)
+                else if (a instanceof jakarta.ws.rs.OPTIONS)
                 {
                     return Methods.OPTIONS;
                 }
-                else if (a instanceof javax.ws.rs.HEAD)
+                else if (a instanceof jakarta.ws.rs.HEAD)
                 {
                     return Methods.HEAD;
                 }
-                else if (a instanceof javax.ws.rs.PATCH)
+                else if (a instanceof jakarta.ws.rs.PATCH)
                 {
                     return Methods.PATCH;
                 }
@@ -876,9 +876,9 @@ public class Extractors {
 
     public static Function<Method, String> pathTemplateFromMethod = (m) ->
     {
-        javax.ws.rs.Path childPath = m.getDeclaredAnnotation(javax.ws.rs.Path.class);
+        jakarta.ws.rs.Path childPath = m.getDeclaredAnnotation(jakarta.ws.rs.Path.class);
 
-        javax.ws.rs.Path parentPath = m.getDeclaringClass().getDeclaredAnnotation(javax.ws.rs.Path.class);
+        jakarta.ws.rs.Path parentPath = m.getDeclaringClass().getDeclaredAnnotation(jakarta.ws.rs.Path.class);
 
         if (!childPath.value().equals("/"))
         {

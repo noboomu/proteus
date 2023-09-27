@@ -39,11 +39,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -76,7 +76,7 @@ import java.util.stream.Stream;
 /**
  * Generates code and compiles a <code>Supplier<RoutingHandler></code> class
  * from the target class's methods that are annotated with a JAX-RS method
- * annotation (i.e. <code>javax.ws.rs.GET</code>)
+ * annotation (i.e. <code>jakarta.ws.rs.GET</code>)
  *
  * @author jbauer
  */
@@ -430,7 +430,7 @@ public class HandlerGenerator {
         for (Method m : clazz.getDeclaredMethods())
         {
 
-            if (!Optional.ofNullable(m.getAnnotation(javax.ws.rs.Path.class)).isPresent())
+            if (!Optional.ofNullable(m.getAnnotation(jakarta.ws.rs.Path.class)).isPresent())
             {
                 continue;
             }
@@ -459,11 +459,11 @@ public class HandlerGenerator {
                 isDebug = debugAnnotation.get().value();
             }
 
-            Optional<javax.ws.rs.Produces> producesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Produces.class));
+            Optional<jakarta.ws.rs.Produces> producesAnnotation = Optional.ofNullable(m.getAnnotation(jakarta.ws.rs.Produces.class));
 
             if (producesAnnotation.isEmpty())
             {
-                producesAnnotation = Optional.ofNullable(clazz.getAnnotation(javax.ws.rs.Produces.class));
+                producesAnnotation = Optional.ofNullable(clazz.getAnnotation(jakarta.ws.rs.Produces.class));
 
                 if (producesAnnotation.isPresent())
                 {
@@ -484,11 +484,11 @@ public class HandlerGenerator {
 
             endpointInfo.setProduces(producesContentType);
 
-            Optional<javax.ws.rs.Consumes> consumesAnnotation = Optional.ofNullable(m.getAnnotation(javax.ws.rs.Consumes.class));
+            Optional<jakarta.ws.rs.Consumes> consumesAnnotation = Optional.ofNullable(m.getAnnotation(jakarta.ws.rs.Consumes.class));
 
             if (consumesAnnotation.isEmpty())
             {
-                consumesAnnotation = Optional.ofNullable(clazz.getAnnotation(javax.ws.rs.Consumes.class));
+                consumesAnnotation = Optional.ofNullable(clazz.getAnnotation(jakarta.ws.rs.Consumes.class));
 
                 if (consumesAnnotation.isPresent())
                 {

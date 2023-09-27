@@ -31,13 +31,12 @@ import io.undertow.server.handlers.GracefulShutdownHandler;
 import io.undertow.server.session.SessionAttachmentHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
-
-import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -323,7 +322,7 @@ public class ProteusApplication {
 
                     try {
 
-                        final var compiled = Compiler.java().from(source).compile(); 
+                        final var compiled = Compiler.java().from(source).compile();
 
 //                        compiled.saveTo(Paths.get("./target/generated_classes"));
 

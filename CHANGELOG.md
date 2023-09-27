@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Switch to SourceBuddy from OpenHFT for dynamic complilation. Breaks < JDK 17 compatability however.**
+
+
+[636dde50434f508](https://github.com/noboomu/proteus/commit/636dde50434f508) Joshua Bauer *2023-09-25 18:47:26*
+
 **Added additional MediaType to support Wavefront and Pixar.**
 
 

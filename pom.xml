@@ -49,7 +49,7 @@
         <guava.version>32.1.2-jre</guava.version>
         <guice.version>5.1.0</guice.version>
         <jackson.version>2.15.2</jackson.version>
-        <jakarta-ws-rs.version>2.1.6</jakarta-ws-rs.version>
+        <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
         <jansi.version>1.18</jansi.version>
         <java.version>17</java.version>
         <javapoet.version>1.13.0</javapoet.version>
@@ -65,18 +65,18 @@
         <maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        <openapi.version>2.2.1</openapi.version>
+        <openapi.version>2.2.16</openapi.version>
         <openhft-compiler.version>2.23ea0</openhft-compiler.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <proteus.version>${project.version}</proteus.version>
         <reflections.version>0.10.2</reflections.version>
         <slf4j.version>1.7.36</slf4j.version>
         <snakeyaml.version>1.30</snakeyaml.version>
-        <swagger.version>1.5.21</swagger.version>
         <typesafe-config.version>1.4.2</typesafe-config.version>
         <undertow.version>2.2.18.Final</undertow.version>
         <woodstox.version>6.3.0</woodstox.version>
         <micrometer-core.version>1.9.1</micrometer-core.version>
+        <jakarta-validation-api.version>3.0.2</jakarta-validation-api.version>
     </properties>
 
     <dependencies>
@@ -126,6 +126,8 @@
             <version>4.0.1</version>
             <type>pom</type>
         </dependency>
+
+
     </dependencies>
 
     <dependencyManagement>

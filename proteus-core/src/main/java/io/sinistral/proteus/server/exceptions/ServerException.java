@@ -3,7 +3,7 @@
  */
 package io.sinistral.proteus.server.exceptions;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 /**
  * @author jbauer

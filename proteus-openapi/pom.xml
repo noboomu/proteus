@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>proteus-project</artifactId>
         <groupId>io.sinistral</groupId>
-		<version>0.7.0-SNAPSHOT</version>
+        <version>0.7.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -73,20 +74,20 @@
                 <artifactId>maven-release-plugin</artifactId>
             </plugin>
 
-         	<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<release>${java.version}</release>
-					<compilerVersion>${java.version}</compilerVersion>
-					<compilerArgument>-parameters</compilerArgument>
-					<compilerArgs>
-						<arg>-parameters</arg>
-						<arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
-					</compilerArgs>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${java.version}</release>
+                    <compilerVersion>${java.version}</compilerVersion>
+                    <compilerArgument>-parameters</compilerArgument>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                        <arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
+                    </compilerArgs>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -96,25 +97,25 @@
 
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-annotations</artifactId>
+            <artifactId>swagger-annotations-jakarta</artifactId>
             <version>${openapi.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-models</artifactId>
+            <artifactId>swagger-models-jakarta</artifactId>
             <version>${openapi.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-jaxrs2</artifactId>
+            <artifactId>swagger-jaxrs2-jakarta</artifactId>
             <version>${openapi.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-integration</artifactId>
+            <artifactId>swagger-integration-jakarta</artifactId>
             <version>${openapi.version}</version>
         </dependency>
 
@@ -124,6 +125,8 @@
             <artifactId>proteus-core</artifactId>
             <version>${proteus.version}</version>
         </dependency>
+
+
 
     </dependencies>
 

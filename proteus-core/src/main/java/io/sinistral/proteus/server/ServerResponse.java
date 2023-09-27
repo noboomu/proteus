@@ -4,8 +4,7 @@ package io.sinistral.proteus.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.inject.Inject;
-import io.sinistral.proteus.protocol.HttpHeaders;
+import com.google.inject.Inject; 
 import io.sinistral.proteus.protocol.MediaType;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
@@ -15,13 +14,12 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
 import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.util.*;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.Response;
+ 
 import java.net.URI;
-import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
+import java.nio.ByteBuffer; 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -35,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author jbauer
  * Base server response. Friendlier interface to underlying exchange.
- * @TODO extend javax.ws.rs.core.Response
+ * @TODO extend jakarta.ws.rs.core.Response
  */
 
 public class ServerResponse<T>
@@ -59,7 +57,7 @@ public class ServerResponse<T>
     protected int status = StatusCodes.OK;
     protected final HeaderMap headers = new HeaderMap();
     protected final Map<String, Cookie> cookies = new HashMap<>();
-    protected String contentType = javax.ws.rs.core.MediaType.APPLICATION_JSON;
+    protected String contentType = jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
     protected T entity;
     protected Throwable throwable;
     //	protected Class<? extends JsonContext> jsonContext;
@@ -303,11 +301,11 @@ public class ServerResponse<T>
     {
         this.contentType = contentType;
 
-        if (this.contentType.contains(javax.ws.rs.core.MediaType.APPLICATION_JSON)) {
+        if (this.contentType.contains(jakarta.ws.rs.core.MediaType.APPLICATION_JSON)) {
             if (!this.preprocessed) {
                 this.processJson = true;
             }
-        } else if (this.contentType.contains(javax.ws.rs.core.MediaType.APPLICATION_XML)) {
+        } else if (this.contentType.contains(jakarta.ws.rs.core.MediaType.APPLICATION_XML)) {
             if (!this.preprocessed) {
                 this.processXml = true;
             }
@@ -321,7 +319,7 @@ public class ServerResponse<T>
     }
 
 
-    public ServerResponse<T> contentType(javax.ws.rs.core.MediaType mediaType)
+    public ServerResponse<T> contentType(jakarta.ws.rs.core.MediaType mediaType)
     {
         this.setContentType(mediaType.toString());
         return this;
@@ -338,19 +336,19 @@ public class ServerResponse<T>
         if (!this.preprocessed) {
             this.processJson = true;
         }
-        this.contentType = javax.ws.rs.core.MediaType.APPLICATION_JSON;
+        this.contentType = jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
         return this;
     }
 
     public ServerResponse<T> textHtml()
     {
-        this.contentType = javax.ws.rs.core.MediaType.TEXT_HTML;
+        this.contentType = jakarta.ws.rs.core.MediaType.TEXT_HTML;
         return this;
     }
 
     public ServerResponse<T> applicationOctetStream()
     {
-        this.contentType = javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+        this.contentType = jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
         return this;
     }
 
@@ -359,13 +357,13 @@ public class ServerResponse<T>
         if (!this.preprocessed) {
             this.processXml = true;
         }
-        this.contentType = javax.ws.rs.core.MediaType.APPLICATION_XML;
+        this.contentType = jakarta.ws.rs.core.MediaType.APPLICATION_XML;
         return this;
     }
 
     public ServerResponse<T> textPlain()
     {
-        this.contentType = javax.ws.rs.core.MediaType.TEXT_PLAIN;
+        this.contentType = jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
         return this;
     }
 

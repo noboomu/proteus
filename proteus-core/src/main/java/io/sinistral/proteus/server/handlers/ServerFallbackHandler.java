@@ -35,19 +35,19 @@ public class ServerFallbackHandler implements HttpHandler
         if (ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange)) {
             responseBody = objectMapper.writeValueAsString(new Message(statusCode, reason));
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.APPLICATION_JSON);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, jakarta.ws.rs.core.MediaType.APPLICATION_JSON);
         } else if (ServerPredicates.ACCEPT_XML_PREDICATE.resolve(exchange)) {
             responseBody = xmlMapper.writeValueAsString(new Message(statusCode, reason));
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.APPLICATION_XML);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, jakarta.ws.rs.core.MediaType.APPLICATION_XML);
         } else if (ServerPredicates.ACCEPT_HTML_PREDICATE.resolve(exchange)) {
             responseBody = "<html><head><title>Error</title></head><body>" + statusCode + " - " + reason + "</body></html>";
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.TEXT_HTML);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, jakarta.ws.rs.core.MediaType.TEXT_HTML);
         } else {
             responseBody = statusCode + " - " + reason;
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, javax.ws.rs.core.MediaType.TEXT_PLAIN);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, jakarta.ws.rs.core.MediaType.TEXT_PLAIN);
         }
 
         exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, "" + responseBody.length());

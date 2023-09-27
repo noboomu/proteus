@@ -53,12 +53,21 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.OPTIONS;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Application;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -318,7 +327,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 
 		Hidden hidden = cls.getAnnotation(Hidden.class);
 		// class path
-		final javax.ws.rs.Path apiPath = ReflectionUtils.getAnnotation(cls, javax.ws.rs.Path.class);
+		final jakarta.ws.rs.Path apiPath = ReflectionUtils.getAnnotation(cls, jakarta.ws.rs.Path.class);
 
 		if (hidden != null)
 		{ // || (apiPath == null && !isSubresource)) {
@@ -478,7 +487,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 				continue;
 			}
 
-			javax.ws.rs.Path methodPath = ReflectionUtils.getAnnotation(method, javax.ws.rs.Path.class);
+			jakarta.ws.rs.Path methodPath = ReflectionUtils.getAnnotation(method, jakarta.ws.rs.Path.class);
 
 			String operationPath = ReaderUtils.getPath(apiPath, methodPath, parentPath, isSubresource);
 
@@ -1597,7 +1606,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 		}
 	}
 
-	private void setOperationObjectFromApiOperationAnnotation(
+	protected void setOperationObjectFromApiOperationAnnotation(
 																Operation operation,
 																io.swagger.v3.oas.annotations.Operation apiOperation,
 																Produces methodProduces,
@@ -1948,7 +1957,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader
 			type = rawType;
 		}
 
-		if (method.getAnnotation(javax.ws.rs.Path.class) != null)
+		if (method.getAnnotation(jakarta.ws.rs.Path.class) != null)
 		{
 			if (ReaderUtils.extractOperationMethod(method, null) == null)
 			{

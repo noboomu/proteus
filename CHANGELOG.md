@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Migrate to Jakarta.**
+
+
+[ffb84eaddbbc01e](https://github.com/noboomu/proteus/commit/ffb84eaddbbc01e) Joshua Bauer *2023-09-27 18:41:05*
+
 **Switch to SourceBuddy from OpenHFT for dynamic complilation. Breaks < JDK 17 compatability however.**
 
 

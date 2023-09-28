@@ -6,6 +6,7 @@ package io.sinistral.proteus.server.handlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
+import io.sinistral.proteus.protocol.MediaType;
 import io.sinistral.proteus.server.predicates.ServerPredicates;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -35,19 +36,19 @@ public class ServerFallbackHandler implements HttpHandler
         if (ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange)) {
             responseBody = objectMapper.writeValueAsString(new Message(statusCode, reason));
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, jakarta.ws.rs.core.MediaType.APPLICATION_JSON);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE,  MediaType.APPLICATION_JSON.contentType());
         } else if (ServerPredicates.ACCEPT_XML_PREDICATE.resolve(exchange)) {
             responseBody = xmlMapper.writeValueAsString(new Message(statusCode, reason));
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, jakarta.ws.rs.core.MediaType.APPLICATION_XML);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE,  MediaType.APPLICATION_XML.contentType());
         } else if (ServerPredicates.ACCEPT_HTML_PREDICATE.resolve(exchange)) {
             responseBody = "<html><head><title>Error</title></head><body>" + statusCode + " - " + reason + "</body></html>";
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, jakarta.ws.rs.core.MediaType.TEXT_HTML);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE,  MediaType.HTML_UTF_8.contentType());
         } else {
             responseBody = statusCode + " - " + reason;
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, jakarta.ws.rs.core.MediaType.TEXT_PLAIN);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE,  MediaType.PLAIN_TEXT_UTF_8.contentType());
         }
 
         exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, "" + responseBody.length());

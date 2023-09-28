@@ -8,10 +8,10 @@ import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.util.AttachmentKey;
 import io.undertow.util.HttpString;
+import io.undertow.util.StatusCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.ws.rs.core.Response;
 import java.util.Optional;
 
 @Singleton
@@ -62,8 +62,8 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
                 });
 
                 logger.error("Missing security credentials");
-                exchange.putAttachment(THROWABLE, new ServerException("Unauthorized access: " + sb, Response.Status.UNAUTHORIZED));
-                throw new ServerException("Unauthorized access: " + sb, Response.Status.UNAUTHORIZED);
+                exchange.putAttachment(THROWABLE, new ServerException("Unauthorized access: " + sb, StatusCodes.UNAUTHORIZED));
+                throw new ServerException("Unauthorized access: " + sb, StatusCodes.UNAUTHORIZED);
 
             }
 

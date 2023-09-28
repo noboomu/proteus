@@ -479,7 +479,7 @@ Inspired by [Play](http://playframework.com), [Jooby](http://jooby.org), and [li
 
 Dependencies
 ----------
-* [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* [JDK 17](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Maven 3](http://maven.apache.org/)
 
 

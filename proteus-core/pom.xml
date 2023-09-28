@@ -7,6 +7,9 @@
         <groupId>io.sinistral</groupId>
         <version>0.7.0-SNAPSHOT</version>
     </parent>
+    <properties>
+        <jakarta.activation-api.version>2.1.2</jakarta.activation-api.version>
+    </properties>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>proteus-core</artifactId>
@@ -192,6 +195,19 @@ Proteus Changelog.
             <version>${jakarta-ws-rs.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>${jakarta-validation-api.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+            <version>${jakarta.activation-api.version}</version>
+        </dependency>
+
         <!--        <dependency>-->
         <!--            <groupId>net.openhft</groupId>-->
         <!--            <artifactId>compiler</artifactId>-->
@@ -242,12 +258,6 @@ Proteus Changelog.
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
             <version>${typesafe-config.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <version>${jakarta-validation-api.version}</version>
         </dependency>
 
 

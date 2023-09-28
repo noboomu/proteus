@@ -3,47 +3,12 @@
  */
 package io.sinistral.proteus.test.controllers;
 
-import static io.sinistral.proteus.server.ServerResponse.response;
-import static io.sinistral.proteus.test.wrappers.TestWrapper.DEBUG_TEST_KEY;
-
-import java.io.File;
-import java.math.BigDecimal;
-import java.nio.ByteBuffer;
-import java.nio.file.Paths;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-
-import com.google.common.io.Files;
-import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.FormParam;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.annotations.Chain;
 import io.sinistral.proteus.annotations.Debug;
@@ -51,13 +16,29 @@ import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.exceptions.ServerException;
 import io.sinistral.proteus.test.models.User;
-
 import io.sinistral.proteus.test.wrappers.TestClassWrapper;
 import io.sinistral.proteus.test.wrappers.TestWrapper;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
+import io.undertow.util.StatusCodes;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.math.BigDecimal;
+import java.nio.ByteBuffer;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+import static io.sinistral.proteus.server.ServerResponse.response;
+import static io.sinistral.proteus.test.wrappers.TestWrapper.DEBUG_TEST_KEY;
 
 /**
  * @author jbauer
@@ -67,8 +48,8 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("ALL")
 @Path("/tests")
-@Produces((MediaType.APPLICATION_JSON)) 
-@Consumes((MediaType.MEDIA_TYPE_WILDCARD)) 
+@Produces((MediaType.APPLICATION_JSON))
+@Consumes((MediaType.MEDIA_TYPE_WILDCARD))
 @Singleton
 @Chain({TestClassWrapper.class})
 public class Tests
@@ -555,7 +536,7 @@ public class Tests
 	public ServerResponse<Void> notFoundError(ServerRequest request, @QueryParam("test") Optional<String> param ) throws Exception
 	{
 		if(!param.isPresent()) {
-			throw  new ServerException("No entity found", Response.Status.NOT_FOUND);
+			throw  new ServerException("No entity found", StatusCodes.NOT_FOUND);
 		}
 
 		return response().notFound();
@@ -594,7 +575,7 @@ public class Tests
 	public ServerResponse<Void> unauthorizedError(ServerRequest request, @QueryParam("test") Optional<String> param ) throws Exception
 	{
 		if(!param.isPresent()) {
-			throw  new ServerException("Unauthorized", Response.Status.UNAUTHORIZED);
+			throw  new ServerException("Unauthorized", StatusCodes.UNAUTHORIZED);
 		}
 
 		return response().unauthorized();
@@ -623,7 +604,7 @@ public class Tests
 	public ServerResponse<Map<String,String>> badRequestBlocking(ServerRequest request)
 	{
 
-			return response().badRequest(new ServerException("Bad Request", Response.Status.BAD_REQUEST));
+			return response().badRequest(new ServerException("Bad Request", StatusCodes.BAD_REQUEST));
 
 	}
 
@@ -632,7 +613,7 @@ public class Tests
 	public ServerResponse<Map<String,String>> badRequest(ServerRequest request)
 	{
 
-			return response().badRequest(new ServerException("Bad Request", Response.Status.BAD_REQUEST));
+			return response().badRequest(new ServerException("Bad Request", StatusCodes.BAD_REQUEST));
 
 	}
 
@@ -651,7 +632,7 @@ public class Tests
 
 			    Thread.sleep(2000L);
 
-			    future.complete(response().badRequest(new ServerException("Bad request", Response.Status.BAD_REQUEST)));
+			    future.complete(response().badRequest(new ServerException("Bad request", StatusCodes.BAD_REQUEST)));
 
 			} catch( Exception e )
 			{
@@ -678,7 +659,7 @@ public class Tests
 
 			    Thread.sleep(2000L);
 
-			    future.complete(response().badRequest(new ServerException("Bad request", Response.Status.BAD_REQUEST)));
+			    future.complete(response().badRequest(new ServerException("Bad request", StatusCodes.BAD_REQUEST)));
 
 			} catch( Exception e )
 			{

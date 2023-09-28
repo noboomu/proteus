@@ -285,19 +285,15 @@ public class ProteusApplication {
 
         final Instant compilationStartTime = Instant.now();
 
-        ExecutorService handlerCompilationExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-
-        CountDownLatch countDownLatch = new CountDownLatch(registeredControllers.size());
-
-        CopyOnWriteArrayList<Class<? extends Supplier<RoutingHandler>>> routerClasses = new CopyOnWriteArrayList<>();
-
-        ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+        List<Class<? extends Supplier<RoutingHandler>>> routerClasses = new ArrayList<>();
+//
+//        ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
         log.info("Compiling route handlers...");
 
         for (Class<?> controllerClass : registeredControllers) {
 
-            handlerCompilationExecutor.submit(() -> {
+
 
                 try {
 
@@ -311,14 +307,9 @@ public class ProteusApplication {
 
                     log.debug("Compiling {}...", controllerClass);
 
-                    log.debug("Generating {}...", controllerClass);
-
                     final String source = generator.generateClassSource();
 
                     log.debug("Generated {}...", controllerClass);
-
-
-                    lock.writeLock().lock();
 
                     try {
 
@@ -340,22 +331,14 @@ public class ProteusApplication {
                     }
 
 
-                    lock.writeLock().unlock();
 
                 } catch (Exception e) {
                     log.error("Failed to compile", e);
                 }
 
-                countDownLatch.countDown();
-            });
 
         }
 
-        try {
-            countDownLatch.await();
-        } catch (Exception e) {
-            log.error("Failed waiting for handlers to generate", e);
-        }
 
         log.debug("Compilation completed in {}", DurationFormatUtils.formatDurationHMS(Duration.between(compilationStartTime, Instant.now()).toMillis()));
 

@@ -14,7 +14,6 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.Cookie;
 import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.util.*;
-import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  
@@ -33,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author jbauer
  * Base server response. Friendlier interface to underlying exchange.
- * @TODO extend jakarta.ws.rs.core.Response
  */
 
 public class ServerResponse<T>
@@ -57,7 +55,7 @@ public class ServerResponse<T>
     protected int status = StatusCodes.OK;
     protected final HeaderMap headers = new HeaderMap();
     protected final Map<String, Cookie> cookies = new HashMap<>();
-    protected String contentType = jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+    protected String contentType = MediaType.APPLICATION_JSON.contentType();
     protected T entity;
     protected Throwable throwable;
     //	protected Class<? extends JsonContext> jsonContext;
@@ -175,14 +173,7 @@ public class ServerResponse<T>
         this.status = status;
     }
 
-    /**
-     * @param status
-     *            the status to set
-     */
-    public void setStatus(Response.Status status)
-    {
-        this.status = status.getStatusCode();
-    }
+
 
     public ServerResponse<T> body(ByteBuffer body)
     {
@@ -266,11 +257,7 @@ public class ServerResponse<T>
         return this;
     }
 
-    public ServerResponse<T> status(Response.Status status)
-    {
-        this.status = status.getStatusCode();
-        return this;
-    }
+
 
     public ServerResponse<T> status(int status)
     {
@@ -301,11 +288,11 @@ public class ServerResponse<T>
     {
         this.contentType = contentType;
 
-        if (this.contentType.contains(jakarta.ws.rs.core.MediaType.APPLICATION_JSON)) {
+        if (this.contentType.contains(MediaType.APPLICATION_JSON.contentType())) {
             if (!this.preprocessed) {
                 this.processJson = true;
             }
-        } else if (this.contentType.contains(jakarta.ws.rs.core.MediaType.APPLICATION_XML)) {
+        } else if (this.contentType.contains(MediaType.APPLICATION_XML.contentType())) {
             if (!this.preprocessed) {
                 this.processXml = true;
             }
@@ -319,12 +306,6 @@ public class ServerResponse<T>
     }
 
 
-    public ServerResponse<T> contentType(jakarta.ws.rs.core.MediaType mediaType)
-    {
-        this.setContentType(mediaType.toString());
-        return this;
-    }
-
     public ServerResponse<T> contentType(MediaType mediaType)
     {
         this.setContentType(mediaType.contentType());
@@ -336,19 +317,19 @@ public class ServerResponse<T>
         if (!this.preprocessed) {
             this.processJson = true;
         }
-        this.contentType = jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+        this.contentType = MediaType.APPLICATION_JSON.contentType();
         return this;
     }
 
     public ServerResponse<T> textHtml()
     {
-        this.contentType = jakarta.ws.rs.core.MediaType.TEXT_HTML;
+        this.contentType =  MediaType.TEXT_HTML_UTF8.contentType();
         return this;
     }
 
     public ServerResponse<T> applicationOctetStream()
     {
-        this.contentType = jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+        this.contentType = MediaType.APPLICATION_OCTET_STREAM.contentType();
         return this;
     }
 
@@ -357,13 +338,13 @@ public class ServerResponse<T>
         if (!this.preprocessed) {
             this.processXml = true;
         }
-        this.contentType = jakarta.ws.rs.core.MediaType.APPLICATION_XML;
+        this.contentType =  MediaType.APPLICATION_XML.contentType();
         return this;
     }
 
     public ServerResponse<T> textPlain()
     {
-        this.contentType = jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
+        this.contentType = MediaType.TEXT_PLAIN_UTF8.contentType();
         return this;
     }
 

@@ -157,7 +157,7 @@ public class MediaType {
             "SETPAY");
     public static final MediaType APPLICATION_SET_REGISTRATION_INITIATION = create(
             "APPLICATION/SET-REGISTRATION-INITIATION", "SETREG");
-    public static final MediaType APPLICATION_SHF_XML = create("application/signed-exchange;v=b3", "sxgs");
+    public static final MediaType APPLICATION_SHF_XML = create("application/signed-exchange;v=b3", "sxg");
     public static final MediaType APPLICATION_SIGNED_EXCHANGE = create("application/shf+xml", "shf");
     public static final MediaType APPLICATION_SLA = create("application/sla", "stl");
     public static final MediaType APPLICATION_SMIL = create("application/smil", "smi", "smil");
@@ -605,8 +605,6 @@ public class MediaType {
     public static final MediaType APPLICATION_VND_SUN_XML_IMPRESS_TEMPLATE = create(
             "APPLICATION/VND.SUN.XML.IMPRESS.TEMPLATE", "STI");
     public static final MediaType APPLICATION_VND_SUN_XML_MATH = create("application/vnd.sun.xml.math", "sxm");
-    public static final MediaType APPLICATION_VND_SUN_XML_WRITER_GLOBAL = create(
-            "application/vnd.sun.xml.writer.global", "SXG");
     public static final MediaType APPLICATION_VND_SUN_XML_WRITER = create("application/vnd.sun.xml.writer", "sxw");
     public static final MediaType APPLICATION_VND_SUN_XML_WRITER_TEMPLATE = create(
             "APPLICATION/VND.SUN.XML.WRITER.TEMPLATE", "STW");

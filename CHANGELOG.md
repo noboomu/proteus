@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added SXG mime types.**
+
+
+[294bc67bdd31e1e](https://github.com/noboomu/proteus/commit/294bc67bdd31e1e) Joshua Bauer *2023-10-17 19:53:47*
+
 **Make controller compilation synchronous.**
 
 

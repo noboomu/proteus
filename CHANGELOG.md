@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Make controller compilation synchronous.**
+
+
+[638ef73f7a867cc](https://github.com/noboomu/proteus/commit/638ef73f7a867cc) Joshua Bauer *2023-09-28 21:25:43*
+
 **Migrate to Jakarta.**
 
 

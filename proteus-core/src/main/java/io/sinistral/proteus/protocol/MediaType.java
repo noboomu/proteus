@@ -50,6 +50,7 @@ public class MediaType {
     public static final MediaType APPLICATION_BBOLIN = create("application/bbolin", "lin");
     public static final MediaType APPLICATION_CAP = create("application/cap", "cap", "pcap");
     public static final MediaType APPLICATION_CCXML_XML = create("application/ccxml+xml", "ccxml");
+    public static final MediaType APPLICATION_CERT_CHAIN_CBOR = create("application/cert-chain+cbor", "cbor");
     public static final MediaType APPLICATION_CDMI_CAPABILITY = create("application/cdmi-capability", "cdmia");
     public static final MediaType APPLICATION_CDMI_CONTAINER = create("application/cdmi-container", "cdmic");
     public static final MediaType APPLICATION_CDMI_DOMAIN = create("application/cdmi-domain", "cdmid");
@@ -156,7 +157,8 @@ public class MediaType {
             "SETPAY");
     public static final MediaType APPLICATION_SET_REGISTRATION_INITIATION = create(
             "APPLICATION/SET-REGISTRATION-INITIATION", "SETREG");
-    public static final MediaType APPLICATION_SHF_XML = create("application/shf+xml", "shf");
+    public static final MediaType APPLICATION_SHF_XML = create("application/signed-exchange;v=b3", "sxgs");
+    public static final MediaType APPLICATION_SIGNED_EXCHANGE = create("application/shf+xml", "shf");
     public static final MediaType APPLICATION_SLA = create("application/sla", "stl");
     public static final MediaType APPLICATION_SMIL = create("application/smil", "smi", "smil");
     public static final MediaType APPLICATION_SMIL_XML = create("application/smil+xml", "smi", "smil");

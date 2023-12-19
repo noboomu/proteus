@@ -30,6 +30,10 @@ public class ProteusXnioThread extends XnioIoThread {
         }
     }
 
+    public static ProteusXnioThread getInstance(XnioWorker worker, int number) {
+        return new ProteusXnioThread(worker, number);
+    }
+
     protected ProteusXnioThread(XnioWorker worker, int number) {
         super(worker, number);
     }

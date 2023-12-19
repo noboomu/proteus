@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Rename SXG file suffix and remove legacy media types**
+
+
+[fbd1af3f9211dc8](https://github.com/noboomu/proteus/commit/fbd1af3f9211dc8) Joshua Bauer *2023-10-17 19:57:10*
+
 **Added SXG mime types.**
 
 

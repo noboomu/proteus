@@ -27,7 +27,6 @@
 
 	<logger name="com.sun.jersey" level="ERROR" />
 
-	<logger name="net.openhft.compiler" level="ERROR" />
 	<logger name="org.xnio" level="ERROR" />
 	<logger name="io.undertow" level="ERROR" />
 	<logger name="org.reflections" level="OFF" />
@@ -35,7 +34,6 @@
 	<logger name="io.swagger.jackson" level="ERROR" />
 	<logger name="io.swagger.v3" level="ERROR" /> 
 	<logger name="swagger" level="ERROR" />
-	<logger name="net.openhft" level="ERROR" />
 
 	<logger name="javax.management" level="ERROR" />
 	<logger name="javax.management.mbeanserver" level="OFF" />

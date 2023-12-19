@@ -33,10 +33,12 @@ import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.slf4j.Logger;
+import org.jboss.logging.Logger;
 import org.slf4j.LoggerFactory;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
+import org.xnio._private.Messages;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -74,7 +76,9 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"UnusedReturnValue", "unchecked"})
 public class ProteusApplication {
 
-    private static Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ProteusApplication.class.getCanonicalName());
+
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProteusApplication.class.getName());
 
     private static final String TMP_DIRECTORY_NAME = "proteus_generated_classes";
 
@@ -294,47 +298,45 @@ public class ProteusApplication {
         for (Class<?> controllerClass : registeredControllers) {
 
 
+            try {
+
+                log.debug("Generating {}...", controllerClass);
+
+                HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
+
+                log.debug("injecting {}...", controllerClass);
+
+                injector.injectMembers(generator);
+
+                log.debug("Compiling {}...", controllerClass);
+
+                final String source = generator.generateClassSource();
+
+                log.debug("Generated {}...", controllerClass);
 
                 try {
 
-                    log.debug("Generating {}...", controllerClass);
-
-                    HandlerGenerator generator = new HandlerGenerator("io.sinistral.proteus.controllers.handlers", controllerClass);
-
-                    log.debug("injecting {}...", controllerClass);
-
-                    injector.injectMembers(generator);
-
-                    log.debug("Compiling {}...", controllerClass);
-
-                    final String source = generator.generateClassSource();
-
-                    log.debug("Generated {}...", controllerClass);
-
-                    try {
-
-                        final var compiled = Compiler.java().from(source).compile();
+                    final var compiled = Compiler.java().from(source).compile();
 
 //                        compiled.saveTo(Paths.get("./target/generated_classes"));
 
-                        Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) compiled.load().get(generator.getCanonicalName());
+                    Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) compiled.load().get(generator.getCanonicalName());
 
-                        //   Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) cachedCompiler.loadFromJava(generator.getCanonicalName(), source);  Compiler.java().from(source).compile().load().newInstance(PrintInterface.class);
+                    //   Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) cachedCompiler.loadFromJava(generator.getCanonicalName(), source);  Compiler.java().from(source).compile().load().newInstance(PrintInterface.class);
 
-                        log.debug("Loaded from java {}...", controllerClass);
+                    log.debug("Loaded from java {}...", controllerClass);
 
-                        routerClasses.add(routerClass);
-
-
-                    } catch (Exception e) {
-                        log.error("Failed to compile {}", controllerClass, e);
-                    }
-
+                    routerClasses.add(routerClass);
 
 
                 } catch (Exception e) {
-                    log.error("Failed to compile", e);
+                    log.error("Failed to compile {}", controllerClass, e);
                 }
+
+
+            } catch (Exception e) {
+                log.error("Failed to compile", e);
+            }
 
 
         }
@@ -386,10 +388,20 @@ public class ProteusApplication {
 
         final int processorCount = Runtime.getRuntime().availableProcessors();
 
+
+        ThreadGroup virtualThreadGroup = Thread.ofVirtual().unstarted(() -> {}).getThreadGroup();
+
+
+        Xnio xnio = Xnio.getInstance();
+
+        XnioWorker worker = xnio.createWorkerBuilder().setThreadGroup(virtualThreadGroup).build();
+
+
         Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))
 
                 .setBufferSize(Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue())
                 .setIoThreads(processorCount * config.getInt("undertow.ioThreadsMultiplier"))
+                .setWorker(worker)
                 .setWorkerThreads(processorCount * config.getInt("undertow.workerThreadsMultiplier"))
                 .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
                 .setSocketOption(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))

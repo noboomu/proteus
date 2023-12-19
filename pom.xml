@@ -5,7 +5,7 @@
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-project</artifactId>
     <packaging>pom</packaging>
-    <version>0.7.1-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
     <name>Proteus Project</name>
 
     <description>Proteus is a blazing fast minimalist Java API server framework built atop Undertow.</description>
@@ -49,7 +49,7 @@
         <jackson.version>2.15.2</jackson.version>
         <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
         <jansi.version>1.18</jansi.version>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <javapoet.version>1.13.0</javapoet.version>
         <logback-classic.version>1.2.11</logback-classic.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -64,17 +64,23 @@
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <openapi.version>2.2.16</openapi.version>
-        <openhft-compiler.version>2.23ea0</openhft-compiler.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <proteus.version>${project.version}</proteus.version>
         <reflections.version>0.10.2</reflections.version>
         <slf4j.version>1.7.36</slf4j.version>
         <snakeyaml.version>1.30</snakeyaml.version>
         <typesafe-config.version>1.4.2</typesafe-config.version>
-        <undertow.version>2.2.18.Final</undertow.version>
+        <undertow.version>2.3.10.Final</undertow.version>
         <woodstox.version>6.3.0</woodstox.version>
         <micrometer-core.version>1.9.1</micrometer-core.version>
         <jakarta-validation-api.version>3.0.2</jakarta-validation-api.version>
+        <annotations.version>24.0.1</annotations.version>
+        <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
+        <junit-vintage-engine.version>5.8.2</junit-vintage-engine.version>
+        <rest-assured.version>5.3.0</rest-assured.version>
+        <jakarta.xml.bind-api.version>4.0.1</jakarta.xml.bind-api.version>
+        <jaxb-runtime.version>4.0.3</jaxb-runtime.version>
+        <sourcebuddy.version>2.0.0</sourcebuddy.version>
     </properties>
 
     <dependencies>
@@ -82,27 +88,27 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>24.0.1</version>
+            <version>${annotations.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.8.2</version>
+            <version>${junit-jupiter-api.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
-            <version>5.8.2</version>
+            <version>${junit-vintage-engine.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>5.3.0</version>
+            <version>${rest-assured.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -111,24 +117,6 @@
             <artifactId>micrometer-core</artifactId>
             <version>${micrometer-core.version}</version>
         </dependency>
-
-        <!--        <dependency>-->
-        <!--            <groupId>com.javax0.sourcebuddy</groupId>-->
-        <!--            <artifactId>SourceBuddy</artifactId>-->
-        <!--            <version>2.3.0</version>-->
-        <!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>com.sun.xml.ws</groupId>-->
-<!--            <artifactId>jaxws-ri</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--            <type>pom</type>-->
-<!--            <scope>import</scope>-->
-<!--        </dependency>-->
-
-        <!-- https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api -->
-
-
 
 
     </dependencies>
@@ -159,29 +147,6 @@
 
         </dependencies>
     </dependencyManagement>
-
-    <!--    <repositories>-->
-    <!--        <repository>-->
-    <!--            <id>sonatype-releases</id>-->
-    <!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-    <!--            <snapshots>-->
-    <!--                <enabled>true</enabled>-->
-    <!--            </snapshots>-->
-    <!--            <releases>-->
-    <!--                <enabled>false</enabled>-->
-    <!--            </releases>-->
-    <!--        </repository>-->
-    <!--        <repository>-->
-    <!--            <id>sonatype-snapshots</id>-->
-    <!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-    <!--            <snapshots>-->
-    <!--                <enabled>true</enabled>-->
-    <!--            </snapshots>-->
-    <!--            <releases>-->
-    <!--                <enabled>false</enabled>-->
-    <!--            </releases>-->
-    <!--        </repository>-->
-    <!--    </repositories>-->
 
     <repositories>
         <repository>
@@ -217,7 +182,7 @@
 
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${maven-jar-plugin.version}</version>
                 <groupId>org.apache.maven.plugins</groupId>
                 <configuration>
                     <archive>

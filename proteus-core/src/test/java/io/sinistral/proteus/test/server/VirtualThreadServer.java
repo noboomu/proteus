@@ -3,9 +3,10 @@
  */
 package io.sinistral.proteus.test.server;
 
-import java.util.List;
-
+import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
+import io.sinistral.proteus.ProteusApplication;
+import io.sinistral.proteus.services.AssetsService;
 import io.sinistral.proteus.test.controllers.Tests;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
@@ -16,19 +17,18 @@ import org.junit.runners.model.InitializationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.restassured.RestAssured;
-import io.sinistral.proteus.ProteusApplication;
-import io.sinistral.proteus.services.AssetsService;
+import java.util.List;
 
 /**
  * @author jbauer
  */
-public class DefaultServer extends BlockJUnit4ClassRunner {
-    private static Logger log = LoggerFactory.getLogger(DefaultServer.class.getCanonicalName());
+public class VirtualThreadServer extends BlockJUnit4ClassRunner {
+    private static Logger log = LoggerFactory.getLogger(VirtualThreadServer.class.getCanonicalName());
 
     static {
         RestAssured.defaultParser = Parser.JSON;
         System.setProperty("logback.configurationFile", "./conf/logback-test.xml");
+        System.setProperty("config.file", "./src/test/resources/application-vt.conf");
 
     }
 
@@ -38,7 +38,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner {
      * @param clazz
      * @throws InitializationError
      */
-    public DefaultServer(Class<?> clazz) throws InitializationError {
+    public VirtualThreadServer(Class<?> clazz) throws InitializationError {
         super(clazz);
     }
 
@@ -80,8 +80,7 @@ public class DefaultServer extends BlockJUnit4ClassRunner {
             int port = 0;
 
             try {
-                Thread.sleep(1000);
-
+                Thread.sleep(5000);
 
                 List<Integer> ports = app.getPorts();
 
@@ -93,6 +92,8 @@ public class DefaultServer extends BlockJUnit4ClassRunner {
 
 
             RestAssured.baseURI = String.format("http://localhost:%d/", port);
+
+            log.info("listening on port {}", port);
 
             RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
@@ -115,6 +116,20 @@ public class DefaultServer extends BlockJUnit4ClassRunner {
             });
         }
 
+    }
+
+    public static void main(String[] args) {
+        try {
+            final ProteusApplication app = new ProteusApplication();
+
+            app.addService(AssetsService.class);
+
+            app.addController(Tests.class);
+
+            app.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

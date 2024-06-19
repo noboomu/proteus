@@ -14,6 +14,10 @@ import static io.restassured.RestAssured.when;
 @RunWith(OpenAPIDefaultServer.class)
 public class TestOpenAPIControllerEndpoints {
 
+
+
+
+
     @Test
     public void testYamlSpec()
     {
@@ -33,6 +37,28 @@ public class TestOpenAPIControllerEndpoints {
     {
 
         when().get("v1/openapi").then().statusCode(200).header("content-type", "text/html");
+    }
+
+
+    @Test
+    public void testRedoc()
+    {
+
+        when().get("v1/redoc").then().statusCode(200).header("content-type", "text/html");
+    }
+
+    @Test
+    public void testElements()
+    {
+
+        when().get("v1/elements").then().statusCode(200).header("content-type", "text/html");
+    }
+
+    @Test
+    public void testRapidoc()
+    {
+
+        when().get("v1/rapidoc").then().statusCode(200).header("content-type", "text/html");
     }
 
 }

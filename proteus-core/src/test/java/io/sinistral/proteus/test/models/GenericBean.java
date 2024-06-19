@@ -1,4 +1,4 @@
-package io.sinistral.proteus.test.controllers;
+package io.sinistral.proteus.test.models;
 
 public class GenericBean<S> {
 

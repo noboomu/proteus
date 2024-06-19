@@ -83,6 +83,10 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
     protected String redocHTML = null;
 
+    protected String elementsHTML = null;
+
+    protected String rapidocHTML = null;
+
     protected final String resourcePrefix = "io/sinistral/proteus/openapi";
 
     @Inject
@@ -108,6 +112,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
     @Inject
     @Named("openapi.redocPath")
     protected String redocPath;
+
 
     @Inject
     @Named("application.path")
@@ -162,6 +167,22 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
                 this.redocHTML = new String(templateBytes, Charset.defaultCharset());
             }
+
+            try (InputStream templateInputStream = getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/rapidoc.html"))
+            {
+                byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
+
+                this.rapidocHTML = new String(templateBytes, Charset.defaultCharset());
+            }
+
+
+            try (InputStream templateInputStream = getClass().getClassLoader().getResourceAsStream(resourcePrefix + "/elements.html"))
+            {
+                byte[] templateBytes = IOUtils.toByteArray(templateInputStream);
+
+                this.elementsHTML = new String(templateBytes, Charset.defaultCharset());
+            }
+
 
             URL url = this.getClass().getClassLoader().getResource(resourcePrefix);
 
@@ -439,12 +460,54 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
         });
 
         this.registeredEndpoints.add(EndpointInfo.builder()
-                                                 .withConsumes(MediaType.WILDCARD)
-                                                 .withProduces(MediaType.TEXT_HTML)
-                                                 .withPathTemplate(this.basePath + "/" + this.redocPath)
-                                                 .withControllerName(this.getClass().getSimpleName())
-                                                 .withMethod(Methods.GET)
-                                                 .build());
+                .withConsumes(MediaType.WILDCARD)
+                .withProduces(MediaType.TEXT_HTML)
+                .withPathTemplate(this.basePath + "/" + this.redocPath)
+                .withControllerName(this.getClass().getSimpleName())
+                .withMethod(Methods.GET)
+                .build());
+
+
+        router.add(HttpMethod.GET, this.basePath + "/rapidoc", (HttpServerExchange exchange) ->
+        {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+
+            final String fullPath = String.format("%s://%s%s", exchange.getRequestScheme(), exchange.getHostAndPort(), specPath);
+
+            final String html = rapidocHTML.replaceAll("\\{\\{ specPath \\}\\}", fullPath);
+
+            exchange.getResponseSender().send(html);
+        });
+
+        this.registeredEndpoints.add(EndpointInfo.builder()
+                .withConsumes(MediaType.WILDCARD)
+                .withProduces(MediaType.TEXT_HTML)
+                .withPathTemplate(this.basePath + "/rapidoc")
+                .withControllerName(this.getClass().getSimpleName())
+                .withMethod(Methods.GET)
+                .build());
+
+
+        router.add(HttpMethod.GET, this.basePath + "/elements", (HttpServerExchange exchange) ->
+        {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
+
+            final String fullPath = String.format("%s://%s%s", exchange.getRequestScheme(), exchange.getHostAndPort(), specPath);
+
+            final String html = elementsHTML.replaceAll("\\{\\{ specPath \\}\\}", fullPath);
+
+            exchange.getResponseSender().send(html);
+        });
+
+        this.registeredEndpoints.add(EndpointInfo.builder()
+                .withConsumes(MediaType.WILDCARD)
+                .withProduces(MediaType.TEXT_HTML)
+                .withPathTemplate(this.basePath + "/elements")
+                .withControllerName(this.getClass().getSimpleName())
+                .withMethod(Methods.GET)
+                .build());
+
+
 
         try
         {

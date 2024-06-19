@@ -1,4 +1,4 @@
-package io.sinistral.proteus.test.controllers;
+package io.sinistral.proteus.test.models;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +42,7 @@ class GenericBeanTest {
             far, close;
         }
 
-        public io.sinistral.proteus.test.controllers.GenericBean<Long> bean = new io.sinistral.proteus.test.controllers.GenericBean<>();
+        public GenericBean<Long> bean = new GenericBean<>();
 
         private Range range = Range.far;
 

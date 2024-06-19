@@ -17,18 +17,12 @@ import org.junit.runner.RunWith;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -41,8 +35,9 @@ import static org.junit.Assert.fail;
  */
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@RunWith(DefaultServer.class)
-public class StandardEndpointsTest extends AbstractEndpointTest {
+@RunWith(VirtualThreadServer.class)
+public class VirtualThreadEndpointsTest extends AbstractEndpointTest {
+
 
 
 

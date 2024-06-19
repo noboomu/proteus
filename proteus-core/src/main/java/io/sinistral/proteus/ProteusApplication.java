@@ -19,6 +19,7 @@ import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.services.BaseService;
+import io.sinistral.proteus.utilities.ExecutorUtilities;
 import io.sinistral.proteus.utilities.SecurityUtilities;
 import io.sinistral.proteus.utilities.TablePrinter;
 import io.undertow.Undertow;
@@ -35,6 +36,8 @@ import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jboss.logging.Logger;
 import org.slf4j.LoggerFactory;
+import org.xnio.OptionMap;
+import org.xnio.Options;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 import org.xnio._private.Messages;
@@ -77,7 +80,6 @@ import java.util.stream.Collectors;
 public class ProteusApplication {
 
 
-
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProteusApplication.class.getName());
 
     private static final String TMP_DIRECTORY_NAME = "proteus_generated_classes";
@@ -107,6 +109,8 @@ public class ProteusApplication {
     public ServiceManager serviceManager = null;
 
     public Undertow undertow = null;
+
+    protected XnioWorker worker;
 
     public Class<? extends HttpHandler> rootHandlerClass;
 
@@ -389,12 +393,40 @@ public class ProteusApplication {
         final int processorCount = Runtime.getRuntime().availableProcessors();
 
 
-        ThreadGroup virtualThreadGroup = Thread.ofVirtual().unstarted(() -> {}).getThreadGroup();
+        if (config.getConfig("undertow").getConfig("server").hasPath("virtualThreads") && config.getConfig("undertow").getConfig("server").getBoolean("virtualThreads")) {
+
+            log.info("Using virtual threads");
+
+            ThreadGroup virtualThreadGroup = Thread.ofVirtual().unstarted(() -> {
+            }).getThreadGroup();
 
 
-        Xnio xnio = Xnio.getInstance();
+            try {
 
-        XnioWorker worker = xnio.createWorkerBuilder().setThreadGroup(virtualThreadGroup).build();
+                OptionMap optionMap = OptionMap.builder()
+                        .set(Options.WORKER_NAME, "proteus-worker")
+                        .set(Options.WORKER_IO_THREADS, processorCount * config.getInt("undertow.ioThreadsMultiplier"))
+                        .set(Options.CONNECTION_HIGH_WATER, 1000000)
+                        .set(Options.CONNECTION_LOW_WATER, 1000000)
+                        .set(Options.WORKER_TASK_CORE_THREADS, processorCount * config.getInt("undertow.workerThreadsMultiplier"))
+                        .set(Options.WORKER_TASK_MAX_THREADS, processorCount * config.getInt("undertow.workerThreadsMultiplier"))
+                        .set(Options.TCP_NODELAY, true)
+                        .set(Options.CORK, true).getMap();
+
+                final XnioWorker.Builder workerBuilder = Xnio.getInstance().createWorkerBuilder();
+                workerBuilder.populateFromOptions(optionMap);
+                workerBuilder.setThreadGroup(virtualThreadGroup);
+
+                worker = workerBuilder.setExternalExecutorService(ExecutorUtilities.virtualExecutor("proteus-worker-executor")).build();
+
+            } catch (Exception e) {
+                log.error("Failed to create worker", e);
+            }
+
+        } else {
+            log.warn("Not using virtual threads");
+
+        }
 
 
         Undertow.Builder undertowBuilder = Undertow.builder().addHttpListener(httpPort, config.getString("application.host"))

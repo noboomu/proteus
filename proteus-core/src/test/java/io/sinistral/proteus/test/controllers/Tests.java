@@ -15,6 +15,7 @@ import io.sinistral.proteus.annotations.Debug;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.exceptions.ServerException;
+import io.sinistral.proteus.test.models.GenericBean;
 import io.sinistral.proteus.test.models.User;
 import io.sinistral.proteus.test.wrappers.TestClassWrapper;
 import io.sinistral.proteus.test.wrappers.TestWrapper;
@@ -286,7 +287,7 @@ public class Tests
 	@Path("generic/bean")
 	@Produces((MediaType.APPLICATION_JSON)) 
  	@Consumes(MediaType.APPLICATION_JSON)
-	public ServerResponse<GenericBean<Long>>  genericBeanList( ServerRequest request, @BeanParam GenericBean<Long> genericBean )  throws Exception
+	public ServerResponse<GenericBean<Long>>  genericBeanList(ServerRequest request, @BeanParam GenericBean<Long> genericBean )  throws Exception
 	{  
 		return response( genericBean ).applicationJson();
 	}
@@ -630,7 +631,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response().badRequest(new ServerException("Bad request", StatusCodes.BAD_REQUEST)));
 
@@ -657,7 +658,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response().badRequest(new ServerException("Bad request", StatusCodes.BAD_REQUEST)));
 
@@ -684,7 +685,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response().notFound());
 
@@ -719,7 +720,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(500L);
 
 			    future.complete(response(Map.of("status","OK")).applicationJson().ok());
 
@@ -746,7 +747,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response(Map.of("status","OK")).applicationJson().ok());
 
@@ -839,7 +840,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response(Map.of("size",buffer.array().length)).applicationJson().ok());
 
@@ -885,7 +886,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response(Map.of("buffer",buffer.array().length,"user",user,"userId",userId)).applicationJson().ok());
 
@@ -926,7 +927,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response(json).applicationJson().ok());
 
@@ -971,7 +972,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response(Map.of("path",path.toFile().length(),"user",user,"userId",userId)).applicationJson().ok());
 
@@ -1013,7 +1014,7 @@ public class Tests
 			try
 			{
 
-			    Thread.sleep(2000L);
+			    Thread.sleep(50L);
 
 			    future.complete(response(Map.of("file",file.length(),"user",user,"userId",userId)).applicationJson().ok());
 
@@ -1076,5 +1077,97 @@ public class Tests
 
 	}
 
+
+	@GET
+	@Path("async/blocking")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public ServerResponse<Map<String,String>> blocking(ServerRequest request, @QueryParam("delay") Optional<Long> delay )
+	{
+
+		try
+		{
+			Thread.sleep(delay.orElse(0L));
+
+		} catch( Exception e )
+		{
+
+		}
+
+		return response(Map.of("delay",delay.orElse(0L)+""));
+
+	}
+
+
+	@GET
+	@Path("async/nonblocking")
+	@Produces(MediaType.APPLICATION_JSON)
+	public ServerResponse<Map<String,String>> nonBlocking(ServerRequest request, @QueryParam("delay") Optional<Long> delay )
+	{
+
+		try
+		{
+			Thread.sleep(delay.orElse(0L));
+
+		} catch( Exception e )
+		{
+
+		}
+
+		return response(Map.of("delay",delay.orElse(0L)+""));
+
+	}
+
+	@GET
+	@Path("async/dispatchexecutor/nonblocking")
+	@Produces(MediaType.APPLICATION_JSON)
+	public CompletableFuture<ServerResponse<Map<String,String>>> dispatchExecutorNonBlocking(ServerRequest request, @QueryParam("delay") Optional<Long> delay )
+	{
+
+		CompletableFuture< ServerResponse<Map<String,String>>> promise = new CompletableFuture<>();
+
+		request.getExchange().getDispatchExecutor().execute(() -> {
+
+			try
+			{
+				Thread.sleep(delay.orElse(0L));
+
+			} catch( Exception e )
+			{
+
+			}
+
+			promise.complete(response(Map.of("delay",delay.orElse(0L)+"")).applicationJson().ok());
+
+		});
+
+		return promise;
+
+	}
+
+
+	@GET
+	@Path("async/dispatchexecutor/nonblocking")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Blocking
+	public CompletableFuture<ServerResponse<Map<String,String>>> dispatchExecutorBlocking(ServerRequest request, @QueryParam("delay") Optional<Long> delay ) {
+
+		CompletableFuture<ServerResponse<Map<String, String>>> promise = new CompletableFuture<>();
+
+		request.getExchange().getDispatchExecutor().execute(() -> {
+
+			try {
+				Thread.sleep(delay.orElse(0L));
+
+			} catch (Exception e) {
+
+			}
+
+			promise.complete(response(Map.of("delay", delay.orElse(0L) + "")).applicationJson().ok());
+
+		});
+
+		return promise;
+	}
 
 }

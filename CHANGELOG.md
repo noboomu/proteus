@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Initial experiments attempting to override xnio threads...**
+
+
+[bfec4dbf8fc3c28](https://github.com/noboomu/proteus/commit/bfec4dbf8fc3c28) Joshua Bauer *2023-12-19 23:45:08*
+
+**Bump version, min jdk is now 21 with virtual threads**
+
+
+[7f5957d9a7c212a](https://github.com/noboomu/proteus/commit/7f5957d9a7c212a) Joshua Bauer *2023-12-19 23:18:20*
+
 **Rename SXG file suffix and remove legacy media types**
 
 

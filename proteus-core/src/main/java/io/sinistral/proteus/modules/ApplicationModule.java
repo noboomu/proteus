@@ -11,6 +11,7 @@ import com.typesafe.config.Config;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
+import io.sinistral.proteus.server.handlers.ServerDefaultResponseListener;
 import io.sinistral.proteus.services.BaseService;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.undertow.server.DefaultResponseListener;
@@ -26,8 +27,7 @@ import java.util.*;
  * @author jbauer
  */
 @Singleton
-public class ApplicationModule extends AbstractModule
-{
+public class ApplicationModule extends AbstractModule {
     private static Logger log = LoggerFactory.getLogger(ApplicationModule.class.getCanonicalName());
 
     protected Set<EndpointInfo> registeredEndpoints = new TreeSet<>();
@@ -37,23 +37,21 @@ public class ApplicationModule extends AbstractModule
 
     protected Config config;
 
-    public ApplicationModule(Config config)
-    {
+    public ApplicationModule(Config config) {
         this.config = config;
     }
 
     /**
      * Override for customizing XmlMapper and ObjectMapper
      */
-    public void bindMappers()
-    {
+    public void bindMappers() {
 
 
         try {
 
             String className = config.getString("application.jacksonModule");
 
-         //   log.debug("Installing JacksonModule " + className);
+            //   log.debug("Installing JacksonModule " + className);
 
             Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
 
@@ -75,7 +73,7 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.xmlModule");
 
-         //   log.debug("Installing XmlModule " + className);
+            //   log.debug("Installing XmlModule " + className);
 
             Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
 
@@ -97,12 +95,11 @@ public class ApplicationModule extends AbstractModule
         this.requestStaticInjection(ServerResponse.class);
         this.requestStaticInjection(JsonViewWrapper.class);
 
-     }
+    }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void configure()
-    {
+    protected void configure() {
         this.binder().requestInjection(this);
 
         this.bindMappers();
@@ -113,15 +110,13 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.defaultResponseListener");
 
-            //log.debug("Installing DefaultResponseListener " + className);
-
             Class<? extends DefaultResponseListener> clazz = (Class<? extends DefaultResponseListener>) Class.forName(className);
 
             this.bind(DefaultResponseListener.class).to(clazz).in(Singleton.class);
 
         } catch (Exception e) {
 
-            log.error(e.getMessage(), e);
+            log.warn("Using default response listener");
 
             this.bind(DefaultResponseListener.class).to(io.sinistral.proteus.server.handlers.ServerDefaultResponseListener.class).in(Singleton.class);
 
@@ -131,7 +126,7 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.fallbackHandler");
 
-           // log.debug("Installing FallbackListener " + className);
+            // log.debug("Installing FallbackListener " + className);
 
             Class<? extends HttpHandler> clazz = (Class<? extends HttpHandler>) Class.forName(className);
             HttpHandler fallbackHandler = clazz.newInstance();
@@ -148,17 +143,13 @@ public class ApplicationModule extends AbstractModule
         this.bind(RoutingHandler.class).toInstance(router);
         this.bind(ApplicationModule.class).toInstance(this);
 
-        this.bind(new TypeLiteral<Set<Class<?>>>()
-        {
+        this.bind(new TypeLiteral<Set<Class<?>>>() {
         }).annotatedWith(Names.named("registeredControllers")).toInstance(registeredControllers);
-        this.bind(new TypeLiteral<Set<EndpointInfo>>()
-        {
+        this.bind(new TypeLiteral<Set<EndpointInfo>>() {
         }).annotatedWith(Names.named("registeredEndpoints")).toInstance(registeredEndpoints);
-        this.bind(new TypeLiteral<Set<Class<? extends BaseService>>>()
-        {
+        this.bind(new TypeLiteral<Set<Class<? extends BaseService>>>() {
         }).annotatedWith(Names.named("registeredServices")).toInstance(registeredServices);
-        this.bind(new TypeLiteral<Map<String, HandlerWrapper>>()
-        {
+        this.bind(new TypeLiteral<Map<String, HandlerWrapper>>() {
         }).annotatedWith(Names.named("registeredHandlerWrappers")).toInstance(registeredHandlerWrappers);
 
     }

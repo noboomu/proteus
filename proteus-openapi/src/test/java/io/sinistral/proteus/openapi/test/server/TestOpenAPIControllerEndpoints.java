@@ -44,21 +44,21 @@ public class TestOpenAPIControllerEndpoints {
     public void testRedoc()
     {
 
-        when().get("v1/redoc").then().statusCode(200).header("content-type", "text/html");
+        when().get("v1/openapi/redoc").then().statusCode(200).header("content-type", "text/html");
     }
 
     @Test
     public void testElements()
     {
 
-        when().get("v1/elements").then().statusCode(200).header("content-type", "text/html");
+        when().get("v1/openapi/elements").then().statusCode(200).header("content-type", "text/html");
     }
 
     @Test
     public void testRapidoc()
     {
 
-        when().get("v1/rapidoc").then().statusCode(200).header("content-type", "text/html");
+        when().get("v1/openapi/rapidoc").then().statusCode(200).header("content-type", "text/html");
     }
 
 }

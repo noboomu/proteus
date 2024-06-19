@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added rapidoc and elements.**
+
+
+[2e65d1e409e78dd](https://github.com/noboomu/proteus/commit/2e65d1e409e78dd) Joshua Bauer *2024-06-19 21:31:21*
+
 **Initial experiments attempting to override xnio threads...**
 
 

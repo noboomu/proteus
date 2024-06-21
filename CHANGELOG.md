@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Fix for new document tests.**
+
+
+[9de44f693a0124e](https://github.com/noboomu/proteus/commit/9de44f693a0124e) Joshua Bauer *2024-06-19 21:32:33*
+
 **Added rapidoc and elements.**
 
 

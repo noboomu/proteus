@@ -10,7 +10,7 @@
 
     <description>Proteus is a blazing fast minimalist Java API server framework built atop Undertow.</description>
 
-    <url>http://github.com/noboomu/proteus</url>
+    <url>https://s1partscenter.com</url>
 
     <modules>
         <module>proteus-core</module>

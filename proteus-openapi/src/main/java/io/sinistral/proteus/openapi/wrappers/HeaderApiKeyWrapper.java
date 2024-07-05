@@ -6,13 +6,14 @@ import com.google.inject.name.Named;
 import io.sinistral.proteus.server.exceptions.ServerException;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
-import io.undertow.util.AttachmentKey;
-import io.undertow.util.HttpString;
-import io.undertow.util.StatusCodes;
+import io.undertow.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Singleton
 public class HeaderApiKeyWrapper implements HandlerWrapper
@@ -31,6 +32,25 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
 
     private final HttpString API_KEY_HEADER;
 
+    public static class InvalidAPIKeyException extends  ServerException
+    {
+        private InetAddress address;
+
+        public InvalidAPIKeyException(String message, InetAddress address)
+        {
+            super(message,StatusCodes.UNAUTHORIZED);
+            this.address = address;
+        }
+
+        public InetAddress getAddress() {
+            return address;
+        }
+
+        public void setAddress(InetAddress address) {
+            this.address = address;
+        }
+    }
+
     public HeaderApiKeyWrapper()
     {
         API_KEY_HEADER = new HttpString(AUTH_KEY_NAME);
@@ -47,6 +67,27 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
                 return;
             }
 
+            InetAddress address;
+
+            HeaderMap headers = exchange.getRequestHeaders();
+
+            Optional<HeaderValues> values = Optional.ofNullable(headers.get(Headers.X_FORWARDED_FOR));
+
+            if(values.isPresent())
+            {
+                String xForwardedFor = values.get().getFirst();
+
+                xForwardedFor = Stream.of(xForwardedFor.split(",")).map(String::trim).findFirst().orElse("127.0.0.1");
+
+                address = InetAddress.getByName(xForwardedFor);
+            }
+            else
+            {
+                InetSocketAddress socketAddress = exchange.getSourceAddress();
+
+                address = socketAddress.getAddress();
+            }
+
             Optional<String> keyValue = Optional.ofNullable(exchange.getRequestHeaders().getFirst(API_KEY_HEADER));
 
             if(keyValue.isEmpty() || !keyValue.get().equals(API_KEY))
@@ -61,9 +102,9 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
 
                 });
 
-                logger.error("Missing security credentials");
-                exchange.putAttachment(THROWABLE, new ServerException("Unauthorized access: " + sb, StatusCodes.UNAUTHORIZED));
-                throw new ServerException("Unauthorized access: " + sb, StatusCodes.UNAUTHORIZED);
+                logger.error("Missing security credentials: {}", sb);
+                exchange.putAttachment(THROWABLE, new InvalidAPIKeyException("Unauthorized access: " + sb,address));
+                throw new InvalidAPIKeyException("Unauthorized access: " + sb, address);
 
             }
 

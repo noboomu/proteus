@@ -10,6 +10,7 @@ import io.undertow.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Optional;
@@ -34,6 +35,9 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
 
     public static class InvalidAPIKeyException extends  ServerException
     {
+        @Serial
+        private static final long serialVersionUID = 7557112473280469649L;
+
         private InetAddress address;
 
         public InvalidAPIKeyException(String message, InetAddress address)

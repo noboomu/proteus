@@ -472,7 +472,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
         {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
 
-            final String fullPath = String.format("%s://%s%s", exchange.getRequestScheme(), exchange.getHostAndPort(), specPath);
+            final String fullPath = String.format("//%s%s", exchange.getHostAndPort(), specPath);
 
             final String html = rapidocHTML.replaceAll("\\{\\{ specPath \\}\\}", fullPath);
 
@@ -492,7 +492,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
         {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, MediaType.TEXT_HTML);
 
-            final String fullPath = String.format("%s://%s%s", exchange.getRequestScheme(), exchange.getHostAndPort(), specPath);
+            final String fullPath = String.format("//%s%s",   exchange.getHostAndPort(), specPath);
 
             final String html = elementsHTML.replaceAll("\\{\\{ specPath \\}\\}", fullPath);
 

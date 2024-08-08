@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Modify header api wrapper to include source ip address for invalid requests.**
+
+
+[8a6832976877904](https://github.com/noboomu/proteus/commit/8a6832976877904) Joshua Bauer *2024-07-05 16:37:45*
+
+**Changes to deployment.**
+
+
+[8f59f06403d3b76](https://github.com/noboomu/proteus/commit/8f59f06403d3b76) Joshua Bauer *2024-06-21 16:40:52*
+
 **Fix for new document tests.**
 
 

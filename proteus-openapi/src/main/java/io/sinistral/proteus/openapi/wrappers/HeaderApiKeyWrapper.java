@@ -106,6 +106,18 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
 
                 });
 
+                exchange.getQueryParameters().forEach((k,v) -> {
+
+                    sb.append("query: ").append(k).append(": ").append(v.getFirst()).append("\n");
+
+                });
+
+                exchange.getPathParameters().forEach((k,v) -> {
+
+                    sb.append("path: ").append(k).append(": ").append(v.getFirst()).append("\n");
+
+                });
+
                 logger.error("Missing security credentials: {}", sb);
                 exchange.putAttachment(THROWABLE, new InvalidAPIKeyException("Unauthorized access: " + sb,address));
                 throw new InvalidAPIKeyException("Unauthorized access: " + sb, address);

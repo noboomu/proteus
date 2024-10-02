@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Resolve https errors in elements and rapidoc.**
+
+
+[6416d5e633826c7](https://github.com/noboomu/proteus/commit/6416d5e633826c7) Joshua Bauer *2024-08-08 18:15:12*
+
 **Modify header api wrapper to include source ip address for invalid requests.**
 
 

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Better api header error handling.**
+
+
+[720994aaa5d2b0f](https://github.com/noboomu/proteus/commit/720994aaa5d2b0f) Joshua Bauer *2024-10-02 14:47:48*
+
 **Resolve https errors in elements and rapidoc.**
 
 

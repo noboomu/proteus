@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Updates for Swagger UI**
+
+
+[dfc679bc241ec77](https://github.com/noboomu/proteus/commit/dfc679bc241ec77) Joshua Bauer *2025-03-15 00:21:49*
+
+**Bump version, min jdk is now 21 with virtual threads**
+
+
+[7f5957d9a7c212a](https://github.com/noboomu/proteus/commit/7f5957d9a7c212a) Joshua Bauer *2023-12-19 23:18:20*
+
 **Rename SXG file suffix and remove legacy media types**
 
 

@@ -972,6 +972,7 @@ public class MediaType {
     public static final MediaType IMAGE_GIF = create("image/gif", "gif");
     public static final MediaType IMAGE_IEF = create("image/ief", "ief");
     public static final MediaType IMAGE_JPEG = create("image/jpeg", "jpg", "jpeg", "jpe");
+    public static final MediaType IMAGE_JXL = create("image/jxl", "jxl");
     public static final MediaType IMAGE_JBIG = create("image/jbig", "jbig", "jbg");
     public static final MediaType IMAGE_KTX = create("image/ktx", "ktx");
     public static final MediaType IMAGE_PCX = create("image/pcx", "pcx");
@@ -1186,6 +1187,7 @@ public class MediaType {
     public static final MediaType BMP = IMAGE_BMP;
     public static final MediaType GIF = IMAGE_GIF;
     public static final MediaType SVG = IMAGE_SVG_XML;
+    public static final MediaType JXL = IMAGE_JXL;
 
     public static final MediaType DEFAULT = MediaType.BINARY;
 

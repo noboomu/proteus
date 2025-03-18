@@ -77,7 +77,6 @@ import java.util.stream.Collectors;
 public class ProteusApplication {
 
 
-
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProteusApplication.class.getName());
 
     private static final String TMP_DIRECTORY_NAME = "proteus_generated_classes";
@@ -165,7 +164,7 @@ public class ProteusApplication {
         injector = injector.createChildInjector(modules);
 
         if (rootHandlerClass == null && rootHandler == null) {
-            log.debug("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
+            //log.debug("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
             rootHandlerClass = ServerDefaultHttpHandler.class;
         }
 
@@ -180,7 +179,7 @@ public class ProteusApplication {
         serviceManager.addListener(new Listener() {
             public void stopped() {
 
-                log.info("Services are stopped");
+                log.warn("Services are stopped");
 
             }
 
@@ -205,7 +204,7 @@ public class ProteusApplication {
 
             public void failure(Service service) {
 
-                log.error("Service failure: " + service);
+                log.error("Service failure: {}", service);
 
                 startupDuration = Duration.between(startTime, Instant.now());
 
@@ -389,7 +388,8 @@ public class ProteusApplication {
         final int processorCount = Runtime.getRuntime().availableProcessors();
 
 
-        ThreadGroup virtualThreadGroup = Thread.ofVirtual().unstarted(() -> {}).getThreadGroup();
+        ThreadGroup virtualThreadGroup = Thread.ofVirtual().unstarted(() -> {
+        }).getThreadGroup();
 
 
         Xnio xnio = Xnio.getInstance();
@@ -673,7 +673,7 @@ public class ProteusApplication {
 
         TablePrinter printer = new TablePrinter(tableHeaders, tableRows);
 
-        sb.append(printer.toString());
+        sb.append(printer);
 
         sb.append("\nRegistered endpoints: \n");
 
@@ -685,7 +685,7 @@ public class ProteusApplication {
 
         printer = new TablePrinter(tableHeaders, tableRows);
 
-        sb.append(printer.toString()).append("\nRegistered services: \n");
+        sb.append(printer).append("\nRegistered services: \n");
 
         ImmutableMultimap<State, Service> serviceStateMap = this.serviceManager.servicesByState();
 
@@ -695,12 +695,16 @@ public class ProteusApplication {
 
         tableRows = serviceStateMap.asMap().entrySet().stream().flatMap(e ->
                         e.getValue().stream().map(s ->
-                                Arrays.asList(s.getClass().getSimpleName(), e.getKey().toString(), DurationFormatUtils.formatDurationHMS(serviceStartupTimeMap.get(s)))))
+                        {
+                            Long serviceStartupTime = serviceStartupTimeMap.get(s);
+                            String startupTime = serviceStartupTime != null ? DurationFormatUtils.formatDurationHMS(serviceStartupTime) : null;
+                            return Arrays.asList(s.getClass().getSimpleName(), e.getKey().toString(), startupTime);
+                        }))
                 .collect(Collectors.toList());
 
         printer = new TablePrinter(tableHeaders, tableRows);
 
-        sb.append(printer.toString()).append("\nListening On: " + this.ports).append("\nApplication Startup Time: ").append(DurationFormatUtils.formatDurationHMS(this.startupDuration.toMillis())).append("\n");
+        sb.append(printer).append("\nListening On: ").append(this.ports).append("\nApplication Startup Time: ").append(DurationFormatUtils.formatDurationHMS(this.startupDuration.toMillis())).append("\n");
 
         log.info(sb.toString());
     }

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Added support for image/jxl**
+
+
+[0f361ecfec48369](https://github.com/noboomu/proteus/commit/0f361ecfec48369) Joshua Bauer *2025-03-18 21:44:48*
+
 **Updates for Swagger UI**
 
 

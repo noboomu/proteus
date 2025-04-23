@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Migrate injecton annotations to Jakarta**
+
+
+[4a1a026bd0fba81](https://github.com/noboomu/proteus/commit/4a1a026bd0fba81) Joshua Bauer *2025-03-21 17:50:24*
+
 **Added support for image/jxl**
 
 

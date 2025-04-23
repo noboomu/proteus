@@ -4,7 +4,7 @@
     <parent>
         <artifactId>proteus-project</artifactId>
         <groupId>io.sinistral</groupId>
-        <version>0.8.0-SNAPSHOT</version>
+        <version>0.8.4-SNAPSHOT</version>
     </parent>
     <properties>
         <jakarta.activation-api.version>2.1.2</jakarta.activation-api.version>

@@ -62,7 +62,7 @@
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
         <openapi.version>2.2.16</openapi.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <proteus.version>${project.version}</proteus.version>

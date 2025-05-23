@@ -4,6 +4,66 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bumped nexus-staging version to 1.6.13.**
+
+
+[65120702c12c22d](https://github.com/noboomu/proteus/commit/65120702c12c22d) Joshua Bauer *2025-04-29 00:34:20*
+
+**Update dependencies.**
+
+
+[081dfcdfbe9e409](https://github.com/noboomu/proteus/commit/081dfcdfbe9e409) Joshua Bauer *2025-04-23 16:40:20*
+
+**Migrate injecton annotations to Jakarta**
+
+
+[4a1a026bd0fba81](https://github.com/noboomu/proteus/commit/4a1a026bd0fba81) Joshua Bauer *2025-03-21 17:50:24*
+
+**Added support for image/jxl**
+
+
+[0f361ecfec48369](https://github.com/noboomu/proteus/commit/0f361ecfec48369) Joshua Bauer *2025-03-18 21:44:48*
+
+**Updates for Swagger UI**
+
+
+[dfc679bc241ec77](https://github.com/noboomu/proteus/commit/dfc679bc241ec77) Joshua Bauer *2025-03-15 00:21:49*
+
+**Bump version, min jdk is now 21 with virtual threads**
+
+
+[7f5957d9a7c212a](https://github.com/noboomu/proteus/commit/7f5957d9a7c212a) Joshua Bauer *2023-12-19 23:18:20*
+
+**Rename SXG file suffix and remove legacy media types**
+
+
+[fbd1af3f9211dc8](https://github.com/noboomu/proteus/commit/fbd1af3f9211dc8) Joshua Bauer *2023-10-17 19:57:10*
+
+**Added SXG mime types.**
+
+
+[294bc67bdd31e1e](https://github.com/noboomu/proteus/commit/294bc67bdd31e1e) Joshua Bauer *2023-10-17 19:53:47*
+
+**Make controller compilation synchronous.**
+
+
+[638ef73f7a867cc](https://github.com/noboomu/proteus/commit/638ef73f7a867cc) Joshua Bauer *2023-09-28 21:25:43*
+
+**Migrate to Jakarta.**
+
+
+[ffb84eaddbbc01e](https://github.com/noboomu/proteus/commit/ffb84eaddbbc01e) Joshua Bauer *2023-09-27 18:41:05*
+
+**Switch to SourceBuddy from OpenHFT for dynamic complilation. Breaks < JDK 17 compatability however.**
+
+
+[636dde50434f508](https://github.com/noboomu/proteus/commit/636dde50434f508) Joshua Bauer *2023-09-25 18:47:26*
+
+**Added additional MediaType to support Wavefront and Pixar.**
+
+
+[37b46cd541bfb59](https://github.com/noboomu/proteus/commit/37b46cd541bfb59) Joshua Bauer *2023-07-21 01:15:43*
+
 **Update unauthorized access error message.**
 
 
@@ -124,6 +184,11 @@ Proteus Changelog.
 
 [24f076fb72fc3c1](https://github.com/noboomu/proteus/commit/24f076fb72fc3c1) Joshua Bauer *2021-05-11 21:29:17*
 
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[aa7f82a0071d398](https://github.com/noboomu/proteus/commit/aa7f82a0071d398) Joshua Bauer *2021-04-02 18:19:44*
+
 **Bump dependency versions. Update favicon.**
 
 
@@ -167,7 +232,7 @@ Proteus Changelog.
 **Allow overriding of initial modules. Updated mime types.**
 
 
-[1913b8fdce12264](https://github.com/noboomu/proteus/commit/1913b8fdce12264) Joshua Bauer *2021-12-30 16:42:21*
+[1913b8fdce12264](https://github.com/noboomu/proteus/commit/1913b8fdce12264) Joshua Bauer *2020-12-30 16:42:21*
 
 **Improve health information.**
 
@@ -189,14 +254,29 @@ Proteus Changelog.
 
 [a9f4e75734b3515](https://github.com/noboomu/proteus/commit/a9f4e75734b3515) Joshua Bauer *2020-11-19 21:22:26*
 
+**[maven-release-plugin] prepare for next development iteration**
+
+
+[ec5ef3c9fca7f63](https://github.com/noboomu/proteus/commit/ec5ef3c9fca7f63) Joshua Bauer *2020-11-19 21:08:05*
+
 
 ## v0.4.6
 ### No issue
+
+**[maven-release-plugin] prepare release v0.4.6**
+
+
+[79a52bea2a14c91](https://github.com/noboomu/proteus/commit/79a52bea2a14c91) Joshua Bauer *2020-11-19 21:07:55*
 
 **Cleanup CHANGELOG.**
 
 
 [22eb4349dcc9e02](https://github.com/noboomu/proteus/commit/22eb4349dcc9e02) Joshua Bauer *2020-11-19 21:06:07*
+
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[c12cfb0777566db](https://github.com/noboomu/proteus/commit/c12cfb0777566db) Joshua Bauer *2020-11-19 20:58:18*
 
 **Prep for next release.**
 
@@ -227,6 +307,11 @@ Proteus Changelog.
 
 
 [6482aac600edd62](https://github.com/noboomu/proteus/commit/6482aac600edd62) Joshua Bauer *2020-09-15 17:16:40*
+
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[b1dad4d0abbb2b3](https://github.com/noboomu/proteus/commit/b1dad4d0abbb2b3) Joshua Bauer *2020-09-15 16:11:56*
 
 **Send**
 
@@ -283,16 +368,27 @@ Proteus Changelog.
 
 [cf6d3c9b4a93457](https://github.com/noboomu/proteus/commit/cf6d3c9b4a93457) Joshua Bauer *2020-05-15 00:05:32*
 
+**Merge pull request #32 from nich0s/patch-1**
+
+ * Incorrect File.seperator use - broken on Windows.
+
+[eb514fe4d6f7612](https://github.com/noboomu/proteus/commit/eb514fe4d6f7612) JL Bauer *2020-05-02 03:05:54*
+
 **Incorrect File.sep() use - broken on Windows.**
 
  * On Windows:
- * ```
+ * &#x60;&#x60;&#x60;
  * GET           /v1/openapi/*                [*/*]                     [*/*]                     (OpenAPIService._)
  * GET           /v1/openapi/redoc            [*/*]                     [text/html]               (OpenAPIService._)
  * GET           /v1\openapi.yaml             [*/*]                     [text/yaml]               (OpenAPIService._)
- * ```
+ * &#x60;&#x60;&#x60;
 
 [bea9fd3de5d1d4d](https://github.com/noboomu/proteus/commit/bea9fd3de5d1d4d) nich0s *2020-05-01 13:35:04*
+
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[53b6d75553ef5bc](https://github.com/noboomu/proteus/commit/53b6d75553ef5bc) Joshua Bauer *2020-04-28 16:04:21*
 
 **Better error logs.**
 
@@ -389,27 +485,27 @@ Proteus Changelog.
 **Revert to previous openhft compiler version.**
 
 
-[ba63bd0fc852aaa](https://github.com/noboomu/proteus/commit/ba63bd0fc852aaa) joshua bauer *2020-12-30 19:35:52*
+[ba63bd0fc852aaa](https://github.com/noboomu/proteus/commit/ba63bd0fc852aaa) joshua bauer *2019-12-30 19:35:52*
 
 **Further css fixes.**
 
 
-[2af2076b54ce120](https://github.com/noboomu/proteus/commit/2af2076b54ce120) joshua bauer *2020-12-30 07:06:52*
+[2af2076b54ce120](https://github.com/noboomu/proteus/commit/2af2076b54ce120) joshua bauer *2019-12-30 07:06:52*
 
 **Revert JSONView updates.**
 
 
-[42d9de2c00cd43e](https://github.com/noboomu/proteus/commit/42d9de2c00cd43e) joshua bauer *2020-12-30 06:36:54*
+[42d9de2c00cd43e](https://github.com/noboomu/proteus/commit/42d9de2c00cd43e) joshua bauer *2019-12-30 06:36:54*
 
 **Improve default JsonView handling.**
 
 
-[f341af566518055](https://github.com/noboomu/proteus/commit/f341af566518055) joshua bauer *2020-12-30 05:48:32*
+[f341af566518055](https://github.com/noboomu/proteus/commit/f341af566518055) joshua bauer *2019-12-30 05:48:32*
 
 **Restructure pom files.**
 
 
-[f19edfc200c612a](https://github.com/noboomu/proteus/commit/f19edfc200c612a) Joshua Bauer *2020-12-30 01:17:28*
+[f19edfc200c612a](https://github.com/noboomu/proteus/commit/f19edfc200c612a) Joshua Bauer *2019-12-30 01:17:28*
 
 **Update README.md**
 
@@ -466,6 +562,12 @@ Proteus Changelog.
 
 [23d28b1509aaaf7](https://github.com/noboomu/proteus/commit/23d28b1509aaaf7) Joshua Bauer *2019-10-16 20:45:51*
 
+**Merge pull request #23 from dheerajkhardwal/readme-typo-fix**
+
+ * refactor(readme): Typo in maven dependency tag for OpenAPI
+
+[b7d17b42361f99c](https://github.com/noboomu/proteus/commit/b7d17b42361f99c) JL Bauer *2019-10-15 05:13:46*
+
 **refactor(readme): Typo in maven dependency tag for OpenAPI**
 
 
@@ -496,9 +598,19 @@ Proteus Changelog.
 
 [b180b7d7f2e84c0](https://github.com/noboomu/proteus/commit/b180b7d7f2e84c0) joshua bauer *2019-09-05 22:13:02*
 
+**[maven-release-plugin] prepare for next development iteration**
+
+
+[171b039eefcccd9](https://github.com/noboomu/proteus/commit/171b039eefcccd9) Joshua Bauer *2019-08-30 18:40:51*
+
 
 ## v0.4.2
 ### No issue
+
+**[maven-release-plugin] prepare release v0.4.2**
+
+
+[0b92976e06f51a5](https://github.com/noboomu/proteus/commit/0b92976e06f51a5) Joshua Bauer *2019-08-30 18:39:36*
 
 **Prepare release.**
 
@@ -509,6 +621,11 @@ Proteus Changelog.
 
 
 [9453aafdd3893fc](https://github.com/noboomu/proteus/commit/9453aafdd3893fc) Joshua Bauer *2019-08-30 18:36:28*
+
+**[maven-release-plugin] prepare release v0.4.2**
+
+
+[8c7c7533e6de916](https://github.com/noboomu/proteus/commit/8c7c7533e6de916) Joshua Bauer *2019-08-30 18:35:47*
 
 **Improve release method.**
 
@@ -579,10 +696,21 @@ Proteus Changelog.
 
 [22cefa4f5b498c7](https://github.com/noboomu/proteus/commit/22cefa4f5b498c7) Joshua Bauer *2019-05-21 20:51:26*
 
+**Merge remote-tracking branch 'origin/master'**
+
+
+[5d21d05d5ff316c](https://github.com/noboomu/proteus/commit/5d21d05d5ff316c) Joshua Bauer *2019-05-17 23:21:10*
+
 **Added JsonView wrapper support.**
 
 
 [0fbc2ae3d2c2e39](https://github.com/noboomu/proteus/commit/0fbc2ae3d2c2e39) Joshua Bauer *2019-05-17 23:19:11*
+
+**Merge pull request #17 from noboomu/development**
+
+ * Development
+
+[1e1d8bac28db345](https://github.com/noboomu/proteus/commit/1e1d8bac28db345) Joshua Lee Bauer *2019-05-15 16:55:27*
 
 **Support for compiling on jdk > 8.**
 
@@ -619,10 +747,21 @@ Proteus Changelog.
 
 [3c818b72fd54caa](https://github.com/noboomu/proteus/commit/3c818b72fd54caa) Joshua Bauer *2019-04-22 18:52:36*
 
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[9bf999e19e9b491](https://github.com/noboomu/proteus/commit/9bf999e19e9b491) Joshua Bauer *2019-04-22 17:13:47*
+
 **Updated dependencies.**
 
 
 [d08cd8a615277f6](https://github.com/noboomu/proteus/commit/d08cd8a615277f6) Joshua Bauer *2019-04-22 17:13:34*
+
+**Merge pull request #13 from ratcashdev/master**
+
+ * Bugfix: using getResponseHeaders() to send a response
+
+[d0f2388399d3c8e](https://github.com/noboomu/proteus/commit/d0f2388399d3c8e) Joshua Lee Bauer *2019-04-11 19:13:57*
 
 **Added fix for Service flexibility.**
 
@@ -636,6 +775,11 @@ Proteus Changelog.
 
 
 [c362ca5b7411c8e](https://github.com/noboomu/proteus/commit/c362ca5b7411c8e) ratcash *2019-04-09 20:45:19*
+
+**Merge branch 'development'**
+
+
+[9e1eee11258114e](https://github.com/noboomu/proteus/commit/9e1eee11258114e) Joshua Bauer *2019-03-28 19:51:54*
 
 **Cleanup formating and imports.**
 
@@ -746,6 +890,11 @@ Proteus Changelog.
 
 [71cdf5323f173ab](https://github.com/noboomu/proteus/commit/71cdf5323f173ab) noboomu *2018-12-20 21:20:23*
 
+**Merge remote-tracking branch 'origin/master'**
+
+
+[cb9b0d25dc870d5](https://github.com/noboomu/proteus/commit/cb9b0d25dc870d5) joshua bauer *2018-12-19 23:25:04*
+
 **Improve blocking handler performance.**
 
 
@@ -810,6 +959,11 @@ Proteus Changelog.
 
 [5cdd18d779b4b67](https://github.com/noboomu/proteus/commit/5cdd18d779b4b67) joshua bauer *2018-12-04 23:03:11*
 
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[56f4eb79ed11692](https://github.com/noboomu/proteus/commit/56f4eb79ed11692) joshua bauer *2018-12-04 21:31:01*
+
 **Additional Type Support and java.io.File Fix:**
 
  * java.io.File
@@ -822,6 +976,11 @@ Proteus Changelog.
 
 
 [3a1e61e0e767c0d](https://github.com/noboomu/proteus/commit/3a1e61e0e767c0d) noboomu *2018-12-04 09:31:12*
+
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[a8a80854431fb46](https://github.com/noboomu/proteus/commit/a8a80854431fb46) joshua bauer *2018-11-30 18:19:36*
 
 **Cleanup imports.**
 
@@ -845,6 +1004,11 @@ Proteus Changelog.
  * Remove some swagger 1.5 support.
 
 [2d9f8cea475e11a](https://github.com/noboomu/proteus/commit/2d9f8cea475e11a) joshua bauer *2018-11-30 02:29:29*
+
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[8f034538bb18529](https://github.com/noboomu/proteus/commit/8f034538bb18529) joshua bauer *2018-11-29 22:02:05*
 
 **Reworked session attachment handler injection.**
 
@@ -904,6 +1068,11 @@ Proteus Changelog.
 
 
 [45e6b8edcd27967](https://github.com/noboomu/proteus/commit/45e6b8edcd27967) joshua bauer *2018-10-25 21:10:12*
+
+**Merge branch 'master' of git@github.com:noboomu/proteus.git**
+
+
+[51ccf5e164f56e7](https://github.com/noboomu/proteus/commit/51ccf5e164f56e7) joshua bauer *2018-10-24 22:39:01*
 
 **Improve logging.**
 
@@ -1044,6 +1213,12 @@ Proteus Changelog.
 
 [c4308a59c5f413b](https://github.com/noboomu/proteus/commit/c4308a59c5f413b) joshua bauer *2018-10-03 16:58:58*
 
+**Merge pull request #5 from SeanMollet/master**
+
+ * Set isBlocking true if the input type uses a handler that blocks.
+
+[7e481ec2d68b6d7](https://github.com/noboomu/proteus/commit/7e481ec2d68b6d7) noboomu *2018-10-03 05:04:17*
+
 **Added Enum option to status set on ServerResponse.**
 
 
@@ -1058,6 +1233,11 @@ Proteus Changelog.
 
 
 [52702bdb759ef11](https://github.com/noboomu/proteus/commit/52702bdb759ef11) noboomu *2018-09-27 20:52:20*
+
+**Merge branch 'master' of git@github.com:noboomu/proteus.git**
+
+
+[a9984a92eebd11a](https://github.com/noboomu/proteus/commit/a9984a92eebd11a) joshua bauer *2018-09-27 20:44:02*
 
 **Update swagger.**
 
@@ -1089,6 +1269,11 @@ Proteus Changelog.
 
 [0160dff3291d1e6](https://github.com/noboomu/proteus/commit/0160dff3291d1e6) joshua bauer *2018-09-21 19:48:28*
 
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[0c2e346d0ada813](https://github.com/noboomu/proteus/commit/0c2e346d0ada813) joshua bauer *2018-09-21 19:38:49*
+
 **Cleanup**
 
  * Refactored test package names.
@@ -1096,6 +1281,11 @@ Proteus Changelog.
  * Better text handling.
 
 [b25393a821da7f9](https://github.com/noboomu/proteus/commit/b25393a821da7f9) joshua bauer *2018-09-21 17:58:59*
+
+**Merged and added quickstart.sh**
+
+
+[a3879a6cae2bd80](https://github.com/noboomu/proteus/commit/a3879a6cae2bd80) joshua bauer *2018-09-21 16:13:00*
 
 **Update README.md**
 
@@ -1121,10 +1311,22 @@ Proteus Changelog.
 
 [790346fea785bcd](https://github.com/noboomu/proteus/commit/790346fea785bcd) joshua bauer *2018-09-13 18:57:51*
 
+**Merge development. Bump version.**
+
+ * Missed version in pom.xml.
+ * Remove iml.
+
+[6e4b13e38f1ed6a](https://github.com/noboomu/proteus/commit/6e4b13e38f1ed6a) joshua bauer *2018-09-13 18:56:55*
+
 **Update README.md**
 
 
 [c0806736738da82](https://github.com/noboomu/proteus/commit/c0806736738da82) noboomu *2018-09-05 18:55:26*
+
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[f70c10738e82421](https://github.com/noboomu/proteus/commit/f70c10738e82421) joshua bauer *2018-08-09 17:48:14*
 
 **Cleaned up handlers. Added support for javax.ws.rs.DefaultValue.**
 
@@ -1196,6 +1398,18 @@ Proteus Changelog.
 
 [c8ac7ad22bedb36](https://github.com/noboomu/proteus/commit/c8ac7ad22bedb36) joshua bauer *2018-07-18 21:55:43*
 
+**Merge pull request #4 from noboomu/development**
+
+ * Development
+
+[3630ca8a222246a](https://github.com/noboomu/proteus/commit/3630ca8a222246a) noboomu *2018-07-18 21:20:38*
+
+**Merge pull request #3 from noboomu/jackson**
+
+ * Jackson
+
+[2f59835b5b50e37](https://github.com/noboomu/proteus/commit/2f59835b5b50e37) noboomu *2018-07-18 21:07:24*
+
 **Support for inner class model parsing.**
 
 
@@ -1210,6 +1424,20 @@ Proteus Changelog.
 
 
 [b2edceb39c66b1e](https://github.com/noboomu/proteus/commit/b2edceb39c66b1e) joshua bauer *2018-07-16 16:41:16*
+
+
+## v0.3.0
+### No issue
+
+**Update Jackson version.**
+
+
+[91f6194f02a14c3](https://github.com/noboomu/proteus/commit/91f6194f02a14c3) joshua bauer *2018-07-13 16:41:59*
+
+**Swapped out Jsoniter with Jackson. Slightly slower but easier to use.**
+
+
+[26723e690681303](https://github.com/noboomu/proteus/commit/26723e690681303) joshua bauer *2018-07-13 16:30:53*
 
 **Smarter predicates. Use BufferedRequestHandler.**
 
@@ -1295,20 +1523,6 @@ Proteus Changelog.
 
 
 [bb84e8369c3ec99](https://github.com/noboomu/proteus/commit/bb84e8369c3ec99) joshua bauer *2018-02-27 01:19:50*
-
-
-## v0.3.0
-### No issue
-
-**Update Jackson version.**
-
-
-[91f6194f02a14c3](https://github.com/noboomu/proteus/commit/91f6194f02a14c3) joshua bauer *2018-07-13 16:41:59*
-
-**Swapped out Jsoniter with Jackson. Slightly slower but easier to use.**
-
-
-[26723e690681303](https://github.com/noboomu/proteus/commit/26723e690681303) joshua bauer *2018-07-13 16:30:53*
 
 
 ## v0.1.8-alpha
@@ -1583,6 +1797,11 @@ Proteus Changelog.
 
 [f7cd97b4bed877e](https://github.com/noboomu/proteus/commit/f7cd97b4bed877e) joshua bauer *2017-05-10 14:54:07*
 
+**Merge branch 'master' of github.com:noboomu/proteus**
+
+
+[0651a83c6997a66](https://github.com/noboomu/proteus/commit/0651a83c6997a66) joshua bauer *2017-05-10 14:49:55*
+
 **Fix for README typo.**
 
 
@@ -1824,5 +2043,10 @@ Proteus Changelog.
 
 
 [6c0ae6cb4017ffe](https://github.com/noboomu/proteus/commit/6c0ae6cb4017ffe) joshua bauer *2017-03-31 23:58:35*
+
+**First**
+
+
+[2d41345e1de9bb0](https://github.com/noboomu/proteus/commit/2d41345e1de9bb0) joshua bauer *2017-03-31 14:30:07*
 
 

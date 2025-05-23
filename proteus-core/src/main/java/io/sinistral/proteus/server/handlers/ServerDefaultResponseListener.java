@@ -67,21 +67,19 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 
             final Map<String, Object> errorMap = new HashMap<>();
 
-
             final String path = exchange.getRelativePath();
 
-            if (throwable == null) {
-                final String reason = StatusCodes.getReason(statusCode);
+            switch (throwable) {
+                case null -> {
+                    final String reason = StatusCodes.getReason(statusCode);
 
-                throwable = new Exception(reason);
-            } else if(throwable instanceof ServerException)
-            {
-                ServerException serverException = (ServerException) throwable;
-                exchange.setStatusCode(serverException.getStatus());
-
-
-            } else  if (throwable instanceof IllegalArgumentException) {
-                exchange.setStatusCode(StatusCodes.BAD_REQUEST);
+                    throwable = new Exception(reason);
+                }
+                case ServerException serverException -> exchange.setStatusCode(serverException.getStatus());
+                case IllegalArgumentException illegalArgumentException ->
+                        exchange.setStatusCode(StatusCodes.BAD_REQUEST).setReasonPhrase(illegalArgumentException.getMessage());
+                default -> {
+                }
             }
 
             statusCode = exchange.getStatusCode();
@@ -115,7 +113,7 @@ public class ServerDefaultResponseListener implements DefaultResponseListener
 
             if (throwable.getStackTrace() != null && statusCode >= 500 ) {
 
-                log.error("path: " + path, throwable);
+                log.error("path: {}", path, throwable);
 
                 if (throwable.getStackTrace().length > 0) {
                     errorMap.put("className", throwable.getStackTrace()[0].getClassName());

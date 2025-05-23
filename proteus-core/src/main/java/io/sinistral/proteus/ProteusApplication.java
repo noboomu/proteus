@@ -148,7 +148,7 @@ public class ProteusApplication {
 
     }
 
-    public void start() {
+    public void start()   {
 
         if (this.isRunning()) {
             log.warn("Server has already started...");
@@ -190,7 +190,7 @@ public class ProteusApplication {
                 startupDuration = Duration.between(startTime, Instant.now());
 
                 for (ListenerInfo info : undertow.getListenerInfo()) {
-                    log.debug("listener info: " + info);
+                    log.debug("listener info: {}", info);
                     SocketAddress address = info.getAddress();
 
                     if (address != null) {
@@ -209,7 +209,7 @@ public class ProteusApplication {
                 startupDuration = Duration.between(startTime, Instant.now());
 
                 for (ListenerInfo info : undertow.getListenerInfo()) {
-                    log.debug("listener info: " + info);
+                    log.debug("listener info: {}", info);
                     SocketAddress address = info.getAddress();
 
                     if (address != null) {
@@ -251,13 +251,15 @@ public class ProteusApplication {
             serviceManager.startAsync().awaitHealthy(timeout);
         } catch (TimeoutException e) {
             log.error("Failed start to services within {} minutes", timeout, e);
+            return;
+
         } catch (Exception e) {
             log.error("Failed to start services", e);
+            return;
         }
 
         this.running.set(true);
 
-//        serviceManager.startAsync();
 
     }
 

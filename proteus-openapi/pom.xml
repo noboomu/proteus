@@ -3,7 +3,7 @@
     <parent>
         <artifactId>proteus-project</artifactId>
         <groupId>io.sinistral</groupId>
-        <version>0.8.4-SNAPSHOT</version>
+        <version>0.8.5-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>

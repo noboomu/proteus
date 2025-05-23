@@ -180,7 +180,6 @@ public class Tests
 	}
 	
 	@POST
-	@Debug
 	@Path("response/file/path")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM) 
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -815,7 +814,6 @@ public class Tests
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Blocking
-	@Debug
 	public ServerResponse<Map<String,Integer>> multipartUploadByteBuffer(ServerRequest request, @FormParam("buffer") ByteBuffer buffer ) throws Exception
 	{
 
@@ -858,7 +856,6 @@ public class Tests
 	@Path("multipart/mixed")
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Debug
 	@Blocking
 	public ServerResponse<Map<String,Object>> multipartUploadMixed(ServerRequest request, @FormParam("buffer") ByteBuffer buffer, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
 	{
@@ -873,7 +870,6 @@ public class Tests
 	@Path("multipart/future/mixed")
  	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Debug
 	@Blocking
 	public CompletableFuture<ServerResponse<Map<String,Object>>> multipartUploadFutureMixed(ServerRequest request, @FormParam("buffer") ByteBuffer buffer, @FormParam("user") User user, @FormParam("userId") Integer userId ) throws Exception
 	{

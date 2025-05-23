@@ -4,7 +4,7 @@
     <parent>
         <artifactId>proteus-project</artifactId>
         <groupId>io.sinistral</groupId>
-        <version>0.8.4-SNAPSHOT</version>
+        <version>0.8.5-SNAPSHOT</version>
     </parent>
     <properties>
         <jakarta.activation-api.version>2.1.2</jakarta.activation-api.version>
@@ -114,8 +114,23 @@ Proteus Changelog.
                 <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>${junit-jupiter-api.version}</version>
+                    </dependency>
+                </dependencies>
+
+                <configuration>
+                    <argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
+                    <argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
+
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -142,8 +157,8 @@ Proteus Changelog.
                         <arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
                     </compilerArgs>
                     <encoding>UTF-8</encoding>
-                    <source>19</source>
-                    <target>19</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
         </plugins>
@@ -158,8 +173,14 @@ Proteus Changelog.
 
         <dependency>
             <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback-classic.version}</version>
+            <version>${logback.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -237,17 +258,6 @@ Proteus Changelog.
             <version>${guava.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>${guice.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>com.typesafe</groupId>
@@ -335,6 +345,24 @@ Proteus Changelog.
             <artifactId>reflections</artifactId>
             <version>${reflections.version}</version>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>${guice.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

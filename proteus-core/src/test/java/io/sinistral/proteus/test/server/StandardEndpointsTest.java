@@ -3,29 +3,18 @@
  */
 package io.sinistral.proteus.test.server;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.sinistral.proteus.protocol.MediaType;
 import io.sinistral.proteus.test.controllers.GenericBean;
 import io.sinistral.proteus.test.models.User;
 import io.sinistral.proteus.test.models.User.UserType;
-import org.apache.commons.io.IOUtils;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -37,23 +26,18 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-/*
- * import static io.restassured.RestAssured.*; import static io.restassured.matcher.RestAssuredMatchers.*; import static org.hamcrest.Matchers.*;
- */
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author jbauer
  */
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@RunWith(DefaultServer.class)
+@ExtendWith(DefaultServer.class)
 public class StandardEndpointsTest extends AbstractEndpointTest {
 @Test
     public void testDebugEndpoint()
@@ -117,7 +101,7 @@ public class StandardEndpointsTest extends AbstractEndpointTest {
 
         } catch (Exception e)
         {
-            e.printStackTrace();
+            
             fail(e.getMessage());
         }
     }
@@ -143,7 +127,7 @@ public class StandardEndpointsTest extends AbstractEndpointTest {
 
         } catch (Exception e)
         {
-            e.printStackTrace();
+            
             fail(e.getMessage());
         }
     }
@@ -181,7 +165,7 @@ public class StandardEndpointsTest extends AbstractEndpointTest {
 
         } catch (Exception e)
         {
-            e.printStackTrace();
+            
             fail(e.getMessage());
         }
     }
@@ -219,7 +203,7 @@ public class StandardEndpointsTest extends AbstractEndpointTest {
 
         } catch (Exception e)
         {
-            e.printStackTrace();
+            
             fail(e.getMessage());
         }
     }
@@ -454,7 +438,7 @@ public class StandardEndpointsTest extends AbstractEndpointTest {
         } catch (Exception e)
         {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            
             fail(e.getMessage());
         }
 

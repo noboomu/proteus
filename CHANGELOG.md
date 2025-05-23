@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bumped nexus-staging version to 1.6.13.**
+
+
+[65120702c12c22d](https://github.com/noboomu/proteus/commit/65120702c12c22d) Joshua Bauer *2025-04-29 00:34:20*
+
+**Update dependencies.**
+
+
+[081dfcdfbe9e409](https://github.com/noboomu/proteus/commit/081dfcdfbe9e409) Joshua Bauer *2025-04-23 16:40:20*
+
 **Migrate injecton annotations to Jakarta**
 
 

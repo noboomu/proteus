@@ -62,8 +62,9 @@ public class HeaderApiKeyWrapper implements HandlerWrapper
                 });
 
                 logger.error("Missing security credentials");
-                exchange.putAttachment(THROWABLE, new ServerException("Unauthorized access: " + sb, StatusCodes.UNAUTHORIZED));
-                throw new ServerException("Unauthorized access: " + sb, StatusCodes.UNAUTHORIZED);
+                ServerException serverException = new ServerException("Unauthorized access: " + sb, StatusCodes.UNAUTHORIZED);
+                exchange.putAttachment(THROWABLE, serverException);
+                throw serverException;
 
             }
 

@@ -325,7 +325,7 @@ The ProteusApplication class expects services that implement ```io.sinistral.pro
 
  	 specFilename="openapi.yaml"
 
- 	 openapi="3.0.1"
+ 	 openapi="3.1.0"
 
  	 # openapi info
   info {

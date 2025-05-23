@@ -10,41 +10,7 @@
 		</encoder>
 	</appender>
 
-	<logger name="org.apache.http" level="ERROR" /> 
-	<logger name="javax.activation" level="ERROR" />
-	<logger name="org.jboss" level="OFF" />
 
-	<logger name="io.netty" level="ERROR" />
-	<logger name="io.netty.handler" level="ERROR" />
-	<logger name="io.sinistral.proteus.server.handlers" level="DEBUG" />
-	<logger name="io.sinistral.proteus.services" level="DEBUG" />
-
-	<logger name="com.sun.jersey" level="ERROR" />
-
-	<logger name="org.xnio" level="ERROR" />
-	<logger name="io.undertow" level="DEBUG" />
-	<logger name="org.reflections" level="OFF" />
-	<logger name="io.swagger.converter" level="ERROR" />
-	<logger name="io.swagger.jackson" level="ERROR" />
-	<logger name="io.swagger.v3" level="ERROR" /> 
-	<logger name="swagger" level="ERROR" />
-
-	<logger name="javax.management" level="ERROR" />
-	<logger name="javax.management.mbeanserver" level="OFF" />
-	<logger name="java.jmx" level="ERROR" />
-
-	<logger name="org.apache.http.wire" level="ERROR" /> 
-	<logger name="com.wordnik" level="OFF" />
-
-	<logger name="sun.net" level="ERROR" />
-
-	<logger name="org.apache.commons.logging.impl.Jdk14Logger"
-		level="ERROR" />
-
-	<logger name="java.util.logging.Logger" level="ERROR" />
-	<logger name="com.google.inject.internal" level="ERROR" />
-	<logger name="com.google.inject" level="ERROR" />
-	
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>

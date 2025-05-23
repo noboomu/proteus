@@ -2,10 +2,8 @@ package io.sinistral.proteus.test.server;
 
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -31,19 +29,16 @@ public class AbstractEndpointTest {
 
     public static Path tmpPath = null;
 
-    public static void initData()
-    {
-        try
-        {
+    public static void initData() {
+
+        try {
             tmpPath = Paths.get(System.getProperty("java.io.tmpdir")).resolve(PREFIX);
 
-            if (!tmpPath.toFile().exists())
-            {
+            if (!tmpPath.toFile().exists()) {
                 tmpPath.toFile().mkdirs();
             }
 
-            for (int i = 0; i < 4; i++)
-            {
+            for (int i = 0; i < 4; i++) {
                 byte[] bytes = new byte[1388608];
                 Random random = new Random();
                 random.nextBytes(bytes);
@@ -54,11 +49,11 @@ public class AbstractEndpointTest {
 
                 Files.write(dataPath, bytes);
 
+
                 files.add(dataPath.toFile());
 
-                if(i == 0)
-                {
-                    file = files.get(0);
+                if (i == 0) {
+                    file = files.getFirst();
                 }
 
                 LongStream.range(1L, 10L).forEach(l -> {
@@ -67,43 +62,30 @@ public class AbstractEndpointTest {
                 });
             }
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     @BeforeAll
-    public static void init()
-    {
+    public static void init() {
+
+        if (files.isEmpty()) {
+            initData();
+        }
+
+        file = files.getFirst();
 
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+
 
 
     }
 
     @AfterAll
-    public static void cleanup()
-    {
+    public static void cleanup() {
 
-        try
-        {
-            Thread.sleep(1000L);
-            FileUtils.deleteDirectory(tmpPath.toFile());
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
     }
 
-    @Before
-    public void setUp()
-    {
-        if(files.isEmpty())
-        {
-            initData();
-        }
-
-        file = files.get(0);
-    }
 
 }

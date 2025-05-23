@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -168,7 +169,7 @@ public class Extractors {
             } catch (Exception e)
             {
                 log.error("Failed to create temporary file for form item", e);
-                return null;
+                return Paths.get(System.getProperty("java.io.tmpdir"));
             }
         }
         else
@@ -208,37 +209,28 @@ public class Extractors {
 
       FormData formData =  exchange.getAttachment(FormDataParser.FORM_DATA);
 
-      //  
-
-        Iterator<String> itr = formData.iterator();
-
-        while(itr.hasNext())
-        {
-            String s = itr.next();
-
-           // 
-
-           Deque<FormData.FormValue> deque = formData.get(s);
-
-           var values = deque.stream().map(v -> {
-
-
-               if(v.isFileItem())
-               {
-                   return Map.of("headers",v.getHeaders(),"fileItem",v.getFileItem(),"fileName",v.getFileName());
-               }
-               else
-
-               {
-                   return Map.of("headers",v.getHeaders(),"value",v.getValue());
-               }
-
-
-           }).collect(Collectors.toList());
-
-        //   
-
-        }
+//      //
+//
+//        for (String s : formData) {
+//            //
+//
+//            Deque<FormData.FormValue> deque = formData.get(s);
+//
+//            var values = deque.stream().map(v -> {
+//
+//
+//                if (v.isFileItem()) {
+//                    return Map.of("headers", v.getHeaders(), "fileItem", v.getFileItem(), "fileName", v.getFileName());
+//                } else {
+//                    return Map.of("headers", v.getHeaders(), "value", v.getValue());
+//                }
+//
+//
+//            }).collect(Collectors.toList());
+//
+//            //
+//
+//        }
 
 
         return java.util.Optional.ofNullable(formData.get(name)).map(Deque::getFirst).map(fi -> {
@@ -261,7 +253,7 @@ public class Extractors {
 
             } catch (Exception e)
             {
-                log.error("Failed to parse buffer for name {}", name, e);
+                log.error("Failed to parse buffer for field name {}", name, e);
             }
 
             return null;

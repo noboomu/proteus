@@ -37,7 +37,7 @@ public class MediaType {
 
     /*******************************************************/
 
-    public static final MediaType TEXT_YAML = create("text/yaml", "yaml");
+    public static final MediaType APPLICATION_YAML = create("application/yaml", "yml","yaml");
     public static final MediaType MULTIPART_FORM_DATA = create("multipart/form-data");
 
     public static final MediaType APPLICATION_ANDREW_INSET = create("application/andrew-inset", "ez");
@@ -1197,15 +1197,15 @@ public class MediaType {
         return create(type, NO_ATTR, fileExtensisons);
     }
 
-    public static synchronized MediaType create(String type, String[] attributes, String... fileExtensisons) {
+    public static synchronized MediaType create(String type, String[] attributes, String... fileExtensions) {
         MediaType mt = new MediaType(type, attributes);
 
-        if (fileExtensisons == null) {
-            fileExtensisons = new String[]{};
+        if (fileExtensions == null) {
+            fileExtensions = new String[]{};
         }
 
-        if (!Arrays.stream(attributes).anyMatch(a -> a.equals(UTF8_ATTR[0]))) {
-            for (String ext : fileExtensisons) {
+        if (Arrays.stream(attributes).noneMatch(a -> a.equals(UTF8_ATTR[0]))) {
+            for (String ext : fileExtensions) {
                 FILE_EXTENSIONS.put(ext, mt);
             }
         }
@@ -1213,17 +1213,17 @@ public class MediaType {
         return mt;
     }
 
-    public static synchronized MediaType createUTF8(String type, String... fileExtensisons) {
-        if (fileExtensisons == null) {
-            fileExtensisons = new String[]{};
+    public static synchronized MediaType createUTF8(String type, String... fileExtensions) {
+        if (fileExtensions == null) {
+            fileExtensions = new String[]{};
         }
 
-        for (String ext : fileExtensisons) {
+        for (String ext : fileExtensions) {
             if (!FILE_EXTENSIONS.containsKey(ext)) {
-                FILE_EXTENSIONS.put(ext, create(type, fileExtensisons));
+                FILE_EXTENSIONS.put(ext, create(type, fileExtensions));
             }
         }
-        return create(type, UTF8_ATTR, fileExtensisons);
+        return create(type, UTF8_ATTR, fileExtensions);
     }
 
     public static synchronized MediaType getByFileExtension(String fileExtension) {

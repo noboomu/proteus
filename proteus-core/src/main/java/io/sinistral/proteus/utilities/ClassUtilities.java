@@ -1,8 +1,5 @@
 package io.sinistral.proteus.utilities;
 
-import com.google.common.base.Joiner;
-import com.google.common.reflect.Invokable;
-import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +52,7 @@ public class ClassUtilities {
             }
         }
 
-        for (var entry : typeTokenMap.entrySet()) {
+        for (Map.Entry<TypeToken<?>,List<TypeToken<?>>> entry : typeTokenMap.entrySet()) {
 
             TypeToken<?> k = entry.getKey();
             List<TypeToken<?>> v = entry.getValue();
@@ -64,18 +61,19 @@ public class ClassUtilities {
 
                 List<TypeToken<?>> parameters = typeTokenMap.getOrDefault(subType, new ArrayList<>());
 
+                String subName;
+
                 if (!parameters.isEmpty()) {
 
-                    String subName = ClassUtilities.generateName(typeTokenNameMap, subType, parameters);
+                    subName = ClassUtilities.generateName(typeTokenNameMap, subType, parameters);
 
-                    typeTokenNameMap.put(subType, subName);
                 } else {
 
-                    String subName = ClassUtilities.generateName(typeTokenNameMap, subType, Collections.emptyList());
-
-                    typeTokenNameMap.put(subType, subName);
+                    subName = ClassUtilities.generateName(typeTokenNameMap, subType, Collections.emptyList());
 
                 }
+
+                typeTokenNameMap.put(subType, subName);
 
             }
 
@@ -100,7 +98,7 @@ public class ClassUtilities {
         return (type instanceof Class) ? ((Class<?>) type).getName() : type.toString();
     }
 
- private   static List<TypeToken<?>> getGenericParameterTypeTokens(TypeToken<?> t) {
+    private static List<TypeToken<?>> getGenericParameterTypeTokens(TypeToken<?> t) {
 
         Class<?> rawType = t.getRawType();
 
@@ -119,7 +117,7 @@ public class ClassUtilities {
 
     public static String typeReferenceNameForParameterizedType(Type type) {
 
-      //  logger.info("creating name for reference: {}", type);
+        //  logger.info("creating name for reference: {}", type);
         String typeName = type.getTypeName();
 
         if (typeName.contains("Optional")) {
@@ -189,7 +187,7 @@ public class ClassUtilities {
 
         if (type instanceof ParameterizedType) {
             ParameterizedType pType = (ParameterizedType) type;
-          //  logger.info("pType: {}", pType);
+            //  logger.info("pType: {}", pType);
 
             Type actualTypeArgument0 = pType.getActualTypeArguments()[0];
 

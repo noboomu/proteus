@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Updated cookie handling.**
+
+
+[03b66501c7e0538](https://github.com/noboomu/proteus/commit/03b66501c7e0538) Joshua Bauer *2025-05-27 16:53:19*
+
 **Migrated testing to Junit5. Updated all dependencies. Added BearerTokenWrapper to openapi module to facilitate JWT authorization and updated spec to 3.1.**
 
 

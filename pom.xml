@@ -167,34 +167,20 @@
 
         <plugins>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <release>${java.version}</release>
-                    <compilerVersion>${java.version}</compilerVersion>
-                    <compilerArgument>-parameters</compilerArgument>
-                    <compilerArgs>
-                        <arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
-                    </compilerArgs>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
 
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin.version}</version>
-                <groupId>org.apache.maven.plugins</groupId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <artifactId>maven-jar-plugin</artifactId>-->
+<!--                <version>${maven-jar-plugin.version}</version>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <configuration>-->
+<!--                    <archive>-->
+<!--                        <manifest>-->
+<!--                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>-->
+<!--                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>-->
+<!--                        </manifest>-->
+<!--                    </archive>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -237,27 +223,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <source>${java.version</source>
-                    <detectJavaApiLink>false</detectJavaApiLink>
-                </configuration>
-                <version>${maven-javadoc-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <doclint>none</doclint>
-                        </configuration>
-                    </execution>
-                </executions>
-
-            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -306,19 +271,18 @@
 
             <plugins>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>${maven-source-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>attach-sources</id>
-                            <goals>
-                                <goal>jar-no-fork</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+<!--                <plugin>-->
+<!--                    <groupId>org.apache.maven.plugins</groupId>-->
+<!--                    <artifactId>maven-source-plugin</artifactId>-->
+<!--                    <version>${maven-source-plugin.version}</version>-->
+<!--                    <executions>-->
+<!--                        <execution>-->
+<!--                             <goals>-->
+<!--                                <goal>jar-no-fork</goal>-->
+<!--                            </goals>-->
+<!--                        </execution>-->
+<!--                    </executions>-->
+<!--                </plugin>-->
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -380,16 +344,18 @@
                         <goals>deploy</goals>
                     </configuration>
                 </plugin>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
+                        <release>${java.version}</release>
+                        <compilerVersion>${java.version}</compilerVersion>
                         <compilerArgument>-parameters</compilerArgument>
-
+                        <compilerArgs>
+                            <arg>-parameters</arg>
+                            <arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
+                        </compilerArgs>
+                        <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -439,19 +405,19 @@
             <build>
                 <plugins>
 
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>${maven-source-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-source-plugin</artifactId>-->
+<!--                        <version>${maven-source-plugin.version}</version>-->
+<!--                        <executions>-->
+<!--                            <execution>-->
+<!--                                <id>attach-sources</id>-->
+<!--                                <goals>-->
+<!--                                    <goal>jar-no-fork</goal>-->
+<!--                                </goals>-->
+<!--                            </execution>-->
+<!--                        </executions>-->
+<!--                    </plugin>-->
 
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>

@@ -53,11 +53,9 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.jacksonModule");
 
-         //   log.debug("Installing JacksonModule " + className);
-
             Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
 
-            AbstractModule module = clazz.newInstance();
+            AbstractModule module = clazz.getDeclaredConstructor().newInstance();
 
             install(module);
 
@@ -79,7 +77,7 @@ public class ApplicationModule extends AbstractModule
 
             Class<? extends AbstractModule> clazz = (Class<? extends AbstractModule>) Class.forName(className);
 
-            AbstractModule module = clazz.newInstance();
+            AbstractModule module = clazz.getDeclaredConstructor().newInstance();
 
             install(module);
 
@@ -113,8 +111,6 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.defaultResponseListener");
 
-            //log.debug("Installing DefaultResponseListener " + className);
-
             Class<? extends DefaultResponseListener> clazz = (Class<? extends DefaultResponseListener>) Class.forName(className);
 
             this.bind(DefaultResponseListener.class).to(clazz).in(Singleton.class);
@@ -131,10 +127,8 @@ public class ApplicationModule extends AbstractModule
 
             String className = config.getString("application.fallbackHandler");
 
-           // log.debug("Installing FallbackListener " + className);
-
             Class<? extends HttpHandler> clazz = (Class<? extends HttpHandler>) Class.forName(className);
-            HttpHandler fallbackHandler = clazz.newInstance();
+            HttpHandler fallbackHandler = clazz.getDeclaredConstructor().newInstance();
 
             this.binder().requestInjection(fallbackHandler);
             router.setFallbackHandler(fallbackHandler);

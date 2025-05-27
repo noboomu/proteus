@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Migrated testing to Junit5. Updated all dependencies. Added BearerTokenWrapper to openapi module to facilitate JWT authorization and updated spec to 3.1.**
+
+
+[fc983d4a92c8f89](https://github.com/noboomu/proteus/commit/fc983d4a92c8f89) Joshua Bauer *2025-05-23 19:00:52*
+
 **Bumped nexus-staging version to 1.6.13.**
 
 

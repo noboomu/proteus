@@ -605,9 +605,9 @@ public class ServerRequest {
         return exchange.addPathParam(name, param);
     }
 
-    public Map<String, Cookie> getRequestCookies() {
+    public Iterable<Cookie> getRequestCookies() {
 
-        return exchange.getRequestCookies();
+        return exchange.requestCookies();
     }
 
     public HttpServerExchange setResponseCookie(Cookie cookie) {
@@ -615,9 +615,9 @@ public class ServerRequest {
         return exchange.setResponseCookie(cookie);
     }
 
-    public Map<String, Cookie> getResponseCookies() {
+    public Iterable<Cookie> getResponseCookies() {
 
-        return exchange.getResponseCookies();
+        return exchange.responseCookies();
     }
 
     public boolean isResponseStarted() {

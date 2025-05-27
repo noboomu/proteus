@@ -23,10 +23,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -54,7 +51,7 @@ public class ServerResponse<T>
 
     protected int status = StatusCodes.OK;
     protected final HeaderMap headers = new HeaderMap();
-    protected final Map<String, Cookie> cookies = new HashMap<>();
+    protected final List<Cookie> cookies = new ArrayList<>();
     protected String contentType = MediaType.APPLICATION_JSON.contentType();
     protected T entity;
     protected Throwable throwable;
@@ -84,7 +81,7 @@ public class ServerResponse<T>
         return this.status;
     }
 
-    public Map<String, Cookie> getCookies()
+    public List<Cookie> getCookies()
     {
         return this.cookies;
     }
@@ -272,9 +269,9 @@ public class ServerResponse<T>
         return this;
     }
 
-    public ServerResponse<T> cookie(String cookieName, Cookie cookie)
+    public ServerResponse<T> cookie( Cookie cookie)
     {
-        this.cookies.put(cookieName, cookie);
+        this.cookies.add(cookie);
         this.hasCookies = true;
         return this;
     }
@@ -627,7 +624,10 @@ public class ServerResponse<T>
         }
 
         if (this.hasCookies) {
-            exchange.getResponseCookies().putAll(this.cookies);
+            for(Cookie cookie : this.cookies)
+            {
+                exchange.setResponseCookie(cookie);
+            }
         } else if (!this.processJson && !this.processXml) {
             if (ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange)) {
                 this.applicationJson();

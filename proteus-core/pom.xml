@@ -4,10 +4,11 @@
     <parent>
         <artifactId>proteus-project</artifactId>
         <groupId>io.sinistral</groupId>
-        <version>0.8.5-SNAPSHOT</version>
+        <version>0.9.0-SNAPSHOT</version>
     </parent>
     <properties>
         <jakarta.activation-api.version>2.1.2</jakarta.activation-api.version>
+        <logback.version>1.5.18</logback.version>
     </properties>
 
     <modelVersion>4.0.0</modelVersion>
@@ -15,6 +16,7 @@
     <name>Proteus Core</name>
 
     <packaging>jar</packaging>
+
 
     <build>
         <resources>

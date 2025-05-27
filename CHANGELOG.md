@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Resolve maven issues.**
+
+
+[e5b03fdf06e89a6](https://github.com/noboomu/proteus/commit/e5b03fdf06e89a6) Joshua Bauer *2025-05-27 17:23:37*
+
 **Updated cookie handling.**
 
 

@@ -6,7 +6,7 @@
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-project</artifactId>
     <packaging>pom</packaging>
-    <version>0.8.5-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <name>Proteus Project</name>
 
     <description>Proteus is a blazing fast minimalist Java API server framework built atop Undertow.</description>
@@ -21,7 +21,7 @@
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <url>https://www.opensource.org/licenses/mit-license.php</url>
         </license>
     </licenses>
 
@@ -52,7 +52,7 @@
         <jansi.version>1.18</jansi.version>
         <java.version>21</java.version>
         <javapoet.version>1.13.0</javapoet.version>
-        <logback.version>1.5.18</logback.version>
+
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>

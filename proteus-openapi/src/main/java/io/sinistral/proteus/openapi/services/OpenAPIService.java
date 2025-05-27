@@ -137,6 +137,8 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
     @Named("registeredHandlerWrappers")
     protected Map<String, HandlerWrapper> registeredHandlerWrappers;
 
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+
     public OpenAPIService() {
         jsonMapper = Json.mapper();
 
@@ -241,6 +243,8 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         OpenAPI openApi = new OpenAPI(SpecVersion.V31);
 
+        openApi.setOpenapi("3.1.1");
+
         Info info = jsonMapper.convertValue(openAPIConfig.getValue("info").unwrapped(), Info.class);
 
         openApi.setInfo(info);
@@ -315,23 +319,21 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         super.startUp();
 
+
         generateHTML();
 
-
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-
-            executor.submit(() ->
-            {
-                try {
-                    generateSpec();
-                } catch (Exception e) {
-                    log.error("Error generating OpenAPI spec", e);
-                }
-            });
-
-        }
-
         router.addAll(this.get());
+
+        executor.submit(() ->
+        {
+            try {
+                generateSpec();
+            } catch (Exception e) {
+                log.error("Error generating OpenAPI spec", e);
+            }
+        });
+
+
     }
 
     public RoutingHandler get() {

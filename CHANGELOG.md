@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Bump version**
+
+
+[ca7fd3fbfb0bdcc](https://github.com/noboomu/proteus/commit/ca7fd3fbfb0bdcc) Joshua Bauer *2025-05-27 17:43:53*
+
 **Resolve maven issues.**
 
 

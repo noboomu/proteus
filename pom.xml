@@ -49,10 +49,9 @@
         <guice.version>7.0.0</guice.version>
         <jackson.version>2.19.0</jackson.version>
         <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
-        <jansi.version>1.18</jansi.version>
+        <jansi.version>2.4.2</jansi.version>
         <java.version>21</java.version>
         <javapoet.version>1.13.0</javapoet.version>
-
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>

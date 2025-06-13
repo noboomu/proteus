@@ -169,6 +169,13 @@ Proteus Changelog.
             <version>${undertow.version}</version>
         </dependency>
 
+        <!-- Vert.x Event Bus for reactive messaging -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.apache.commons</groupId>

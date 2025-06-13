@@ -4,6 +4,18 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Complete OpenAPI 3.1 security integration**
+
+ * - Integrated SecurityAnnotationExtension into OpenAPIService for automatic security annotations processing
+ * - Added automatic JWT Bearer security scheme generation when JWT is enabled
+ * - Cleaned up imports and fixed dependency issues
+ * - OpenAPI 3.1+ now automatically documents security requirements based on Proteus security annotations
+ * - JWT Bearer token authentication scheme automatically added to OpenAPI spec when configured
+ * - Security requirements automatically applied to operations based on @RolesAllowed, @PermitAll, @DenyAll annotations
+ * Milestone 4 (OpenAPI 3.1 &amp; Security Schemes) completed successfully.
+
+[61d7d23b95429db](https://github.com/noboomu/proteus/commit/61d7d23b95429db) Joshua Bauer *2025-06-13 15:41:49*
+
 **feat: Implement comprehensive JWT security framework**
 
  * - Add JWT security annotations: @RolesAllowed, @PermitAll, @DenyAll, @Claim

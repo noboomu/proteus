@@ -12,6 +12,34 @@ import java.util.Optional;
  */
 public interface SecurityContext {
     
+    // Thread-local storage for security context
+    ThreadLocal<SecurityContext> CURRENT_CONTEXT = new ThreadLocal<>();
+    
+    /**
+     * Gets the current security context for the current thread.
+     * 
+     * @return The current security context or null if none is set
+     */
+    static SecurityContext getCurrent() {
+        return CURRENT_CONTEXT.get();
+    }
+    
+    /**
+     * Sets the security context for the current thread.
+     * 
+     * @param context The security context to set
+     */
+    static void setCurrent(SecurityContext context) {
+        CURRENT_CONTEXT.set(context);
+    }
+    
+    /**
+     * Clears the security context for the current thread.
+     */
+    static void clear() {
+        CURRENT_CONTEXT.remove();
+    }
+    
     /**
      * Gets the authenticated principal (user) for this request.
      * 

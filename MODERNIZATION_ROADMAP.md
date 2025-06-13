@@ -200,14 +200,14 @@ This document outlines the comprehensive modernization of the Proteus web framew
 6. Create comprehensive JWT testing framework
 7. **Git**: `feature/native-jwt-security` branch with baseline benchmarks
 
-### Milestone 4: OpenAPI 3.1 & Security Schemes (2 weeks)
-1. Update dependencies to OpenAPI 3.1.x
-2. Enhance type resolution for complex generics
-3. Add webhook annotation support
-4. Integrate native JWT security schemes in OpenAPI specs
-5. Add automatic security documentation
-6. Update OpenAPI generation tests
-7. **Git**: `feature/openapi-3.1-security` branch
+### Milestone 4: OpenAPI 3.1 & Security Schemes (COMPLETED)
+1. ✅ Update dependencies to OpenAPI 3.1.x
+2. ✅ Enhance type resolution for complex generics
+3. ✅ Add automatic JWT security scheme generation
+4. ✅ Integrate native JWT security schemes in OpenAPI specs
+5. ✅ Add automatic security documentation via SecurityAnnotationExtension
+6. ✅ Update OpenAPI generation for modern 3.1+ features
+7. ✅ **Git**: `feature/openapi-3.1-security` branch
 
 ### Milestone 5: Reactive Event Bus (3 weeks)
 1. Integrate minimal Vert.x Event Bus with custom `@ConsumeEvent` support
@@ -370,15 +370,15 @@ Modern WebSocket implementation:
 3. ✅ Implement Virtual Thread Optimization (Milestone 2)
 4. ✅ Implement JWT Security & RBAC Support (Milestone 3)
 5. ⏳ Set up CI/CD pipeline for performance regression detection
-6. 🆕 Begin Phase 2: OpenAPI 3.1 & Security Schemes Integration (Milestone 4)
-7. 🆕 Design and implement reactive event bus architecture (Milestone 5)
-8. 🆕 Design WebSocket Next API and security integration (Milestone 6)
+5. 🆕 Begin Phase 3: Reactive Event Bus Architecture (Milestone 5)
+6. 🆕 Design and implement minimal Vert.x Event Bus integration with @ConsumeEvent support
+7. 🆕 Design WebSocket Next API and security integration (Milestone 6)
 
 ## Progress Status
 - **Milestone 1**: ✅ COMPLETED - Reflection-based handlers
 - **Milestone 2**: ✅ COMPLETED - Virtual thread optimization with @RunOnVirtualThread
 - **Milestone 3**: ✅ COMPLETED - Comprehensive JWT security framework
-- **Milestone 4**: ⏳ IN PROGRESS - OpenAPI 3.1 & security schemes
+- **Milestone 4**: ✅ COMPLETED - OpenAPI 3.1 & security schemes integration
 - **Milestone 5**: 📋 PLANNED - Reactive event bus
 - **Milestone 6**: 📋 PLANNED - Modern WebSocket support
 - **Milestone 7**: 📋 PLANNED - Integration, benchmarking and testing

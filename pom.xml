@@ -85,6 +85,8 @@
         <!-- JWT and Security Dependencies -->
         <nimbus-jose-jwt.version>9.41.2</nimbus-jose-jwt.version>
         <java-jwt.version>4.4.0</java-jwt.version>
+        <!-- Event Bus Dependencies -->
+        <vertx.version>4.5.11</vertx.version>
     </properties>
 
 

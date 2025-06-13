@@ -21,6 +21,7 @@ import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.services.BaseService;
 import io.sinistral.proteus.utilities.SecurityUtilities;
 import io.sinistral.proteus.utilities.TablePrinter;
+import io.sinistral.proteus.eventbus.processors.ConsumeEventProcessor;
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
@@ -353,6 +354,23 @@ public class ProteusApplication {
         this.addDefaultRoutes(router);
 
         log.info("Route handlers generated");
+
+        // Process controllers for event bus consumers (@ConsumeEvent methods)
+        try {
+            ConsumeEventProcessor consumeEventProcessor = injector.getInstance(ConsumeEventProcessor.class);
+            for (Class<?> controllerClass : registeredControllers) {
+                try {
+                    Object controllerInstance = injector.getInstance(controllerClass);
+                    consumeEventProcessor.processInstance(controllerInstance);
+                } catch (Exception e) {
+                    log.debug("Could not process controller {} for event bus consumers: {}", 
+                             controllerClass.getSimpleName(), e.getMessage());
+                }
+            }
+            log.info("Event bus consumers processed");
+        } catch (Exception e) {
+            log.debug("Event bus consumer processing skipped (EventBus not enabled): {}", e.getMessage());
+        }
 
         HttpHandler handler;
 

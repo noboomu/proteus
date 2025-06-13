@@ -28,6 +28,10 @@ import io.sinistral.proteus.security.jwt.DefaultJwtConfiguration;
 import io.sinistral.proteus.security.jwt.JwtService;
 import io.sinistral.proteus.security.jwt.DefaultJwtService;
 import io.sinistral.proteus.security.handlers.SecurityProcessor;
+import io.sinistral.proteus.eventbus.EventBusService;
+import io.sinistral.proteus.eventbus.DefaultEventBusService;
+import io.sinistral.proteus.eventbus.processors.ConsumeEventProcessor;
+import io.vertx.core.Vertx;
 
 import java.util.*;
 
@@ -194,6 +198,23 @@ public class ApplicationModule extends AbstractModule
             log.info("JWT security support enabled");
         } catch (Exception e) {
             log.warn("Failed to initialize JWT security support", e);
+        }
+
+        // Configure Event Bus support
+        try {
+            if (config.hasPath("eventbus.enabled") && config.getBoolean("eventbus.enabled")) {
+                Vertx vertx = Vertx.vertx();
+                // ObjectMapper will be injected by the DI framework
+                this.bind(Vertx.class).toInstance(vertx);
+                this.bind(EventBusService.class).to(DefaultEventBusService.class).in(Singleton.class);
+                this.bind(ConsumeEventProcessor.class).in(Singleton.class);
+                
+                log.info("Event Bus support enabled with Vert.x");
+            } else {
+                log.info("Event Bus disabled in configuration");
+            }
+        } catch (Exception e) {
+            log.warn("Failed to initialize Event Bus support", e);
         }
 
     }

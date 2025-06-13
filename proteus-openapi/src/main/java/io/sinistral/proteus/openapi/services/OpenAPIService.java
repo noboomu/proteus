@@ -12,10 +12,10 @@ import io.sinistral.proteus.openapi.jaxrs2.ServerModelResolver;
 import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.services.DefaultService;
-import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
+import io.swagger.v3.jaxrs2.ext.OpenAPIExtension;
 import io.swagger.v3.jaxrs2.integration.JaxrsApplicationAndAnnotationScanner;
 import io.swagger.v3.oas.integration.GenericOpenApiContext;
 import io.swagger.v3.oas.integration.SwaggerConfiguration;
@@ -56,11 +56,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+import io.sinistral.proteus.openapi.security.SecurityAnnotationExtension;
 
 /**
  * A service for generating and serving an OpenAPI v3 spec and ui.
@@ -240,7 +239,15 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         Set<Class<?>> classes = this.registeredControllers;
 
-        OpenAPIExtensions.setExtensions(Collections.singletonList(new ServerParameterExtension()));
+        // Initialize security extension
+        SecurityAnnotationExtension securityAnnotationExtension = new SecurityAnnotationExtension();
+
+        // Set up OpenAPI extensions including security
+        List<OpenAPIExtension> extensions = new ArrayList<>();
+        extensions.add(new ServerParameterExtension());
+        extensions.add(securityAnnotationExtension);
+        
+        OpenAPIExtensions.setExtensions(extensions);
 
         OpenAPI openApi = new OpenAPI(SpecVersion.V31);
 
@@ -250,14 +257,21 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         openApi.setInfo(info);
 
-        Map<String, SecurityScheme> securitySchemes = jsonMapper.convertValue(openAPIConfig.getValue("securitySchemes").unwrapped(), new TypeReference<>() {
-        });
-
+        // Initialize components if needed
         if (openApi.getComponents() == null) {
             openApi.setComponents(new Components());
         }
 
-        openApi.getComponents().setSecuritySchemes(securitySchemes);
+        // Add configured security schemes from config
+        try {
+            Map<String, SecurityScheme> configSecuritySchemes = jsonMapper.convertValue(openAPIConfig.getValue("securitySchemes").unwrapped(), new TypeReference<>() {
+            });
+            if (configSecuritySchemes != null) {
+                openApi.getComponents().setSecuritySchemes(configSecuritySchemes);
+            }
+        } catch (Exception e) {
+            log.debug("No security schemes configured in config, using defaults");
+        }
 
         List<Server> servers = jsonMapper.convertValue(openAPIConfig.getValue("servers").unwrapped(), new TypeReference<>() {
         });
@@ -291,6 +305,36 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
                 .init();
 
         openApi = ctx.read();
+
+        // Post-process to add JWT security schemes if JWT is configured
+        try {
+            // Check if JWT is configured by looking for JWT configuration in the application config
+            if (this.config.hasPath("security.jwt.enabled") && this.config.getBoolean("security.jwt.enabled")) {
+                // Add JWT Bearer security scheme if not already present
+                if (openApi.getComponents() == null) {
+                    openApi.setComponents(new Components());
+                }
+                
+                Map<String, SecurityScheme> securitySchemes = openApi.getComponents().getSecuritySchemes();
+                if (securitySchemes == null) {
+                    securitySchemes = new HashMap<>();
+                    openApi.getComponents().setSecuritySchemes(securitySchemes);
+                }
+                
+                // Add JWT Bearer scheme if not already configured
+                if (!securitySchemes.containsKey("bearerAuth")) {
+                    SecurityScheme jwtScheme = new SecurityScheme()
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")
+                        .description("JWT Bearer token authentication");
+                    securitySchemes.put("bearerAuth", jwtScheme);
+                    log.debug("Added JWT Bearer security scheme to OpenAPI specification");
+                }
+            }
+        } catch (Exception e) {
+            log.debug("JWT configuration not found or invalid, skipping automatic JWT security scheme setup: {}", e.getMessage());
+        }
 
         this.openApi = openApi;
 

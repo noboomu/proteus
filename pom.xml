@@ -64,6 +64,8 @@
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
         <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
         <openapi.version>2.2.30</openapi.version>
+        <!-- Updated to support OpenAPI 3.1.x features -->
+        <openapi-generator.version>7.10.0</openapi-generator.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <proteus.version>${project.version}</proteus.version>
         <reflections.version>0.10.2</reflections.version>

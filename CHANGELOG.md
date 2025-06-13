@@ -4,6 +4,31 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**feat: Implement comprehensive JWT security framework**
+
+ * - Add JWT security annotations: @RolesAllowed, @PermitAll, @DenyAll, @Claim
+ * - Implement JsonWebToken interface with DefaultJsonWebToken (Nimbus JOSE+JWT)
+ * - Add JwtService for token processing and validation
+ * - Create SecurityContext and DefaultSecurityContext for request security info
+ * - Implement SecurityProcessor for Undertow handler integration
+ * - Add JWT configuration with support for RSA, EC, and HMAC keys
+ * - Integrate security processing into ReflectionHandlerGenerator
+ * - Add claim injection support with @Claim annotation
+ * - Update ApplicationModule to bind JWT security components
+ * - Add comprehensive JWT configuration to reference.conf
+ * - Create test controller demonstrating JWT security features
+ * Features:
+ * - Native JWT implementation with minimal external dependencies
+ * - Support for RSA, EC, and HMAC signature verification
+ * - Role-based access control (RBAC)
+ * - JWT claim injection into method parameters
+ * - Flexible configuration for issuers, audiences, clock skew
+ * - Security context management for handlers
+ * - Undertow integration with virtual thread support
+ * This completes Milestone 3: JWT Security &amp; RBAC Support from the modernization roadmap.
+
+[e78db4562e54b2a](https://github.com/noboomu/proteus/commit/e78db4562e54b2a) Joshua Bauer *2025-06-13 15:21:25*
+
 **feat: Implement virtual thread optimization with @RunOnVirtualThread**
 
  * - Add @RunOnVirtualThread annotation for explicit virtual thread execution

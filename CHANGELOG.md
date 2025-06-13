@@ -4,6 +4,17 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Add WebSocket foundation infrastructure**
+
+ * - Created WebSocket annotations: @WebSocket, @OnOpen, @OnMessage, @OnClose, @OnError
+ * - Implemented WebSocketConnection class with JSON/binary messaging support
+ * - Added CloseReason class for connection closure handling
+ * - Created WebSocketService interface for endpoint management and broadcasting
+ * - All annotations support virtual thread execution and security integration
+ * - Ready for WebSocket endpoint registration and handler implementation
+
+[e509240955def6c](https://github.com/noboomu/proteus/commit/e509240955def6c) Joshua Bauer *2025-06-13 19:33:38*
+
 **Complete Event Bus implementation**
 
  * - Added automatic processing of @ConsumeEvent methods during application startup

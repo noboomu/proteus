@@ -5,10 +5,10 @@ import io.sinistral.proteus.eventbus.EventBusService;
 import io.sinistral.proteus.server.ServerResponse;
 import io.vertx.core.eventbus.Message;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.MediaType; 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ public class EventBusTestController {
      */
     @POST
     @Path("/publish/{address}")
-    public ServerResponse<String> publishMessage(@PathParam("address") String address, TestUser user) {
+    public ServerResponse<ByteBuffer> publishMessage(@PathParam("address") String address, TestUser user) {
         try {
             eventBusService.publish(address, user);
             logger.info("Published message to address: {}", address);
@@ -71,7 +71,7 @@ public class EventBusTestController {
      */
     @POST
     @Path("/send/{address}")
-    public ServerResponse<String> sendMessage(@PathParam("address") String address, TestUser user) {
+    public ServerResponse<ByteBuffer> sendMessage(@PathParam("address") String address, TestUser user) {
         try {
             eventBusService.send(address, user);
             logger.info("Sent message to address: {}", address);

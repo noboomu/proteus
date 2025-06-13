@@ -16,6 +16,7 @@
     <modules>
         <module>proteus-core</module>
         <module>proteus-openapi</module>
+        <module>proteus-websocket</module>
     </modules>
 
     <licenses>
@@ -51,6 +52,9 @@
         <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
         <jansi.version>2.4.2</jansi.version>
         <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
         <javapoet.version>1.13.0</javapoet.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
@@ -353,13 +357,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <release>${java.version}</release>
-                        <compilerVersion>${java.version}</compilerVersion>
-                        <compilerArgument>-parameters</compilerArgument>
+                        <source>${maven.compiler.source}</source>
+                        <target>${maven.compiler.target}</target>
+                        <release>${maven.compiler.release}</release>
                         <compilerArgs>
                             <arg>-parameters</arg>
-                            <arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
                         </compilerArgs>
                         <encoding>UTF-8</encoding>
                     </configuration>

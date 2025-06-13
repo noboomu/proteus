@@ -1,8 +1,6 @@
 package io.sinistral.proteus.modules;
 
-import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+ 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
@@ -20,9 +18,7 @@ import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import io.sinistral.proteus.security.SecurityContext;
-import io.sinistral.proteus.security.DefaultSecurityContext;
+import org.slf4j.LoggerFactory; 
 import io.sinistral.proteus.security.jwt.JwtConfiguration;
 import io.sinistral.proteus.security.jwt.DefaultJwtConfiguration;
 import io.sinistral.proteus.security.jwt.JwtService;

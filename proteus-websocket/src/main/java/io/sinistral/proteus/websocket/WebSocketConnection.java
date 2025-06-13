@@ -235,6 +235,19 @@ public class WebSocketConnection {
     }
     
     /**
+     * Gets a connection attribute with a default value.
+     * 
+     * @param key the attribute key
+     * @param defaultValue the default value if attribute is not found
+     * @return the attribute value, or default value if not found
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getAttribute(String key, T defaultValue) {
+        T value = (T) attributes.get(key);
+        return value != null ? value : defaultValue;
+    }
+    
+    /**
      * Sets a connection attribute.
      * 
      * @param key the attribute key

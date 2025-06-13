@@ -4,6 +4,27 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**feat: Implement virtual thread optimization with @RunOnVirtualThread**
+
+ * - Add @RunOnVirtualThread annotation for explicit virtual thread execution
+ * - Implement VirtualThreadExecutorService with metrics and monitoring
+ * - Create VirtualThreadProcessor for Undertow integration
+ * - Update ReflectionHandlerGenerator with virtual thread support
+ * - Add virtual thread configuration in reference.conf
+ * - Follow Quarkus-style explicit annotation approach
+ * - Include proper error handling and thread naming
+ * This implements Milestone 2 of the modernization roadmap.
+
+[dd2534c1f8f3622](https://github.com/noboomu/proteus/commit/dd2534c1f8f3622) Joshua Bauer *2025-06-13 02:29:59*
+
+**wip: Add JMH dependencies and benchmark stubs**
+
+ * - Added JMH dependencies for future performance testing
+ * - Created benchmark structure (to be completed later)
+ * - Focus shifting to core modernization features
+
+[de4d8f7464044d9](https://github.com/noboomu/proteus/commit/de4d8f7464044d9) Joshua Bauer *2025-06-13 01:50:40*
+
 **feat: Add modernization roadmap and reflection-based handler generator**
 
  * - Add comprehensive modernization roadmap with native implementation approach

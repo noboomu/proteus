@@ -21,6 +21,13 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.sinistral.proteus.security.SecurityContext;
+import io.sinistral.proteus.security.DefaultSecurityContext;
+import io.sinistral.proteus.security.jwt.JwtConfiguration;
+import io.sinistral.proteus.security.jwt.DefaultJwtConfiguration;
+import io.sinistral.proteus.security.jwt.JwtService;
+import io.sinistral.proteus.security.jwt.DefaultJwtService;
+import io.sinistral.proteus.security.handlers.SecurityProcessor;
 
 import java.util.*;
 
@@ -172,6 +179,21 @@ public class ApplicationModule extends AbstractModule
             }
         } else {
             log.info("Virtual threads not supported in this JVM, skipping virtual thread configuration");
+        }
+
+        // Configure JWT security support
+        try {
+            JwtConfiguration jwtConfiguration = new DefaultJwtConfiguration(config);
+            JwtService jwtService = new DefaultJwtService(jwtConfiguration);
+            SecurityProcessor securityProcessor = new SecurityProcessor(jwtService);
+            
+            this.bind(JwtConfiguration.class).toInstance(jwtConfiguration);
+            this.bind(JwtService.class).toInstance(jwtService);
+            this.bind(SecurityProcessor.class).toInstance(securityProcessor);
+            
+            log.info("JWT security support enabled");
+        } catch (Exception e) {
+            log.warn("Failed to initialize JWT security support", e);
         }
 
     }

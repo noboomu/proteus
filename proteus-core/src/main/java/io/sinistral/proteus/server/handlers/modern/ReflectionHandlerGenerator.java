@@ -32,6 +32,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
+import io.sinistral.proteus.security.handlers.SecurityProcessor;
+import io.sinistral.proteus.annotations.security.RolesAllowed;
+import io.sinistral.proteus.annotations.security.PermitAll;
+import io.sinistral.proteus.annotations.security.DenyAll;
+import io.sinistral.proteus.annotations.security.Claim;
 
 /**
  * Modern reflection-based handler generator that replaces runtime compilation
@@ -61,6 +66,9 @@ public class ReflectionHandlerGenerator implements Supplier<RoutingHandler> {
     
     @Inject(optional = true)
     protected VirtualThreadProcessor virtualThreadProcessor;
+    
+    @Inject(optional = true)
+    protected SecurityProcessor securityProcessor;
     
     public ReflectionHandlerGenerator(Class<?> controllerClass, Object controllerInstance) {
         this.controllerClass = controllerClass;
@@ -164,6 +172,12 @@ public class ReflectionHandlerGenerator implements Supplier<RoutingHandler> {
             return new BeanParameterExtractor(rawType);
         }
         
+        // Handle JWT claim injection
+        io.sinistral.proteus.annotations.security.Claim claimParam = parameter.getAnnotation(io.sinistral.proteus.annotations.security.Claim.class);
+        if (claimParam != null) {
+            return new ClaimParameterExtractor(claimParam, rawType);
+        }
+        
         // Default to body parameter for complex types
         return new BodyParameterExtractor(rawType);
     }
@@ -206,6 +220,11 @@ public class ReflectionHandlerGenerator implements Supplier<RoutingHandler> {
                     result = wrapper.wrap(result);
                 }
             }
+        }
+        
+        // Apply security wrapper if security processor is available
+        if (securityProcessor != null && hasSecurityAnnotations(method)) {
+            result = securityProcessor.createSecureHandler(result, method);
         }
         
         return result;
@@ -278,6 +297,21 @@ public class ReflectionHandlerGenerator implements Supplier<RoutingHandler> {
         endpointInfo.setProduces(extractProduces(method));
         
         registeredEndpoints.add(endpointInfo);
+    }
+    
+    private boolean hasSecurityAnnotations(Method method) {
+        // Check method-level security annotations
+        if (method.isAnnotationPresent(RolesAllowed.class) ||
+            method.isAnnotationPresent(PermitAll.class) ||
+            method.isAnnotationPresent(DenyAll.class)) {
+            return true;
+        }
+        
+        // Check class-level security annotations
+        Class<?> declaringClass = method.getDeclaringClass();
+        return declaringClass.isAnnotationPresent(RolesAllowed.class) ||
+               declaringClass.isAnnotationPresent(PermitAll.class) ||
+               declaringClass.isAnnotationPresent(DenyAll.class);
     }
     
     /**
@@ -520,6 +554,119 @@ public class ReflectionHandlerGenerator implements Supplier<RoutingHandler> {
             } else {
                 return Extractors.model(exchange, type);
             }
+        }
+    }
+    
+    private static class ClaimParameterExtractor implements ParameterExtractor {
+        private final io.sinistral.proteus.annotations.security.Claim claimAnnotation;
+        private final Class<?> type;
+        
+        public ClaimParameterExtractor(io.sinistral.proteus.annotations.security.Claim claimAnnotation, Class<?> type) {
+            this.claimAnnotation = claimAnnotation;
+            this.type = type;
+        }
+        
+        @Override
+        public Object extract(HttpServerExchange exchange) throws Exception {
+            // Get security context from exchange
+            io.sinistral.proteus.security.SecurityContext securityContext = 
+                io.sinistral.proteus.security.handlers.SecurityProcessor.getSecurityContext(exchange)
+                    .orElse(null);
+            
+            if (securityContext == null) {
+                if (claimAnnotation.required()) {
+                    throw new IllegalStateException("JWT claim '" + getClaimName() + "' required but no security context available");
+                }
+                return getDefaultValue();
+            }
+            
+            // Get JWT token from security context
+            String rawToken = securityContext.getRawToken().orElse(null);
+            if (rawToken == null) {
+                if (claimAnnotation.required()) {
+                    throw new IllegalStateException("JWT claim '" + getClaimName() + "' required but no JWT token available");
+                }
+                return getDefaultValue();
+            }
+            
+            // Parse token and extract claim
+            try {
+                io.sinistral.proteus.security.jwt.JsonWebToken token = 
+                    new io.sinistral.proteus.security.jwt.DefaultJsonWebToken(rawToken);
+                
+                String claimName = getClaimName();
+                
+                if (type == String.class) {
+                    return token.getClaimAsString(claimName)
+                        .orElseGet(() -> getDefaultStringValue());
+                } else if (type == Long.class || type == long.class) {
+                    return token.getClaimAsLong(claimName)
+                        .orElseGet(() -> getDefaultLongValue());
+                } else if (type == Boolean.class || type == boolean.class) {
+                    return token.getClaimAsBoolean(claimName)
+                        .orElseGet(() -> getDefaultBooleanValue());
+                } else if (type == List.class) {
+                    return token.getClaimAsStringList(claimName);
+                } else if (type == java.util.Optional.class) {
+                    return token.getClaim(claimName);
+                } else {
+                    // Try to get as generic object
+                    return token.getClaim(claimName)
+                        .orElseGet(() -> getDefaultValue());
+                }
+            } catch (Exception e) {
+                if (claimAnnotation.required()) {
+                    throw new IllegalStateException("Failed to extract JWT claim '" + getClaimName() + "'", e);
+                }
+                return getDefaultValue();
+            }
+        }
+        
+        private String getClaimName() {
+            String claimName = claimAnnotation.value();
+            return claimName.isEmpty() ? "unknown" : claimName; // Parameter name would be ideal here
+        }
+        
+        private Object getDefaultValue() {
+            if (!claimAnnotation.defaultValue().isEmpty()) {
+                return claimAnnotation.defaultValue();
+            }
+            
+            if (type == String.class) {
+                return null;
+            } else if (type == Long.class || type == long.class) {
+                return null;
+            } else if (type == Boolean.class || type == boolean.class) {
+                return null;
+            } else if (type == List.class) {
+                return java.util.List.of();
+            } else if (type == java.util.Optional.class) {
+                return java.util.Optional.empty();
+            }
+            
+            return null;
+        }
+        
+        private String getDefaultStringValue() {
+            return claimAnnotation.defaultValue().isEmpty() ? null : claimAnnotation.defaultValue();
+        }
+        
+        private Long getDefaultLongValue() {
+            if (!claimAnnotation.defaultValue().isEmpty()) {
+                try {
+                    return Long.parseLong(claimAnnotation.defaultValue());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+        
+        private Boolean getDefaultBooleanValue() {
+            if (!claimAnnotation.defaultValue().isEmpty()) {
+                return Boolean.parseBoolean(claimAnnotation.defaultValue());
+            }
+            return null;
         }
     }
     

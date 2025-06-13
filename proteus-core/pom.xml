@@ -378,6 +378,13 @@ Proteus Changelog.
             <scope>test</scope>
         </dependency>
 
+        <!-- JWT and Security Dependencies -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
+        </dependency>
+
     </dependencies>
 
     <distributionManagement>

@@ -11,6 +11,8 @@ import com.typesafe.config.Config;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
+import io.sinistral.proteus.server.handlers.virtualthreads.VirtualThreadExecutorService;
+import io.sinistral.proteus.server.handlers.virtualthreads.VirtualThreadProcessor;
 import io.sinistral.proteus.services.BaseService;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.undertow.server.DefaultResponseListener;
@@ -154,6 +156,23 @@ public class ApplicationModule extends AbstractModule
         this.bind(new TypeLiteral<Map<String, HandlerWrapper>>()
         {
         }).annotatedWith(Names.named("registeredHandlerWrappers")).toInstance(registeredHandlerWrappers);
+
+        // Configure virtual thread support if available
+        if (VirtualThreadExecutorService.isVirtualThreadSupported()) {
+            try {
+                VirtualThreadExecutorService virtualThreadExecutor = new VirtualThreadExecutorService(config);
+                VirtualThreadProcessor virtualThreadProcessor = new VirtualThreadProcessor(virtualThreadExecutor);
+                
+                this.bind(VirtualThreadExecutorService.class).toInstance(virtualThreadExecutor);
+                this.bind(VirtualThreadProcessor.class).toInstance(virtualThreadProcessor);
+                
+                log.info("Virtual thread support enabled");
+            } catch (Exception e) {
+                log.warn("Failed to initialize virtual thread support", e);
+            }
+        } else {
+            log.info("Virtual threads not supported in this JVM, skipping virtual thread configuration");
+        }
 
     }
 }

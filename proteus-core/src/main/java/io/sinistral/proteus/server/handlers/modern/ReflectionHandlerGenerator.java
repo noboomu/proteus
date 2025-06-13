@@ -3,10 +3,12 @@ package io.sinistral.proteus.server.handlers.modern;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import io.sinistral.proteus.annotations.Blocking;
+import io.sinistral.proteus.annotations.RunOnVirtualThread;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
+import io.sinistral.proteus.server.handlers.virtualthreads.VirtualThreadProcessor;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -56,6 +58,9 @@ public class ReflectionHandlerGenerator implements Supplier<RoutingHandler> {
     @Inject
     @Named("registeredHandlerWrappers")
     protected Map<String, HandlerWrapper> registeredHandlerWrappers;
+    
+    @Inject(optional = true)
+    protected VirtualThreadProcessor virtualThreadProcessor;
     
     public ReflectionHandlerGenerator(Class<?> controllerClass, Object controllerInstance) {
         this.controllerClass = controllerClass;
@@ -170,11 +175,15 @@ public class ReflectionHandlerGenerator implements Supplier<RoutingHandler> {
     }
     
     private HttpHandler wrapHandler(HttpHandler handler, Method method) {
+        // Apply virtual thread wrapper first if available and needed
+        HttpHandler result = handler;
+        if (virtualThreadProcessor != null && virtualThreadProcessor.shouldRunOnVirtualThread(method)) {
+            result = virtualThreadProcessor.wrapHandler(result, method);
+        }
+        
         // Apply blocking wrapper if needed
         boolean isBlocking = method.isAnnotationPresent(Blocking.class);
         String consumesContentType = extractConsumes(method);
-        
-        HttpHandler result = handler;
         
         if (isBlocking || needsBlocking(consumesContentType)) {
             final HttpHandler innerHandler = result;

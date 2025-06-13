@@ -34,10 +34,9 @@ public class MediaType {
     public static final MediaType IMAGE_ANY = create("image/*");
     public static final MediaType VIDEO_ANY = create("video/*");
     public static final MediaType AUDIO_ANY = create("audio/*");
-
     /*******************************************************/
-
-    public static final MediaType APPLICATION_YAML = create("application/yaml", "yml","yaml");
+    public static final MediaType TEXT_YAML = create("text/yaml", "yaml","yml");
+    public static final MediaType APPLICATION_YAML = create("application/yaml", "yml");
     public static final MediaType MULTIPART_FORM_DATA = create("multipart/form-data");
 
     public static final MediaType APPLICATION_ANDREW_INSET = create("application/andrew-inset", "ez");
@@ -76,7 +75,8 @@ public class MediaType {
     public static final MediaType APPLICATION_INKML_XML = create("application/inkml+xml", "ink", "inkml");
     public static final MediaType APPLICATION_IPFIX = create("application/ipfix", "ipfix");
     public static final MediaType APPLICATION_JAVA_ARCHIVE = create("application/java-archive", "jar");
-    public static final MediaType APPLICATION_JAVASCRIPT_UTF8 = createUTF8("application/javascript", "js");
+    public static final MediaType APPLICATION_JAVASCRIPT = createUTF8("application/javascript", "js");
+    public static final MediaType TEXT_JAVASCRIPT = createUTF8("text/javascript", "js");
     public static final MediaType APPLICATION_JAVA_SERIALIZED_OBJECT = create("application/java-serialized-object",
             "ser");
     public static final MediaType APPLICATION_JAVA_VM = create("application/java-vm", "class");
@@ -868,6 +868,8 @@ public class MediaType {
     public static final MediaType AUDIO_BASIC = create("audio/basic", "au", "snd");
     public static final MediaType AUDIO_CSOUND = create("audio/csound", "csd", "orc", "sco");
     public static final MediaType AUDIO_FLAC = create("audio/flac", "flac");
+    public static final MediaType AUDIO_AAC = create("audio/aac", "aac");
+
     public static final MediaType AUDIO_MIDI = create("audio/midi", "mid", "midi", "kar", "rmi");
     public static final MediaType AUDIO_MP4 = create("audio/mp4", "mp4a");
     public static final MediaType AUDIO_MPEG = create("audio/mpeg", "mpga", "mpega", "mp2", "mp2a", "mp3", "m2a",
@@ -890,9 +892,11 @@ public class MediaType {
     public static final MediaType AUDIO_VND_RIP = create("audio/vnd.rip", "rip");
     public static final MediaType AUDIO_WEBM = create("audio/webm", "weba");
     public static final MediaType AUDIO_X_AAC = create("audio/x-aac", "aac");
+    public static final MediaType AUDIO_MATROSKA = create("audio/matroska", "mka");
+
     public static final MediaType AUDIO_X_AIFF = create("audio/x-aiff", "aif", "aiff", "aifc");
     public static final MediaType AUDIO_X_CAF = create("audio/x-caf", "caf");
-    public static final MediaType AUDIO_X_FLAC = create("audio/x-flac", "flac");
+
     public static final MediaType AUDIO_X_GSM = create("audio/x-gsm", "gsm");
     public static final MediaType AUDIO_X_MATROSKA = create("audio/x-matroska", "mka");
     public static final MediaType AUDIO_X_MPEGURL = create("audio/x-mpegurl", "m3u");
@@ -971,7 +975,7 @@ public class MediaType {
     public static final MediaType IMAGE_HEIC = create("image/heic", "heic");
     public static final MediaType IMAGE_GIF = create("image/gif", "gif");
     public static final MediaType IMAGE_IEF = create("image/ief", "ief");
-    public static final MediaType IMAGE_JPEG = create("image/jpeg", "jpg", "jpeg", "jpe");
+    public static final MediaType IMAGE_JPEG = create("image/jpeg", "jpg", "jpeg", "jpe", "jfif");
     public static final MediaType IMAGE_JXL = create("image/jxl", "jxl");
     public static final MediaType IMAGE_JBIG = create("image/jbig", "jbig", "jbg");
     public static final MediaType IMAGE_KTX = create("image/ktx", "ktx");
@@ -1173,7 +1177,7 @@ public class MediaType {
     public static final MediaType PLAIN_TEXT_UTF_8 = TEXT_PLAIN_UTF8;
 
     public static final MediaType XHTML_XML_UTF8 = APPLICATION_XHTML_XML_UTF8;
-    public static final MediaType JAVASCRIPT_UTF8 = APPLICATION_JAVASCRIPT_UTF8;
+    public static final MediaType JAVASCRIPT_UTF8 = TEXT_JAVASCRIPT;
     public static final MediaType JSON = APPLICATION_JSON;
     public static final MediaType XML_UTF_8 = APPLICATION_XML_UTF8;
 

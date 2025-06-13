@@ -4,6 +4,42 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**feat: Add modernization roadmap and reflection-based handler generator**
+
+ * - Add comprehensive modernization roadmap with native implementation approach
+ * - Implement ReflectionHandlerGenerator as replacement for runtime compilation
+ * - Add SimplePerformanceBenchmark for baseline measurements
+ * - Focus on native Undertow integration without external dependencies
+ * - Plan for native JWT, Event Bus, and WebSocket implementations
+ * This is Milestone 1 (COMPLETED) of the modernization plan.
+
+[9facb497c7acf14](https://github.com/noboomu/proteus/commit/9facb497c7acf14) Joshua Bauer *2025-06-13 00:51:13*
+
+**Improve openapi spec performance.**
+
+
+[9c8cb82c880c8d9](https://github.com/noboomu/proteus/commit/9c8cb82c880c8d9) Joshua Bauer *2025-05-27 22:42:35*
+
+**Bump version**
+
+
+[ca7fd3fbfb0bdcc](https://github.com/noboomu/proteus/commit/ca7fd3fbfb0bdcc) Joshua Bauer *2025-05-27 17:43:53*
+
+**Resolve maven issues.**
+
+
+[e5b03fdf06e89a6](https://github.com/noboomu/proteus/commit/e5b03fdf06e89a6) Joshua Bauer *2025-05-27 17:23:37*
+
+**Updated cookie handling.**
+
+
+[03b66501c7e0538](https://github.com/noboomu/proteus/commit/03b66501c7e0538) Joshua Bauer *2025-05-27 16:53:19*
+
+**Migrated testing to Junit5. Updated all dependencies. Added BearerTokenWrapper to openapi module to facilitate JWT authorization and updated spec to 3.1.**
+
+
+[fc983d4a92c8f89](https://github.com/noboomu/proteus/commit/fc983d4a92c8f89) Joshua Bauer *2025-05-23 19:00:52*
+
 **Bumped nexus-staging version to 1.6.13.**
 
 

@@ -13,6 +13,7 @@ import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.services.DefaultService;
 import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
 import io.swagger.v3.jaxrs2.integration.JaxrsApplicationAndAnnotationScanner;
@@ -140,7 +141,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
     ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public OpenAPIService() {
-        jsonMapper = Json.mapper();
+        jsonMapper = Json31.mapper();
 
         jsonMapper.registerModule(new Jdk8Module());
     }
@@ -295,7 +296,7 @@ public class OpenAPIService extends DefaultService implements Supplier<RoutingHa
 
         this.yamlSpec = Yaml.pretty().writeValueAsString(openApi);
 
-        this.jsonSpec = Json.pretty().writeValueAsString(openApi);
+        this.jsonSpec = Json31.pretty().writeValueAsString(openApi);
 
     }
 

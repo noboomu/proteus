@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.AnnotationMap;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.core.util.ParameterProcessor;
 import io.swagger.v3.jaxrs2.ResolvedParameter;
 import io.swagger.v3.jaxrs2.ext.AbstractOpenAPIExtension;
@@ -39,7 +40,7 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
     private static String PATH_PARAM = "path";
     private static String FORM_PARAM = "form";
 
-    final static ObjectMapper mapper = Json.mapper();
+    final static ObjectMapper mapper = Json31.mapper();
 
     @Override
     public ResolvedParameter extractParameters(List<Annotation> annotations, Type type, Set<Type> typesToSkip, Components components, jakarta.ws.rs.Consumes classConsumes,
@@ -62,9 +63,8 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
 
         for (Annotation annotation : annotations)
         {
-            if (annotation instanceof QueryParam)
+            if (annotation instanceof QueryParam param)
             {
-                QueryParam param = (QueryParam) annotation;
                 Parameter qp = new Parameter();
 
                 qp.setIn(QUERY_PARAM);
@@ -72,9 +72,8 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
 
                 parameter = qp;
             }
-            else if (annotation instanceof PathParam)
+            else if (annotation instanceof PathParam param)
             {
-                PathParam param = (PathParam) annotation;
                 Parameter pp = new Parameter();
 
                 pp.setIn(PATH_PARAM);
@@ -82,9 +81,8 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
 
                 parameter = pp;
             }
-            else if (annotation instanceof MatrixParam)
+            else if (annotation instanceof MatrixParam param)
             {
-                MatrixParam param = (MatrixParam) annotation;
                 Parameter pp = new Parameter();
 
                 pp.setIn(PATH_PARAM);
@@ -93,9 +91,8 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
 
                 parameter = pp;
             }
-            else if (annotation instanceof HeaderParam)
+            else if (annotation instanceof HeaderParam param)
             {
-                HeaderParam param = (HeaderParam) annotation;
                 Parameter pp = new Parameter();
 
                 pp.setIn(HEADER_PARAM);
@@ -103,9 +100,8 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
 
                 parameter = pp;
             }
-            else if (annotation instanceof CookieParam)
+            else if (annotation instanceof CookieParam param)
             {
-                CookieParam param = (CookieParam) annotation;
                 Parameter pp = new Parameter();
 
                 pp.setIn(COOKIE_PARAM);
@@ -326,7 +322,7 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension
 
                     if (processedParam != null)
                     {
-                        log.debug("added new parameters: " + processedParam);
+                        log.debug("added new parameters: {}", processedParam);
                         parameters.add(processedParam);
                     }
                 }

@@ -38,9 +38,10 @@ public class SimplePerformanceBenchmark {
     private void runHandlerGenerationBenchmark() throws Exception {
         System.out.println("=== Handler Generation Benchmark ===");
         
+        com.typesafe.config.Config config = com.typesafe.config.ConfigFactory.load();
         Injector injector = Guice.createInjector(
             new ConfigModule(),
-            new ApplicationModule()
+            new ApplicationModule(config)
         );
         
         // Warmup
@@ -74,10 +75,11 @@ public class SimplePerformanceBenchmark {
     private void runMemoryUsageBenchmark() throws Exception {
         System.out.println("\n=== Memory Usage Benchmark ===");
         
-        Runtime runtime = Runtime.getRuntime();
+        Runtime runtime = Runtime.getRuntime();        
+        com.typesafe.config.Config config = com.typesafe.config.ConfigFactory.load();
         Injector injector = Guice.createInjector(
             new ConfigModule(),
-            new ApplicationModule()
+            new ApplicationModule(config)
         );
         
         // Force GC and measure baseline

@@ -4,6 +4,22 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**feat: Add modernization roadmap and reflection-based handler generator**
+
+ * - Add comprehensive modernization roadmap with native implementation approach
+ * - Implement ReflectionHandlerGenerator as replacement for runtime compilation
+ * - Add SimplePerformanceBenchmark for baseline measurements
+ * - Focus on native Undertow integration without external dependencies
+ * - Plan for native JWT, Event Bus, and WebSocket implementations
+ * This is Milestone 1 (COMPLETED) of the modernization plan.
+
+[9facb497c7acf14](https://github.com/noboomu/proteus/commit/9facb497c7acf14) Joshua Bauer *2025-06-13 00:51:13*
+
+**Improve openapi spec performance.**
+
+
+[9c8cb82c880c8d9](https://github.com/noboomu/proteus/commit/9c8cb82c880c8d9) Joshua Bauer *2025-05-27 22:42:35*
+
 **Bump version**
 
 

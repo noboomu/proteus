@@ -12,7 +12,7 @@ import io.sinistral.proteus.server.ServerResponse;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverterContext;
-import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.media.Schema;
 
 import java.io.File;
@@ -32,7 +32,7 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
     public ServerModelResolver()
     {
-        super(Json.mapper());
+        super(Json31.mapper());
     }
 
     /**
@@ -50,7 +50,7 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
      * io.swagger.v3.core.converter.ModelConverterContext, java.util.Iterator)
      */
     @Override
-    public Schema resolve(AnnotatedType annotatedType, ModelConverterContext context, Iterator<ModelConverter> next)
+    public Schema<?> resolve(AnnotatedType annotatedType, ModelConverterContext context, Iterator<ModelConverter> next)
     {
         JavaType classType = TypeFactory.defaultInstance().constructType(annotatedType.getType());
         Class<?> rawClass = classType.getRawClass();
@@ -120,7 +120,7 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
 
         } catch (Exception e) {
 
-            log.error("Error processing " + annotatedType + " " + classType + " " + annotatedType.getName(), e);
+            log.error("Error processing {} {} {}", annotatedType, classType, annotatedType.getName(), e);
 
             return null;
         }

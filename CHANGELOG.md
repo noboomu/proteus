@@ -4,6 +4,16 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Complete Event Bus implementation**
+
+ * - Added automatic processing of @ConsumeEvent methods during application startup
+ * - Controllers are now automatically scanned for event bus consumers
+ * - EventBusTestController is ready for testing with publish/send/request patterns
+ * - Event bus consumers are registered during ProteusApplication.buildServer()
+ * - ConsumeEventProcessor is properly integrated into the startup flow
+
+[226ab7993abbb47](https://github.com/noboomu/proteus/commit/226ab7993abbb47) Joshua Bauer *2025-06-13 19:07:50*
+
 **Complete OpenAPI 3.1 security integration**
 
  * - Integrated SecurityAnnotationExtension into OpenAPIService for automatic security annotations processing

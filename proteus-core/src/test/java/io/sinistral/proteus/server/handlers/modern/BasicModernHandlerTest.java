@@ -33,6 +33,54 @@ public class BasicModernHandlerTest {
     }
     
     @Test
+    @DisplayName("ModernHandlerConfig should create test configuration")
+    void shouldCreateTestConfiguration() {
+        ModernHandlerConfig config = ModernHandlerConfig.testConfig();
+        
+        assertNotNull(config, "Test config should not be null");
+        assertFalse(config.isEnableCaching(), "Test config should disable caching");
+        assertFalse(config.isEnableParallelCompilation(), "Test config should disable parallel compilation");
+        assertTrue(config.isDebugMode(), "Test config should be in debug mode");
+        
+        log.info("Test configuration test passed");
+    }
+    
+    @Test
+    @DisplayName("ModernHandlerConfig should create development configuration") 
+    void shouldCreateDevelopmentConfiguration() {
+        ModernHandlerConfig config = ModernHandlerConfig.developmentConfig();
+        
+        assertNotNull(config, "Development config should not be null");
+        assertTrue(config.isEnableCaching(), "Development config should enable caching");
+        assertTrue(config.isDebugMode(), "Development config should be in debug mode");
+        assertTrue(config.isGenerateSourceFiles(), "Development config should generate source files");
+        assertNotNull(config.getSourceOutputDirectory(), "Development config should have source output directory");
+        
+        log.info("Development configuration test passed");
+    }
+    
+    @Test
+    @DisplayName("ModernHandlerConfig should support builder pattern")
+    void shouldSupportBuilderPattern() {
+        ModernHandlerConfig config = new ModernHandlerConfig.Builder()
+            .enableCaching(true)
+            .maxCacheSize(500)
+            .debugMode(false)
+            .enableMetrics(true)
+            .useVirtualThreads(true)
+            .build();
+            
+        assertNotNull(config, "Builder config should not be null");
+        assertTrue(config.isEnableCaching(), "Builder should set caching correctly");
+        assertEquals(500, config.getMaxCacheSize(), "Builder should set cache size correctly");
+        assertFalse(config.isDebugMode(), "Builder should set debug mode correctly");
+        assertTrue(config.isEnableMetrics(), "Builder should set metrics correctly");
+        assertTrue(config.isUseVirtualThreads(), "Builder should set virtual threads correctly");
+        
+        log.info("Builder pattern test passed");
+    }
+    
+    @Test
     @DisplayName("ModernCodeTemplates should generate basic parameter extraction")
     void shouldGenerateParameterExtraction() throws Exception {
         // Create a simple method for testing parameter extraction

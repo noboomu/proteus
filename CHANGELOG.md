@@ -4,6 +4,51 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Add HandlerGenerator modernization documentation**
+
+ * - Technical summary and complete project overview
+ * - Detailed 10-week modernization plan with phases
+ * - JavaPoet &amp; SourceBuddy compatibility analysis
+ * - Phase 1 implementation guide
+ * - Documentation index and navigation
+ * Key findings:
+ * - JavaPoet 1.13.0 and SourceBuddy 2.0.0 both Java 21 compatible
+ * - Both libraries required and work together in pipeline
+ * - Current implementation lacks caching, parallelization, monitoring
+ * - 5-phase approach for safe, incremental modernization
+
+[5340b3c718ec273](https://github.com/noboomu/proteus/commit/5340b3c718ec273) Joshua Bauer *2025-06-16 02:32:42*
+
+**Add comprehensive documentation for proteus-websocket module**
+
+ * - Added detailed README with quick start guide
+ * - Included configuration examples and advanced features
+ * - Documented WebSocketConnection API
+ * - Added integration instructions for existing applications
+ * - Updated modernization roadmap to mark WebSocket support as completed
+
+[e3e315541400f94](https://github.com/noboomu/proteus/commit/e3e315541400f94) Joshua Bauer *2025-06-13 23:14:56*
+
+**Complete WebSocket modularization as separate proteus-websocket module**
+
+ * - Created proteus-websocket as separate Maven module
+ * - Moved all WebSocket-related code from proteus-core to proteus-websocket
+ * - Added WebSocketModule for proper dependency injection
+ * - Created WebSocketApplication convenience class for easy integration
+ * - Fixed Maven compiler configuration for JDK 21
+ * - Added comprehensive WebSocket test controller
+ * - Updated parent POM to include websocket module
+ * - Removed WebSocket dependencies from proteus-core
+ * Features include:
+ * - @WebSocket, @OnOpen, @OnMessage, @OnClose, @OnError annotations
+ * - WebSocketConnection wrapper with enhanced functionality
+ * - JSON message serialization support
+ * - Security context integration
+ * - Virtual thread support for WebSocket handlers
+ * - Annotation-driven endpoint discovery and registration
+
+[c406af028a24406](https://github.com/noboomu/proteus/commit/c406af028a24406) Joshua Bauer *2025-06-13 23:13:33*
+
 **Add WebSocket foundation infrastructure**
 
  * - Created WebSocket annotations: @WebSocket, @OnOpen, @OnMessage, @OnClose, @OnError

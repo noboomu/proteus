@@ -4,6 +4,130 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Add HandlerGenerator modernization documentation**
+
+ * - Technical summary and complete project overview
+ * - Detailed 10-week modernization plan with phases
+ * - JavaPoet &amp; SourceBuddy compatibility analysis
+ * - Phase 1 implementation guide
+ * - Documentation index and navigation
+ * Key findings:
+ * - JavaPoet 1.13.0 and SourceBuddy 2.0.0 both Java 21 compatible
+ * - Both libraries required and work together in pipeline
+ * - Current implementation lacks caching, parallelization, monitoring
+ * - 5-phase approach for safe, incremental modernization
+
+[5340b3c718ec273](https://github.com/noboomu/proteus/commit/5340b3c718ec273) Joshua Bauer *2025-06-16 02:32:42*
+
+**Add comprehensive documentation for proteus-websocket module**
+
+ * - Added detailed README with quick start guide
+ * - Included configuration examples and advanced features
+ * - Documented WebSocketConnection API
+ * - Added integration instructions for existing applications
+ * - Updated modernization roadmap to mark WebSocket support as completed
+
+[e3e315541400f94](https://github.com/noboomu/proteus/commit/e3e315541400f94) Joshua Bauer *2025-06-13 23:14:56*
+
+**Complete WebSocket modularization as separate proteus-websocket module**
+
+ * - Created proteus-websocket as separate Maven module
+ * - Moved all WebSocket-related code from proteus-core to proteus-websocket
+ * - Added WebSocketModule for proper dependency injection
+ * - Created WebSocketApplication convenience class for easy integration
+ * - Fixed Maven compiler configuration for JDK 21
+ * - Added comprehensive WebSocket test controller
+ * - Updated parent POM to include websocket module
+ * - Removed WebSocket dependencies from proteus-core
+ * Features include:
+ * - @WebSocket, @OnOpen, @OnMessage, @OnClose, @OnError annotations
+ * - WebSocketConnection wrapper with enhanced functionality
+ * - JSON message serialization support
+ * - Security context integration
+ * - Virtual thread support for WebSocket handlers
+ * - Annotation-driven endpoint discovery and registration
+
+[c406af028a24406](https://github.com/noboomu/proteus/commit/c406af028a24406) Joshua Bauer *2025-06-13 23:13:33*
+
+**Add WebSocket foundation infrastructure**
+
+ * - Created WebSocket annotations: @WebSocket, @OnOpen, @OnMessage, @OnClose, @OnError
+ * - Implemented WebSocketConnection class with JSON/binary messaging support
+ * - Added CloseReason class for connection closure handling
+ * - Created WebSocketService interface for endpoint management and broadcasting
+ * - All annotations support virtual thread execution and security integration
+ * - Ready for WebSocket endpoint registration and handler implementation
+
+[e509240955def6c](https://github.com/noboomu/proteus/commit/e509240955def6c) Joshua Bauer *2025-06-13 19:33:38*
+
+**Complete Event Bus implementation**
+
+ * - Added automatic processing of @ConsumeEvent methods during application startup
+ * - Controllers are now automatically scanned for event bus consumers
+ * - EventBusTestController is ready for testing with publish/send/request patterns
+ * - Event bus consumers are registered during ProteusApplication.buildServer()
+ * - ConsumeEventProcessor is properly integrated into the startup flow
+
+[226ab7993abbb47](https://github.com/noboomu/proteus/commit/226ab7993abbb47) Joshua Bauer *2025-06-13 19:07:50*
+
+**Complete OpenAPI 3.1 security integration**
+
+ * - Integrated SecurityAnnotationExtension into OpenAPIService for automatic security annotations processing
+ * - Added automatic JWT Bearer security scheme generation when JWT is enabled
+ * - Cleaned up imports and fixed dependency issues
+ * - OpenAPI 3.1+ now automatically documents security requirements based on Proteus security annotations
+ * - JWT Bearer token authentication scheme automatically added to OpenAPI spec when configured
+ * - Security requirements automatically applied to operations based on @RolesAllowed, @PermitAll, @DenyAll annotations
+ * Milestone 4 (OpenAPI 3.1 &amp; Security Schemes) completed successfully.
+
+[61d7d23b95429db](https://github.com/noboomu/proteus/commit/61d7d23b95429db) Joshua Bauer *2025-06-13 15:41:49*
+
+**feat: Implement comprehensive JWT security framework**
+
+ * - Add JWT security annotations: @RolesAllowed, @PermitAll, @DenyAll, @Claim
+ * - Implement JsonWebToken interface with DefaultJsonWebToken (Nimbus JOSE+JWT)
+ * - Add JwtService for token processing and validation
+ * - Create SecurityContext and DefaultSecurityContext for request security info
+ * - Implement SecurityProcessor for Undertow handler integration
+ * - Add JWT configuration with support for RSA, EC, and HMAC keys
+ * - Integrate security processing into ReflectionHandlerGenerator
+ * - Add claim injection support with @Claim annotation
+ * - Update ApplicationModule to bind JWT security components
+ * - Add comprehensive JWT configuration to reference.conf
+ * - Create test controller demonstrating JWT security features
+ * Features:
+ * - Native JWT implementation with minimal external dependencies
+ * - Support for RSA, EC, and HMAC signature verification
+ * - Role-based access control (RBAC)
+ * - JWT claim injection into method parameters
+ * - Flexible configuration for issuers, audiences, clock skew
+ * - Security context management for handlers
+ * - Undertow integration with virtual thread support
+ * This completes Milestone 3: JWT Security &amp; RBAC Support from the modernization roadmap.
+
+[e78db4562e54b2a](https://github.com/noboomu/proteus/commit/e78db4562e54b2a) Joshua Bauer *2025-06-13 15:21:25*
+
+**feat: Implement virtual thread optimization with @RunOnVirtualThread**
+
+ * - Add @RunOnVirtualThread annotation for explicit virtual thread execution
+ * - Implement VirtualThreadExecutorService with metrics and monitoring
+ * - Create VirtualThreadProcessor for Undertow integration
+ * - Update ReflectionHandlerGenerator with virtual thread support
+ * - Add virtual thread configuration in reference.conf
+ * - Follow Quarkus-style explicit annotation approach
+ * - Include proper error handling and thread naming
+ * This implements Milestone 2 of the modernization roadmap.
+
+[dd2534c1f8f3622](https://github.com/noboomu/proteus/commit/dd2534c1f8f3622) Joshua Bauer *2025-06-13 02:29:59*
+
+**wip: Add JMH dependencies and benchmark stubs**
+
+ * - Added JMH dependencies for future performance testing
+ * - Created benchmark structure (to be completed later)
+ * - Focus shifting to core modernization features
+
+[de4d8f7464044d9](https://github.com/noboomu/proteus/commit/de4d8f7464044d9) Joshua Bauer *2025-06-13 01:50:40*
+
 **feat: Add modernization roadmap and reflection-based handler generator**
 
  * - Add comprehensive modernization roadmap with native implementation approach

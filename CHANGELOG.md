@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Phase 1**
+
+
+[186d89e816eea54](https://github.com/noboomu/proteus/commit/186d89e816eea54) Joshua Bauer *2025-06-16 20:31:33*
+
 **Progress**
 
 

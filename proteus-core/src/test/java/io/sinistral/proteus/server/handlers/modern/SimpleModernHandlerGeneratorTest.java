@@ -112,7 +112,7 @@ public class SimpleModernHandlerGeneratorTest {
         injectField(cachingGenerator, "registeredHandlerWrappers", new java.util.HashMap<>());
         
         // Clear any existing cache
-        SimpleModernHandlerGenerator.clearCache();
+        cachingGenerator.clearCache();
         
         // First generation
         long start1 = System.nanoTime();
@@ -147,13 +147,26 @@ public class SimpleModernHandlerGeneratorTest {
     @Test
     @DisplayName("Should collect and provide metrics")
     void shouldCollectAndProvideMetrics() throws Exception {
-        SimpleModernHandlerGenerator.clearCache();
+        // Use a caching-enabled generator for metrics
+        ModernHandlerConfig metricsConfig = ModernHandlerConfig.defaultConfig();
+        SimpleModernHandlerGenerator metricsGenerator = new SimpleModernHandlerGenerator(
+            "io.sinistral.proteus.test.generated", 
+            TestController.class, 
+            metricsConfig
+        );
+        
+        // Inject required fields
+        injectField(metricsGenerator, "applicationPath", "/test");
+        injectField(metricsGenerator, "registeredEndpoints", new HashSet<EndpointInfo>());
+        injectField(metricsGenerator, "registeredHandlerWrappers", new java.util.HashMap<>());
+        
+        metricsGenerator.clearCache();
         
         // Generate some source code
-        generator.generateClassSource();
+        metricsGenerator.generateClassSource();
         
         // Get metrics
-        var metrics = SimpleModernHandlerGenerator.getMetrics();
+        var metrics = metricsGenerator.getMetrics();
         
         assertNotNull(metrics, "Metrics should not be null");
         assertTrue(metrics.containsKey("cache_size"), "Should track cache size");

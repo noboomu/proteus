@@ -4,6 +4,21 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Phase 1**
+
+
+[186d89e816eea54](https://github.com/noboomu/proteus/commit/186d89e816eea54) Joshua Bauer *2025-06-16 20:31:33*
+
+**Progress**
+
+
+[af95757cc3055ea](https://github.com/noboomu/proteus/commit/af95757cc3055ea) Joshua Bauer *2025-06-16 20:03:00*
+
+**Progress**
+
+
+[0423c9ac9e325ab](https://github.com/noboomu/proteus/commit/0423c9ac9e325ab) Joshua Bauer *2025-06-16 19:18:21*
+
 **Add HandlerGenerator modernization documentation**
 
  * - Technical summary and complete project overview

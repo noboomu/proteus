@@ -4,13 +4,15 @@
 package io.sinistral.proteus.server.handlers.modern;
 
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
+import io.sinistral.proteus.server.handlers.modern.cache.HandlerCache;
+import io.sinistral.proteus.server.handlers.modern.cache.HandlerCacheFactory;
+import io.sinistral.proteus.server.handlers.modern.cache.CacheMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Optional;
 
 /**
  * Simplified modern handler generator that actually works.
@@ -20,39 +22,48 @@ public class SimpleModernHandlerGenerator extends HandlerGenerator {
     
     private static final Logger log = LoggerFactory.getLogger(SimpleModernHandlerGenerator.class);
     
-    // Simple cache for testing
-    private static final ConcurrentMap<String, String> SIMPLE_CACHE = new ConcurrentHashMap<>();
-    
+    // Modern cache system
+    private final HandlerCache cache;
     private final ModernHandlerConfig config;
     
     public SimpleModernHandlerGenerator(String packageName, Class<?> controllerClass, ModernHandlerConfig config) {
         super(packageName, controllerClass);
         this.config = config;
+        
+        // Initialize cache based on config
+        if (config.isEnableCaching()) {
+            this.cache = HandlerCacheFactory.createLRUWithTTL(
+                config.getMaxCacheSize(),
+                config.getCacheTimeout()
+            );
+        } else {
+            this.cache = null;
+        }
     }
     
     @Override
     public String generateClassSource() throws Exception {
-        // Check cache if enabled
-        if (config.isEnableCaching()) {
+        // Use cache if enabled
+        if (config.isEnableCaching() && cache != null) {
             String cacheKey = controllerClass.getName();
-            String cached = SIMPLE_CACHE.get(cacheKey);
-            if (cached != null) {
-                return cached;
-            }
+            Object result = cache.computeIfAbsent(cacheKey, this::doGenerateClassSource);
+            return (String) result;
         }
         
-        // Generate the source
-        String originalSource = super.generateClassSource();
-        
-        // Add modern header
-        String modernSource = addModernHeader(originalSource);
-        
-        // Cache if enabled
-        if (config.isEnableCaching()) {
-            SIMPLE_CACHE.put(controllerClass.getName(), modernSource);
+        return doGenerateClassSource(controllerClass.getName());
+    }
+    
+    private String doGenerateClassSource(String cacheKey) {
+        try {
+            // Generate the source
+            String originalSource = super.generateClassSource();
+            
+            // Add modern header
+            return addModernHeader(originalSource);
+        } catch (Exception e) {
+            log.error("Failed to generate handler source for: {}", cacheKey, e);
+            throw new RuntimeException("Handler generation failed", e);
         }
-        
-        return modernSource;
     }
     
     private String addModernHeader(String originalSource) {
@@ -79,15 +90,42 @@ public class SimpleModernHandlerGenerator extends HandlerGenerator {
         return modernHeader + originalSource;
     }
     
-    // Simple static methods for testing
-    public static Map<String, Object> getMetrics() {
+    // Instance methods for cache management
+    public Map<String, Object> getMetrics() {
         Map<String, Object> metrics = new HashMap<>();
-        metrics.put("cache_size", SIMPLE_CACHE.size());
+        
+        if (cache != null) {
+            Optional<CacheMetrics> cacheMetrics = cache.getMetrics();
+            if (cacheMetrics.isPresent()) {
+                CacheMetrics cm = cacheMetrics.get();
+                metrics.put("cache_size", cm.getSize());
+                metrics.put("cache_hits", cm.getHits());
+                metrics.put("cache_misses", cm.getMisses());
+                metrics.put("hit_rate", cm.getHitRate());
+                metrics.put("evictions", cm.getEvictions());
+                metrics.put("avg_load_time_ms", cm.getAverageLoadTime() / 1_000_000.0);
+            } else {
+                metrics.put("cache_size", cache.size());
+            }
+        } else {
+            metrics.put("cache_size", 0);
+            metrics.put("cache_enabled", false);
+        }
+        
         return metrics;
     }
     
-    public static void clearCache() {
-        SIMPLE_CACHE.clear();
-        log.info("Simple handler cache cleared");
+    public void clearCache() {
+        if (cache != null) {
+            cache.clear();
+            log.info("Modern handler cache cleared");
+        }
+    }
+    
+    public void shutdown() {
+        if (cache != null) {
+            cache.shutdown();
+            log.info("Modern handler generator shutdown completed");
+        }
     }
 }

@@ -1,6 +1,7 @@
 package io.sinistral.proteus.server.handlers.modern;
 
 import java.time.Duration;
+import io.sinistral.proteus.server.handlers.modern.cache.EvictionPolicy;
 
 /**
  * Configuration for modern handler generation and compilation.
@@ -15,6 +16,7 @@ public class ModernHandlerConfig {
     private final int maxCacheSize;
     private final Duration cacheTimeout;
     private final boolean enableCacheEviction;
+    private final EvictionPolicy cacheEvictionPolicy;
     
     // Compilation configuration
     private final int compilationThreads;
@@ -39,6 +41,7 @@ public class ModernHandlerConfig {
         this.maxCacheSize = builder.maxCacheSize;
         this.cacheTimeout = builder.cacheTimeout;
         this.enableCacheEviction = builder.enableCacheEviction;
+        this.cacheEvictionPolicy = builder.cacheEvictionPolicy;
         
         this.compilationThreads = builder.compilationThreads;
         this.compilationTimeout = builder.compilationTimeout;
@@ -62,6 +65,7 @@ public class ModernHandlerConfig {
     public int getMaxCacheSize() { return maxCacheSize; }
     public Duration getCacheTimeout() { return cacheTimeout; }
     public boolean isEnableCacheEviction() { return enableCacheEviction; }
+    public EvictionPolicy getCacheEvictionPolicy() { return cacheEvictionPolicy; }
     public int getParallelCompilationThreshold() { return parallelCompilationThreshold; }
     
     public int getCompilationThreads() { return compilationThreads; }
@@ -86,6 +90,7 @@ public class ModernHandlerConfig {
             .enableCaching(true)
             .maxCacheSize(1000)
             .cacheTimeout(Duration.ofHours(1))
+            .cacheEvictionPolicy(EvictionPolicy.LRU)
             .compilationThreads(Math.min(4, Runtime.getRuntime().availableProcessors()))
             .compilationTimeout(Duration.ofSeconds(30))
             .enableParallelCompilation(true)
@@ -104,6 +109,7 @@ public class ModernHandlerConfig {
             .enableCaching(true)
             .maxCacheSize(100)
             .cacheTimeout(Duration.ofMinutes(5))
+            .cacheEvictionPolicy(EvictionPolicy.LRU)
             .compilationThreads(2)
             .compilationTimeout(Duration.ofSeconds(60))
             .enableParallelCompilation(false)
@@ -138,6 +144,7 @@ public class ModernHandlerConfig {
         private int maxCacheSize = 1000;
         private Duration cacheTimeout = Duration.ofHours(1);
         private boolean enableCacheEviction = true;
+        private EvictionPolicy cacheEvictionPolicy = EvictionPolicy.LRU;
         
         private int compilationThreads = Runtime.getRuntime().availableProcessors();
         private Duration compilationTimeout = Duration.ofSeconds(30);
@@ -176,6 +183,11 @@ public class ModernHandlerConfig {
         
         public Builder enableCacheEviction(boolean enableCacheEviction) {
             this.enableCacheEviction = enableCacheEviction;
+            return this;
+        }
+        
+        public Builder cacheEvictionPolicy(EvictionPolicy cacheEvictionPolicy) {
+            this.cacheEvictionPolicy = cacheEvictionPolicy;
             return this;
         }
         

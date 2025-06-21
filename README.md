@@ -4,7 +4,7 @@
 Proteus is a __blazing fast minimalist__ Java API server framework built atop [Undertow](http://undertow.io) for developing back end applications and microservices.
 
 - __NO MAGIC__
-- Incredibly easy to use and get started
+- Incredibly easy to use and get started from now
 - Limited dependencies and < 340kb
 - JAX-RS compliant
 - Easy on the developer and the metal

@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Improve openapi spec performance.**
+
+
+[9c8cb82c880c8d9](https://github.com/noboomu/proteus/commit/9c8cb82c880c8d9) Joshua Bauer *2025-05-27 22:42:35*
+
 **Bump version**
 
 

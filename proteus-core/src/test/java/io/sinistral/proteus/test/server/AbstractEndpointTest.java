@@ -1,6 +1,5 @@
 package io.sinistral.proteus.test.server;
 
-import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -75,10 +74,6 @@ public class AbstractEndpointTest {
         }
 
         file = files.getFirst();
-
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-
-
 
     }
 

@@ -1,10 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
     <parent>
         <artifactId>proteus-project</artifactId>
         <groupId>io.sinistral</groupId>
-        <version>0.9.0-SNAPSHOT</version>
+        <version>0.9.4-SNAPSHOT</version>
     </parent>
     <properties>
         <jakarta.activation-api.version>2.1.2</jakarta.activation-api.version>
@@ -133,8 +136,10 @@ Proteus Changelog.
                 </dependencies>
 
                 <configuration>
-                    <argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
-                    <argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
+                    <argLine
+                    >-Dconfig.file=src/test/resources/application.conf</argLine>
+                    <argLine
+                    >-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
 
                 </configuration>
             </plugin>
@@ -150,7 +155,8 @@ Proteus Changelog.
                     <compilerArgument>-parameters</compilerArgument>
                     <compilerArgs>
                         <arg>-parameters</arg>
-                        <arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
+                        <arg
+                        >--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
                     </compilerArgs>
                     <encoding>UTF-8</encoding>
                     <source>${java.version}</source>
@@ -274,45 +280,34 @@ Proteus Changelog.
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+            <version>${jackson-annotations.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
+            <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <groupId>tools.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <groupId>tools.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-parameter-names</artifactId>
-        </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
+            <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-blackbird</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jdk8</artifactId>
-        </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
+            <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
@@ -367,6 +362,7 @@ Proteus Changelog.
     </dependencies>
 
     <distributionManagement>
-        <downloadUrl>https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-core</downloadUrl>
+        <downloadUrl
+        >https://oss.sonatype.org/content/groups/public/io/sinistral/proteus-core</downloadUrl>
     </distributionManagement>
 </project>

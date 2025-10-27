@@ -3,29 +3,27 @@
  */
 package io.sinistral.proteus.test.server;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
+import static io.sinistral.proteus.test.util.TestClient.given;
+import io.sinistral.proteus.test.util.ContentType;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import io.sinistral.proteus.protocol.MediaType;
 import io.sinistral.proteus.test.models.User;
 import io.sinistral.proteus.test.models.User.UserType;
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author jbauer
@@ -36,54 +34,89 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
 
     @Test
     public void testDebugEndpoint() {
-        given().accept(ContentType.JSON).when().get("v1/tests/response/debug").then().statusCode(200).body(containsString("testValue"));
+        given()
+            .accept(ContentType.JSON)
+            .when()
+            .get("v1/tests/response/debug")
+            .then()
+            .statusCode(200)
+            .body(containsString("testValue"));
     }
 
     @Test
     public void responseUploadFilePathParameter() throws IOException {
         final InputStream is = given()
-                .multiPart("file", file, MediaType.AUDIO_MP4.contentType())
-                .accept(ContentType.JSON).when().post("v1/tests/response/file/path")
-                .then().extract().asInputStream();
+            .multiPart("file", file, MediaType.AUDIO_MP4.contentType())
+            .accept(ContentType.JSON)
+            .when()
+            .post("v1/tests/response/file/path")
+            .then()
+            .extract()
+            .asInputStream();
 
-        try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+        try (
+            final ByteArrayOutputStream byteArrayOutputStream =
+                new ByteArrayOutputStream()
+        ) {
             IOUtils.copy(is, byteArrayOutputStream);
 
-            assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+            assertThat(
+                byteArrayOutputStream.size(),
+                equalTo(Long.valueOf(file.length()).intValue())
+            );
         }
     }
 
     @Test
     public void uploadMultipleFileList() {
-        Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-                .multiPart("names", files.get(0).getName())
-                .multiPart("names", files.get(1).getName())
-                .multiPart("names", files.get(2).getName())
-                .multiPart("names", files.get(3).getName())
-                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
+        Map map = given()
+            .multiPart("files", files.get(0))
+            .multiPart("files", files.get(1))
+            .multiPart("files", files.get(2))
+            .multiPart("files", files.get(3))
+            .multiPart("names", files.get(0).getName())
+            .multiPart("names", files.get(1).getName())
+            .multiPart("names", files.get(2).getName())
+            .multiPart("names", files.get(3).getName())
+            .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+            .accept(ContentType.JSON)
+            .when()
+            .post("v1/tests/list/file")
+            .as(Map.class);
 
         assertThat(map.size(), equalTo(4));
 
-        assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
+        assertThat(
+            map.get(files.get(0).getName()),
+            equalTo(files.get(0).getTotalSpace() + "")
+        );
     }
 
     @Test
     public void uploadMultiplePathList() {
         try {
-            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-                    .multiPart("names", files.get(0).getName())
-                    .multiPart("names", files.get(1).getName())
-                    .multiPart("names", files.get(2).getName())
-                    .multiPart("names", files.get(3).getName())
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/list/file").as(Map.class);
+            Map map = given()
+                .multiPart("files", files.get(0))
+                .multiPart("files", files.get(1))
+                .multiPart("files", files.get(2))
+                .multiPart("files", files.get(3))
+                .multiPart("names", files.get(0).getName())
+                .multiPart("names", files.get(1).getName())
+                .multiPart("names", files.get(2).getName())
+                .multiPart("names", files.get(3).getName())
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/list/file")
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(4));
 
-            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
+            assertThat(
+                map.get(files.get(0).getName()),
+                equalTo(files.get(0).getTotalSpace() + "")
+            );
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -91,9 +124,15 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
     @Test
     public void uploadMultipleFileMap() {
         try {
-            Response mapResponse = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/map/file");
+            var mapResponse = given()
+                .multiPart("files", files.get(0))
+                .multiPart("files", files.get(1))
+                .multiPart("files", files.get(2))
+                .multiPart("files", files.get(3))
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/map/file");
 
             ObjectMapper mapper = new ObjectMapper();
 
@@ -101,9 +140,11 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
 
             assertThat(node.size(), equalTo(4));
 
-            assertEquals(node.get(files.get(0).getName()).asText(), files.get(0).getTotalSpace() + "");
+            assertEquals(
+                node.get(files.get(0).getName()).asText(),
+                files.get(0).getTotalSpace() + ""
+            );
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -112,15 +153,25 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
     @Test
     public void responseUploadByteBufferParameter() {
         try {
-            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/bytebuffer").asInputStream();
+            final InputStream is = given()
+                .multiPart("file", file)
+                .accept(ContentType.ANY)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .when()
+                .post("v1/tests/response/bytebuffer")
+                .asInputStream();
 
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            final ByteArrayOutputStream byteArrayOutputStream =
+                new ByteArrayOutputStream();
             IOUtils.copy(is, byteArrayOutputStream);
             IOUtils.closeQuietly(byteArrayOutputStream);
             IOUtils.closeQuietly(is);
 
-            assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
-        } catch (Exception e) { 
+            assertThat(
+                byteArrayOutputStream.size(),
+                equalTo(Long.valueOf(file.length()).intValue())
+            );
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -129,15 +180,25 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
     @Test
     public void responseUploadFileParameter() {
         try {
-            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/file").asInputStream();
+            final InputStream is = given()
+                .multiPart("file", file)
+                .accept(ContentType.ANY)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .when()
+                .post("v1/tests/response/file")
+                .asInputStream();
 
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            final ByteArrayOutputStream byteArrayOutputStream =
+                new ByteArrayOutputStream();
             IOUtils.copy(is, byteArrayOutputStream);
             IOUtils.closeQuietly(byteArrayOutputStream);
             IOUtils.closeQuietly(is);
 
-            assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
-        } catch (Exception e) { 
+            assertThat(
+                byteArrayOutputStream.size(),
+                equalTo(Long.valueOf(file.length()).intValue())
+            );
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -145,14 +206,24 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
     @Test
     public void uploadMultiplePathMap() {
         try {
-            Map map = given().multiPart("files", files.get(0)).multiPart("files", files.get(1)).multiPart("files", files.get(2)).multiPart("files", files.get(3))
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/map/file").as(Map.class);
+            Map map = given()
+                .multiPart("files", files.get(0))
+                .multiPart("files", files.get(1))
+                .multiPart("files", files.get(2))
+                .multiPart("files", files.get(3))
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/map/file")
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(4));
 
-            assertThat(map.get(files.get(0).getName()), equalTo(files.get(0).getTotalSpace() + ""));
-        } catch (Exception e) { 
+            assertThat(
+                map.get(files.get(0).getName()),
+                equalTo(files.get(0).getTotalSpace() + "")
+            );
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -160,14 +231,26 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
     @Test
     public void responseUploadOptionalFilePathParameter() {
         try {
-            final InputStream is = given().multiPart("file", file).accept(ContentType.ANY).contentType(MediaType.MULTIPART_FORM_DATA.contentType()).when().post("v1/tests/response/file/path/optional").asInputStream();
+            final InputStream is = given()
+                .multiPart("file", file)
+                .accept(ContentType.ANY)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .when()
+                .post("v1/tests/response/file/path/optional")
+                .asInputStream();
 
-            try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            try (
+                final ByteArrayOutputStream byteArrayOutputStream =
+                    new ByteArrayOutputStream()
+            ) {
                 IOUtils.copy(is, byteArrayOutputStream);
 
-                assertThat(byteArrayOutputStream.size(), equalTo(Long.valueOf(file.length()).intValue()));
+                assertThat(
+                    byteArrayOutputStream.size(),
+                    equalTo(Long.valueOf(file.length()).intValue())
+                );
             }
-        } catch (Exception e) { 
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -178,18 +261,25 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
         try {
             User model = new User(101L, UserType.ADMIN);
 
-            Map map = given().multiPart("buffer", file)
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/mixed").as(Map.class);
+            Map map = given()
+                .multiPart("buffer", file)
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/mixed")
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
-            assertThat(map.get("buffer").toString(), containsString(file.length() + ""));
+            assertThat(
+                map.get("buffer").toString(),
+                containsString(file.length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
-        } catch (Exception e) { 
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -200,18 +290,31 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
         try {
             User model = new User(101L, UserType.ADMIN);
 
-            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/future/mixed").then().extract().as(Map.class);
+            Map map = given()
+                .multiPart(
+                    "buffer",
+                    file,
+                    MediaType.APPLICATION_OCTET_STREAM.contentType()
+                )
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/future/mixed")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
-            assertThat(map.get("buffer").toString(), containsString(file.length() + ""));
+            assertThat(
+                map.get("buffer").toString(),
+                containsString(file.length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
-        } catch (Exception e) { 
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -221,18 +324,27 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
         try {
             User model = new User(101L, UserType.ADMIN);
 
-            Map map = given().multiPart("path", file)
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/path-mixed").then().extract().as(Map.class);
+            Map map = given()
+                .multiPart("path", file)
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/path-mixed")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
-            assertThat(map.get("path").toString(), containsString(file.length() + ""));
+            assertThat(
+                map.get("path").toString(),
+                containsString(file.length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
-        } catch (Exception e) { 
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -243,18 +355,27 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
         try {
             User model = new User(101L, UserType.ADMIN);
 
-            Map map = given().multiPart("path", file)
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/future/path-mixed").then().extract().as(Map.class);
+            Map map = given()
+                .multiPart("path", file)
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/future/path-mixed")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
-            assertThat(map.get("path").toString(), containsString(file.length() + ""));
+            assertThat(
+                map.get("path").toString(),
+                containsString(file.length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
-        } catch (Exception e) { 
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -264,18 +385,27 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
         try {
             User model = new User(101L, UserType.ADMIN);
 
-            Map map = given().multiPart("file", file)
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/file-mixed").then().extract().as(Map.class);
+            Map map = given()
+                .multiPart("file", file)
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/file-mixed")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
-            assertThat(map.get("file").toString(), containsString(file.length() + ""));
+            assertThat(
+                map.get("file").toString(),
+                containsString(file.length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
-        } catch (Exception e) { 
+        } catch (Exception e) {
             fail(e.getMessage());
         }
     }
@@ -286,19 +416,27 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
         try {
             User model = new User(101L, UserType.ADMIN);
 
-            Map map = given().multiPart("file", file)
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/future/file-mixed").then().extract().as(Map.class);
+            Map map = given()
+                .multiPart("file", file)
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/future/file-mixed")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(3));
 
-            assertThat(map.get("file").toString(), containsString(file.length() + ""));
+            assertThat(
+                map.get("file").toString(),
+                containsString(file.length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -309,26 +447,46 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
             User model = new User(101L, UserType.ADMIN);
 
             Map map = given()
-                    .multiPart("file1", files.get(0), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("file2", files.get(1), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("file3", files.get(2), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when()
-
-                    .post("v1/tests/multipart/multiple-buffers")
-                    .as(Map.class);
+                .multiPart(
+                    "file1",
+                    files.get(0),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart(
+                    "file2",
+                    files.get(1),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart(
+                    "file3",
+                    files.get(2),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/multiple-buffers")
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(5));
 
-            assertThat(map.get("file1").toString(), containsString(files.get(0).length() + ""));
-            assertThat(map.get("file2").toString(), containsString(files.get(1).length() + ""));
-            assertThat(map.get("file3").toString(), containsString(files.get(2).length() + ""));
+            assertThat(
+                map.get("file1").toString(),
+                containsString(files.get(0).length() + "")
+            );
+            assertThat(
+                map.get("file2").toString(),
+                containsString(files.get(1).length() + "")
+            );
+            assertThat(
+                map.get("file3").toString(),
+                containsString(files.get(2).length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -339,23 +497,48 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
             User model = new User(101L, UserType.ADMIN);
 
             Map map = given()
-                    .multiPart("file1", files.get(0), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("file2", files.get(1), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("file3", files.get(2), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/multiple-files").then().extract().as(Map.class);
+                .multiPart(
+                    "file1",
+                    files.get(0),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart(
+                    "file2",
+                    files.get(1),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart(
+                    "file3",
+                    files.get(2),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/multiple-files")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(5));
 
-            assertThat(map.get("file1").toString(), containsString(files.get(0).length() + ""));
-            assertThat(map.get("file2").toString(), containsString(files.get(1).length() + ""));
-            assertThat(map.get("file3").toString(), containsString(files.get(2).length() + ""));
+            assertThat(
+                map.get("file1").toString(),
+                containsString(files.get(0).length() + "")
+            );
+            assertThat(
+                map.get("file2").toString(),
+                containsString(files.get(1).length() + "")
+            );
+            assertThat(
+                map.get("file3").toString(),
+                containsString(files.get(2).length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -366,23 +549,48 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
             User model = new User(101L, UserType.ADMIN);
 
             Map map = given()
-                    .multiPart("file1", files.get(0), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("file2", files.get(1), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("file3", files.get(2), MediaType.AUDIO_MP4.contentType())
-                    .multiPart("user", model, MediaType.JSON.contentType())
-                    .formParam("userId", 101)
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/multiple-paths").then().extract().as(Map.class);
+                .multiPart(
+                    "file1",
+                    files.get(0),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart(
+                    "file2",
+                    files.get(1),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart(
+                    "file3",
+                    files.get(2),
+                    MediaType.AUDIO_MP4.contentType()
+                )
+                .multiPart("user", model, MediaType.JSON.contentType())
+                .formParam("userId", 101)
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/multiple-paths")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(5));
 
-            assertThat(map.get("file1").toString(), containsString(files.get(0).length() + ""));
-            assertThat(map.get("file2").toString(), containsString(files.get(1).length() + ""));
-            assertThat(map.get("file3").toString(), containsString(files.get(2).length() + ""));
+            assertThat(
+                map.get("file1").toString(),
+                containsString(files.get(0).length() + "")
+            );
+            assertThat(
+                map.get("file2").toString(),
+                containsString(files.get(1).length() + "")
+            );
+            assertThat(
+                map.get("file3").toString(),
+                containsString(files.get(2).length() + "")
+            );
             assertThat(map.get("user").toString(), containsString("101"));
             assertThat(map.get("userId").toString(), equalTo("101"));
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -391,15 +599,27 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
     @Test
     public void uploadMultipartByteBuffer() {
         try {
-            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON).when().post("v1/tests/multipart/bytebuffer").then().extract().as(Map.class);
+            Map map = given()
+                .multiPart(
+                    "buffer",
+                    file,
+                    MediaType.APPLICATION_OCTET_STREAM.contentType()
+                )
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/bytebuffer")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(1));
 
-            assertThat(map.get("size").toString(), containsString(file.length() + ""));
+            assertThat(
+                map.get("size").toString(),
+                containsString(file.length() + "")
+            );
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -408,15 +628,27 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
     @Test
     public void uploadMultipartFutureByteBuffer() {
         try {
-            Map map = given().multiPart("buffer", file, MediaType.APPLICATION_OCTET_STREAM.contentType())
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(MediaType.JSON.contentType()).when().post("v1/tests/multipart/future/bytebuffer").then().extract().as(Map.class);
+            Map map = given()
+                .multiPart(
+                    "buffer",
+                    file,
+                    MediaType.APPLICATION_OCTET_STREAM.contentType()
+                )
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(MediaType.JSON.contentType())
+                .when()
+                .post("v1/tests/multipart/future/bytebuffer")
+                .then()
+                .extract()
+                .as(Map.class);
 
             assertThat(map.size(), equalTo(1));
 
-            assertThat(map.get("size").toString(), containsString(file.length() + ""));
+            assertThat(
+                map.get("size").toString(),
+                containsString(file.length() + "")
+            );
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -432,17 +664,25 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
             JsonNode node = mapper.valueToTree(model);
 
             InputStream is = given()
-                    .multiPart("json", node.toString(), MediaType.JSON.contentType())
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON)
-                    .when().post("v1/tests/multipart/json")
-                    .andReturn().asInputStream();
+                .multiPart(
+                    "json",
+                    node.toString(),
+                    MediaType.JSON.contentType()
+                )
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/json")
+                .andReturn()
+                .asInputStream();
 
             JsonNode responseNode = mapper.readTree(is);
 
-            assertThat(responseNode.get("id").toString(), containsString("101"));
+            assertThat(
+                responseNode.get("id").toString(),
+                containsString("101")
+            );
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }
@@ -458,17 +698,25 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
             JsonNode node = mapper.valueToTree(model);
 
             InputStream is = given()
-                    .multiPart("json", node.toString(), MediaType.JSON.contentType())
-                    .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
-                    .accept(ContentType.JSON)
-                    .when().post("v1/tests/multipart/future/json")
-                    .andReturn().asInputStream();
+                .multiPart(
+                    "json",
+                    node.toString(),
+                    MediaType.JSON.contentType()
+                )
+                .contentType(MediaType.MULTIPART_FORM_DATA.contentType())
+                .accept(ContentType.JSON)
+                .when()
+                .post("v1/tests/multipart/future/json")
+                .andReturn()
+                .asInputStream();
 
             JsonNode responseNode = mapper.readTree(is);
 
-            assertThat(responseNode.get("id").toString(), containsString("101"));
+            assertThat(
+                responseNode.get("id").toString(),
+                containsString("101")
+            );
         } catch (Exception e) {
-            
             fail(e.getMessage());
         }
     }

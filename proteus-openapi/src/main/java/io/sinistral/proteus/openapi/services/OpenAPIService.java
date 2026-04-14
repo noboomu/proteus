@@ -4,24 +4,21 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
+import io.sinistral.proteus.openapi.converter.ModelConverters;
+import io.sinistral.proteus.openapi.integration.SwaggerConfiguration;
+import io.sinistral.proteus.openapi.jaxrs2.OpenAPIExtensions;
 import io.sinistral.proteus.openapi.jaxrs2.Reader;
 import io.sinistral.proteus.openapi.jaxrs2.ServerModelResolver;
 import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
+import io.sinistral.proteus.openapi.models.Components;
+import io.sinistral.proteus.openapi.models.OpenAPI;
+import io.sinistral.proteus.openapi.models.OpenAPI.SpecVersion;
+import io.sinistral.proteus.openapi.models.info.Info;
+import io.sinistral.proteus.openapi.models.security.SecurityScheme;
+import io.sinistral.proteus.openapi.models.servers.Server;
+import io.sinistral.proteus.openapi.util.Json;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.services.DefaultService;
-import io.swagger.v3.core.util.Json;
-import io.swagger.v3.core.util.Yaml;
-import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
-import io.swagger.v3.jaxrs2.integration.JaxrsApplicationAndAnnotationScanner;
-import io.swagger.v3.oas.integration.GenericOpenApiContext;
-import io.swagger.v3.oas.integration.SwaggerConfiguration;
-import io.swagger.v3.oas.integration.api.OpenApiContext;
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.SpecVersion;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.servers.Server;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -322,9 +319,7 @@ public class OpenAPIService
     protected void generateSpec() throws Exception {
         Set<Class<?>> classes = this.registeredControllers;
 
-        OpenAPIExtensions.setExtensions(
-            Collections.singletonList(new ServerParameterExtension())
-        );
+        OpenAPIExtensions.register(new ServerParameterExtension());
 
         OpenAPI openApi = new OpenAPI(SpecVersion.V31);
 
@@ -371,35 +366,19 @@ public class OpenAPIService
                 .put("jsonViewQueryParameterName", jsonViewQueryParameterName);
         }
 
-        Set<String> modelConverterClasses = new HashSet<>();
+        // Register ServerModelResolver with ModelConverters
+        ModelConverters.getInstance().addConverter(new ServerModelResolver(jsonMapper));
 
-        modelConverterClasses.add(ServerModelResolver.class.getName());
-
-        List<String> additionalConverterClasses = openAPIConfig.getStringList(
-            "converterClasses"
-        );
-
-        modelConverterClasses.addAll(additionalConverterClasses);
-
-        config.setModelConverterClassess(modelConverterClasses);
-
-        OpenApiContext ctx = new GenericOpenApiContext()
-            .openApiConfiguration(config)
-            .openApiReader(new Reader(config))
-            .openApiScanner(
-                new JaxrsApplicationAndAnnotationScanner().openApiConfiguration(
-                    config
-                )
-            )
-            .init();
-
-        openApi = ctx.read();
+        // Use Reader directly to scan and generate OpenAPI
+        Reader reader = new Reader(config);
+        openApi = reader.read(classes);
 
         this.openApi = openApi;
 
-        this.yamlSpec = Yaml.pretty().writeValueAsString(openApi);
+        // Generate YAML spec (for now, use JSON - YAML support can be added later)
+        this.yamlSpec = Json.pretty(openApi);
 
-        this.jsonSpec = Json.pretty().writeValueAsString(openApi);
+        this.jsonSpec = Json.pretty(openApi);
     }
 
     public OpenAPI getOpenApi() {
@@ -414,21 +393,50 @@ public class OpenAPIService
         return jsonSpec;
     }
 
+    private volatile boolean specGenerated = false;
+    private volatile Exception specGenerationError = null;
+
     @Override
     protected void startUp() throws Exception {
         super.startUp();
 
         generateHTML();
 
+        log.info("Adding OpenAPI routes to main router...");
         router.addAll(this.get());
+        log.info("OpenAPI routes added to main router");
 
         executor.submit(() -> {
             try {
                 generateSpec();
+                specGenerated = true;
+                log.info("OpenAPI spec generated successfully");
             } catch (Exception e) {
+                specGenerationError = e;
                 log.error("Error generating OpenAPI spec", e);
             }
         });
+    }
+
+    public boolean isSpecGenerated() {
+        return specGenerated;
+    }
+
+    public Exception getSpecGenerationError() {
+        return specGenerationError;
+    }
+
+    public void waitForSpecGeneration(long timeoutMs) throws InterruptedException, Exception {
+        long start = System.currentTimeMillis();
+        while (!specGenerated && specGenerationError == null) {
+            if (System.currentTimeMillis() - start > timeoutMs) {
+                throw new RuntimeException("Timeout waiting for spec generation");
+            }
+            Thread.sleep(100);
+        }
+        if (specGenerationError != null) {
+            throw new RuntimeException("Spec generation failed", specGenerationError);
+        }
     }
 
     public RoutingHandler get() {
@@ -498,6 +506,7 @@ public class OpenAPIService
             this.specFilename
         );
 
+        log.info("Registering OpenAPI YAML route: GET {}", yamlTemplatePath);
         router.add(HttpMethod.GET, yamlTemplatePath, yamlHandler);
 
         String ymlTemplatePath = String.format(
@@ -506,6 +515,7 @@ public class OpenAPIService
             this.specFilename
         );
 
+        log.info("Registering OpenAPI YML route: GET {}", ymlTemplatePath);
         router.add(HttpMethod.GET, ymlTemplatePath, yamlHandler);
 
         String jsonTemplatePath = String.format(
@@ -514,6 +524,7 @@ public class OpenAPIService
             this.specFilename
         );
 
+        log.info("Registering OpenAPI JSON route: GET {}", jsonTemplatePath);
         router.add(HttpMethod.GET, jsonTemplatePath, jsonHandler);
 
         this.registeredEndpoints.add(

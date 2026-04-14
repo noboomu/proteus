@@ -40,25 +40,35 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
     }
 
     public int compareTo(EndpointInfo other) {
-        int result = this.pathTemplate.compareTo(other.pathTemplate);
+        int result = compareNullable(this.pathTemplate, other.pathTemplate);
 
         if (result != 0) {
             return result;
         }
 
-        result = this.controllerName.compareTo(other.controllerName);
+        result = compareNullable(this.controllerName, other.controllerName);
 
         if (result != 0) {
             return result;
         }
 
-        result = this.controllerMethod.compareTo(other.controllerMethod);
+        result = compareNullable(this.controllerMethod, other.controllerMethod);
 
         if (result != 0) {
             return result;
         }
 
-        return this.method.compareTo(other.method);
+        return compareNullable(
+                this.method != null ? this.method.toString() : null,
+                other.method != null ? other.method.toString() : null
+        );
+    }
+
+    private static int compareNullable(String a, String b) {
+        if (a == null && b == null) return 0;
+        if (a == null) return -1;
+        if (b == null) return 1;
+        return a.compareTo(b);
     }
 
     @Override

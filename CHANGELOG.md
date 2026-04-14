@@ -4,6 +4,11 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Migrated to central repository.**
+
+
+[ae23059b0e4a40d](https://github.com/noboomu/proteus/commit/ae23059b0e4a40d) Joshua Lee Bauer *2025-10-07 19:19:18*
+
 **Improve openapi spec performance.**
 
 

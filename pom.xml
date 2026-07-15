@@ -1,15 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-project</artifactId>
     <packaging>pom</packaging>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>0.9.4-SNAPSHOT</version>
     <name>Proteus Project</name>
 
-    <description>Proteus is a blazing fast minimalist Java API server framework built atop Undertow.</description>
+    <description
+    >Proteus is a blazing fast minimalist Java API server framework built atop Undertow.</description>
 
     <url>http://github.com/noboomu/proteus</url>
 
@@ -34,7 +38,8 @@
 
     <scm>
         <connection>scm:git:git://github.com/noboomu/proteus.git</connection>
-        <developerConnection>scm:git:ssh://github.com/noboomu/proteus.git</developerConnection>
+        <developerConnection
+        >scm:git:ssh://github.com/noboomu/proteus.git</developerConnection>
         <url>https://github.com/noboomu/proteus/tree/master</url>
         <tag>HEAD</tag>
     </scm>
@@ -47,10 +52,11 @@
         <commons-text.version>1.13.1</commons-text.version>
         <guava.version>33.4.8-jre</guava.version>
         <guice.version>7.0.0</guice.version>
-        <jackson.version>2.19.0</jackson.version>
+        <jackson.version>3.0.0</jackson.version>
+        <jackson-annotations.version>2.20</jackson-annotations.version>
         <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
         <jansi.version>2.4.2</jansi.version>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <javapoet.version>1.13.0</javapoet.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
@@ -62,8 +68,9 @@
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
-        <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
-        <openapi.version>2.2.30</openapi.version>
+        <nexus-staging-maven-plugin.version
+        >1.7.0</nexus-staging-maven-plugin.version>
+        <openapi.version>2.2.38</openapi.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <proteus.version>${project.version}</proteus.version>
         <reflections.version>0.10.2</reflections.version>
@@ -76,7 +83,7 @@
         <jakarta-validation-api.version>3.1.1</jakarta-validation-api.version>
         <annotations.version>26.0.2</annotations.version>
         <junit-jupiter-api.version>5.12.2</junit-jupiter-api.version>
-        <rest-assured.version>5.5.2</rest-assured.version>
+        <hamcrest.version>3.0</hamcrest.version>
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <jaxb-runtime.version>4.0.3</jaxb-runtime.version>
         <sourcebuddy.version>2.0.0</sourcebuddy.version>
@@ -95,7 +102,7 @@
             </dependency>
 
             <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
+                <groupId>tools.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
                 <version>${jackson.version}</version>
                 <scope>import</scope>
@@ -128,14 +135,6 @@
 
 
         <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>${rest-assured.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-
-        <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
             <version>${micrometer-core.version}</version>
@@ -144,6 +143,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>${hamcrest.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -217,8 +223,10 @@
                 </dependencies>
 
                 <configuration>
-                    <argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
-                    <argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
+                    <argLine
+                    >-Dconfig.file=src/test/resources/application.conf</argLine>
+                    <argLine
+                    >-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
 
                 </configuration>
             </plugin>
@@ -353,7 +361,8 @@
                         <compilerArgument>-parameters</compilerArgument>
                         <compilerArgs>
                             <arg>-parameters</arg>
-                            <arg>--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
+                            <arg
+                            >--add-opens=java.base/java.lang=ALL-UNNAMED --illegal-access=deny</arg>
                         </compilerArgs>
                         <encoding>UTF-8</encoding>
                     </configuration>
@@ -382,8 +391,10 @@
                     <version>${maven-surefire-plugin.version}</version>
 
                     <configuration>
-                        <argLine>-Dconfig.file=src/test/resources/application.conf</argLine>
-                        <argLine>-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
+                        <argLine
+                        >-Dconfig.file=src/test/resources/application.conf</argLine>
+                        <argLine
+                        >-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
                     </configuration>
                 </plugin>
 

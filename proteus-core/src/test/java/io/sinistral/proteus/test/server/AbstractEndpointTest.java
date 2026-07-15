@@ -1,6 +1,5 @@
 package io.sinistral.proteus.test.server;
 
-import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,10 +43,11 @@ public class AbstractEndpointTest {
                 random.nextBytes(bytes);
 
                 Path dataPath = tmpPath.resolve("test-asset-" + i + ".mp4");
-
-                dataPath.toFile().deleteOnExit();
+                dataPath.toFile().getParentFile().mkdirs();
 
                 Files.write(dataPath, bytes);
+                
+                dataPath.toFile().deleteOnExit();
 
 
                 files.add(dataPath.toFile());
@@ -75,10 +75,6 @@ public class AbstractEndpointTest {
         }
 
         file = files.getFirst();
-
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-
-
 
     }
 

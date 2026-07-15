@@ -1,33 +1,42 @@
 package io.sinistral.proteus.modules;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.util.JsonRecyclerPools;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.blackbird.BlackbirdModule;
 
 @Singleton
-public class JacksonModule extends AbstractModule
-{
+public class JacksonModule extends AbstractModule {
+
     @Override
-    protected void configure()
-    {
-        ObjectMapper objectMapper = new ObjectMapper();
+    protected void configure() {
+        JsonFactory factory = JsonFactory.builder()
+            .recyclerPool(JsonRecyclerPools.sharedConcurrentDequePool())
+            .build();
 
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-        objectMapper.configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH, true);
-        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-        objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
-
-        objectMapper.registerModule(new BlackbirdModule());
-        objectMapper.registerModule(new Jdk8Module());
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.registerModule(new ParameterNamesModule());
+        ObjectMapper objectMapper = JsonMapper.builder(factory)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .configure(
+                DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT,
+                true
+            )
+            .configure(
+                DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT,
+                true
+            )
+            .configure(DeserializationFeature.EAGER_DESERIALIZER_FETCH, true)
+            .configure(
+                DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY,
+                true
+            )
+            .configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true)
+            .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .addModule(new BlackbirdModule())
+            .build();
 
         this.bind(ObjectMapper.class).toInstance(objectMapper);
     }

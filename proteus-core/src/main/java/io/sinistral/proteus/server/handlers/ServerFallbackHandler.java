@@ -3,8 +3,8 @@
  */
 package io.sinistral.proteus.server.handlers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
 import io.sinistral.proteus.protocol.MediaType;
 import io.sinistral.proteus.server.predicates.ServerPredicates;

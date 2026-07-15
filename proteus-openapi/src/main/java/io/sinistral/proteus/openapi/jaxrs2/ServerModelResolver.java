@@ -1,19 +1,16 @@
-
 /**
  *
  */
 package io.sinistral.proteus.openapi.jaxrs2;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import io.sinistral.proteus.openapi.converter.AnnotatedType;
+import io.sinistral.proteus.openapi.converter.ModelConverter;
+import io.sinistral.proteus.openapi.converter.ModelConverterContext;
+import io.sinistral.proteus.openapi.models.media.Schema;
 import io.sinistral.proteus.server.ServerResponse;
-import io.swagger.v3.core.converter.AnnotatedType;
-import io.swagger.v3.core.converter.ModelConverter;
-import io.swagger.v3.core.converter.ModelConverterContext;
-import io.swagger.v3.core.util.Json;
-import io.swagger.v3.oas.models.media.Schema;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.introspect.Annotated;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -25,22 +22,18 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * @author jbauer
+ * Custom model resolver for Proteus server types
  */
-public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolver
-{
-    private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ServerModelResolver.class.getCanonicalName());
+public class ServerModelResolver implements ModelConverter {
 
-    public ServerModelResolver()
-    {
-        super(Json.mapper());
-    }
+    protected final ObjectMapper mapper;
 
-    /**
-     * @param mapper
-     */
-    public ServerModelResolver(ObjectMapper mapper)
-    {
-        super(mapper);
+    private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(
+        ServerModelResolver.class.getCanonicalName()
+    );
+
+    public ServerModelResolver(ObjectMapper mapper) {
+        this.mapper = mapper;
     }
 
     /*
@@ -50,122 +43,122 @@ public class ServerModelResolver extends io.swagger.v3.core.jackson.ModelResolve
      * io.swagger.v3.core.converter.ModelConverterContext, java.util.Iterator)
      */
     @Override
-    public Schema resolve(AnnotatedType annotatedType, ModelConverterContext context, Iterator<ModelConverter> next)
-    {
-        JavaType classType = TypeFactory.defaultInstance().constructType(annotatedType.getType());
+    public Schema resolve(
+        AnnotatedType annotatedType,
+        ModelConverterContext context,
+        Iterator<ModelConverter> next
+    ) {
+        JavaType classType = mapper.getTypeFactory().constructType(
+            annotatedType.getType()
+        );
         Class<?> rawClass = classType.getRawClass();
         JavaType resolvedType = classType;
 
-        if ((rawClass != null) &&!resolvedType.isPrimitive())
-        {
-            if (rawClass.isAssignableFrom(ServerResponse.class))
-            {
+        if ((rawClass != null) && !resolvedType.isPrimitive()) {
+            if (rawClass.isAssignableFrom(ServerResponse.class)) {
                 resolvedType = classType.containedType(0);
-            }
-            else if (rawClass.isAssignableFrom(CompletableFuture.class))
-            {
+            } else if (rawClass.isAssignableFrom(CompletableFuture.class)) {
                 Class<?> futureCls = classType.containedType(0).getRawClass();
 
-                if (futureCls.isAssignableFrom(ServerResponse.class))
-                {
-                    final JavaType futureType = TypeFactory.defaultInstance().constructType(classType.containedType(0));
+                if (futureCls.isAssignableFrom(ServerResponse.class)) {
+                    final JavaType futureType =
+                        mapper.getTypeFactory().constructType(
+                            classType.containedType(0)
+                        );
 
                     resolvedType = futureType.containedType(0);
-                }
-                else
-                {
+                } else {
                     resolvedType = classType.containedType(0);
                 }
             }
 
-            if (resolvedType != null)
-            {
-                if (resolvedType.getTypeName().contains("java.lang.Void"))
-                {
-                    resolvedType = TypeFactory.defaultInstance().constructFromCanonical(Void.class.getName());
-                }
-                else if (resolvedType.getTypeName().contains("Optional"))
-                {
-                    if (resolvedType.getTypeName().contains("java.nio.file.Path"))
-                    {
-                        resolvedType = TypeFactory.defaultInstance().constructParametricType(Optional.class, File.class);
+            if (resolvedType != null) {
+                if (resolvedType.getTypeName().contains("java.lang.Void")) {
+                    resolvedType =
+                        mapper.getTypeFactory().constructFromCanonical(
+                            Void.class.getName()
+                        );
+                } else if (resolvedType.getTypeName().contains("Optional")) {
+                    if (
+                        resolvedType
+                            .getTypeName()
+                            .contains("java.nio.file.Path")
+                    ) {
+                        resolvedType =
+                            mapper.getTypeFactory().constructParametricType(
+                                Optional.class,
+                                File.class
+                            );
                     }
 
-                    if (resolvedType.getTypeName().contains("ByteBuffer"))
-                    {
-                        resolvedType = TypeFactory.defaultInstance().constructParametricType(Optional.class, File.class);
+                    if (resolvedType.getTypeName().contains("ByteBuffer")) {
+                        resolvedType =
+                            mapper.getTypeFactory().constructParametricType(
+                                Optional.class,
+                                File.class
+                            );
                     }
-                }
-                else
-                {
-                    if (resolvedType.getTypeName().contains("java.nio.file.Path"))
-                    {
-                        resolvedType = TypeFactory.defaultInstance().constructFromCanonical(File.class.getName());
+                } else {
+                    if (
+                        resolvedType
+                            .getTypeName()
+                            .contains("java.nio.file.Path")
+                    ) {
+                        resolvedType =
+                            mapper.getTypeFactory().constructFromCanonical(
+                                File.class.getName()
+                            );
                     }
 
-                    if (resolvedType.getTypeName().contains("ByteBuffer"))
-                    {
-                        resolvedType = TypeFactory.defaultInstance().constructFromCanonical(File.class.getName());
+                    if (resolvedType.getTypeName().contains("ByteBuffer")) {
+                        resolvedType =
+                            mapper.getTypeFactory().constructFromCanonical(
+                                File.class.getName()
+                            );
                     }
                 }
 
                 annotatedType.setType(resolvedType);
-
             }
         }
 
         try {
-
-            return super.resolve(annotatedType, context, next);
-
+            // Delegate to the next converter in the chain
+            if (next.hasNext()) {
+                return next.next().resolve(annotatedType, context, next);
+            }
+            return null;
         } catch (Exception e) {
-
-            log.error("Error processing " + annotatedType + " " + classType + " " + annotatedType.getName(), e);
+            log.error(
+                "Error processing " +
+                    annotatedType +
+                    " " +
+                    classType +
+                    " " +
+                    annotatedType.getName(),
+                e
+            );
 
             return null;
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see
-     * io.swagger.v3.core.jackson.ModelResolver#resolveRequiredProperties(com.
-     * fasterxml.jackson.databind.introspect.Annotated,
-     * java.lang.annotation.Annotation[],
-     * io.swagger.v3.oas.annotations.media.Schema)
+    /**
+     * Check if a type should be ignored during resolution
      */
-    @Override
-    protected List<String> resolveRequiredProperties(Annotated a, Annotation[] annotations, io.swagger.v3.oas.annotations.media.Schema schema)
-    {
-        // TODO Auto-generated method stub
-        return super.resolveRequiredProperties(a, annotations, schema);
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see
-     * io.swagger.v3.core.jackson.ModelResolver#shouldIgnoreClass(java.lang.
-     * reflect.Type)
-     */
-    @Override
-    protected boolean shouldIgnoreClass(Type type)
-    {
-        // 
-        JavaType classType = TypeFactory.defaultInstance().constructType(type);
+    protected boolean shouldIgnoreClass(Type type) {
+        JavaType classType = mapper.getTypeFactory().constructType(type);
         String canonicalName = classType.toCanonical();
 
-        if (canonicalName.startsWith("io.undertow")
-                || canonicalName.startsWith("org.xnio")
-                || canonicalName.equals("io.sinistral.proteus.server.ServerRequest")
-                || canonicalName.contains(Void.class.getName()))
-        {
+        if (
+            canonicalName.startsWith("io.undertow") ||
+            canonicalName.startsWith("org.xnio") ||
+            canonicalName.equals("io.sinistral.proteus.server.ServerRequest") ||
+            canonicalName.contains(Void.class.getName())
+        ) {
             return true;
         }
 
-        // TODO Auto-generated method stub
-        return super.shouldIgnoreClass(type);
+        return false;
     }
 }
-
-
-

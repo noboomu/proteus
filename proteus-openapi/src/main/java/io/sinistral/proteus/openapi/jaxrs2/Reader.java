@@ -1745,38 +1745,16 @@ public class Reader {
                         )
                     );
                 }
-                if (
-                    operation.getResponses().getDefault() != null &&
-                    StringUtils.isBlank(
-                        operation.getResponses().getDefault().get$ref()
-                    )
-                ) {
-                    if (
-                        operation.getResponses().getDefault().getContent() ==
-                        null
-                    ) {
-                        operation.getResponses().getDefault().content(content);
-                    } else {
-                        for (String key : operation
-                            .getResponses()
-                            .getDefault()
-                            .getContent()
-                            .keySet()) {
-                            if (
-                                operation
-                                    .getResponses()
-                                    .getDefault()
-                                    .getContent()
-                                    .get(key)
-                                    .getSchema() ==
-                                null
-                            ) {
-                                operation
-                                    .getResponses()
-                                    .getDefault()
-                                    .getContent()
-                                    .get(key)
-                                    .setSchema(returnTypeSchema);
+                for (Map.Entry<String, ApiResponse> entry : operation.getResponses().entrySet()) {
+                    ApiResponse response = entry.getValue();
+                    if (response != null && StringUtils.isBlank(response.get$ref())) {
+                        if (response.getContent() == null) {
+                            response.content(content);
+                        } else {
+                            for (String key : response.getContent().keySet()) {
+                                if (response.getContent().get(key).getSchema() == null) {
+                                    response.getContent().get(key).setSchema(returnTypeSchema);
+                                }
                             }
                         }
                     }

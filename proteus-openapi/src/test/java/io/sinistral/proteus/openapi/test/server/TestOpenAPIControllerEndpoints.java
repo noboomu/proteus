@@ -3,17 +3,20 @@
  */
 package io.sinistral.proteus.openapi.test.server;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Map;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author jbauer
@@ -21,45 +24,82 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @ExtendWith(OpenAPIDefaultServer.class)
 public class TestOpenAPIControllerEndpoints {
 
-    @Test
-    public void testYamlSpec() {
-
-        when().get("v1/openapi.yaml").then().statusCode(200).header("content-type", "application/yaml");
-    }
-
-        @Test
-    public void testYmlSpec() {
-
-        when().get("v1/openapi.yaml").then().statusCode(200).header("content-type", "application/yaml");
-    }
-
+    private static final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Test
-    public void testJsonSpec() {
+    public void testYamlSpec() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/openapi.yaml"))
+            .GET()
+            .build();
 
-        when().get("v1/openapi.json").then().statusCode(200).header("content-type", "application/json");
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            System.err.println("Error response body: " + response.body());
+        }
+        assertEquals(200, response.statusCode(), "Expected 200 but got " + response.statusCode() + ": " + response.body());
+        assertTrue(response.headers().firstValue("content-type").orElse("").contains("application/yaml"));
     }
 
     @Test
-    public void testDocumentation() {
+    public void testYmlSpec() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/openapi.yaml"))
+            .GET()
+            .build();
 
-        when().get("v1/openapi").then().statusCode(200).header("content-type", "text/html");
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.headers().firstValue("content-type").orElse("").contains("application/yaml"));
+    }
+
+    @Test
+    public void testJsonSpec() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/openapi.json"))
+            .GET()
+            .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.headers().firstValue("content-type").orElse("").contains("application/json"));
+    }
+
+    @Test
+    public void testDocumentation() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/openapi"))
+            .GET()
+            .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.headers().firstValue("content-type").orElse("").contains("text/html"));
     }
 
     @Test
     public void testBearer() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        String response = given().header("Authorization", "Bearer 123456").get("v1/tests/bearer").andReturn().asString();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/tests/bearer"))
+            .header("Authorization", "Bearer 123456")
+            .GET()
+            .build();
 
-        assertNotNull(response);
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        Map<String, Object> map = mapper.readValue(response, new TypeReference<>() {
+        assertNotNull(response.body());
+
+        Map<String, Object> map = mapper.readValue(response.body(), new TypeReference<>() {
         });
 
         assertEquals("123456", map.get("token"));
         assertEquals(true, map.get("result"));
-
     }
 
 }

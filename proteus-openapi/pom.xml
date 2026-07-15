@@ -88,38 +88,26 @@
 
     <dependencies>
 
-
+        <!-- Keep swagger annotations for @Operation, @Schema, etc. -->
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations-jakarta</artifactId>
             <version>${openapi.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-models-jakarta</artifactId>
-            <version>${openapi.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-jaxrs2-jakarta</artifactId>
-            <version>${openapi.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-integration-jakarta</artifactId>
-            <version>${openapi.version}</version>
-        </dependency>
-
-
+        <!-- Proteus core with Jackson 3.0 -->
         <dependency>
             <groupId>io.sinistral</groupId>
             <artifactId>proteus-core</artifactId>
             <version>${proteus.version}</version>
         </dependency>
 
+        <!-- Commons Lang for StringUtils -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.14.0</version>
+        </dependency>
 
     </dependencies>
 

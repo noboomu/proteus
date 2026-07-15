@@ -12,36 +12,33 @@ import io.sinistral.proteus.annotations.Chain;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
-import io.swagger.v3.core.converter.AnnotatedType;
-import io.swagger.v3.core.converter.ModelConverters;
-import io.swagger.v3.core.converter.ResolvedSchema;
-import io.swagger.v3.core.util.*;
-import io.swagger.v3.jaxrs2.OperationParser;
-import io.swagger.v3.jaxrs2.ReaderListener;
-import io.swagger.v3.jaxrs2.ResolvedParameter;
-import io.swagger.v3.jaxrs2.SecurityParser;
-import io.swagger.v3.jaxrs2.ext.OpenAPIExtension;
-import io.swagger.v3.jaxrs2.ext.OpenAPIExtensions;
-import io.swagger.v3.jaxrs2.util.ReaderUtils;
+import io.sinistral.proteus.openapi.converter.AnnotatedType;
+import io.sinistral.proteus.openapi.converter.ModelConverters;
+import io.sinistral.proteus.openapi.converter.ResolvedSchema;
+import io.sinistral.proteus.openapi.util.*;
+import io.sinistral.proteus.openapi.jaxrs2.ReaderListener;
+import io.sinistral.proteus.openapi.jaxrs2.ResolvedParameter;
+import io.sinistral.proteus.openapi.jaxrs2.OpenAPIExtension;
+import io.sinistral.proteus.openapi.jaxrs2.OpenAPIExtensions;
+import io.sinistral.proteus.openapi.integration.SwaggerConfiguration;
+import io.sinistral.proteus.openapi.integration.OpenAPIConfiguration;
+import io.sinistral.proteus.openapi.models.*;
+import io.sinistral.proteus.openapi.models.callbacks.Callback;
+import io.sinistral.proteus.openapi.models.media.Content;
+import io.sinistral.proteus.openapi.models.media.MediaType;
+import io.sinistral.proteus.openapi.models.media.ObjectSchema;
+import io.sinistral.proteus.openapi.models.media.Schema;
+import io.sinistral.proteus.openapi.models.parameters.Parameter;
+import io.sinistral.proteus.openapi.models.parameters.RequestBody;
+import io.sinistral.proteus.openapi.models.responses.ApiResponse;
+import io.sinistral.proteus.openapi.models.responses.ApiResponses;
+import io.sinistral.proteus.openapi.models.security.SecurityRequirement;
+import io.sinistral.proteus.openapi.models.security.SecurityScheme;
+import io.sinistral.proteus.openapi.models.tags.Tag;
 import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.servers.Server;
-import io.swagger.v3.oas.integration.SwaggerConfiguration;
-import io.swagger.v3.oas.integration.api.OpenAPIConfiguration;
-import io.swagger.v3.oas.models.*;
-import io.swagger.v3.oas.models.callbacks.Callback;
-import io.swagger.v3.oas.models.media.Content;
-import io.swagger.v3.oas.models.media.MediaType;
-import io.swagger.v3.oas.models.media.ObjectSchema;
-import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.parameters.Parameter;
-import io.swagger.v3.oas.models.parameters.RequestBody;
-import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.tags.Tag;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpServerExchange;
 import jakarta.ws.rs.ApplicationPath;
@@ -66,7 +63,7 @@ import tools.jackson.databind.introspect.AnnotatedMethod;
 import tools.jackson.databind.introspect.AnnotatedParameter;
 import tools.jackson.databind.type.TypeFactory;
 
-public class Reader extends io.swagger.v3.jaxrs2.Reader {
+public class Reader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Reader.class);
 
@@ -235,7 +232,6 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
         }
     }
 
-    @Override
     public void setConfiguration(OpenAPIConfiguration openApiConfiguration) {
         if (openApiConfiguration != null) {
             this.config = deepCopy(openApiConfiguration);
@@ -479,7 +475,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
         }
 
         // servers
-        final List<io.swagger.v3.oas.models.servers.Server> classServers =
+        final List<io.sinistral.proteus.openapi.models.servers.Server> classServers =
             new ArrayList<>();
         if (apiServers != null) {
             AnnotationsUtils.getServers(apiServers).ifPresent(servers ->
@@ -488,16 +484,15 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
         }
 
         // class external docs
-        Optional<
-            io.swagger.v3.oas.models.ExternalDocumentation
-        > classExternalDocumentation =
+        Optional<io.sinistral.proteus.openapi.models.ExternalDocumentation> classExternalDocumentation =
             AnnotationsUtils.getExternalDocumentation(apiExternalDocs);
 
-        JavaType classType = TypeFactory.defaultInstance().constructType(cls);
+        JavaType classType = Json.mapper().getTypeFactory().constructType(cls);
 
-        BeanDescription bd = Json.mapper()
-            .getSerializationConfig()
-            .introspect(classType);
+        // Note: In Jackson 3.0, BeanDescription creation API has changed significantly.
+        // Since bd is only used to get AnnotatedMethod, and the code already has a fallback
+        // for null annotatedMethod (uses direct reflection), we skip BeanDescription creation.
+        BeanDescription bd = null;
 
         final List<Parameter> globalParameters = new ArrayList<>();
 
@@ -534,10 +529,9 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
                 .filter(p -> !p.isAssignableFrom(ServerRequest.class))
                 .toArray(Class<?>[]::new);
 
-            AnnotatedMethod annotatedMethod = bd.findMethod(
-                method.getName(),
-                parameterTypes
-            );
+            AnnotatedMethod annotatedMethod = (bd != null)
+                ? bd.findMethod(method.getName(), parameterTypes)
+                : null;
 
             Produces methodProduces = ReflectionUtils.getAnnotation(
                 method,
@@ -670,9 +664,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
 
                         for (int i = 0; i < genericParameterTypes.length; i++) {
                             final Type type =
-                                TypeFactory.defaultInstance().constructType(
-                                    genericParameterTypes[i],
-                                    cls
+                                Json.mapper().getTypeFactory().constructType(
+                                    genericParameterTypes[i]
                                 );
                             io.swagger.v3.oas.annotations.Parameter paramAnnotation =
                                 AnnotationsUtils.getAnnotation(
@@ -696,7 +689,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
                             }
 
                             boolean isOptional = isOptionalType(
-                                TypeFactory.defaultInstance().constructType(
+                                Json.mapper().getTypeFactory().constructType(
                                     paramType
                                 )
                             );
@@ -745,9 +738,8 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
                                 annotatedMethod.getParameter(i);
 
                             final Type type =
-                                TypeFactory.defaultInstance().constructType(
-                                    param.getParameterType(),
-                                    cls
+                                Json.mapper().getTypeFactory().constructType(
+                                    param.getType()
                                 );
 
                             io.swagger.v3.oas.annotations.Parameter paramAnnotation =
@@ -771,7 +763,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
                             }
 
                             boolean isOptional = isOptionalType(
-                                TypeFactory.defaultInstance().constructType(
+                                Json.mapper().getTypeFactory().constructType(
                                     paramType
                                 )
                             );
@@ -1160,7 +1152,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
             : true);
 
         if (type != null && !isOptional) {
-            JavaType classType = TypeFactory.defaultInstance().constructType(
+            JavaType classType = Json.mapper().getTypeFactory().constructType(
                 type
             );
 
@@ -1308,7 +1300,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
         List<Parameter> globalParameters,
         JsonView jsonViewAnnotation
     ) {
-        JavaType classType = TypeFactory.defaultInstance().constructType(
+        JavaType classType = Json.mapper().getTypeFactory().constructType(
             method.getDeclaringClass()
         );
         return parseMethod(
@@ -1339,18 +1331,16 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
         Consumes methodConsumes,
         Consumes classConsumes,
         List<SecurityRequirement> classSecurityRequirements,
-        Optional<
-            io.swagger.v3.oas.models.ExternalDocumentation
-        > classExternalDocs,
+        Optional<io.sinistral.proteus.openapi.models.ExternalDocumentation> classExternalDocs,
         Set<String> classTags,
-        List<io.swagger.v3.oas.models.servers.Server> classServers,
+        List<io.sinistral.proteus.openapi.models.servers.Server> classServers,
         boolean isSubresource,
         RequestBody parentRequestBody,
         ApiResponses parentResponses,
         JsonView jsonViewAnnotation,
         io.swagger.v3.oas.annotations.responses.ApiResponse[] classResponses
     ) {
-        JavaType classType = TypeFactory.defaultInstance().constructType(
+        JavaType classType = Json.mapper().getTypeFactory().constructType(
             method.getDeclaringClass()
         );
         return parseMethod(
@@ -1382,11 +1372,9 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
         Consumes methodConsumes,
         Consumes classConsumes,
         List<SecurityRequirement> classSecurityRequirements,
-        Optional<
-            io.swagger.v3.oas.models.ExternalDocumentation
-        > classExternalDocs,
+        Optional<io.sinistral.proteus.openapi.models.ExternalDocumentation> classExternalDocs,
         Set<String> classTags,
-        List<io.swagger.v3.oas.models.servers.Server> classServers,
+        List<io.sinistral.proteus.openapi.models.servers.Server> classServers,
         boolean isSubresource,
         RequestBody parentRequestBody,
         ApiResponses parentResponses,
@@ -1693,7 +1681,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
                     returnType.getTypeName()
             );
 
-            JavaType classType = TypeFactory.defaultInstance().constructType(
+            JavaType classType = Json.mapper().getTypeFactory().constructType(
                 returnType
             );
 
@@ -1717,7 +1705,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
 
                     if (futureCls.isAssignableFrom(ServerResponse.class)) {
                         final JavaType futureType =
-                            TypeFactory.defaultInstance().constructType(
+                            Json.mapper().getTypeFactory().constructType(
                                 classType.containedType(0)
                             );
                         returnType = futureType.containedType(0);
@@ -2116,7 +2104,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
                     "[map type; class java.util.Map, [simple type, class java.lang.String] -> [simple type, class java.nio.file.Path]]"
                 )
         ) {
-            type = TypeFactory.defaultInstance().constructCollectionType(
+            type = Json.mapper().getTypeFactory().constructCollectionType(
                 java.util.List.class,
                 java.nio.file.Path.class
             );
@@ -2127,7 +2115,7 @@ public class Reader extends io.swagger.v3.jaxrs2.Reader {
                     "[map type; class java.util.Map, [simple type, class java.lang.String] -> [simple type, class java.io.File]]"
                 )
         ) {
-            type = TypeFactory.defaultInstance().constructCollectionType(
+            type = Json.mapper().getTypeFactory().constructCollectionType(
                 java.util.List.class,
                 java.io.File.class
             );

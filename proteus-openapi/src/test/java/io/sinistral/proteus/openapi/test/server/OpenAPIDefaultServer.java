@@ -1,6 +1,5 @@
 package io.sinistral.proteus.openapi.test.server;
 
-import io.restassured.RestAssured;
 import io.sinistral.proteus.ProteusApplication;
 import io.sinistral.proteus.openapi.services.OpenAPIService;
 import io.sinistral.proteus.openapi.test.controllers.OpenAPITests;
@@ -18,6 +17,11 @@ public class OpenAPIDefaultServer implements BeforeAllCallback, AfterAllCallback
     private static final Logger log = LoggerFactory.getLogger(OpenAPIDefaultServer.class.getCanonicalName());
     private static ProteusApplication app;
     private static boolean started = false;
+    private static String baseURI;
+
+    public static String getBaseURI() {
+        return baseURI;
+    }
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
@@ -34,16 +38,20 @@ public class OpenAPIDefaultServer implements BeforeAllCallback, AfterAllCallback
 
             int port = 0;
             try {
-                Thread.sleep(5000);
-                log.info("ports: {}", app.getPorts());
                 List<Integer> ports = app.getPorts();
-                port = ports.getFirst();
+                if (ports.isEmpty()) {
+                    log.info("Ports list empty, waiting for server to bind...");
+                    Thread.sleep(2000);
+                    ports = app.getPorts();
+                }
+                port = ports.isEmpty() ? 8080 : ports.getFirst();
+                log.info("Using port: {}", port);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            RestAssured.baseURI = String.format("http://localhost:%d/", port);
-            RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+            baseURI = String.format("http://localhost:%d/", port);
+            log.info("Test server running at: {}", baseURI);
 
             while (!app.isRunning()) {
                 try {
@@ -52,6 +60,11 @@ public class OpenAPIDefaultServer implements BeforeAllCallback, AfterAllCallback
                     e.printStackTrace();
                 }
             }
+
+            // Wait for OpenAPI spec generation (async) to complete
+            log.info("Waiting 10 seconds for OpenAPI spec generation to complete...");
+            Thread.sleep(10000);
+            log.info("Wait complete, tests will now run");
         }
     }
 

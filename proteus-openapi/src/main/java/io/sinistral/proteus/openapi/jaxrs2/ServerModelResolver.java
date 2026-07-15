@@ -3,12 +3,15 @@
  */
 package io.sinistral.proteus.openapi.jaxrs2;
 
+import io.sinistral.proteus.openapi.converter.AnnotatedType;
+import io.sinistral.proteus.openapi.converter.ModelConverter;
+import io.sinistral.proteus.openapi.converter.ModelConverterContext;
+import io.sinistral.proteus.openapi.models.media.Schema;
 import io.sinistral.proteus.server.ServerResponse;
-import io.swagger.v3.core.converter.AnnotatedType;
-import io.swagger.v3.core.converter.ModelConverter;
-import io.swagger.v3.core.converter.ModelConverterContext;
-import io.swagger.v3.core.util.Json;
-import io.swagger.v3.oas.models.media.Schema;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.introspect.Annotated;
+
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -16,30 +19,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import tools.jackson.databind.JavaType;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.introspect.Annotated;
-import tools.jackson.databind.type.TypeFactory;
 
 /**
  * @author jbauer
+ * Custom model resolver for Proteus server types
  */
-public class ServerModelResolver
-    extends io.swagger.v3.core.jackson.ModelResolver {
+public class ServerModelResolver implements ModelConverter {
+
+    protected final ObjectMapper mapper;
 
     private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(
         ServerModelResolver.class.getCanonicalName()
     );
 
-    public ServerModelResolver() {
-        super(Json.mapper());
-    }
-
-    /**
-     * @param mapper
-     */
     public ServerModelResolver(ObjectMapper mapper) {
-        super(mapper);
+        this.mapper = mapper;
     }
 
     /*
@@ -54,7 +48,7 @@ public class ServerModelResolver
         ModelConverterContext context,
         Iterator<ModelConverter> next
     ) {
-        JavaType classType = TypeFactory.defaultInstance().constructType(
+        JavaType classType = mapper.getTypeFactory().constructType(
             annotatedType.getType()
         );
         Class<?> rawClass = classType.getRawClass();
@@ -68,7 +62,7 @@ public class ServerModelResolver
 
                 if (futureCls.isAssignableFrom(ServerResponse.class)) {
                     final JavaType futureType =
-                        TypeFactory.defaultInstance().constructType(
+                        mapper.getTypeFactory().constructType(
                             classType.containedType(0)
                         );
 
@@ -81,7 +75,7 @@ public class ServerModelResolver
             if (resolvedType != null) {
                 if (resolvedType.getTypeName().contains("java.lang.Void")) {
                     resolvedType =
-                        TypeFactory.defaultInstance().constructFromCanonical(
+                        mapper.getTypeFactory().constructFromCanonical(
                             Void.class.getName()
                         );
                 } else if (resolvedType.getTypeName().contains("Optional")) {
@@ -91,7 +85,7 @@ public class ServerModelResolver
                             .contains("java.nio.file.Path")
                     ) {
                         resolvedType =
-                            TypeFactory.defaultInstance().constructParametricType(
+                            mapper.getTypeFactory().constructParametricType(
                                 Optional.class,
                                 File.class
                             );
@@ -99,7 +93,7 @@ public class ServerModelResolver
 
                     if (resolvedType.getTypeName().contains("ByteBuffer")) {
                         resolvedType =
-                            TypeFactory.defaultInstance().constructParametricType(
+                            mapper.getTypeFactory().constructParametricType(
                                 Optional.class,
                                 File.class
                             );
@@ -111,14 +105,14 @@ public class ServerModelResolver
                             .contains("java.nio.file.Path")
                     ) {
                         resolvedType =
-                            TypeFactory.defaultInstance().constructFromCanonical(
+                            mapper.getTypeFactory().constructFromCanonical(
                                 File.class.getName()
                             );
                     }
 
                     if (resolvedType.getTypeName().contains("ByteBuffer")) {
                         resolvedType =
-                            TypeFactory.defaultInstance().constructFromCanonical(
+                            mapper.getTypeFactory().constructFromCanonical(
                                 File.class.getName()
                             );
                     }
@@ -129,7 +123,11 @@ public class ServerModelResolver
         }
 
         try {
-            return super.resolve(annotatedType, context, next);
+            // Delegate to the next converter in the chain
+            if (next.hasNext()) {
+                return next.next().resolve(annotatedType, context, next);
+            }
+            return null;
         } catch (Exception e) {
             log.error(
                 "Error processing " +
@@ -145,34 +143,11 @@ public class ServerModelResolver
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see
-     * io.swagger.v3.core.jackson.ModelResolver#resolveRequiredProperties(com.
-     * fasterxml.jackson.databind.introspect.Annotated,
-     * java.lang.annotation.Annotation[],
-     * io.swagger.v3.oas.annotations.media.Schema)
+    /**
+     * Check if a type should be ignored during resolution
      */
-    @Override
-    protected List<String> resolveRequiredProperties(
-        Annotated a,
-        Annotation[] annotations,
-        io.swagger.v3.oas.annotations.media.Schema schema
-    ) {
-        // TODO Auto-generated method stub
-        return super.resolveRequiredProperties(a, annotations, schema);
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see
-     * io.swagger.v3.core.jackson.ModelResolver#shouldIgnoreClass(java.lang.
-     * reflect.Type)
-     */
-    @Override
     protected boolean shouldIgnoreClass(Type type) {
-        //
-        JavaType classType = TypeFactory.defaultInstance().constructType(type);
+        JavaType classType = mapper.getTypeFactory().constructType(type);
         String canonicalName = classType.toCanonical();
 
         if (
@@ -184,7 +159,6 @@ public class ServerModelResolver
             return true;
         }
 
-        // TODO Auto-generated method stub
-        return super.shouldIgnoreClass(type);
+        return false;
     }
 }

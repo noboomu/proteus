@@ -43,10 +43,11 @@ public class AbstractEndpointTest {
                 random.nextBytes(bytes);
 
                 Path dataPath = tmpPath.resolve("test-asset-" + i + ".mp4");
-
-                dataPath.toFile().deleteOnExit();
+                dataPath.toFile().getParentFile().mkdirs();
 
                 Files.write(dataPath, bytes);
+                
+                dataPath.toFile().deleteOnExit();
 
 
                 files.add(dataPath.toFile());

@@ -1715,6 +1715,7 @@ public class Reader {
                 }
             }
 
+            System.out.println("Processing method: " + method.getName() + ", returnType: " + returnType);
             ResolvedSchema resolvedSchema =
                 ModelConverters.getInstance().resolveAsResolvedSchema(
                     new AnnotatedType(returnType)
@@ -1723,6 +1724,7 @@ public class Reader {
                 );
 
             if (resolvedSchema.schema != null) {
+                System.out.println("resolvedSchema.schema != null for " + method.getName());
                 Schema returnTypeSchema = resolvedSchema.schema;
                 Content content = new Content();
                 MediaType mediaType = new MediaType().schema(returnTypeSchema);
@@ -1748,9 +1750,10 @@ public class Reader {
                 for (Map.Entry<String, ApiResponse> entry : operation.getResponses().entrySet()) {
                     ApiResponse response = entry.getValue();
                     if (response != null && StringUtils.isBlank(response.get$ref())) {
-                        if (response.getContent() == null) {
+                        if (response.getContent() == null || response.getContent().isEmpty()) {
                             response.content(content);
-                        } else {
+                        }
+                        if (response.getContent() != null) {
                             for (String key : response.getContent().keySet()) {
                                 if (response.getContent().get(key).getSchema() == null) {
                                     response.getContent().get(key).setSchema(returnTypeSchema);

@@ -29,6 +29,13 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.Map;
 
 
+import io.sinistral.proteus.openapi.test.models.Order;
+import io.sinistral.proteus.openapi.test.models.PagedResponse;
+import java.util.List;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import java.util.concurrent.CompletableFuture;
+
 /**
  * @author jbauer
  *
@@ -42,6 +49,20 @@ import java.util.Map;
 public class OpenAPITests
 {
 
+    @GET
+    @Path("/generic")
+    @Operation(description = "Test generics processing")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Success",
+            content = @Content(mediaType = "application/json")
+    )
+    public CompletableFuture<ServerResponse<PagedResponse<Order>>> testGenerics(ServerRequest request)
+    {
+        Order order = new Order(1L, "Test Order");
+        PagedResponse<Order> pagedResponse = new PagedResponse<>(List.of(order), 1);
+        return CompletableFuture.completedFuture(ServerResponse.response(pagedResponse).applicationJson().ok());
+    }
 
     @GET
     @Path("/bearer")

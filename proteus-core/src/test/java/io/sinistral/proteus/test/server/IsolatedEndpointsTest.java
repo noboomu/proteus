@@ -108,14 +108,6 @@ public class IsolatedEndpointsTest extends AbstractEndpointTest {
 
     @AfterAll
     public void tearDown() {
-        try {
-            if (file.exists()) {
-                file.delete();
-            }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-
-            fail(e.getMessage());
-        }
+        // file is managed by AbstractEndpointTest and deleted on exit
     }
 }

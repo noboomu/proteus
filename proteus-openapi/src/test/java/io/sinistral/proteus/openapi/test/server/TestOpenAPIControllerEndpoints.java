@@ -88,9 +88,15 @@ public class TestOpenAPIControllerEndpoints {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(response.body());
         
-        // Temporarily comment out assertions to let test pass and view logs
-        // JsonNode genericPath = root.at("/paths/~1tests~1generic/get");
-        // assertTrue(!genericPath.isMissingNode(), "Generic path should exist in spec");
+        JsonNode genericPath = root.at("/paths/~1tests~1generic/get");
+        assertTrue(!genericPath.isMissingNode(), "Generic path should exist in spec");
+        
+        JsonNode schemaRef = genericPath.at("/responses/200/content/application~1json/schema/$ref");
+        assertTrue(!schemaRef.isMissingNode(), "Schema $ref should exist");
+        assertEquals("#/components/schemas/PagedResponse_Order", schemaRef.asText(), "Generics should resolve correctly");
+        
+        JsonNode pagedResponseSchema = root.at("/components/schemas/PagedResponse_Order");
+        assertTrue(!pagedResponseSchema.isMissingNode(), "Component schema for PagedResponse_Order should exist");
     }
 
     @Test

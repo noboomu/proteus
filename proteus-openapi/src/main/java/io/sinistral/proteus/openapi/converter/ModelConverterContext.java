@@ -32,4 +32,6 @@ public interface ModelConverterContext {
      * @param schema the schema to define
      */
     void defineModel(String name, Schema schema);
+
+    java.util.Map<String, Schema> getDefinedModels();
 }

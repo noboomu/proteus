@@ -9,7 +9,7 @@
     <groupId>io.sinistral</groupId>
     <artifactId>proteus-project</artifactId>
     <packaging>pom</packaging>
-    <version>0.9.4-SNAPSHOT</version>
+    <version>0.9.5-SNAPSHOT</version>
     <name>Proteus Project</name>
 
     <description

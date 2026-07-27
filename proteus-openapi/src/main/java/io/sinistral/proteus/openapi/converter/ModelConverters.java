@@ -1,6 +1,7 @@
 package io.sinistral.proteus.openapi.converter;
 
 import io.sinistral.proteus.openapi.jaxrs2.ServerModelResolver;
+import io.sinistral.proteus.openapi.jaxrs2.JacksonModelResolver;
 import io.sinistral.proteus.openapi.models.Components;
 import io.sinistral.proteus.openapi.models.media.Schema;
 import tools.jackson.databind.ObjectMapper;
@@ -18,8 +19,10 @@ public class ModelConverters {
 
     private ModelConverters() {
         this.mapper = JsonMapper.builder().build();
-        // Register default ServerModelResolver
+        // ServerModelResolver goes first to unwrap ServerResponse/CompletableFuture
         converters.add(new ServerModelResolver(mapper));
+        // JacksonModelResolver goes next to generate schemas
+        converters.add(new JacksonModelResolver(mapper));
     }
 
     public static ModelConverters getInstance() {
@@ -30,7 +33,7 @@ public class ModelConverters {
     }
 
     public void addConverter(ModelConverter converter) {
-        converters.add(0, converter); // Add at beginning for priority
+        converters.add(0, converter); 
     }
 
     public ResolvedSchema resolveAsResolvedSchema(AnnotatedType annotatedType) {
@@ -79,6 +82,7 @@ public class ModelConverters {
             }
         }
 
+        @Override
         public Map<String, Schema> getDefinedModels() {
             return new LinkedHashMap<>(modelByName);
         }

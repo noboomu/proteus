@@ -136,11 +136,7 @@ Proteus Changelog.
                 </dependencies>
 
                 <configuration>
-                    <argLine
-                    >-Dconfig.file=src/test/resources/application.conf</argLine>
-                    <argLine
-                    >-Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
-
+                    <argLine>-Dconfig.file=src/test/resources/application.conf -Dlogback.configuration=src/test/resources/logback-test.xml</argLine>
                 </configuration>
             </plugin>
 

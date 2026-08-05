@@ -857,7 +857,7 @@ public class Tests {
         ServerRequest request,
         @FormParam("buffer") ByteBuffer buffer
     ) throws Exception {
-        return response(Map.of("size", buffer.array().length))
+        return response(Map.of("size", buffer.remaining()))
             .applicationJson()
             .ok();
     }
@@ -883,7 +883,7 @@ public class Tests {
                     Thread.sleep(2000L);
 
                     future.complete(
-                        response(Map.of("size", buffer.array().length))
+                        response(Map.of("size", buffer.remaining()))
                             .applicationJson()
                             .ok()
                     );

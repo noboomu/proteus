@@ -89,7 +89,13 @@ public class TestClient {
         }
 
         public RequestSpec multiPart(String name, Object value) {
-            multiparts.add(new MultipartPart(name, value, null));
+            if (value instanceof File) {
+                multiparts.add(new MultipartPart(name, (File) value, null));
+            } else if (value instanceof String) {
+                multiparts.add(new MultipartPart(name, (String) value, null));
+            } else {
+                multiparts.add(new MultipartPart(name, value, null));
+            }
             return this;
         }
 
@@ -158,16 +164,16 @@ public class TestClient {
                     builder.header("Accept", accept);
                 }
 
-                if (contentType != null) {
-                    builder.header("Content-Type", contentType);
+                if (contentType != null && multiparts.isEmpty()) {
+                    builder.setHeader("Content-Type", contentType);
                 }
 
-                headers.forEach(builder::header);
+                headers.forEach(builder::setHeader);
 
                 HttpRequest.BodyPublisher bodyPublisher;
                 if (!multiparts.isEmpty()) {
                     String boundary = "----Boundary" + UUID.randomUUID().toString().replace("-", "");
-                    builder.header("Content-Type", "multipart/form-data; boundary=" + boundary);
+                    builder.setHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
                     bodyPublisher = buildMultipartBody(boundary);
                 } else if (body != null) {
                     bodyPublisher = HttpRequest.BodyPublishers.ofString(body);
@@ -183,13 +189,14 @@ public class TestClient {
                         .build();
 
                 HttpRequest request = builder.build();
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
                 return new ResponseSpec(response);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to execute request", e);
             }
         }
+
 
         private String buildQueryString() {
             return queryParams.entrySet().stream()
@@ -201,60 +208,76 @@ public class TestClient {
 
         private HttpRequest.BodyPublisher buildMultipartBody(String boundary) {
             try {
-                StringBuilder sb = new StringBuilder();
+                List<byte[]> byteArrays = new ArrayList<>();
+                byte[] separator = ("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8);
 
                 // Add multipart parts
                 for (MultipartPart part : multiparts) {
-                    sb.append("--").append(boundary).append("\r\n");
+                    byteArrays.add(separator);
 
+                    StringBuilder header = new StringBuilder();
                     if (part.file != null) {
-                        sb.append("Content-Disposition: form-data; name=\"")
+                        header.append("Content-Disposition: form-data; name=\"")
                             .append(part.name)
                             .append("\"; filename=\"")
                             .append(part.file.getName())
                             .append("\"\r\n");
                         if (part.mimeType != null) {
-                            sb.append("Content-Type: ").append(part.mimeType).append("\r\n");
+                            header.append("Content-Type: ").append(part.mimeType).append("\r\n");
                         }
-                        sb.append("\r\n");
-                        sb.append(new String(Files.readAllBytes(part.file.toPath())));
-                        sb.append("\r\n");
+                        header.append("\r\n");
+                        byteArrays.add(header.toString().getBytes(StandardCharsets.UTF_8));
+                        byteArrays.add(Files.readAllBytes(part.file.toPath()));
+                        byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
                     } else if (part.stringContent != null) {
                         // Handle string content (like JSON strings)
-                        sb.append("Content-Disposition: form-data; name=\"").append(part.name).append("\"\r\n");
+                        header.append("Content-Disposition: form-data; name=\"").append(part.name).append("\"\r\n");
                         if (part.mimeType != null) {
-                            sb.append("Content-Type: ").append(part.mimeType).append("\r\n");
+                            header.append("Content-Type: ").append(part.mimeType).append("\r\n");
                         }
-                        sb.append("\r\n");
-                        sb.append(part.stringContent);
-                        sb.append("\r\n");
+                        header.append("\r\n");
+                        byteArrays.add(header.toString().getBytes(StandardCharsets.UTF_8));
+                        byteArrays.add(part.stringContent.getBytes(StandardCharsets.UTF_8));
+                        byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
                     } else {
                         // Handle object serialization
-                        sb.append("Content-Disposition: form-data; name=\"").append(part.name).append("\"\r\n");
+                        header.append("Content-Disposition: form-data; name=\"").append(part.name).append("\"\r\n");
                         if (part.mimeType != null) {
-                            sb.append("Content-Type: ").append(part.mimeType).append("\r\n");
+                            header.append("Content-Type: ").append(part.mimeType).append("\r\n");
                         } else {
-                            sb.append("Content-Type: application/json\r\n");
+                            header.append("Content-Type: application/json\r\n");
                         }
-                        sb.append("\r\n");
-                        sb.append(OBJECT_MAPPER.writeValueAsString(part.value));
-                        sb.append("\r\n");
+                        header.append("\r\n");
+                        byteArrays.add(header.toString().getBytes(StandardCharsets.UTF_8));
+                        byteArrays.add(OBJECT_MAPPER.writeValueAsBytes(part.value));
+                        byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
                     }
                 }
 
                 // Add form parameters as multipart parts
                 for (Map.Entry<String, List<String>> entry : formParams.entrySet()) {
                     for (String value : entry.getValue()) {
-                        sb.append("--").append(boundary).append("\r\n");
-                        sb.append("Content-Disposition: form-data; name=\"").append(entry.getKey()).append("\"\r\n");
-                        sb.append("\r\n");
-                        sb.append(value);
-                        sb.append("\r\n");
+                        byteArrays.add(separator);
+                        StringBuilder header = new StringBuilder();
+                        header.append("Content-Disposition: form-data; name=\"").append(entry.getKey()).append("\"\r\n\r\n");
+                        byteArrays.add(header.toString().getBytes(StandardCharsets.UTF_8));
+                        byteArrays.add(value.getBytes(StandardCharsets.UTF_8));
+                        byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
                     }
                 }
 
-                sb.append("--").append(boundary).append("--\r\n");
-                return HttpRequest.BodyPublishers.ofString(sb.toString());
+                byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
+                
+                int totalLength = byteArrays.stream().mapToInt(b -> b.length).sum();
+                System.err.println("TESTCLIENT_PAYLOAD_SIZE: " + totalLength);
+                byte[] allBytes = new byte[totalLength];
+                int offset = 0;
+                for (byte[] b : byteArrays) {
+                    System.arraycopy(b, 0, allBytes, offset, b.length);
+                    offset += b.length;
+                }
+
+                return HttpRequest.BodyPublishers.ofByteArray(allBytes);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to build multipart body", e);
             }
@@ -301,9 +324,9 @@ public class TestClient {
     }
 
     public static class ResponseSpec {
-        private final HttpResponse<String> response;
+        private final HttpResponse<byte[]> response;
 
-        ResponseSpec(HttpResponse<String> response) {
+        ResponseSpec(HttpResponse<byte[]> response) {
             this.response = response;
         }
 
@@ -319,14 +342,14 @@ public class TestClient {
 
         public ResponseSpec body(String matcher) {
             // Simple string contains check
-            assertTrue(response.body().contains(matcher),
+            assertTrue(body().contains(matcher),
                 "Response body does not contain: " + matcher);
             return this;
         }
 
         public ResponseSpec body(Matcher<?> matcher) {
             // Hamcrest matcher support
-            assertTrue(matcher.matches(response.body()),
+            assertTrue(matcher.matches(body()),
                 "Response body does not match: " + matcher);
             return this;
         }
@@ -334,7 +357,7 @@ public class TestClient {
         public ResponseSpec body(String jsonPath, Object expectedValue) {
             // Simple JSON path checking using Jackson
             try {
-                Map<?, ?> json = OBJECT_MAPPER.readValue(response.body(), Map.class);
+                Map<?, ?> json = OBJECT_MAPPER.readValue(body(), Map.class);
                 Object actualValue = json.get(jsonPath);
 
                 // Handle Hamcrest matcher
@@ -380,20 +403,23 @@ public class TestClient {
         }
 
         public ResponseSpec log() {
-            System.out.println("Response: " + response.statusCode() + " - " + response.body());
+            System.out.println("Response: " + response.statusCode() + " - " + body());
             return this;
         }
 
         public <T> T as(Class<T> type) {
             try {
-                return OBJECT_MAPPER.readValue(response.body(), type);
+                if (response.headers().firstValue("Content-Type").orElse("").contains("xml")) {
+                    return new tools.jackson.dataformat.xml.XmlMapper().readValue(body(), type);
+                }
+                return OBJECT_MAPPER.readValue(body(), type);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to deserialize response to " + type.getName(), e);
             }
         }
 
         public String body() {
-            return response.body();
+            return new String(response.body(), StandardCharsets.UTF_8);
         }
 
         public int statusCode() {
@@ -413,12 +439,12 @@ public class TestClient {
 
         public java.io.InputStream asInputStream() {
             // Convert response body to InputStream
-            return new java.io.ByteArrayInputStream(response.body().getBytes(StandardCharsets.UTF_8));
+            return new java.io.ByteArrayInputStream(response.body());
         }
 
         public byte[] asByteArray() {
             // Return response body as byte array
-            return response.body().getBytes(StandardCharsets.UTF_8);
+            return response.body();
         }
     }
 }

@@ -51,6 +51,7 @@ public class OpenAPITests
 
     @GET
     @Path("/generic")
+    @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Test generics processing")
     @ApiResponse(
             responseCode = "200",

@@ -1715,6 +1715,7 @@ public class Reader {
                 }
             }
 
+            JavaType resolvedClassType = Json.mapper().getTypeFactory().constructType(returnType);
             System.out.println("Processing method: " + method.getName() + ", returnType: " + returnType);
             ResolvedSchema resolvedSchema =
                 ModelConverters.getInstance().resolveAsResolvedSchema(
@@ -1723,52 +1724,83 @@ public class Reader {
                         .jsonViewAnnotation(jsonViewAnnotation)
                 );
 
-            if (resolvedSchema.schema != null) {
+            if (resolvedSchema != null && resolvedSchema.schema != null) {
                 System.out.println("resolvedSchema.schema != null for " + method.getName());
                 Schema returnTypeSchema = resolvedSchema.schema;
-                Content content = new Content();
-                MediaType mediaType = new MediaType().schema(returnTypeSchema);
-                AnnotationsUtils.applyTypes(
-                    classProduces == null
-                        ? new String[0]
-                        : classProduces.value(),
-                    methodProduces == null
-                        ? new String[0]
-                        : methodProduces.value(),
-                    content,
-                    mediaType
-                );
-                if (operation.getResponses() == null) {
-                    operation.responses(
-                        new ApiResponses()._default(
-                            new ApiResponse()
-                                .description(DEFAULT_DESCRIPTION)
-                                .content(content)
-                        )
-                    );
+                
+                // CRITICAL: Actually set the reference on the schema if it's not a generic array/map
+                if (returnTypeSchema.get$ref() == null && returnTypeSchema.getType() == null && resolvedClassType != null) {
+                     String ref = "#/components/schemas/" + resolvedClassType.getRawClass().getSimpleName();
+                     if (resolvedClassType.hasGenericTypes()) {
+                         StringBuilder nameBuilder = new StringBuilder(resolvedClassType.getRawClass().getSimpleName());
+                         for (JavaType param : resolvedClassType.getBindings().getTypeParameters()) {
+                             nameBuilder.append("_").append(param.getRawClass().getSimpleName());
+                         }
+                         ref = "#/components/schemas/" + nameBuilder.toString();
+                     }
+                     returnTypeSchema.set$ref(ref);
                 }
-                for (Map.Entry<String, ApiResponse> entry : operation.getResponses().entrySet()) {
-                    ApiResponse response = entry.getValue();
-                    if (response != null && StringUtils.isBlank(response.get$ref())) {
-                        if (response.getContent() == null || response.getContent().isEmpty()) {
-                            response.content(content);
-                        }
-                        if (response.getContent() != null) {
-                            for (String key : response.getContent().keySet()) {
-                                if (response.getContent().get(key).getSchema() == null) {
-                                    response.getContent().get(key).setSchema(returnTypeSchema);
-                                }
-                            }
-                        }
-                    }
-                }
-                Map<String, Schema> schemaMap =
-                    resolvedSchema.referencedSchemas;
+
+        // Track resolved components
+                Map<String, Schema> schemaMap = resolvedSchema.referencedSchemas;
                 if (schemaMap != null) {
                     schemaMap.forEach((key, schema) ->
                         components.addSchemas(key, schema)
                     );
                 }
+
+                Content content = new Content();
+                MediaType mediaType = new MediaType().schema(returnTypeSchema);
+                AnnotationsUtils.applyTypes(
+                    classProduces == null
+                        ? new String[] { "*/*" }
+                        : classProduces.value(),
+                    methodProduces == null
+                        ? new String[] { "*/*" }
+                        : methodProduces.value(),
+                    content,
+                    mediaType
+                );
+        if (operation.getResponses() == null || operation.getResponses().isEmpty()) {
+            operation.responses(
+                new ApiResponses().addApiResponse("200",
+                    new ApiResponse()
+                        .description(DEFAULT_DESCRIPTION)
+                        .content(content)
+                )
+            );
+        } else {
+             // If there's an existing 200 response from an annotation, ensure it has the schema
+             if (operation.getResponses().containsKey("200")) {
+                 ApiResponse existing200 = operation.getResponses().get("200");
+                 if (existing200.getContent() == null || existing200.getContent().isEmpty()) {
+                     existing200.setContent(content);
+                 } else {
+                     for (MediaType mType : existing200.getContent().values()) {
+                         if (mType.getSchema() == null) {
+                             mType.setSchema(returnTypeSchema);
+                         }
+                     }
+                 }
+             }
+        }
+        
+        for (Map.Entry<String, ApiResponse> entry : operation.getResponses().entrySet()) {
+            ApiResponse response = entry.getValue();
+            if (response != null) {
+                if (response.getContent() == null || response.getContent().isEmpty()) {
+                    response.setContent(content);
+                }
+                
+                if (response.getContent() != null && response.getContent().size() > 0) {
+                    for (String key : response.getContent().keySet()) {
+                        if (response.getContent().get(key).getSchema() == null) {
+                            response.getContent().get(key).setSchema(returnTypeSchema);
+                        }
+                    }
+                }
+            }
+        }
             }
         }
         if (

@@ -357,8 +357,17 @@ public class TestClient {
         public ResponseSpec body(String jsonPath, Object expectedValue) {
             // Simple JSON path checking using Jackson
             try {
+                if (body() == null || body().isEmpty()) {
+                    fail("Response body is empty, cannot check path: " + jsonPath);
+                }
+                
                 Map<?, ?> json = OBJECT_MAPPER.readValue(body(), Map.class);
                 Object actualValue = json.get(jsonPath);
+
+                // Handle string representation
+                if (expectedValue instanceof String && actualValue != null) {
+                    actualValue = actualValue.toString();
+                }
 
                 // Handle Hamcrest matcher
                 if (expectedValue instanceof Matcher) {

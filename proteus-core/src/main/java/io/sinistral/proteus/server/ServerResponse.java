@@ -12,6 +12,9 @@ import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.util.*;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
+import java.io.File;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -611,7 +614,18 @@ public class ServerResponse<T> {
             }
         } else if (hasEntity) {
             try {
-                if (this.processXml) {
+                if (this.entity instanceof ByteBuffer) {
+                    if (!this.hasIoCallback) {
+                        exchange.getResponseSender().send((ByteBuffer) this.entity);
+                    } else {
+                        exchange.getResponseSender().send((ByteBuffer) this.entity, this.ioCallback);
+                    }
+                } else if (this.entity instanceof File) {
+                    File file = (File) this.entity;
+                    exchange.getResponseHeaders().put(Headers.CONTENT_DISPOSITION, "inline; filename=\"" + file.getName() + "\"");
+                    exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, file.length());
+                    exchange.getResponseSender().transferFrom(FileChannel.open(file.toPath(), StandardOpenOption.READ), this.ioCallback != null ? this.ioCallback : IoCallback.END_EXCHANGE);
+                } else if (this.processXml) {
                     exchange
                         .getResponseSender()
                         .send(

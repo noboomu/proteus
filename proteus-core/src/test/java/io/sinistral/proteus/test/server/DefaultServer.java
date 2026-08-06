@@ -24,6 +24,7 @@ public class DefaultServer implements BeforeAllCallback, AfterAllCallback
 
     static {
         System.setProperty("logback.configurationFile", "./conf/logback-test.xml");
+        System.setProperty("config.file", "src/test/resources/application.conf");
     }
 
     @Override

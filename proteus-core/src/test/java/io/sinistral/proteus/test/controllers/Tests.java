@@ -566,7 +566,6 @@ public class Tests {
     ) throws Exception {
         return response().body(param.toString());
     }
-
     @GET
     @Path("response/future/response")
     public CompletableFuture<
@@ -880,8 +879,6 @@ public class Tests {
             .getWorker()
             .execute(() -> {
                 try {
-                    Thread.sleep(2000L);
-
                     future.complete(
                         response(Map.of("size", buffer.remaining()))
                             .applicationJson()

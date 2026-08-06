@@ -98,6 +98,11 @@ public class ConfigModule extends AbstractModule {
 
         log.trace(this.config.toString());
 
+        if (this.config.hasPath("testing.wrapper.value")) {
+        } else {
+            System.err.println("ConfigModule: bindConfig MISSING testing.wrapper.value! Root keys = " + this.config.root().keySet());
+        }
+
         this.binder().bind(Config.class).toInstance(config);
     }
 

@@ -5,6 +5,7 @@ package io.sinistral.proteus.openapi.jaxrs2;
 
 import io.sinistral.proteus.openapi.models.Components;
 import io.sinistral.proteus.openapi.models.parameters.Parameter;
+import io.sinistral.proteus.openapi.util.Json;
 import io.sinistral.proteus.openapi.util.ParameterProcessor;
 import jakarta.ws.rs.*;
 import org.apache.commons.lang3.StringUtils;
@@ -12,10 +13,11 @@ import com.fasterxml.jackson.annotation.JsonView;
 import tools.jackson.databind.BeanDescription;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationConfig;
 import tools.jackson.databind.introspect.AnnotatedField;
 import tools.jackson.databind.introspect.AnnotatedMethod;
 import tools.jackson.databind.introspect.BeanPropertyDefinition;
-import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.introspect.ClassIntrospector;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -35,7 +37,15 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
     private static String PATH_PARAM = "path";
     private static String FORM_PARAM = "form";
 
-    static final ObjectMapper mapper = JsonMapper.builder().build();
+    private final ObjectMapper mapper;
+
+    public ServerParameterExtension() {
+        this(Json.mapper());
+    }
+
+    public ServerParameterExtension(ObjectMapper mapper) {
+        this.mapper = Objects.requireNonNull(mapper, "mapper");
+    }
 
     @Override
     public ResolvedParameter extractParameters(
@@ -61,6 +71,8 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
         }
 
         Parameter parameter = null;
+        List<Parameter> additionalParameters = new ArrayList<>();
+        List<Parameter> additionalFormParameters = new ArrayList<>();
 
         for (Annotation annotation : annotations) {
             if (annotation instanceof QueryParam) {
@@ -117,36 +129,25 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
                     parameter = new Parameter();
                 }
             } else {
-                List<Parameter> formParameters = new ArrayList<>();
-                List<Parameter> parameters = new ArrayList<>();
-
-                if (
-                    handleAdditionalAnnotation(
-                        parameters,
-                        formParameters,
-                        annotation,
-                        type,
-                        typesToSkip,
-                        classConsumes,
-                        methodConsumes,
-                        components,
-                        includeRequestBody,
-                        jsonViewAnnotation
-                    )
-                ) {
-                    ResolvedParameter extractParametersResult =
-                        new ResolvedParameter();
-
-                    extractParametersResult.parameters.addAll(parameters);
-                    extractParametersResult.formParameters.addAll(
-                        formParameters
-                    );
-                }
+                handleAdditionalAnnotation(
+                    additionalParameters,
+                    additionalFormParameters,
+                    annotation,
+                    type,
+                    typesToSkip,
+                    classConsumes,
+                    methodConsumes,
+                    components,
+                    includeRequestBody,
+                    jsonViewAnnotation
+                );
             }
         }
 
         List<Parameter> parameters = new ArrayList<>();
         ResolvedParameter extractParametersResult = new ResolvedParameter();
+        extractParametersResult.parameters.addAll(additionalParameters);
+        extractParametersResult.formParameters.addAll(additionalFormParameters);
 
         if ((parameter != null) && StringUtils.isNotBlank(parameter.getIn())) {
             parameter.setRequired(isRequired);
@@ -228,10 +229,13 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
             // Use Jackson's logic for processing Beans
             JavaType javaType = constructType(type);
 
-            // Note: In Jackson 3.0, BeanDescription creation API has changed significantly.
-            // For now, BeanParam processing is simplified. If BeanParam support is needed,
-            // this should be updated to use Jackson 3.0's POJOPropertiesCollector API.
-            final List<BeanPropertyDefinition> properties = new ArrayList<>();
+            SerializationConfig serializationConfig = mapper.serializationConfig();
+            ClassIntrospector introspector = serializationConfig.classIntrospectorInstance();
+            BeanDescription beanDescription = introspector.introspectForSerialization(
+                javaType,
+                introspector.introspectClassAnnotations(javaType)
+            );
+            final List<BeanPropertyDefinition> properties = beanDescription.findProperties();
 
             for (final BeanPropertyDefinition propDef : properties) {
                 final AnnotatedField field = propDef.getField();

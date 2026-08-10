@@ -1,14 +1,20 @@
 package io.sinistral.proteus.openapi.util;
 
+import io.sinistral.proteus.openapi.converter.AnnotatedType;
+import io.sinistral.proteus.openapi.converter.ModelConverters;
+import io.sinistral.proteus.openapi.converter.ResolvedSchema;
 import io.sinistral.proteus.openapi.models.Components;
+import io.sinistral.proteus.openapi.models.examples.Example;
+import io.sinistral.proteus.openapi.models.media.Content;
 import io.sinistral.proteus.openapi.models.media.Schema;
 import io.sinistral.proteus.openapi.models.parameters.Parameter;
 import com.fasterxml.jackson.annotation.JsonView;
-import tools.jackson.databind.JavaType;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility for processing parameter annotations
@@ -40,13 +46,83 @@ public class ParameterProcessor {
             parameter = new Parameter();
         }
 
-        // Basic type resolution - create schema from type if not present
-        if (parameter.getSchema() == null && type != null) {
-            Schema schema = new Schema();
-            JavaType javaType = Json.mapper().getTypeFactory().constructType(type);
-            String typeName = javaType.getRawClass().getSimpleName();
-            schema.setType(mapJavaTypeToOpenAPIType(typeName));
-            parameter.setSchema(schema);
+        io.swagger.v3.oas.annotations.Parameter annotation = null;
+        for (Annotation candidate : annotations) {
+            if (candidate instanceof io.swagger.v3.oas.annotations.Parameter parameterAnnotation) {
+                annotation = parameterAnnotation;
+                break;
+            }
+        }
+
+        if (annotation != null) {
+            if (!annotation.ref().isBlank()) {
+                parameter.set$ref(annotation.ref());
+                return parameter;
+            }
+            if (!annotation.name().isBlank()) parameter.setName(annotation.name());
+            if (annotation.in() != io.swagger.v3.oas.annotations.enums.ParameterIn.DEFAULT) {
+                parameter.setIn(annotation.in().toString());
+            }
+            if (!annotation.description().isBlank()) parameter.setDescription(annotation.description());
+            if (annotation.required()) parameter.setRequired(true);
+            if (annotation.deprecated()) parameter.setDeprecated(true);
+            if (annotation.allowEmptyValue()) parameter.setAllowEmptyValue(true);
+            if (annotation.allowReserved()) parameter.setAllowReserved(true);
+            if (annotation.style() != io.swagger.v3.oas.annotations.enums.ParameterStyle.DEFAULT) {
+                parameter.setStyle(Parameter.StyleEnum.fromValue(annotation.style().toString()));
+            }
+            if (annotation.explode() == io.swagger.v3.oas.annotations.enums.Explode.TRUE) {
+                parameter.setExplode(true);
+            } else if (annotation.explode() == io.swagger.v3.oas.annotations.enums.Explode.FALSE) {
+                parameter.setExplode(false);
+            }
+            if (!annotation.example().isBlank()) {
+                parameter.setExample(OperationParser.parseAnnotationValue(annotation.example()));
+            }
+            if (annotation.examples().length == 1 && annotation.examples()[0].name().isBlank()) {
+                parameter.setExample(OperationParser.parseExample(annotation.examples()[0]).getValue());
+            } else {
+                Map<String, Example> examples = new LinkedHashMap<>();
+                int index = 0;
+                for (io.swagger.v3.oas.annotations.media.ExampleObject example : annotation.examples()) {
+                    String name = example.name().isBlank() ? "example-" + index : example.name();
+                    examples.put(name, OperationParser.parseExample(example));
+                    index++;
+                }
+                if (!examples.isEmpty()) parameter.setExamples(examples);
+            }
+            AnnotationsUtils.getExtensions(annotation.extensions()).forEach(parameter::addExtension);
+
+            Content content = OperationParser.parseContent(
+                annotation.content(),
+                classConsumes,
+                methodConsumes,
+                components,
+                jsonViewAnnotation
+            );
+            if (!content.isEmpty()) parameter.setContent(content);
+
+            Schema explicitSchema = OperationParser.resolveArraySchema(
+                annotation.array(), components, jsonViewAnnotation
+            );
+            if (explicitSchema == null) {
+                explicitSchema = OperationParser.resolveSchemaAnnotation(
+                    annotation.schema(), components, jsonViewAnnotation
+                );
+            }
+            if (explicitSchema != null) parameter.setSchema(explicitSchema);
+        }
+
+        if (parameter.getSchema() == null && parameter.getContent() == null && type != null) {
+            ResolvedSchema resolved = ModelConverters.getInstance().resolveAsResolvedSchema(
+                new AnnotatedType(type)
+                    .resolveAsRef(true)
+                    .jsonViewAnnotation(jsonViewAnnotation)
+            );
+            if (resolved.schema != null) parameter.setSchema(resolved.schema);
+            if (resolved.referencedSchemas != null) {
+                resolved.referencedSchemas.forEach(components::addSchemas);
+            }
         }
 
         return parameter;
@@ -79,25 +155,15 @@ public class ParameterProcessor {
      * Get parameter type from annotation with useSchema flag
      */
     public static Type getParameterType(io.swagger.v3.oas.annotations.Parameter parameterAnnotation, boolean useSchema) {
-        // Extract type from Parameter annotation's schema
+        if (parameterAnnotation == null) {
+            return null;
+        }
         if (useSchema && parameterAnnotation.schema() != null) {
             io.swagger.v3.oas.annotations.media.Schema schema = parameterAnnotation.schema();
-            if (schema.implementation() != null && schema.implementation() != Void.class) {
+            if (schema.implementation() != Void.class) {
                 return schema.implementation();
             }
         }
-        // Default to String.class if no type info available
-        return String.class;
-    }
-
-    private static String mapJavaTypeToOpenAPIType(String javaType) {
-        return switch (javaType.toLowerCase()) {
-            case "string" -> "string";
-            case "integer", "int", "long", "short", "byte" -> "integer";
-            case "double", "float", "bigdecimal" -> "number";
-            case "boolean" -> "boolean";
-            case "list", "set", "collection" -> "array";
-            default -> "object";
-        };
+        return null;
     }
 }

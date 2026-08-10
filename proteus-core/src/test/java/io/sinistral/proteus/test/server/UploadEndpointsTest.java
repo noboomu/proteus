@@ -84,7 +84,6 @@ public class UploadEndpointsTest extends AbstractEndpointTest {
             .post("v1/tests/list/file")
             .as(Map.class);
 
-        System.err.println("MAP RECEIVED list/file: " + map);
         assertThat(map.size(), equalTo(4));
 
         assertThat(

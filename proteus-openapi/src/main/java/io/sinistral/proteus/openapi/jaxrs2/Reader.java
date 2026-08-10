@@ -59,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.BeanDescription;
 import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.introspect.AnnotatedMethod;
 import tools.jackson.databind.introspect.AnnotatedParameter;
 import tools.jackson.databind.type.TypeFactory;
@@ -88,10 +89,14 @@ public class Reader {
     private static final String OPTIONS_METHOD = "options";
 
     private Schema stringSchema;
+    private final ObjectMapper mapper;
 
     public Reader() {
-        // Json.mapper().addMixIn(ServerRequest.class, ServerRequestMixIn.class);
+        this(Json.mapper());
+    }
 
+    private Reader(ObjectMapper mapper) {
+        this.mapper = Objects.requireNonNull(mapper, "mapper");
         this.openAPI = new OpenAPI();
         paths = new Paths();
         openApiTags = new LinkedHashSet<>();
@@ -101,12 +106,20 @@ public class Reader {
     }
 
     public Reader(OpenAPI openAPI) {
-        this();
+        this(openAPI, Json.mapper());
+    }
+
+    public Reader(OpenAPI openAPI, ObjectMapper mapper) {
+        this(mapper);
         setConfiguration(new SwaggerConfiguration().openAPI(openAPI));
     }
 
     public Reader(OpenAPIConfiguration openApiConfiguration) {
-        this();
+        this(openApiConfiguration, Json.mapper());
+    }
+
+    public Reader(OpenAPIConfiguration openApiConfiguration, ObjectMapper mapper) {
+        this(mapper);
         setConfiguration(openApiConfiguration);
     }
 
@@ -218,12 +231,19 @@ public class Reader {
     }
 
     public static OpenAPIConfiguration deepCopy(OpenAPIConfiguration config) {
+        return deepCopy(config, Json.mapper());
+    }
+
+    private static OpenAPIConfiguration deepCopy(
+        OpenAPIConfiguration config,
+        ObjectMapper mapper
+    ) {
         if (config == null) {
             return null;
         }
         try {
-            return Json.mapper().readValue(
-                Json.pretty(config),
+            return mapper.readValue(
+                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(config),
                 SwaggerConfiguration.class
             );
         } catch (Exception e) {
@@ -234,7 +254,7 @@ public class Reader {
 
     public void setConfiguration(OpenAPIConfiguration openApiConfiguration) {
         if (openApiConfiguration != null) {
-            this.config = deepCopy(openApiConfiguration);
+            this.config = deepCopy(openApiConfiguration, mapper);
             if (openApiConfiguration.getOpenAPI() != null) {
                 this.openAPI = this.config.getOpenAPI();
                 if (this.openAPI.getComponents() != null) {
@@ -487,7 +507,7 @@ public class Reader {
         Optional<io.sinistral.proteus.openapi.models.ExternalDocumentation> classExternalDocumentation =
             AnnotationsUtils.getExternalDocumentation(apiExternalDocs);
 
-        JavaType classType = Json.mapper().getTypeFactory().constructType(cls);
+        JavaType classType = mapper.getTypeFactory().constructType(cls);
 
         // Note: In Jackson 3.0, BeanDescription creation API has changed significantly.
         // Since bd is only used to get AnnotatedMethod, and the code already has a fallback
@@ -664,7 +684,7 @@ public class Reader {
 
                         for (int i = 0; i < genericParameterTypes.length; i++) {
                             final Type type =
-                                Json.mapper().getTypeFactory().constructType(
+                                mapper.getTypeFactory().constructType(
                                     genericParameterTypes[i]
                                 );
                             io.swagger.v3.oas.annotations.Parameter paramAnnotation =
@@ -689,7 +709,7 @@ public class Reader {
                             }
 
                             boolean isOptional = isOptionalType(
-                                Json.mapper().getTypeFactory().constructType(
+                                mapper.getTypeFactory().constructType(
                                     paramType
                                 )
                             );
@@ -738,7 +758,7 @@ public class Reader {
                                 annotatedMethod.getParameter(i);
 
                             final Type type =
-                                Json.mapper().getTypeFactory().constructType(
+                                mapper.getTypeFactory().constructType(
                                     param.getType()
                                 );
 
@@ -763,7 +783,7 @@ public class Reader {
                             }
 
                             boolean isOptional = isOptionalType(
-                                Json.mapper().getTypeFactory().constructType(
+                                mapper.getTypeFactory().constructType(
                                     paramType
                                 )
                             );
@@ -1152,7 +1172,7 @@ public class Reader {
             : true);
 
         if (type != null && !isOptional) {
-            JavaType classType = Json.mapper().getTypeFactory().constructType(
+            JavaType classType = mapper.getTypeFactory().constructType(
                 type
             );
 
@@ -1300,7 +1320,7 @@ public class Reader {
         List<Parameter> globalParameters,
         JsonView jsonViewAnnotation
     ) {
-        JavaType classType = Json.mapper().getTypeFactory().constructType(
+        JavaType classType = mapper.getTypeFactory().constructType(
             method.getDeclaringClass()
         );
         return parseMethod(
@@ -1340,7 +1360,7 @@ public class Reader {
         JsonView jsonViewAnnotation,
         io.swagger.v3.oas.annotations.responses.ApiResponse[] classResponses
     ) {
-        JavaType classType = Json.mapper().getTypeFactory().constructType(
+        JavaType classType = mapper.getTypeFactory().constructType(
             method.getDeclaringClass()
         );
         return parseMethod(
@@ -1665,166 +1685,135 @@ public class Reader {
             }
         }
 
-        // handle return type, add as response in case.
+        // Infer a response schema from the complete reflective return Type. The
+        // converter chain unwraps CompletionStage and ServerResponse while retaining
+        // parameterized payload types such as Page<Order>.
         Type returnType = method.getGenericReturnType();
-        final Class<?> subResource =
-            getSubResourceWithJaxRsSubresourceLocatorSpecs(method);
-
-        if (
-            !shouldIgnoreClass(returnType.getTypeName()) &&
-            !returnType.equals(subResource)
-        ) {
-            LOGGER.debug(
-                "processing class " +
-                    returnType +
-                    " " +
-                    returnType.getTypeName()
+        final Class<?> subResource = getSubResourceWithJaxRsSubresourceLocatorSpecs(method);
+        if (!shouldIgnoreClass(returnType.getTypeName()) && !returnType.equals(subResource)) {
+            ResolvedSchema resolved = ModelConverters.getInstance().resolveAsResolvedSchema(
+                new AnnotatedType(returnType)
+                    .resolveAsRef(true)
+                    .jsonViewAnnotation(jsonViewAnnotation)
             );
-
-            JavaType classType = Json.mapper().getTypeFactory().constructType(
-                returnType
-            );
-
-            if (classType != null && classType.getRawClass() != null) {
-                if (
-                    classType
-                        .getRawClass()
-                        .isAssignableFrom(ServerResponse.class)
-                ) {
-                    if (classType.containedType(0) != null) {
-                        returnType = classType.containedType(0);
-                    }
-                } else if (
-                    classType
-                        .getRawClass()
-                        .isAssignableFrom(CompletableFuture.class)
-                ) {
-                    Class<?> futureCls = classType
-                        .containedType(0)
-                        .getRawClass();
-
-                    if (futureCls.isAssignableFrom(ServerResponse.class)) {
-                        final JavaType futureType =
-                            Json.mapper().getTypeFactory().constructType(
-                                classType.containedType(0)
-                            );
-                        returnType = futureType.containedType(0);
-                    } else {
-                        returnType = classType.containedType(0);
-                    }
-                }
-            }
-
-            JavaType resolvedClassType = Json.mapper().getTypeFactory().constructType(returnType);
-            System.out.println("Processing method: " + method.getName() + ", returnType: " + returnType);
-            ResolvedSchema resolvedSchema =
-                ModelConverters.getInstance().resolveAsResolvedSchema(
-                    new AnnotatedType(returnType)
-                        .resolveAsRef(true)
-                        .jsonViewAnnotation(jsonViewAnnotation)
-                );
-
-            if (resolvedSchema != null && resolvedSchema.schema != null) {
-                System.out.println("resolvedSchema.schema != null for " + method.getName());
-                Schema returnTypeSchema = resolvedSchema.schema;
-                
-                // CRITICAL: Actually set the reference on the schema if it's not a generic array/map
-                if (returnTypeSchema.get$ref() == null && returnTypeSchema.getType() == null && resolvedClassType != null) {
-                     String ref = "#/components/schemas/" + resolvedClassType.getRawClass().getSimpleName();
-                     if (resolvedClassType.hasGenericTypes()) {
-                         StringBuilder nameBuilder = new StringBuilder(resolvedClassType.getRawClass().getSimpleName());
-                         for (JavaType param : resolvedClassType.getBindings().getTypeParameters()) {
-                             nameBuilder.append("_").append(param.getRawClass().getSimpleName());
-                         }
-                         ref = "#/components/schemas/" + nameBuilder.toString();
-                     }
-                     returnTypeSchema.set$ref(ref);
-                }
-
-        // Track resolved components
-                Map<String, Schema> schemaMap = resolvedSchema.referencedSchemas;
-                if (schemaMap != null) {
-                    schemaMap.forEach((key, schema) ->
-                        components.addSchemas(key, schema)
-                    );
-                }
-
-                Content content = new Content();
-                MediaType mediaType = new MediaType().schema(returnTypeSchema);
+            if (resolved != null && resolved.schema != null) {
+                Schema returnSchema = resolved.schema;
+                Content inferredContent = new Content();
+                MediaType inferredMediaType = new MediaType().schema(returnSchema);
                 AnnotationsUtils.applyTypes(
-                    classProduces == null
-                        ? new String[] { "*/*" }
-                        : classProduces.value(),
-                    methodProduces == null
-                        ? new String[] { "*/*" }
-                        : methodProduces.value(),
-                    content,
-                    mediaType
+                    classProduces == null ? new String[0] : classProduces.value(),
+                    methodProduces == null ? new String[0] : methodProduces.value(),
+                    inferredContent,
+                    inferredMediaType
                 );
-        if (operation.getResponses() == null || operation.getResponses().isEmpty()) {
-            operation.responses(
-                new ApiResponses().addApiResponse("200",
-                    new ApiResponse()
-                        .description(DEFAULT_DESCRIPTION)
-                        .content(content)
-                )
-            );
-        } else {
-             // If there's an existing 200 response from an annotation, ensure it has the schema
-             if (operation.getResponses().containsKey("200")) {
-                 ApiResponse existing200 = operation.getResponses().get("200");
-                 if (existing200.getContent() == null || existing200.getContent().isEmpty()) {
-                     existing200.setContent(content);
-                 } else {
-                     for (MediaType mType : existing200.getContent().values()) {
-                         if (mType.getSchema() == null) {
-                             mType.setSchema(returnTypeSchema);
-                         }
-                     }
-                 }
-             }
-        }
-        
-        for (Map.Entry<String, ApiResponse> entry : operation.getResponses().entrySet()) {
-            ApiResponse response = entry.getValue();
-            if (response != null) {
-                if (response.getContent() == null || response.getContent().isEmpty()) {
-                    response.setContent(content);
-                }
-                
-                if (response.getContent() != null && response.getContent().size() > 0) {
-                    for (String key : response.getContent().keySet()) {
-                        if (response.getContent().get(key).getSchema() == null) {
-                            response.getContent().get(key).setSchema(returnTypeSchema);
+
+                if (operation.getResponses() == null || operation.getResponses().isEmpty()) {
+                    operation.responses(
+                        new ApiResponses()._default(
+                            new ApiResponse()
+                                .description(DEFAULT_DESCRIPTION)
+                                .content(inferredContent)
+                        )
+                    );
+                } else {
+                    operation.getResponses().forEach((code, response) -> {
+                        if (response == null || StringUtils.isNotBlank(response.get$ref())) {
+                            return;
                         }
-                    }
+                        boolean inferSchema = isSuccessResponse(code)
+                            || "default".equalsIgnoreCase(code)
+                            || usesReturnTypeSchema(code, apiResponses, classResponses);
+                        if (!inferSchema) {
+                            return;
+                        }
+                        if (response.getContent() == null || response.getContent().isEmpty()) {
+                            response.setContent(copyContent(inferredContent));
+                            return;
+                        }
+                        response.getContent().values().forEach(mediaType -> {
+                            if (mediaType == null) return;
+                            if (mediaType.getSchema() == null) {
+                                mediaType.setSchema(returnSchema);
+                            } else if (!hasStructuralSchema(mediaType.getSchema())) {
+                                mediaType.getSchema().setAllOf(new ArrayList<>(List.of(returnSchema)));
+                            }
+                        });
+                    });
+                }
+
+                if (resolved.referencedSchemas != null) {
+                    resolved.referencedSchemas.forEach(components::addSchemas);
                 }
             }
         }
-            }
-        }
-        if (
-            operation.getResponses() == null ||
-            operation.getResponses().isEmpty()
-        ) {
-            LOGGER.debug("responses are null or empty");
 
-            // Content content = new Content();
-            // MediaType mediaType = new MediaType();
-            // AnnotationsUtils.applyTypes(classProduces == null ? new String[0]
-            // : classProduces.value(),
-            // methodProduces == null ? new String[0] : methodProduces.value(),
-            // content, mediaType);
-
-            ApiResponse apiResponseObject = new ApiResponse().description(
-                DEFAULT_DESCRIPTION
-            ); // .content(content);
+        if (operation.getResponses() == null || operation.getResponses().isEmpty()) {
             operation.setResponses(
-                new ApiResponses()._default(apiResponseObject)
+                new ApiResponses()._default(
+                    new ApiResponse().description(DEFAULT_DESCRIPTION)
+                )
             );
         }
 
         return operation;
+    }
+
+    private boolean hasStructuralSchema(Schema schema) {
+        return schema != null && (
+            StringUtils.isNotBlank(schema.get$ref())
+                || StringUtils.isNotBlank(schema.getType())
+                || schema.getItems() != null
+                || (schema.getProperties() != null && !schema.getProperties().isEmpty())
+                || schema.getAdditionalProperties() != null
+                || (schema.getAllOf() != null && !schema.getAllOf().isEmpty())
+                || (schema.getAnyOf() != null && !schema.getAnyOf().isEmpty())
+                || (schema.getOneOf() != null && !schema.getOneOf().isEmpty())
+                || schema.getDiscriminator() != null
+        );
+    }
+
+    private boolean isSuccessResponse(String responseCode) {
+        if (responseCode == null || responseCode.length() != 3 || responseCode.charAt(0) != '2') {
+            return false;
+        }
+        return !"204".equals(responseCode) && !"205".equals(responseCode);
+    }
+
+    private boolean usesReturnTypeSchema(
+        String responseCode,
+        List<io.swagger.v3.oas.annotations.responses.ApiResponse> methodResponses,
+        io.swagger.v3.oas.annotations.responses.ApiResponse[] classResponses
+    ) {
+        if (methodResponses != null) {
+            for (io.swagger.v3.oas.annotations.responses.ApiResponse response : methodResponses) {
+                if (response.useReturnTypeSchema() && responseCodeEquals(response.responseCode(), responseCode)) {
+                    return true;
+                }
+            }
+        }
+        if (classResponses != null) {
+            for (io.swagger.v3.oas.annotations.responses.ApiResponse response : classResponses) {
+                if (response.useReturnTypeSchema() && responseCodeEquals(response.responseCode(), responseCode)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean responseCodeEquals(String annotationCode, String responseCode) {
+        String normalized = annotationCode == null || annotationCode.isBlank()
+            ? "default"
+            : annotationCode;
+        return normalized.equalsIgnoreCase(responseCode);
+    }
+
+    private Content copyContent(Content source) {
+        Content copy = new Content();
+        if (source != null) {
+            source.forEach(copy::addMediaType);
+        }
+        return copy;
     }
 
     private boolean shouldIgnoreClass(String className) {
@@ -1853,6 +1842,7 @@ public class Reader {
         }
 
         Callback callbackObject = new Callback();
+        AnnotationsUtils.getExtensions(apiCallback.extensions()).forEach(callbackObject::addExtension);
         if (StringUtils.isNotBlank(apiCallback.ref())) {
             callbackObject.set$ref(apiCallback.ref());
             callbackMap.put(apiCallback.name(), callbackObject);
@@ -2117,7 +2107,7 @@ public class Reader {
                     "[map type; class java.util.Map, [simple type, class java.lang.String] -> [simple type, class java.nio.file.Path]]"
                 )
         ) {
-            type = Json.mapper().getTypeFactory().constructCollectionType(
+            type = mapper.getTypeFactory().constructCollectionType(
                 java.util.List.class,
                 java.nio.file.Path.class
             );
@@ -2128,7 +2118,7 @@ public class Reader {
                     "[map type; class java.util.Map, [simple type, class java.lang.String] -> [simple type, class java.io.File]]"
                 )
         ) {
-            type = Json.mapper().getTypeFactory().constructCollectionType(
+            type = mapper.getTypeFactory().constructCollectionType(
                 java.util.List.class,
                 java.io.File.class
             );

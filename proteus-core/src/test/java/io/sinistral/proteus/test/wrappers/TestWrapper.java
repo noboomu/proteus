@@ -20,7 +20,7 @@ public class TestWrapper implements HandlerWrapper
     }
 
     @Inject
-    @Named("test.wrapper.value")
+    @Named("testing.wrapper.value")
     private String wrapperValue;
 
     @Override

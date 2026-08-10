@@ -43,6 +43,7 @@ public class OAuthFlows {
         this.authorizationCode = authorizationCode;
     }
 
+    @com.fasterxml.jackson.annotation.JsonAnyGetter
     public Map<String, Object> getExtensions() {
         return extensions;
     }
@@ -51,6 +52,7 @@ public class OAuthFlows {
         this.extensions = extensions;
     }
 
+    @com.fasterxml.jackson.annotation.JsonAnySetter
     public void addExtension(String name, Object value) {
         if (name == null || name.isEmpty() || !name.startsWith("x-")) {
             return;

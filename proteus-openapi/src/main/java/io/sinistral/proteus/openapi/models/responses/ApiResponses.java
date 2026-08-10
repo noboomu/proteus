@@ -1,21 +1,28 @@
 package io.sinistral.proteus.openapi.models.responses;
 
 import java.util.LinkedHashMap;
-import java.util.Objects;
+import java.util.Map;
 
+@tools.jackson.databind.annotation.JsonSerialize(using = ApiResponsesSerializer.class)
+@tools.jackson.databind.annotation.JsonDeserialize(using = ApiResponsesDeserializer.class)
 public class ApiResponses extends LinkedHashMap<String, ApiResponse> {
-    private ApiResponse _default;
+    private static final String DEFAULT = "default";
+    private Map<String, Object> extensions;
 
     public ApiResponse getDefault() {
-        return _default;
+        return get(DEFAULT);
     }
 
-    public void setDefault(ApiResponse _default) {
-        this._default = _default;
+    public void setDefault(ApiResponse defaultResponse) {
+        if (defaultResponse == null) {
+            remove(DEFAULT);
+        } else {
+            put(DEFAULT, defaultResponse);
+        }
     }
 
-    public ApiResponses _default(ApiResponse _default) {
-        this._default = _default;
+    public ApiResponses _default(ApiResponse defaultResponse) {
+        setDefault(defaultResponse);
         return this;
     }
 
@@ -24,17 +31,27 @@ public class ApiResponses extends LinkedHashMap<String, ApiResponse> {
         return this;
     }
 
+    public Map<String, Object> getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(Map<String, Object> extensions) {
+        this.extensions = extensions;
+    }
+
+    public void addExtension(String name, Object value) {
+        if (name == null || name.isEmpty() || !name.startsWith("x-")) return;
+        if (extensions == null) extensions = new LinkedHashMap<>();
+        extensions.put(name, value);
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ApiResponses)) return false;
-        if (!super.equals(o)) return false;
-        ApiResponses that = (ApiResponses) o;
-        return Objects.equals(_default, that._default);
+        return o instanceof ApiResponses && super.equals(o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), _default);
+        return super.hashCode();
     }
 }

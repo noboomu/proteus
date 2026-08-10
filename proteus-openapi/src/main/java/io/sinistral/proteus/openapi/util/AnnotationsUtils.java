@@ -52,6 +52,7 @@ public class AnnotationsUtils {
             contact.setName(infoAnnotation.contact().name());
             contact.setEmail(infoAnnotation.contact().email());
             contact.setUrl(infoAnnotation.contact().url());
+            getExtensions(infoAnnotation.contact().extensions()).forEach(contact::addExtension);
             info.setContact(contact);
         }
 
@@ -59,9 +60,11 @@ public class AnnotationsUtils {
             License license = new License();
             license.setName(infoAnnotation.license().name());
             license.setUrl(infoAnnotation.license().url());
+            getExtensions(infoAnnotation.license().extensions()).forEach(license::addExtension);
             info.setLicense(license);
         }
 
+        getExtensions(infoAnnotation.extensions()).forEach(info::addExtension);
         return Optional.of(info);
     }
 
@@ -78,6 +81,7 @@ public class AnnotationsUtils {
         ExternalDocumentation externalDocs = new ExternalDocumentation();
         externalDocs.setDescription(annotation.description());
         externalDocs.setUrl(annotation.url());
+        getExtensions(annotation.extensions()).forEach(externalDocs::addExtension);
 
         return Optional.of(externalDocs);
     }
@@ -103,6 +107,7 @@ public class AnnotationsUtils {
             if (tagAnnotation.externalDocs() != null) {
                 getExternalDocumentation(tagAnnotation.externalDocs()).ifPresent(tag::setExternalDocs);
             }
+            getExtensions(tagAnnotation.extensions()).forEach(tag::addExtension);
 
             tags.add(tag);
         }
@@ -120,28 +125,46 @@ public class AnnotationsUtils {
 
         List<Server> servers = new ArrayList<>();
         for (io.swagger.v3.oas.annotations.servers.Server serverAnnotation : annotations) {
-            Server server = new Server();
-            server.setUrl(serverAnnotation.url());
-            server.setDescription(serverAnnotation.description());
-
-            if (serverAnnotation.variables() != null) {
-                for (io.swagger.v3.oas.annotations.servers.ServerVariable varAnnotation : serverAnnotation.variables()) {
-                    ServerVariable variable = new ServerVariable();
-                    variable.setDefault(varAnnotation.defaultValue());
-                    variable.setDescription(varAnnotation.description());
-
-                    if (varAnnotation.allowableValues() != null) {
-                        variable.setEnum(Arrays.asList(varAnnotation.allowableValues()));
-                    }
-
-                    server.addVariablesItem(varAnnotation.name(), variable);
-                }
-            }
-
-            servers.add(server);
+            getServer(serverAnnotation).ifPresent(servers::add);
         }
 
         return servers.isEmpty() ? Optional.empty() : Optional.of(servers);
+    }
+
+    public static Optional<Server> getServer(
+        io.swagger.v3.oas.annotations.servers.Server serverAnnotation
+    ) {
+        if (serverAnnotation == null) return Optional.empty();
+
+        boolean specified = !serverAnnotation.url().isBlank()
+            || !serverAnnotation.description().isBlank()
+            || serverAnnotation.variables().length > 0
+            || serverAnnotation.extensions().length > 0;
+        if (!specified) return Optional.empty();
+
+        Server server = new Server();
+        if (!serverAnnotation.url().isBlank()) server.setUrl(serverAnnotation.url());
+        if (!serverAnnotation.description().isBlank()) {
+            server.setDescription(serverAnnotation.description());
+        }
+        getExtensions(serverAnnotation.extensions()).forEach(server::addExtension);
+
+        for (io.swagger.v3.oas.annotations.servers.ServerVariable varAnnotation : serverAnnotation.variables()) {
+            ServerVariable variable = new ServerVariable();
+            if (!varAnnotation.defaultValue().isBlank()) {
+                variable.setDefault(varAnnotation.defaultValue());
+            }
+            if (!varAnnotation.description().isBlank()) {
+                variable.setDescription(varAnnotation.description());
+            }
+            if (varAnnotation.allowableValues().length > 0
+                && !varAnnotation.allowableValues()[0].isBlank()) {
+                variable.setEnum(Arrays.asList(varAnnotation.allowableValues()));
+            }
+            getExtensions(varAnnotation.extensions()).forEach(variable::addExtension);
+            server.addVariablesItem(varAnnotation.name(), variable);
+        }
+        return Optional.of(server);
     }
 
     /**
@@ -149,9 +172,38 @@ public class AnnotationsUtils {
      */
     public static Map<String, Object> getExtensions(io.swagger.v3.oas.annotations.extensions.Extension[] annotations) {
         Map<String, Object> extensions = new LinkedHashMap<>();
-        if (annotations != null) {
-            for (io.swagger.v3.oas.annotations.extensions.Extension ext : annotations) {
-                extensions.put(ext.name(), ext.properties());
+        if (annotations == null) return extensions;
+
+        for (io.swagger.v3.oas.annotations.extensions.Extension extension : annotations) {
+            String extensionName = extension.name();
+            String key = extensionName.isBlank()
+                ? ""
+                : extensionName.startsWith("x-") ? extensionName : "x-" + extensionName;
+
+            for (io.swagger.v3.oas.annotations.extensions.ExtensionProperty property : extension.properties()) {
+                if (property.name().isBlank() || property.value().isBlank()) continue;
+                Object value = property.value();
+                if (property.parseValue()) {
+                    try {
+                        value = Json.mapper().readTree(property.value());
+                    } catch (Exception ignored) {
+                        // Preserve the source value when it is not valid JSON.
+                    }
+                }
+
+                if (key.isBlank()) {
+                    String propertyKey = property.name().startsWith("x-")
+                        ? property.name()
+                        : "x-" + property.name();
+                    extensions.put(propertyKey, value);
+                } else {
+                    Object current = extensions.computeIfAbsent(key, ignored -> new LinkedHashMap<String, Object>());
+                    if (current instanceof Map<?, ?> map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> properties = (Map<String, Object>) map;
+                        properties.put(property.name(), value);
+                    }
+                }
             }
         }
         return extensions;

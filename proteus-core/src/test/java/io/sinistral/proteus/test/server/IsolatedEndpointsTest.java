@@ -47,7 +47,6 @@ public class IsolatedEndpointsTest extends AbstractEndpointTest {
             .post("v1/tests/multipart/bytebuffer")
             .as(Map.class);
 
-        System.err.println("MAP RECEIVED: " + map);
         assertEquals(1, map.size());
 
         assertEquals(map.get("size"), (int) file.length());

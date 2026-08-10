@@ -61,10 +61,8 @@ public class OpenAPIDefaultServer implements BeforeAllCallback, AfterAllCallback
                 }
             }
 
-            // Wait for OpenAPI spec generation (async) to complete
-            log.info("Waiting 10 seconds for OpenAPI spec generation to complete...");
-            Thread.sleep(10000);
-            log.info("Wait complete, tests will now run");
+            OpenAPIService openAPIService = app.injector.getInstance(OpenAPIService.class);
+            openAPIService.waitForSpecGeneration(15_000L);
         }
     }
 

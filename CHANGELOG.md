@@ -4,6 +4,111 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**Fix OpenAPI reader content payload generation and generic references**
+
+
+[986fd1f8cfa84c4](https://github.com/noboomu/proteus/commit/986fd1f8cfa84c4) Joshua Lee Bauer *2026-08-06 02:59:58*
+
+**Fix Guice missing implementation bindings, JSON serialization, and response tests for Java 25 compatibility**
+
+
+[b75f775feab3566](https://github.com/noboomu/proteus/commit/b75f775feab3566) Joshua Lee Bauer *2026-08-06 02:58:12*
+
+**Fix Jackson 3 ModelResolver spec generation parity and multipart tests**
+
+ * - Patched &#x60;JacksonModelResolver.java&#x60; to process class-level and property-level &#x60;@Schema&#x60; annotations (description, title, hidden, required, readOnly, writeOnly, bounds, constraints, pattern).
+ * - Implemented &#x60;@JsonTypeInfo&#x60; / &#x60;@JsonSubTypes&#x60; polymorphic expansion mapping natively using the &#x60;tools.jackson.databind&#x60; APIs.
+ * - Handled &#x60;Optional&lt;T&gt;&#x60; generic unwrapping gracefully.
+ * - Upgraded primitive schema mappings for &#x60;UUID&#x60;, &#x60;URL&#x60;, and &#x60;URI&#x60;.
+ * - Translated Enums and &#x60;@JsonValue&#x60; annotated methods properly into &#x60;enum&#x60; OpenAPI bounds rather than unstructured POJOs.
+ * - Fixed &#x60;UploadEndpointsTest&#x60; map type boundaries and sizes.
+
+[75f5617b3779633](https://github.com/noboomu/proteus/commit/75f5617b3779633) Joshua Lee Bauer *2026-08-05 22:37:06*
+
+**Fix TestClient HTTP chunk boundaries, encoding, and XML parsing for Jackson 3**
+
+ * - Replaced HttpClient &#x60;ofString()&#x60; with &#x60;ofByteArray()&#x60; to prevent UTF-8 inflation and corruption of binary file uploads (fixes 2.5MB payload mismatch).
+ * - Fixed multipart boundary string offsets by introducing strict byte array concatenation with explicit &#x60;\r\n&#x60; delimiters.
+ * - Fixed &#x60;TestClient.multiPart&#x60; string formatting to avoid JSON-serializing generic String parameters, removing errant quotation marks from multipart boundary filenames.
+ * - Changed &#x60;builder.header&#x60; to &#x60;builder.setHeader&#x60; to prevent multiple &#x60;Content-Type&#x60; headers from collapsing boundary markers on the Undertow receiver.
+ * - Added &#x60;XmlMapper&#x60; fallback logic for test assertions receiving &#x60;application/xml&#x60; to resolve 500 crashes during Jackson 3 response deserialization.
+
+[7a7f7d2bbee4cbb](https://github.com/noboomu/proteus/commit/7a7f7d2bbee4cbb) Joshua Lee Bauer *2026-08-05 02:43:04*
+
+**Implement Jackson 3 ModelResolver for OpenAPI Schema Generation**
+
+ * - Bumped versions to 0.9.5-SNAPSHOT across POMs to avoid local dev collisions.
+ * - Created JacksonModelResolver using tools.jackson to introspect POJOs and generate corresponding OpenAPI Schema objects natively.
+ * - Registered the new resolver in ModelConverters.java.
+ * - Restored $ref serialization by annotating get$ref() with @JsonProperty.
+ * - Cleaned up leftover file.delete() in IsolatedEndpointsTest preventing concurrent test runs from finding the test-asset payload.
+ * - Restored testJsonSpecGenerics test assertion and verified generics schema resolution logic successfully resolves nested PagedResponse_Order models.
+
+[549876bbf87ebfa](https://github.com/noboomu/proteus/commit/549876bbf87ebfa) Joshua Lee Bauer *2026-07-27 06:19:09*
+
+**Add test cases for OpenAPI generics (PagedResponse<Order>)**
+
+
+[5508bf74585b0fb](https://github.com/noboomu/proteus/commit/5508bf74585b0fb) Joshua Lee Bauer *2026-07-26 17:30:50*
+
+**Merge jackson-3.0 with JDK 25 and Jackson 3.0 upgrades**
+
+
+[e251ad60703ec40](https://github.com/noboomu/proteus/commit/e251ad60703ec40) Joshua Lee Bauer *2026-07-15 19:09:50*
+
+**Fix file not found bug in UploadEndpointsTest due to missing parent dirs**
+
+
+[8af1792caf17428](https://github.com/noboomu/proteus/commit/8af1792caf17428) Joshua Lee Bauer *2026-07-15 19:08:44*
+
+**Fix OpenAPI schema generation for typed generic responses**
+
+
+[e61668e2a77c7bc](https://github.com/noboomu/proteus/commit/e61668e2a77c7bc) Joshua Lee Bauer *2026-07-15 19:08:33*
+
+**WIP jackson 3 port**
+
+
+[dff71c4bbc70766](https://github.com/noboomu/proteus/commit/dff71c4bbc70766) Joshua Lee Bauer *2026-07-15 19:07:54*
+
+**Fix NPE in EndpointInfo.compareTo, remove stray printStackTrace**
+
+ * EndpointInfo: null-guard pathTemplate and method in compareTo to prevent
+ * TreeSet NPE during route registration with conflicting paths.
+ * OpenAPIService: remove redundant e.printStackTrace() (already logged).
+ * Co-Authored-By: Claude Opus 4.6 &lt;noreply@anthropic.com&gt;
+
+[23e2d8128c24308](https://github.com/noboomu/proteus/commit/23e2d8128c24308) Joshua Lee Bauer *2026-04-14 23:33:26*
+
+**Fix NPE in EndpointInfo.compareTo when pathTemplate or method is null**
+
+ * TreeSet insertion crashes with NullPointerException when a controller
+ * has path-param routes (/{id}) alongside literal routes (/cores) because
+ * the comparator doesn&#x27;t null-guard pathTemplate or method fields.
+ * Added compareNullable() helper for null-safe string comparison.
+ * Co-Authored-By: Claude Opus 4.6 &lt;noreply@anthropic.com&gt;
+
+[76d1842b7206ad2](https://github.com/noboomu/proteus/commit/76d1842b7206ad2) Joshua Lee Bauer *2026-04-14 23:33:14*
+
+**Migrate to JDK 25, Jackson 3.0, and replace REST Assured with HttpClient**
+
+ * - Upgrade JDK from 21 to 25
+ * - Migrate Jackson from 2.19.0 to 3.0.0 (com.fasterxml.jackson → tools.jackson)
+ * - Keep jackson-annotations at 2.20 for compatibility
+ * - Update Swagger OpenAPI from 2.2.30 to 2.2.38
+ * - Replace REST Assured 5.5.2 with custom HttpClient-based TestClient
+ * - Add Hamcrest 3.0 for test assertions
+ * - Fix Jackson 3.0 API changes (TypeFactory.constructType simplified)
+ * - Update all Jackson imports in 11 source files
+ * - Update runtime code generation (HandlerGenerator) for Jackson 3.0
+ * - Create fluent TestClient with multipart/form support for Jackson 3.0
+ * - Migrate all test files to use TestClient
+ * - Build and install successful with JDK 25
+ * 🤖 Generated with [Claude Code](https://claude.com/claude-code)
+ * Co-Authored-By: Claude &lt;noreply@anthropic.com&gt;
+
+[fec04c97b2da7a4](https://github.com/noboomu/proteus/commit/fec04c97b2da7a4) Joshua Lee Bauer *2025-10-27 19:39:51*
+
 **Migrated to central repository.**
 
 

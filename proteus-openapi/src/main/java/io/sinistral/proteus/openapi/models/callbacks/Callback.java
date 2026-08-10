@@ -3,10 +3,14 @@ package io.sinistral.proteus.openapi.models.callbacks;
 import io.sinistral.proteus.openapi.models.PathItem;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
+@tools.jackson.databind.annotation.JsonSerialize(using = CallbackSerializer.class)
+@tools.jackson.databind.annotation.JsonDeserialize(using = CallbackDeserializer.class)
 public class Callback extends LinkedHashMap<String, PathItem> {
     private String $ref;
+    private Map<String, Object> extensions;
 
     public Callback addPathItem(String name, PathItem item) {
         this.put(name, item);
@@ -24,6 +28,20 @@ public class Callback extends LinkedHashMap<String, PathItem> {
     public Callback $ref(String $ref) {
         this.$ref = $ref;
         return this;
+    }
+
+    public Map<String, Object> getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(Map<String, Object> extensions) {
+        this.extensions = extensions;
+    }
+
+    public void addExtension(String name, Object value) {
+        if (name == null || name.isEmpty() || !name.startsWith("x-")) return;
+        if (extensions == null) extensions = new LinkedHashMap<>();
+        extensions.put(name, value);
     }
 
     @Override

@@ -1,7 +1,7 @@
 import static io.sinistral.proteus.server.Extractors.*;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import io.sinistral.proteus.test.controllers.Tests;
@@ -1140,9 +1140,9 @@ public class TestsRouteSupplier implements Supplier<RoutingHandler> {
           exchange.dispatch(this);
         } else {
           io.sinistral.proteus.server.ServerRequest request = new io.sinistral.proteus.server.ServerRequest(exchange);
-          com.fasterxml.jackson.databind.JsonNode node = io.sinistral.proteus.server.Extractors.namedJsonNode(exchange,"json");
+          tools.jackson.databind.JsonNode node = io.sinistral.proteus.server.Extractors.namedJsonNode(exchange,"json");
 
-          io.sinistral.proteus.server.ServerResponse<com.fasterxml.jackson.databind.JsonNode> response = testsController.multipartUploadJson(request,node);
+          io.sinistral.proteus.server.ServerResponse<tools.jackson.databind.JsonNode> response = testsController.multipartUploadJson(request,node);
           response.send(exchange);
         }
       }
@@ -1161,9 +1161,9 @@ public class TestsRouteSupplier implements Supplier<RoutingHandler> {
           exchange.dispatch(this);
         } else {
           io.sinistral.proteus.server.ServerRequest request = new io.sinistral.proteus.server.ServerRequest(exchange);
-          com.fasterxml.jackson.databind.JsonNode json = io.sinistral.proteus.server.Extractors.namedJsonNode(exchange,"json");
+          tools.jackson.databind.JsonNode json = io.sinistral.proteus.server.Extractors.namedJsonNode(exchange,"json");
 
-          java.util.concurrent.CompletableFuture<io.sinistral.proteus.server.ServerResponse<com.fasterxml.jackson.databind.JsonNode>> response = testsController.multipartUploadFutureJson(request,json);
+          java.util.concurrent.CompletableFuture<io.sinistral.proteus.server.ServerResponse<tools.jackson.databind.JsonNode>> response = testsController.multipartUploadFutureJson(request,json);
           exchange.dispatch( exchange.getConnection().getWorker(), () ->  {
             response.whenComplete( (r,ex) ->  {
               if(ex != null) {

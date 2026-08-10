@@ -4,6 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+@tools.jackson.databind.annotation.JsonSerialize(using = PathsSerializer.class)
+@tools.jackson.databind.annotation.JsonDeserialize(using = PathsDeserializer.class)
 public class Paths extends LinkedHashMap<String, PathItem> {
     private Map<String, Object> extensions;
 
@@ -11,6 +13,7 @@ public class Paths extends LinkedHashMap<String, PathItem> {
         this.put(name, item);
     }
 
+    @com.fasterxml.jackson.annotation.JsonAnyGetter
     public Map<String, Object> getExtensions() {
         return extensions;
     }
@@ -19,6 +22,7 @@ public class Paths extends LinkedHashMap<String, PathItem> {
         this.extensions = extensions;
     }
 
+    @com.fasterxml.jackson.annotation.JsonAnySetter
     public void addExtension(String name, Object value) {
         if (name == null || name.isEmpty() || !name.startsWith("x-")) {
             return;

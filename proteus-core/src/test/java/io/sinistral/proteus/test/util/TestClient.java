@@ -269,7 +269,6 @@ public class TestClient {
                 byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
                 
                 int totalLength = byteArrays.stream().mapToInt(b -> b.length).sum();
-                System.err.println("TESTCLIENT_PAYLOAD_SIZE: " + totalLength);
                 byte[] allBytes = new byte[totalLength];
                 int offset = 0;
                 for (byte[] b : byteArrays) {

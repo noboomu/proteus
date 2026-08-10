@@ -4,6 +4,7 @@ import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.util.JsonRecyclerPools;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.module.blackbird.BlackbirdModule;
 import com.google.inject.AbstractModule;
@@ -21,6 +22,7 @@ public class JacksonModule extends AbstractModule
             .build();
 
         ObjectMapper objectMapper = JsonMapper.builder(factory)
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true)
             .configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)

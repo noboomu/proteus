@@ -4,11 +4,11 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
+import io.sinistral.proteus.openapi.converter.ModelConverter;
 import io.sinistral.proteus.openapi.converter.ModelConverters;
 import io.sinistral.proteus.openapi.integration.SwaggerConfiguration;
 import io.sinistral.proteus.openapi.jaxrs2.OpenAPIExtensions;
 import io.sinistral.proteus.openapi.jaxrs2.Reader;
-import io.sinistral.proteus.openapi.jaxrs2.ServerModelResolver;
 import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
 import io.sinistral.proteus.openapi.models.Components;
 import io.sinistral.proteus.openapi.models.OpenAPI;
@@ -17,6 +17,7 @@ import io.sinistral.proteus.openapi.models.info.Info;
 import io.sinistral.proteus.openapi.models.security.SecurityScheme;
 import io.sinistral.proteus.openapi.models.servers.Server;
 import io.sinistral.proteus.openapi.util.Json;
+import io.sinistral.proteus.openapi.util.Yaml;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.services.DefaultService;
 import io.undertow.server.HandlerWrapper;
@@ -140,6 +141,11 @@ public class OpenAPIService
 
     public OpenAPIService() {
         jsonMapper = Json.mapper();
+    }
+
+    @Inject
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.jsonMapper = objectMapper;
     }
 
     /**
@@ -319,7 +325,7 @@ public class OpenAPIService
     protected void generateSpec() throws Exception {
         Set<Class<?>> classes = this.registeredControllers;
 
-        OpenAPIExtensions.register(new ServerParameterExtension());
+        OpenAPIExtensions.register(new ServerParameterExtension(jsonMapper));
 
         OpenAPI openApi = new OpenAPI(SpecVersion.V31);
 
@@ -366,19 +372,44 @@ public class OpenAPIService
                 .put("jsonViewQueryParameterName", jsonViewQueryParameterName);
         }
 
-        // Register ServerModelResolver with ModelConverters
-        ModelConverters.getInstance().addConverter(new ServerModelResolver(jsonMapper));
+        // Use the application's Jackson 3 mapper for all schema introspection so
+        // naming strategies, mix-ins and visibility exactly match runtime JSON.
+        ModelConverters modelConverters = ModelConverters.getInstance();
+        modelConverters.configure(jsonMapper);
+        registerConfiguredModelConverters(modelConverters);
 
         // Use Reader directly to scan and generate OpenAPI
-        Reader reader = new Reader(config);
+        Reader reader = new Reader(config, jsonMapper);
         openApi = reader.read(classes);
 
         this.openApi = openApi;
 
-        // Generate YAML spec (for now, use JSON - YAML support can be added later)
-        this.yamlSpec = Json.pretty(openApi);
-
+        this.yamlSpec = Yaml.pretty(openApi);
         this.jsonSpec = Json.pretty(openApi);
+    }
+
+    private void registerConfiguredModelConverters(ModelConverters converters) throws Exception {
+        if (!openAPIConfig.hasPath("converterClasses")) {
+            return;
+        }
+        for (String className : openAPIConfig.getStringList("converterClasses")) {
+            Class<?> converterClass = Class.forName(className);
+            if (!ModelConverter.class.isAssignableFrom(converterClass)) {
+                throw new IllegalArgumentException(
+                    className + " does not implement " + ModelConverter.class.getName()
+                );
+            }
+
+            ModelConverter converter;
+            try {
+                converter = (ModelConverter) converterClass
+                    .getDeclaredConstructor(tools.jackson.databind.ObjectMapper.class)
+                    .newInstance(jsonMapper);
+            } catch (NoSuchMethodException ignored) {
+                converter = (ModelConverter) converterClass.getDeclaredConstructor().newInstance();
+            }
+            converters.addConverter(converter);
+        }
     }
 
     public OpenAPI getOpenApi() {

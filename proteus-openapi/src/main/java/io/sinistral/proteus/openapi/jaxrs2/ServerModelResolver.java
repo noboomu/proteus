@@ -1,6 +1,3 @@
-/**
- *
- */
 package io.sinistral.proteus.openapi.jaxrs2;
 
 import io.sinistral.proteus.openapi.converter.AnnotatedType;
@@ -8,157 +5,74 @@ import io.sinistral.proteus.openapi.converter.ModelConverter;
 import io.sinistral.proteus.openapi.converter.ModelConverterContext;
 import io.sinistral.proteus.openapi.models.media.Schema;
 import io.sinistral.proteus.server.ServerResponse;
+import io.sinistral.proteus.server.ServerRequest;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.introspect.Annotated;
 
-import java.io.File;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /**
- * @author jbauer
- * Custom model resolver for Proteus server types
+ * Unwraps Proteus and asynchronous response containers before delegating model
+ * introspection to the next converter.
  */
-public class ServerModelResolver implements ModelConverter {
-
-    protected final ObjectMapper mapper;
-
-    private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(
-        ServerModelResolver.class.getCanonicalName()
-    );
+public final class ServerModelResolver implements ModelConverter {
+    private final ObjectMapper mapper;
 
     public ServerModelResolver(ObjectMapper mapper) {
         this.mapper = mapper;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see io.swagger.v3.core.jackson.ModelResolver#resolve(io.swagger.v3.core.
-     * converter.AnnotatedType,
-     * io.swagger.v3.core.converter.ModelConverterContext, java.util.Iterator)
-     */
     @Override
     public Schema resolve(
         AnnotatedType annotatedType,
         ModelConverterContext context,
         Iterator<ModelConverter> next
     ) {
-        JavaType classType = mapper.getTypeFactory().constructType(
-            annotatedType.getType()
-        );
-        Class<?> rawClass = classType.getRawClass();
-        JavaType resolvedType = classType;
-
-        if ((rawClass != null) && !resolvedType.isPrimitive()) {
-            if (rawClass.isAssignableFrom(ServerResponse.class)) {
-                resolvedType = classType.containedType(0);
-            } else if (rawClass.isAssignableFrom(CompletableFuture.class)) {
-                Class<?> futureCls = classType.containedType(0).getRawClass();
-
-                if (futureCls.isAssignableFrom(ServerResponse.class)) {
-                    final JavaType futureType =
-                        mapper.getTypeFactory().constructType(
-                            classType.containedType(0)
-                        );
-
-                    resolvedType = futureType.containedType(0);
-                } else {
-                    resolvedType = classType.containedType(0);
-                }
-            }
-
-            if (resolvedType != null) {
-                if (resolvedType.getTypeName().contains("java.lang.Void")) {
-                    resolvedType =
-                        mapper.getTypeFactory().constructFromCanonical(
-                            Void.class.getName()
-                        );
-                } else if (resolvedType.getTypeName().contains("Optional")) {
-                    if (
-                        resolvedType
-                            .getTypeName()
-                            .contains("java.nio.file.Path")
-                    ) {
-                        resolvedType =
-                            mapper.getTypeFactory().constructParametricType(
-                                Optional.class,
-                                File.class
-                            );
-                    }
-
-                    if (resolvedType.getTypeName().contains("ByteBuffer")) {
-                        resolvedType =
-                            mapper.getTypeFactory().constructParametricType(
-                                Optional.class,
-                                File.class
-                            );
-                    }
-                } else {
-                    if (
-                        resolvedType
-                            .getTypeName()
-                            .contains("java.nio.file.Path")
-                    ) {
-                        resolvedType =
-                            mapper.getTypeFactory().constructFromCanonical(
-                                File.class.getName()
-                            );
-                    }
-
-                    if (resolvedType.getTypeName().contains("ByteBuffer")) {
-                        resolvedType =
-                            mapper.getTypeFactory().constructFromCanonical(
-                                File.class.getName()
-                            );
-                    }
-                }
-
-                annotatedType.setType(resolvedType);
-            }
-        }
-
-        try {
-            // Delegate to the next converter in the chain
-            if (next.hasNext()) {
-                return next.next().resolve(annotatedType, context, next);
-            }
-            return null;
-        } catch (Exception e) {
-            log.error(
-                "Error processing " +
-                    annotatedType +
-                    " " +
-                    classType +
-                    " " +
-                    annotatedType.getName(),
-                e
-            );
-
+        if (annotatedType == null || annotatedType.getType() == null) {
             return null;
         }
+
+        JavaType resolved = mapper.constructType(annotatedType.getType());
+        if (shouldIgnoreClass(resolved)) {
+            return null;
+        }
+
+        while (resolved != null && resolved.getRawClass() != null) {
+            Class<?> raw = resolved.getRawClass();
+            if (ServerResponse.class.isAssignableFrom(raw)
+                || CompletionStage.class.isAssignableFrom(raw)) {
+                JavaType contained = resolved.containedType(0);
+                if (contained == null) {
+                    break;
+                }
+                resolved = contained;
+                continue;
+            }
+            break;
+        }
+
+        if (resolved == null || resolved.getRawClass() == null
+            || resolved.getRawClass() == Void.class || resolved.getRawClass() == void.class) {
+            return null;
+        }
+
+        annotatedType.setType(resolved);
+        return next.hasNext()
+            ? next.next().resolve(annotatedType, context, next)
+            : null;
     }
 
-    /**
-     * Check if a type should be ignored during resolution
-     */
-    protected boolean shouldIgnoreClass(Type type) {
-        JavaType classType = mapper.getTypeFactory().constructType(type);
-        String canonicalName = classType.toCanonical();
-
-        if (
-            canonicalName.startsWith("io.undertow") ||
-            canonicalName.startsWith("org.xnio") ||
-            canonicalName.equals("io.sinistral.proteus.server.ServerRequest") ||
-            canonicalName.contains(Void.class.getName())
-        ) {
+    private boolean shouldIgnoreClass(JavaType type) {
+        if (type == null || type.getRawClass() == null) {
             return true;
         }
-
-        return false;
+        Class<?> raw = type.getRawClass();
+        String name = raw.getName();
+        return ServerRequest.class.equals(raw)
+            || Void.class.equals(raw)
+            || void.class.equals(raw)
+            || name.startsWith("io.undertow.")
+            || name.startsWith("org.xnio.");
     }
 }

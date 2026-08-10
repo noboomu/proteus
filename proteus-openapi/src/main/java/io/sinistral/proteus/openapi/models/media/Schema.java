@@ -4,16 +4,20 @@ import io.sinistral.proteus.openapi.models.ExternalDocumentation;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Schema object for OpenAPI 3.1
  */
 public class Schema<T> {
     private String type;
+    private Set<String> types;
     private String format;
     private String title;
     private String description;
@@ -36,10 +40,37 @@ public class Schema<T> {
     private List<Schema> allOf;
     private List<Schema> anyOf;
     private List<Schema> oneOf;
+    private List<Schema> prefixItems;
     private Schema not;
     private Map<String, Schema> properties;
+    private Map<String, Schema> patternProperties;
     private Object additionalProperties;
     private Schema items;
+    private Schema contains;
+    private Integer maxContains;
+    private Integer minContains;
+    private Schema additionalItems;
+    private Schema unevaluatedItems;
+    private Schema unevaluatedProperties;
+    private Schema contentSchema;
+    private Schema propertyNames;
+    private Schema _if;
+    private Schema _else;
+    private Schema then;
+    private Map<String, Schema> dependentSchemas;
+    private Map<String, List<String>> dependentRequired;
+    private BigDecimal exclusiveMaximumValue;
+    private BigDecimal exclusiveMinimumValue;
+    private String $id;
+    private String $schema;
+    private String $anchor;
+    private String $vocabulary;
+    private String $dynamicAnchor;
+    private String $dynamicRef;
+    private String $comment;
+    private String contentEncoding;
+    private String contentMediaType;
+    private T _const;
     private Boolean readOnly;
     private Boolean writeOnly;
     private Boolean deprecated;
@@ -52,17 +83,59 @@ public class Schema<T> {
     private String $ref;
     private Map<String, Object> extensions;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public String getType() {
         return type;
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public void setType(String type) {
         this.type = type;
+        this.types = null;
     }
 
     public Schema<T> type(String type) {
-        this.type = type;
+        setType(type);
         return this;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public Set<String> getTypes() {
+        return types;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public void setTypes(Set<String> types) {
+        this.types = types == null ? null : new LinkedHashSet<>(types);
+        if (this.types != null && !this.types.isEmpty()) this.type = null;
+    }
+
+    public Schema<T> types(Set<String> types) {
+        setTypes(types);
+        return this;
+    }
+
+    public Schema<T> addType(String type) {
+        if (types == null) types = new LinkedHashSet<>();
+        types.add(type);
+        this.type = null;
+        return this;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("type")
+    public Object getJsonType() {
+        return types != null && !types.isEmpty() ? types : type;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("type")
+    public void setJsonType(Object value) {
+        if (value instanceof String stringValue) {
+            setType(stringValue);
+        } else if (value instanceof Collection<?> collection) {
+            LinkedHashSet<String> values = new LinkedHashSet<>();
+            collection.forEach(item -> values.add(String.valueOf(item)));
+            setTypes(values);
+        }
     }
 
     public String getFormat() {
@@ -411,6 +484,7 @@ public class Schema<T> {
         return this;
     }
 
+    @com.fasterxml.jackson.annotation.JsonAnyGetter
     public Map<String, Object> getExtensions() {
         return extensions;
     }
@@ -419,6 +493,7 @@ public class Schema<T> {
         this.extensions = extensions;
     }
 
+    @com.fasterxml.jackson.annotation.JsonAnySetter
     public void addExtension(String name, Object value) {
         if (name == null || name.isEmpty() || !name.startsWith("x-")) {
             return;

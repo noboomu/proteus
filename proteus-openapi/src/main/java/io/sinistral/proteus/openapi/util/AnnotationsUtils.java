@@ -78,9 +78,20 @@ public class AnnotationsUtils {
             return Optional.empty();
         }
 
+        boolean specified = !annotation.description().isBlank()
+            || !annotation.url().isBlank()
+            || annotation.extensions().length > 0;
+        if (!specified) {
+            return Optional.empty();
+        }
+
         ExternalDocumentation externalDocs = new ExternalDocumentation();
-        externalDocs.setDescription(annotation.description());
-        externalDocs.setUrl(annotation.url());
+        if (!annotation.description().isBlank()) {
+            externalDocs.setDescription(annotation.description());
+        }
+        if (!annotation.url().isBlank()) {
+            externalDocs.setUrl(annotation.url());
+        }
         getExtensions(annotation.extensions()).forEach(externalDocs::addExtension);
 
         return Optional.of(externalDocs);

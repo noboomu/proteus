@@ -91,6 +91,15 @@ public class TestOpenAPIControllerEndpoints {
     }
 
     @Test
+    public void testOmitsUnsetExternalDocumentation() throws Exception {
+        JsonNode root = openApiJson();
+        assertTrue(
+            root.findValues("externalDocs").isEmpty(),
+            "OpenAPI must omit default-valued externalDocs annotations"
+        );
+    }
+
+    @Test
     public void testJsonSpecGenerics() throws Exception {
         JsonNode root = openApiJson();
         JsonNode schemaRef = root.at(

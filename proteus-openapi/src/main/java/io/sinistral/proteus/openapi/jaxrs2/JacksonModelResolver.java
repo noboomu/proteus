@@ -431,7 +431,7 @@ public final class JacksonModelResolver implements ModelConverter {
         StringBuilder token = new StringBuilder(type.getRawClass().getSimpleName());
         if (type.hasGenericTypes()) {
             for (JavaType parameter : type.getBindings().getTypeParameters()) {
-                token.append('_').append(typeToken(parameter));
+                token.append(typeToken(parameter));
             }
         }
         return token.toString().replace('$', '_').replaceAll("[^A-Za-z0-9_.-]", "_");
@@ -561,9 +561,6 @@ public final class JacksonModelResolver implements ModelConverter {
             schema.setReadOnly(null);
             schema.setWriteOnly(null);
         }
-        if (annotation.not() != Void.class) {
-            schema.setNot(resolveNested(mapper.constructType(annotation.not()), null, activeView, context));
-        }
         if (annotation.additionalProperties()
             == io.swagger.v3.oas.annotations.media.Schema.AdditionalPropertiesValue.TRUE) {
             schema.setAdditionalProperties(true);
@@ -688,30 +685,30 @@ public final class JacksonModelResolver implements ModelConverter {
         }
         if (subtypeClasses.isEmpty()) return;
 
-        Discriminator discriminator = model.getDiscriminator();
-        if (discriminator == null) discriminator = new Discriminator();
+        String discriminatorProperty = null;
         if (typeInfo != null && !typeInfo.property().isBlank()) {
-            discriminator.setPropertyName(typeInfo.property());
+            discriminatorProperty = typeInfo.property();
         } else if (openApi != null && !openApi.discriminatorProperty().isBlank()) {
-            discriminator.setPropertyName(openApi.discriminatorProperty());
+            discriminatorProperty = openApi.discriminatorProperty();
+        }
+        if (discriminatorProperty != null) {
+            model.setDiscriminator(new Discriminator().propertyName(discriminatorProperty));
+            if (model.getProperties() == null) {
+                model.setProperties(new LinkedHashMap<>());
+            }
+            model.getProperties().putIfAbsent(discriminatorProperty, new Schema().type("string"));
+            addRequired(model, discriminatorProperty);
         }
 
-        List<Schema> oneOf = new ArrayList<>();
-        for (Map.Entry<String, Class<?>> subtype : subtypeClasses.entrySet()) {
-            Schema reference = resolveNested(
-                mapper.constructType(subtype.getValue()),
-                subtype.getValue().getAnnotations(),
+        // Swagger 2.2.30 registers subtypes but does not add oneOf or discriminator mappings
+        // for this JsonTypeInfo shape.
+        for (Class<?> subtype : subtypeClasses.values()) {
+            resolveNested(
+                mapper.constructType(subtype),
+                subtype.getAnnotations(),
                 activeView,
                 context
             );
-            if (reference != null) {
-                oneOf.add(reference);
-                discriminator.addMapping(subtype.getKey(), reference.get$ref());
-            }
-        }
-        if (!oneOf.isEmpty()) model.setOneOf(oneOf);
-        if (discriminator.getPropertyName() != null || discriminator.getMapping() != null) {
-            model.setDiscriminator(discriminator);
         }
     }
 
@@ -733,12 +730,25 @@ public final class JacksonModelResolver implements ModelConverter {
             context
         );
         if (parentReference != null) {
-            List<Schema> allOf = model.getAllOf() == null
-                ? new ArrayList<>()
-                : new ArrayList<>(model.getAllOf());
-            allOf.add(0, parentReference);
-            model.setAllOf(allOf);
             removeInheritedProperties(model, parentReference, context);
+
+            ObjectSchema childProperties = new ObjectSchema();
+            if (model.getProperties() != null) {
+                childProperties.setProperties(new LinkedHashMap<>(model.getProperties()));
+            }
+            if (model.getRequired() != null) {
+                childProperties.setRequired(new ArrayList<>(model.getRequired()));
+            }
+            model.setProperties(null);
+            model.setRequired(null);
+
+            List<Schema> allOf = new ArrayList<>();
+            allOf.add(parentReference);
+            allOf.add(childProperties);
+            if (model.getAllOf() != null) {
+                allOf.addAll(model.getAllOf());
+            }
+            model.setAllOf(allOf);
         }
     }
 

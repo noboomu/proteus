@@ -146,8 +146,6 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
 
         List<Parameter> parameters = new ArrayList<>();
         ResolvedParameter extractParametersResult = new ResolvedParameter();
-        extractParametersResult.parameters.addAll(additionalParameters);
-        extractParametersResult.formParameters.addAll(additionalFormParameters);
 
         if ((parameter != null) && StringUtils.isNotBlank(parameter.getIn())) {
             parameter.setRequired(isRequired);

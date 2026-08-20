@@ -19,7 +19,9 @@ import io.sinistral.proteus.openapi.jaxrs2.ServerParameterExtension;
 import io.sinistral.proteus.openapi.models.media.Schema;
 import io.sinistral.proteus.openapi.models.responses.ApiResponse;
 import io.sinistral.proteus.openapi.models.responses.ApiResponses;
+import io.sinistral.proteus.openapi.models.parameters.RequestBody;
 import io.sinistral.proteus.openapi.util.Json;
+import io.sinistral.proteus.openapi.util.OperationParser;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.Max;
@@ -247,6 +249,14 @@ class JacksonModelResolverParityTest {
 
     static class ParameterMethods {
         void bean(@jakarta.ws.rs.BeanParam BeanParameters parameters) {}
+
+        void defaulted(
+            @jakarta.ws.rs.QueryParam("limit")
+            @jakarta.ws.rs.DefaultValue("5")
+            Integer limit
+        ) {}
+
+        void form(@jakarta.ws.rs.FormParam("name") String name) {}
     }
 
     record RecordContract(String name, int count) {}
@@ -300,6 +310,82 @@ class JacksonModelResolverParityTest {
         }
     }
 
+    static class RequestBodyMethods {
+        @io.swagger.v3.oas.annotations.parameters.RequestBody
+        void empty() {}
+
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Documented input",
+            required = true
+        )
+        void documented() {}
+
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            ref = "#/components/requestBodies/OrderInput",
+            description = "Ignored because ref takes precedence",
+            required = true
+        )
+        void reference() {}
+    }
+
+    static class ContextMethods {
+        void contextual(@jakarta.ws.rs.core.Context jakarta.ws.rs.core.UriInfo uriInfo) {}
+        void contextualString(@jakarta.ws.rs.core.Context String context) {}
+    }
+
+    static class ResponseAnnotationMethods {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Array response",
+            content = @io.swagger.v3.oas.annotations.media.Content(
+                mediaType = "application/json",
+                array = @io.swagger.v3.oas.annotations.media.ArraySchema(
+                    schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = Order.class),
+                    arraySchema = @io.swagger.v3.oas.annotations.media.Schema(
+                        description = "Array-level metadata"
+                    )
+                )
+            )
+        )
+        void arrayResponse() {}
+
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Linked response",
+            links = @io.swagger.v3.oas.annotations.links.Link(
+                name = "related",
+                operationId = "readRelated",
+                server = @io.swagger.v3.oas.annotations.servers.Server(
+                    url = "https://api.example.test",
+                    description = "Related API"
+                )
+            )
+        )
+        void linkedResponse() {}
+
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204")
+        void bareResponse() {}
+
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Link edge cases",
+            links = {
+                @io.swagger.v3.oas.annotations.links.Link(
+                    name = "parameters-only",
+                    parameters = @io.swagger.v3.oas.annotations.links.LinkParameter(
+                        name = "id",
+                        expression = "$response.body#/id"
+                    )
+                ),
+                @io.swagger.v3.oas.annotations.links.Link(
+                    name = "",
+                    operationId = "blankNamedOperation"
+                )
+            }
+        )
+        void linkEdgeCases() {}
+    }
+
     private ModelConverters converters() {
         return ModelConverters.create(JsonMapper.builder().build());
     }
@@ -321,13 +407,100 @@ class JacksonModelResolverParityTest {
     }
 
     @Test
+    void omitsLegacyArraySchemaMetadata() throws Exception {
+        io.swagger.v3.oas.annotations.responses.ApiResponse annotation = ResponseAnnotationMethods.class
+            .getDeclaredMethod("arrayResponse")
+            .getAnnotation(io.swagger.v3.oas.annotations.responses.ApiResponse.class);
+        ApiResponse response = OperationParser
+            .getApiResponses(new io.swagger.v3.oas.annotations.responses.ApiResponse[] {annotation}, null, null, new Components(), null)
+            .orElseThrow()
+            .get("200");
+
+        Schema<?> schema = response.getContent().get("application/json").getSchema();
+        assertEquals("array", schema.getType());
+        assertNull(schema.getDescription());
+    }
+
+    @Test
+    void omitsLegacyBareApiResponse() throws Exception {
+        io.swagger.v3.oas.annotations.responses.ApiResponse annotation = ResponseAnnotationMethods.class
+            .getDeclaredMethod("bareResponse")
+            .getAnnotation(io.swagger.v3.oas.annotations.responses.ApiResponse.class);
+
+        assertTrue(
+            OperationParser.getApiResponses(
+                new io.swagger.v3.oas.annotations.responses.ApiResponse[] {annotation},
+                null,
+                null,
+                new Components(),
+                null
+            ).isEmpty()
+        );
+    }
+
+    @Test
+    void preservesLegacyLinkExistenceAndBlankNameRules() throws Exception {
+        io.swagger.v3.oas.annotations.responses.ApiResponse annotation = ResponseAnnotationMethods.class
+            .getDeclaredMethod("linkEdgeCases")
+            .getAnnotation(io.swagger.v3.oas.annotations.responses.ApiResponse.class);
+        ApiResponse response = OperationParser
+            .getApiResponses(new io.swagger.v3.oas.annotations.responses.ApiResponse[] {annotation}, null, null, new Components(), null)
+            .orElseThrow()
+            .get("200");
+
+        assertEquals(Set.of(""), response.getLinks().keySet());
+        assertEquals("blankNamedOperation", response.getLinks().get("").getOperationId());
+    }
+
+    @Test
+    void omitsLegacyLinkServer() throws Exception {
+        io.swagger.v3.oas.annotations.responses.ApiResponse annotation = ResponseAnnotationMethods.class
+            .getDeclaredMethod("linkedResponse")
+            .getAnnotation(io.swagger.v3.oas.annotations.responses.ApiResponse.class);
+        ApiResponse response = OperationParser
+            .getApiResponses(new io.swagger.v3.oas.annotations.responses.ApiResponse[] {annotation}, null, null, new Components(), null)
+            .orElseThrow()
+            .get("200");
+
+        assertNotNull(response.getLinks().get("related"));
+        assertNull(response.getLinks().get("related").getServer());
+    }
+
+    @Test
+    void matchesLegacyRequestBodyEmptyAndReferenceRules() throws Exception {
+        io.swagger.v3.oas.annotations.parameters.RequestBody empty = RequestBodyMethods.class
+            .getDeclaredMethod("empty")
+            .getAnnotation(io.swagger.v3.oas.annotations.parameters.RequestBody.class);
+        assertTrue(OperationParser.getRequestBody(empty, null, null, new Components(), null).isEmpty());
+
+        io.swagger.v3.oas.annotations.parameters.RequestBody documented = RequestBodyMethods.class
+            .getDeclaredMethod("documented")
+            .getAnnotation(io.swagger.v3.oas.annotations.parameters.RequestBody.class);
+        RequestBody documentedResult = OperationParser
+            .getRequestBody(documented, null, null, new Components(), null)
+            .orElseThrow();
+        assertEquals("Documented input", documentedResult.getDescription());
+        assertEquals(Boolean.TRUE, documentedResult.getRequired());
+
+        io.swagger.v3.oas.annotations.parameters.RequestBody reference = RequestBodyMethods.class
+            .getDeclaredMethod("reference")
+            .getAnnotation(io.swagger.v3.oas.annotations.parameters.RequestBody.class);
+        RequestBody referenceResult = OperationParser
+            .getRequestBody(reference, null, null, new Components(), null)
+            .orElseThrow();
+        assertEquals("#/components/requestBodies/OrderInput", referenceResult.get$ref());
+        assertNull(referenceResult.getDescription());
+        assertNull(referenceResult.getRequired());
+    }
+
+    @Test
     void preservesNestedGenericTypesAsDistinctComponents() throws Exception {
         ResolvedSchema resolved = resolve(converters(), fieldType("nested"));
 
-        assertEquals("#/components/schemas/Envelope_Page_Order", resolved.schema.get$ref());
-        Schema<?> envelope = component(resolved, "Envelope_Page_Order");
-        assertEquals("#/components/schemas/Page_Order", envelope.getProperties().get("payload").get$ref());
-        Schema<?> page = component(resolved, "Page_Order");
+        assertEquals("#/components/schemas/EnvelopePageOrder", resolved.schema.get$ref());
+        Schema<?> envelope = component(resolved, "EnvelopePageOrder");
+        assertEquals("#/components/schemas/PageOrder", envelope.getProperties().get("payload").get$ref());
+        Schema<?> page = component(resolved, "PageOrder");
         assertEquals("array", page.getProperties().get("items").getType());
         assertEquals("#/components/schemas/Order", page.getProperties().get("items").getItems().get$ref());
         component(resolved, "Order");
@@ -343,8 +516,8 @@ class JacksonModelResolverParityTest {
         Method method = ResponseTypes.class.getDeclaredMethod("futurePage");
         ResolvedSchema resolved = resolve(converters(), method.getGenericReturnType());
 
-        assertEquals("#/components/schemas/Page_Order", resolved.schema.get$ref());
-        component(resolved, "Page_Order");
+        assertEquals("#/components/schemas/PageOrder", resolved.schema.get$ref());
+        component(resolved, "PageOrder");
         component(resolved, "Order");
     }
 
@@ -407,10 +580,10 @@ class JacksonModelResolverParityTest {
         assertEquals("#/components/schemas/Node", node.getProperties().get("children").getItems().get$ref());
 
         ResolvedSchema generic = resolve(converters(), fieldType("recursiveGeneric"));
-        assertEquals("#/components/schemas/GenericNode_Order", generic.schema.get$ref());
-        Schema<?> genericNode = component(generic, "GenericNode_Order");
+        assertEquals("#/components/schemas/GenericNodeOrder", generic.schema.get$ref());
+        Schema<?> genericNode = component(generic, "GenericNodeOrder");
         assertEquals("#/components/schemas/Order", genericNode.getProperties().get("value").get$ref());
-        assertEquals("#/components/schemas/GenericNode_Order", genericNode.getProperties().get("next").get$ref());
+        assertEquals("#/components/schemas/GenericNodeOrder", genericNode.getProperties().get("next").get$ref());
     }
 
     @Test
@@ -524,28 +697,35 @@ class JacksonModelResolverParityTest {
         assertEquals(2, rank.getDefault());
 
         Schema<?> notString = contract.getProperties().get("notString");
-        assertNotNull(notString.getNot());
-        assertEquals("string", notString.getNot().getType());
+        assertEquals("object", notString.getType());
+        assertNull(notString.getNot());
     }
 
     @Test
-    void resolvesPolymorphismAsOneOfWithDiscriminatorMappings() {
+    void preservesLegacyPolymorphismAndInheritanceShape() {
         ResolvedSchema resolved = resolve(converters(), Animal.class);
         Schema<?> animal = component(resolved, "Animal");
 
         assertNotNull(animal.getDiscriminator());
         assertEquals("kind", animal.getDiscriminator().getPropertyName());
-        assertEquals("#/components/schemas/Dog", animal.getDiscriminator().getMapping().get("dog"));
-        assertEquals("#/components/schemas/Cat", animal.getDiscriminator().getMapping().get("cat"));
-        assertNotNull(animal.getOneOf());
-        assertEquals(Set.of("#/components/schemas/Dog", "#/components/schemas/Cat"),
-            animal.getOneOf().stream().map(Schema::get$ref).collect(java.util.stream.Collectors.toSet()));
+        assertNull(animal.getDiscriminator().getMapping());
+        assertNull(animal.getOneOf());
+        assertEquals("string", animal.getProperties().get("kind").getType());
+        assertEquals("string", animal.getProperties().get("name").getType());
+        assertTrue(animal.getRequired().contains("kind"));
+
         Schema<?> dog = component(resolved, "Dog");
         Schema<?> cat = component(resolved, "Cat");
+        assertEquals("object", dog.getType());
+        assertEquals("object", cat.getType());
         assertEquals("#/components/schemas/Animal", dog.getAllOf().getFirst().get$ref());
         assertEquals("#/components/schemas/Animal", cat.getAllOf().getFirst().get$ref());
-        assertFalse(dog.getProperties().containsKey("name"));
-        assertFalse(cat.getProperties().containsKey("name"));
+        Schema<?> dogChild = (Schema<?>) dog.getAllOf().get(1);
+        Schema<?> catChild = (Schema<?>) cat.getAllOf().get(1);
+        assertEquals("boolean", dogChild.getProperties().get("barks").getType());
+        assertEquals("integer", catChild.getProperties().get("lives").getType());
+        assertNull(dog.getProperties());
+        assertNull(cat.getProperties());
     }
 
     @Test
@@ -564,7 +744,80 @@ class JacksonModelResolverParityTest {
     }
 
     @Test
-    void expandsBeanParametersWithJacksonMetadata() throws Exception {
+    void preservesLegacyFormParameterExtraction() throws Exception {
+        Method method = ParameterMethods.class.getDeclaredMethod("form", String.class);
+        ResolvedParameter resolved = new ServerParameterExtension().extractParameters(
+            List.of(method.getParameterAnnotations()[0]),
+            method.getGenericParameterTypes()[0],
+            new java.util.HashSet<>(),
+            new Components(),
+            null,
+            null,
+            true,
+            null,
+            java.util.Collections.emptyIterator()
+        );
+
+        assertTrue(resolved.parameters.isEmpty());
+        assertNull(resolved.requestBody);
+        assertEquals(1, resolved.formParameters.size());
+        io.sinistral.proteus.openapi.models.parameters.Parameter parameter = resolved.formParameters.getFirst();
+        assertEquals("name", parameter.getName());
+        assertNull(parameter.getIn());
+        assertEquals("string", parameter.getSchema().getType());
+    }
+
+    @Test
+    void appliesLegacyDefaultValueToParameterSchema() throws Exception {
+        Method method = ParameterMethods.class.getDeclaredMethod("defaulted", Integer.class);
+        ResolvedParameter resolved = new ServerParameterExtension().extractParameters(
+            List.of(method.getParameterAnnotations()[0]),
+            method.getGenericParameterTypes()[0],
+            new java.util.HashSet<>(),
+            new Components(),
+            null,
+            null,
+            true,
+            null,
+            java.util.Collections.emptyIterator()
+        );
+
+        assertEquals(1, resolved.parameters.size());
+        io.sinistral.proteus.openapi.models.parameters.Parameter parameter = resolved.parameters.getFirst();
+        assertEquals("limit", parameter.getName());
+        assertEquals("query", parameter.getIn());
+        assertEquals(Boolean.TRUE, parameter.getRequired());
+        assertEquals("integer", parameter.getSchema().getType());
+        assertEquals("int32", parameter.getSchema().getFormat());
+        assertEquals(5, ((Number) parameter.getSchema().getDefault()).intValue());
+    }
+
+    @Test
+    void omitsLegacyContextParameters() throws Exception {
+        for (Method method : List.of(
+            ContextMethods.class.getDeclaredMethod("contextual", jakarta.ws.rs.core.UriInfo.class),
+            ContextMethods.class.getDeclaredMethod("contextualString", String.class)
+        )) {
+            ResolvedParameter resolved = new ServerParameterExtension().extractParameters(
+                List.of(method.getParameterAnnotations()[0]),
+                method.getGenericParameterTypes()[0],
+                new java.util.HashSet<>(),
+                new Components(),
+                null,
+                null,
+                true,
+                null,
+                java.util.Collections.emptyIterator()
+            );
+
+            assertTrue(resolved.parameters.isEmpty());
+            assertTrue(resolved.formParameters.isEmpty());
+            assertNull(resolved.requestBody);
+        }
+    }
+
+    @Test
+    void preservesLegacyBeanParameterOmission() throws Exception {
         OpenAPIExtensions.register(new ServerParameterExtension());
         Method method = ParameterMethods.class.getDeclaredMethod("bean", BeanParameters.class);
         ResolvedParameter resolved = new ServerParameterExtension().extractParameters(
@@ -579,23 +832,10 @@ class JacksonModelResolverParityTest {
             java.util.Collections.emptyIterator()
         );
 
-        assertEquals(2, resolved.parameters.size());
-        io.sinistral.proteus.openapi.models.parameters.Parameter offset = resolved.parameters.stream()
-            .filter(parameter -> "offset".equals(parameter.getName()))
-            .findFirst()
-            .orElseThrow();
-        assertEquals("query", offset.getIn());
-        assertEquals("Result offset", offset.getDescription());
-        assertEquals("int32", offset.getSchema().getFormat());
-        assertEquals("0", offset.getSchema().getMinimum().toPlainString());
-
-        io.sinistral.proteus.openapi.models.parameters.Parameter trace = resolved.parameters.stream()
-            .filter(parameter -> "X-Trace".equals(parameter.getName()))
-            .findFirst()
-            .orElseThrow();
-        assertEquals("header", trace.getIn());
-        assertEquals(Boolean.FALSE, trace.getRequired());
-        assertEquals("string", trace.getSchema().getType());
+        assertTrue(resolved.parameters.isEmpty());
+        assertTrue(resolved.formParameters.isEmpty());
+        assertNotNull(resolved.requestBody);
+        assertEquals("#/components/schemas/BeanParameters", resolved.requestBody.getSchema().get$ref());
     }
 
     @Test

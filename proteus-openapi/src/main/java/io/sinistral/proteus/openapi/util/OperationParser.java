@@ -33,17 +33,34 @@ public final class OperationParser {
         Components components,
         JsonView jsonViewAnnotation
     ) {
-        if (annotation == null || !requestBodySpecified(annotation)) {
+        if (annotation == null) {
             return Optional.empty();
         }
 
         RequestBody requestBody = new RequestBody();
-        requestBody.setDescription(annotation.description());
-        requestBody.setRequired(annotation.required());
-        AnnotationsUtils.getExtensions(annotation.extensions()).forEach(requestBody::addExtension);
+        boolean isEmpty = true;
+
         if (!annotation.ref().isBlank()) {
             requestBody.set$ref(annotation.ref());
             return Optional.of(requestBody);
+        }
+        if (!annotation.description().isBlank()) {
+            requestBody.setDescription(annotation.description());
+            isEmpty = false;
+        }
+        if (annotation.required()) {
+            requestBody.setRequired(true);
+            isEmpty = false;
+        }
+        if (annotation.extensions().length > 0) {
+            AnnotationsUtils.getExtensions(annotation.extensions()).forEach(requestBody::addExtension);
+            isEmpty = false;
+        }
+        if (annotation.content().length > 0) {
+            isEmpty = false;
+        }
+        if (isEmpty) {
+            return Optional.empty();
         }
 
         Content content = parseContent(
@@ -59,48 +76,6 @@ public final class OperationParser {
         return Optional.of(requestBody);
     }
 
-    private static boolean requestBodySpecified(
-        io.swagger.v3.oas.annotations.parameters.RequestBody annotation
-    ) {
-        if (!annotation.description().isBlank()
-            || !annotation.ref().isBlank()
-            || annotation.required()
-            || annotation.useParameterTypeSchema()
-            || annotation.extensions().length > 0) {
-            return true;
-        }
-        for (io.swagger.v3.oas.annotations.media.Content content : annotation.content()) {
-            if (contentSpecified(content)) return true;
-        }
-        return false;
-    }
-
-    private static boolean contentSpecified(
-        io.swagger.v3.oas.annotations.media.Content content
-    ) {
-        return content != null && (
-            !content.mediaType().isBlank()
-                || schemaSpecified(content.schema())
-                || arraySchemaSpecified(content.array())
-                || content.examples().length > 0
-                || content.encoding().length > 0
-                || content.extensions().length > 0
-                || content.schemaProperties().length > 0
-                || schemaSpecified(content.additionalPropertiesSchema())
-                || arraySchemaSpecified(content.additionalPropertiesArraySchema())
-                || content.dependentSchemas().length > 0
-                || schemaSpecified(content.contentSchema())
-                || schemaSpecified(content.propertyNames())
-                || schemaSpecified(content._if())
-                || schemaSpecified(content._then())
-                || schemaSpecified(content._else())
-                || schemaSpecified(content.not())
-                || content.oneOf().length > 0
-                || content.anyOf().length > 0
-                || content.allOf().length > 0
-        );
-    }
-
     public static Optional<ApiResponses> getApiResponses(
         io.swagger.v3.oas.annotations.responses.ApiResponse[] annotations,
         jakarta.ws.rs.Produces classProduces,
@@ -108,36 +83,45 @@ public final class OperationParser {
         Components components,
         JsonView jsonViewAnnotation
     ) {
-        if (annotations == null || annotations.length == 0) {
+        if (annotations == null) {
             return Optional.empty();
         }
 
         ApiResponses responses = new ApiResponses();
         for (io.swagger.v3.oas.annotations.responses.ApiResponse annotation : annotations) {
             ApiResponse response = new ApiResponse();
-            response.setDescription(annotation.description());
-            AnnotationsUtils.getExtensions(annotation.extensions()).forEach(response::addExtension);
+            String code = annotation.responseCode();
+            String responseKey = code == null || code.isBlank() ? "default" : code;
+
             if (!annotation.ref().isBlank()) {
                 response.set$ref(annotation.ref());
-            } else {
-                Content content = parseContent(
-                    annotation.content(),
-                    classProduces == null ? null : classProduces.value(),
-                    methodProduces == null ? null : methodProduces.value(),
-                    components,
-                    jsonViewAnnotation
-                );
-                if (!content.isEmpty()) {
-                    response.setContent(content);
-                }
-                parseHeaders(annotation.headers(), response, components, jsonViewAnnotation);
-                parseLinks(annotation.links(), response);
+                responses.put(responseKey, response);
+                continue;
             }
+            if (!annotation.description().isBlank()) {
+                response.setDescription(annotation.description());
+            }
+            AnnotationsUtils.getExtensions(annotation.extensions()).forEach(response::addExtension);
+            Content content = parseContent(
+                annotation.content(),
+                classProduces == null ? null : classProduces.value(),
+                methodProduces == null ? null : methodProduces.value(),
+                components,
+                jsonViewAnnotation
+            );
+            if (!content.isEmpty()) {
+                response.setContent(content);
+            }
+            parseHeaders(annotation.headers(), response, components, jsonViewAnnotation);
 
-            String code = annotation.responseCode();
-            responses.put(code == null || code.isBlank() ? "default" : code, response);
+            if (!annotation.description().isBlank()
+                || response.getContent() != null
+                || response.getHeaders() != null) {
+                parseLinks(annotation.links(), response);
+                responses.put(responseKey, response);
+            }
         }
-        return Optional.of(responses);
+        return responses.isEmpty() ? Optional.empty() : Optional.of(responses);
     }
 
     static Content parseContent(
@@ -193,7 +177,6 @@ public final class OperationParser {
         if (!arraySchemaSpecified(array)) return null;
 
         Schema arraySchema = new Schema();
-        applySchemaMetadata(arraySchema, array.arraySchema());
         arraySchema.setType("array");
 
         io.swagger.v3.oas.annotations.media.Schema itemAnnotation = schemaSpecified(array.schema())
@@ -282,6 +265,9 @@ public final class OperationParser {
 
         if (annotation.implementation() == Void.class) {
             Schema schema = new Schema();
+            // Swagger 2.2.30 resolves annotation-only schemas as strings unless
+            // an explicit type or composition overrides that baseline.
+            schema.setType("string");
             applySchemaMetadata(schema, annotation);
             schema.setAllOf(resolveSchemaClasses(annotation.allOf(), components, view));
             schema.setAnyOf(resolveSchemaClasses(annotation.anyOf(), components, view));
@@ -424,8 +410,15 @@ public final class OperationParser {
         io.swagger.v3.oas.annotations.media.ExampleObject annotation
     ) {
         Example example = new Example();
-        example.setSummary(annotation.summary());
-        example.setDescription(annotation.description());
+        if (!annotation.name().isBlank()) {
+            example.setDescription(annotation.name());
+        }
+        if (!annotation.summary().isBlank()) {
+            example.setSummary(annotation.summary());
+        }
+        if (!annotation.description().isBlank()) {
+            example.setDescription(annotation.description());
+        }
         if (!annotation.ref().isBlank()) example.set$ref(annotation.ref());
         if (!annotation.externalValue().isBlank()) example.setExternalValue(annotation.externalValue());
         if (!annotation.value().isBlank()) {
@@ -449,41 +442,47 @@ public final class OperationParser {
         for (io.swagger.v3.oas.annotations.headers.Header annotation : annotations) {
             if (annotation.hidden() || annotation.name().isBlank()) continue;
             Header header = new Header();
-            header.setDescription(annotation.description());
-            header.setRequired(annotation.required());
-            header.setDeprecated(annotation.deprecated());
+            if (!annotation.description().isBlank()) {
+                header.setDescription(annotation.description());
+            }
+            if (annotation.required()) {
+                header.setRequired(true);
+            }
+            if (annotation.deprecated()) {
+                header.setDeprecated(true);
+            }
             header.setStyle(Header.StyleEnum.SIMPLE);
             if (!annotation.ref().isBlank()) {
                 header.set$ref(annotation.ref());
-            } else {
-                Schema schema = arraySchemaSpecified(annotation.array())
-                    ? resolveArraySchema(annotation.array(), components, view)
-                    : resolveSchemaAnnotation(annotation.schema(), components, view);
+            }
+            Schema schema = arraySchemaSpecified(annotation.array())
+                ? resolveArraySchema(annotation.array(), components, view)
+                : resolveSchemaAnnotation(annotation.schema(), components, view);
+            if (schema != null) {
                 header.setSchema(schema);
-                if (!annotation.example().isBlank()) {
-                    try {
-                        header.setExample(Json.mapper().readTree(annotation.example()));
-                    } catch (Exception ignored) {
-                        header.setExample(annotation.example());
+            }
+            if (!annotation.example().isBlank()) {
+                try {
+                    header.setExample(Json.mapper().readTree(annotation.example()));
+                } catch (Exception ignored) {
+                    header.setExample(annotation.example());
+                }
+            }
+            if (annotation.examples().length == 1 && annotation.examples()[0].name().isBlank()) {
+                header.setExample(parseExample(annotation.examples()[0]));
+            } else if (annotation.examples().length > 0) {
+                Map<String, Example> examples = new LinkedHashMap<>();
+                for (io.swagger.v3.oas.annotations.media.ExampleObject example : annotation.examples()) {
+                    if (!example.name().isBlank()) {
+                        examples.put(example.name(), parseExample(example));
                     }
                 }
-                if (annotation.examples().length == 1 && annotation.examples()[0].name().isBlank()) {
-                    header.setExample(parseExample(annotation.examples()[0]));
-                } else if (annotation.examples().length > 0) {
-                    Map<String, Example> examples = new LinkedHashMap<>();
-                    int index = 0;
-                    for (io.swagger.v3.oas.annotations.media.ExampleObject example : annotation.examples()) {
-                        String name = example.name().isBlank() ? "example-" + index : example.name();
-                        examples.put(name, parseExample(example));
-                        index++;
-                    }
+                if (!examples.isEmpty()) {
                     header.setExamples(examples);
                 }
-                if (annotation.explode() == io.swagger.v3.oas.annotations.enums.Explode.TRUE) {
-                    header.setExplode(true);
-                } else if (annotation.explode() == io.swagger.v3.oas.annotations.enums.Explode.FALSE) {
-                    header.setExplode(false);
-                }
+            }
+            if (annotation.explode() == io.swagger.v3.oas.annotations.enums.Explode.TRUE) {
+                header.setExplode(true);
             }
             response.addHeaderObject(annotation.name(), header);
         }
@@ -495,14 +494,32 @@ public final class OperationParser {
     ) {
         if (annotations == null) return;
         for (io.swagger.v3.oas.annotations.links.Link annotation : annotations) {
-            if (annotation.name().isBlank()) continue;
             Link link = new Link();
-            link.setDescription(annotation.description());
+            boolean isEmpty = true;
+            if (!annotation.description().isBlank()) {
+                link.setDescription(annotation.description());
+                isEmpty = false;
+            }
             if (!annotation.operationId().isBlank()) {
                 link.setOperationId(annotation.operationId());
+                isEmpty = false;
             } else if (!annotation.operationRef().isBlank()) {
                 link.setOperationRef(annotation.operationRef());
+                isEmpty = false;
             }
+            if (!annotation.ref().isBlank()) {
+                link.set$ref(annotation.ref());
+                isEmpty = false;
+            }
+            if (annotation.extensions().length > 0) {
+                Map<String, Object> extensions = AnnotationsUtils.getExtensions(annotation.extensions());
+                if (extensions != null) {
+                    extensions.forEach(link::addExtension);
+                    isEmpty = false;
+                }
+            }
+            if (isEmpty) continue;
+
             if (!annotation.requestBody().isBlank()) {
                 try {
                     link.setRequestBody(Json.mapper().readTree(annotation.requestBody()));
@@ -510,12 +527,11 @@ public final class OperationParser {
                     link.setRequestBody(annotation.requestBody());
                 }
             }
-            if (!annotation.ref().isBlank()) link.set$ref(annotation.ref());
-            AnnotationsUtils.getServer(annotation.server()).ifPresent(link::setServer);
-            AnnotationsUtils.getExtensions(annotation.extensions()).forEach(link::addExtension);
             Map<String, Object> parameters = new LinkedHashMap<>();
             for (io.swagger.v3.oas.annotations.links.LinkParameter parameter : annotation.parameters()) {
-                parameters.put(parameter.name(), parameter.expression());
+                if (!parameter.name().isBlank()) {
+                    parameters.put(parameter.name(), parameter.expression());
+                }
             }
             if (!parameters.isEmpty()) link.setParameters(parameters);
             response.addLink(annotation.name(), link);

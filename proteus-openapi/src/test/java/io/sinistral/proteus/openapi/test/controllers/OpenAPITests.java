@@ -209,7 +209,6 @@ public class OpenAPITests
                 encoding = @Encoding(
                     name = "order",
                     contentType = MediaType.APPLICATION_JSON,
-                    style = "form",
                     explode = true,
                     allowReserved = true,
                     headers = @Header(

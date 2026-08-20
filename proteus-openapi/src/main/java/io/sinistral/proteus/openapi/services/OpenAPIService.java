@@ -324,21 +324,22 @@ public class OpenAPIService
     @SuppressWarnings("rawtypes")
     protected void generateSpec() throws Exception {
         Set<Class<?>> classes = this.registeredControllers;
+        ObjectMapper openApiMapper = Json.mapper();
 
-        OpenAPIExtensions.register(new ServerParameterExtension(jsonMapper));
+        OpenAPIExtensions.register(new ServerParameterExtension(openApiMapper));
 
         OpenAPI openApi = new OpenAPI(SpecVersion.V31);
 
         openApi.setOpenapi("3.1.1");
 
-        Info info = jsonMapper.convertValue(
+        Info info = openApiMapper.convertValue(
             openAPIConfig.getValue("info").unwrapped(),
             Info.class
         );
 
         openApi.setInfo(info);
 
-        Map<String, SecurityScheme> securitySchemes = jsonMapper.convertValue(
+        Map<String, SecurityScheme> securitySchemes = openApiMapper.convertValue(
             openAPIConfig.getValue("securitySchemes").unwrapped(),
             new TypeReference<>() {}
         );
@@ -349,7 +350,7 @@ public class OpenAPIService
 
         openApi.getComponents().setSecuritySchemes(securitySchemes);
 
-        List<Server> servers = jsonMapper.convertValue(
+        List<Server> servers = openApiMapper.convertValue(
             openAPIConfig.getValue("servers").unwrapped(),
             new TypeReference<>() {}
         );
@@ -372,14 +373,14 @@ public class OpenAPIService
                 .put("jsonViewQueryParameterName", jsonViewQueryParameterName);
         }
 
-        // Use the application's Jackson 3 mapper for all schema introspection so
-        // naming strategies, mix-ins and visibility exactly match runtime JSON.
+        // Preserve legacy OpenAPI generation, which uses the default OpenAPI mapper
+        // rather than the application's runtime serialization configuration.
         ModelConverters modelConverters = ModelConverters.getInstance();
-        modelConverters.configure(jsonMapper);
+        modelConverters.configure(openApiMapper);
         registerConfiguredModelConverters(modelConverters);
 
         // Use Reader directly to scan and generate OpenAPI
-        Reader reader = new Reader(config, jsonMapper);
+        Reader reader = new Reader(config, openApiMapper);
         openApi = reader.read(classes);
 
         this.openApi = openApi;

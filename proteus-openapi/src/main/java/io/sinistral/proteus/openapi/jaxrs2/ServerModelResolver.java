@@ -57,6 +57,15 @@ public final class ServerModelResolver implements ModelConverter {
             return null;
         }
 
+        String typeName = resolved.toCanonical();
+        if (typeName.contains("java.nio.file.Path") || typeName.contains("java.nio.ByteBuffer")) {
+            if (resolved.getRawClass() == java.util.Optional.class) {
+                resolved = mapper.getTypeFactory().constructParametricType(java.util.Optional.class, java.io.File.class);
+            } else {
+                resolved = mapper.getTypeFactory().constructType(java.io.File.class);
+            }
+        }
+
         annotatedType.setType(resolved);
         return next.hasNext()
             ? next.next().resolve(annotatedType, context, next)

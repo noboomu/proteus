@@ -1685,135 +1685,80 @@ public class Reader {
             }
         }
 
-        // Infer a response schema from the complete reflective return Type. The
-        // converter chain unwraps CompletionStage and ServerResponse while retaining
-        // parameterized payload types such as Page<Order>.
+        // handle return type, add as response in case.
         Type returnType = method.getGenericReturnType();
         final Class<?> subResource = getSubResourceWithJaxRsSubresourceLocatorSpecs(method);
+
         if (!shouldIgnoreClass(returnType.getTypeName()) && !returnType.equals(subResource)) {
-            ResolvedSchema resolved = ModelConverters.getInstance().resolveAsResolvedSchema(
+            JavaType classType = mapper.getTypeFactory().constructType(returnType);
+
+            if (classType != null && classType.getRawClass() != null) {
+                if (classType.getRawClass().isAssignableFrom(ServerResponse.class)) {
+                    if (classType.containedType(0) != null) {
+                        returnType = classType.containedType(0);
+                    }
+                } else if (classType.getRawClass().isAssignableFrom(CompletableFuture.class)) {
+                    Class<?> futureClass = classType.containedType(0).getRawClass();
+                    if (futureClass.isAssignableFrom(ServerResponse.class)) {
+                        JavaType futureType = mapper.getTypeFactory().constructType(
+                            classType.containedType(0)
+                        );
+                        returnType = futureType.containedType(0);
+                    } else {
+                        returnType = classType.containedType(0);
+                    }
+                }
+            }
+
+            ResolvedSchema resolvedSchema = ModelConverters.getInstance().resolveAsResolvedSchema(
                 new AnnotatedType(returnType)
                     .resolveAsRef(true)
                     .jsonViewAnnotation(jsonViewAnnotation)
             );
-            if (resolved != null && resolved.schema != null) {
-                Schema returnSchema = resolved.schema;
-                Content inferredContent = new Content();
-                MediaType inferredMediaType = new MediaType().schema(returnSchema);
+
+            if (resolvedSchema.schema != null) {
+                Schema returnTypeSchema = resolvedSchema.schema;
+                Content content = new Content();
+                MediaType mediaType = new MediaType().schema(returnTypeSchema);
                 AnnotationsUtils.applyTypes(
                     classProduces == null ? new String[0] : classProduces.value(),
                     methodProduces == null ? new String[0] : methodProduces.value(),
-                    inferredContent,
-                    inferredMediaType
+                    content,
+                    mediaType
                 );
-
-                if (operation.getResponses() == null || operation.getResponses().isEmpty()) {
+                if (operation.getResponses() == null) {
                     operation.responses(
                         new ApiResponses()._default(
                             new ApiResponse()
                                 .description(DEFAULT_DESCRIPTION)
-                                .content(inferredContent)
+                                .content(content)
                         )
                     );
-                } else {
-                    operation.getResponses().forEach((code, response) -> {
-                        if (response == null || StringUtils.isNotBlank(response.get$ref())) {
-                            return;
-                        }
-                        boolean inferSchema = isSuccessResponse(code)
-                            || "default".equalsIgnoreCase(code)
-                            || usesReturnTypeSchema(code, apiResponses, classResponses);
-                        if (!inferSchema) {
-                            return;
-                        }
-                        if (response.getContent() == null || response.getContent().isEmpty()) {
-                            response.setContent(copyContent(inferredContent));
-                            return;
-                        }
-                        response.getContent().values().forEach(mediaType -> {
-                            if (mediaType == null) return;
-                            if (mediaType.getSchema() == null) {
-                                mediaType.setSchema(returnSchema);
-                            } else if (!hasStructuralSchema(mediaType.getSchema())) {
-                                mediaType.getSchema().setAllOf(new ArrayList<>(List.of(returnSchema)));
-                            }
-                        });
-                    });
                 }
-
-                if (resolved.referencedSchemas != null) {
-                    resolved.referencedSchemas.forEach(components::addSchemas);
+                if (operation.getResponses().getDefault() != null
+                    && StringUtils.isBlank(operation.getResponses().getDefault().get$ref())) {
+                    if (operation.getResponses().getDefault().getContent() == null) {
+                        operation.getResponses().getDefault().content(content);
+                    } else {
+                        for (String key : operation.getResponses().getDefault().getContent().keySet()) {
+                            if (operation.getResponses().getDefault().getContent().get(key).getSchema() == null) {
+                                operation.getResponses().getDefault().getContent().get(key).setSchema(returnTypeSchema);
+                            }
+                        }
+                    }
+                }
+                if (resolvedSchema.referencedSchemas != null) {
+                    resolvedSchema.referencedSchemas.forEach(components::addSchemas);
                 }
             }
         }
-
         if (operation.getResponses() == null || operation.getResponses().isEmpty()) {
             operation.setResponses(
-                new ApiResponses()._default(
-                    new ApiResponse().description(DEFAULT_DESCRIPTION)
-                )
+                new ApiResponses()._default(new ApiResponse().description(DEFAULT_DESCRIPTION))
             );
         }
 
         return operation;
-    }
-
-    private boolean hasStructuralSchema(Schema schema) {
-        return schema != null && (
-            StringUtils.isNotBlank(schema.get$ref())
-                || StringUtils.isNotBlank(schema.getType())
-                || schema.getItems() != null
-                || (schema.getProperties() != null && !schema.getProperties().isEmpty())
-                || schema.getAdditionalProperties() != null
-                || (schema.getAllOf() != null && !schema.getAllOf().isEmpty())
-                || (schema.getAnyOf() != null && !schema.getAnyOf().isEmpty())
-                || (schema.getOneOf() != null && !schema.getOneOf().isEmpty())
-                || schema.getDiscriminator() != null
-        );
-    }
-
-    private boolean isSuccessResponse(String responseCode) {
-        if (responseCode == null || responseCode.length() != 3 || responseCode.charAt(0) != '2') {
-            return false;
-        }
-        return !"204".equals(responseCode) && !"205".equals(responseCode);
-    }
-
-    private boolean usesReturnTypeSchema(
-        String responseCode,
-        List<io.swagger.v3.oas.annotations.responses.ApiResponse> methodResponses,
-        io.swagger.v3.oas.annotations.responses.ApiResponse[] classResponses
-    ) {
-        if (methodResponses != null) {
-            for (io.swagger.v3.oas.annotations.responses.ApiResponse response : methodResponses) {
-                if (response.useReturnTypeSchema() && responseCodeEquals(response.responseCode(), responseCode)) {
-                    return true;
-                }
-            }
-        }
-        if (classResponses != null) {
-            for (io.swagger.v3.oas.annotations.responses.ApiResponse response : classResponses) {
-                if (response.useReturnTypeSchema() && responseCodeEquals(response.responseCode(), responseCode)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean responseCodeEquals(String annotationCode, String responseCode) {
-        String normalized = annotationCode == null || annotationCode.isBlank()
-            ? "default"
-            : annotationCode;
-        return normalized.equalsIgnoreCase(responseCode);
-    }
-
-    private Content copyContent(Content source) {
-        Content copy = new Content();
-        if (source != null) {
-            source.forEach(copy::addMediaType);
-        }
-        return copy;
     }
 
     private boolean shouldIgnoreClass(String className) {

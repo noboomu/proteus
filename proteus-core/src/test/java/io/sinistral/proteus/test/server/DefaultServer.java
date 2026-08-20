@@ -37,25 +37,34 @@ public class DefaultServer implements BeforeAllCallback, AfterAllCallback
             app.addController(Tests.class);
             app.start();
 
-            int port = 0;
-            try {
-                Thread.sleep(5000);
-                List<Integer> ports = app.getPorts();
-                port = ports.get(0);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (!app.isRunning()) {
+                started = false;
+                throw new IllegalStateException(
+                    "Proteus test application did not start: " +
+                    app.getServiceManager().servicesByState()
+                );
             }
 
+            int port = waitForBoundHttpPort();
             TestClient.setBaseUrl(String.format("http://localhost:%d", port));
-
-            while (!app.isRunning()) {
-                try {
-                    Thread.sleep(100L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
         }
+    }
+
+    private static int waitForBoundHttpPort() throws InterruptedException {
+        long deadline = System.nanoTime() + 15_000_000_000L;
+
+        while (System.nanoTime() < deadline) {
+            List<Integer> ports = app.getPorts();
+            if (!ports.isEmpty()) {
+                return ports.getFirst();
+            }
+            Thread.sleep(25L);
+        }
+
+        started = false;
+        throw new IllegalStateException(
+            "Proteus test application did not publish a bound HTTP port within 15 seconds"
+        );
     }
 
     @Override

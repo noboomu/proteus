@@ -42,8 +42,33 @@ public class ParameterProcessor {
         String[] methodConsumes,
         JsonView jsonViewAnnotation
     ) {
+        for (Annotation candidate : annotations) {
+            String annotationName = candidate.annotationType().getName();
+            if (annotationName.equals("jakarta.ws.rs.core.Context")
+                || annotationName.equals("javax.ws.rs.core.Context")) {
+                return null;
+            }
+        }
+
         if (parameter == null) {
             parameter = new Parameter();
+        }
+
+        for (Annotation candidate : annotations) {
+            String annotationName = candidate.annotationType().getName();
+            if (annotationName.equals("jakarta.ws.rs.FormParam")
+                || annotationName.equals("javax.ws.rs.FormParam")
+                || annotationName.endsWith("FormDataParam")) {
+                try {
+                    String name = (String) candidate.annotationType().getMethod("value").invoke(candidate);
+                    if (name != null && !name.isBlank()) {
+                        parameter.setName(name);
+                    }
+                } catch (ReflectiveOperationException ignored) {
+                    // Keep legacy behavior when a compatible form annotation cannot be read.
+                }
+                parameter.setIn("form");
+            }
         }
 
         io.swagger.v3.oas.annotations.Parameter annotation = null;
@@ -125,7 +150,45 @@ public class ParameterProcessor {
             }
         }
 
+        applyDefaultValue(parameter, annotations);
         return parameter;
+    }
+
+    private static void applyDefaultValue(
+        Parameter parameter,
+        List<Annotation> annotations
+    ) {
+        String defaultValue = null;
+        for (Annotation annotation : annotations) {
+            String annotationName = annotation.annotationType().getName();
+            if (annotationName.equals("jakarta.ws.rs.DefaultValue")
+                || annotationName.equals("javax.ws.rs.DefaultValue")) {
+                try {
+                    defaultValue = (String) annotation.annotationType().getMethod("value").invoke(annotation);
+                } catch (ReflectiveOperationException ignored) {
+                    // Keep legacy behavior: an unreadable default is simply absent.
+                }
+                break;
+            }
+        }
+        if (defaultValue == null) {
+            return;
+        }
+
+        Schema schema = parameter.getSchema();
+        if (schema == null && parameter.getContent() != null && !parameter.getContent().isEmpty()) {
+            schema = parameter.getContent().values().iterator().next().getSchema();
+        }
+        if (schema == null) {
+            return;
+        }
+
+        Object parsedDefault = OperationParser.parseAnnotationValue(defaultValue);
+        if ("array".equals(schema.getType()) && schema.getItems() != null) {
+            schema.getItems().setDefault(parsedDefault);
+        } else {
+            schema.setDefault(parsedDefault);
+        }
     }
 
     /**

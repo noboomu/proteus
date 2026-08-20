@@ -36,34 +36,38 @@ public class OpenAPIDefaultServer implements BeforeAllCallback, AfterAllCallback
             app.addController(OpenAPITests.class);
             app.start();
 
-            int port = 0;
-            try {
-                List<Integer> ports = app.getPorts();
-                if (ports.isEmpty()) {
-                    log.info("Ports list empty, waiting for server to bind...");
-                    Thread.sleep(2000);
-                    ports = app.getPorts();
-                }
-                port = ports.isEmpty() ? 8080 : ports.getFirst();
-                log.info("Using port: {}", port);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (!app.isRunning()) {
+                started = false;
+                throw new IllegalStateException(
+                    "Proteus test application did not start: " +
+                    app.getServiceManager().servicesByState()
+                );
             }
 
+            int port = waitForBoundHttpPort();
             baseURI = String.format("http://localhost:%d/", port);
             log.info("Test server running at: {}", baseURI);
-
-            while (!app.isRunning()) {
-                try {
-                    Thread.sleep(100L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
 
             OpenAPIService openAPIService = app.injector.getInstance(OpenAPIService.class);
             openAPIService.waitForSpecGeneration(15_000L);
         }
+    }
+
+    private static int waitForBoundHttpPort() throws InterruptedException {
+        long deadline = System.nanoTime() + 15_000_000_000L;
+
+        while (System.nanoTime() < deadline) {
+            List<Integer> ports = app.getPorts();
+            if (!ports.isEmpty()) {
+                return ports.getFirst();
+            }
+            Thread.sleep(25L);
+        }
+
+        started = false;
+        throw new IllegalStateException(
+            "Proteus test application did not publish a bound HTTP port within 15 seconds"
+        );
     }
 
     @Override

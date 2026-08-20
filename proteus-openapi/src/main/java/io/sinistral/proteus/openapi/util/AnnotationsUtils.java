@@ -107,13 +107,21 @@ public class AnnotationsUtils {
 
         List<Tag> tags = new ArrayList<>();
         for (io.swagger.v3.oas.annotations.tags.Tag tagAnnotation : annotations) {
-            if (skipEmpty && (tagAnnotation.name() == null || tagAnnotation.name().isEmpty())) {
+            if (tagAnnotation.name() == null || tagAnnotation.name().isEmpty()) {
+                continue;
+            }
+            if (skipEmpty
+                && tagAnnotation.description().isBlank()
+                && tagAnnotation.externalDocs().description().isBlank()
+                && tagAnnotation.externalDocs().url().isBlank()) {
                 continue;
             }
 
             Tag tag = new Tag();
             tag.setName(tagAnnotation.name());
-            tag.setDescription(tagAnnotation.description());
+            if (!tagAnnotation.description().isBlank()) {
+                tag.setDescription(tagAnnotation.description());
+            }
 
             if (tagAnnotation.externalDocs() != null) {
                 getExternalDocumentation(tagAnnotation.externalDocs()).ifPresent(tag::setExternalDocs);

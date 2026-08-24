@@ -4,6 +4,21 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**WIP: Secure current dirty tree for parity work**
+
+
+[3a5741d35cc2522](https://github.com/noboomu/proteus/commit/3a5741d35cc2522) Joshua Lee Bauer *2026-08-10 19:29:39*
+
+**Fix OpenAPI reader content payload generation and generic references**
+
+
+[986fd1f8cfa84c4](https://github.com/noboomu/proteus/commit/986fd1f8cfa84c4) Joshua Lee Bauer *2026-08-06 02:59:58*
+
+**Fix Guice missing implementation bindings, JSON serialization, and response tests for Java 25 compatibility**
+
+
+[b75f775feab3566](https://github.com/noboomu/proteus/commit/b75f775feab3566) Joshua Lee Bauer *2026-08-06 02:58:12*
+
 **Fix Jackson 3 ModelResolver spec generation parity and multipart tests**
 
  * - Patched &#x60;JacksonModelResolver.java&#x60; to process class-level and property-level &#x60;@Schema&#x60; annotations (description, title, hidden, required, readOnly, writeOnly, bounds, constraints, pattern).

@@ -11,6 +11,7 @@ Proteus is a blazing fast minimalist Java API server framework built atop Undert
 ## Build & Development Commands
 
 ### Build
+
 ```bash
 # Build entire project
 mvn clean install
@@ -27,6 +28,7 @@ mvn clean install -Djava.version=21
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 mvn test
@@ -39,6 +41,7 @@ mvn test -Dconfig.file=src/test/resources/application.conf
 ```
 
 ### Release
+
 ```bash
 # Prepare release (signs artifacts with GPG)
 mvn release:prepare
@@ -50,13 +53,16 @@ mvn deploy -P central
 ## Project Structure
 
 ### Module Organization
+
 - **proteus-core**: Core framework including Undertow integration, handler generation, DI (Guice), and service management
 - **proteus-openapi**: OpenAPI v3 support with auto-generated specs and Swagger UI
 
 ### Key Architectural Components
 
 #### Runtime Handler Generation (`proteus-core`)
+
 The framework's core innovation is in `io.sinistral.proteus.server.handlers.HandlerGenerator`:
+
 - Scans controller classes for JAX-RS annotations at startup
 - Generates Undertow `HttpHandler` source code using JavaPoet
 - Compiles handlers at runtime using SourceBuddy compiler
@@ -65,25 +71,31 @@ The framework's core innovation is in `io.sinistral.proteus.server.handlers.Hand
 **Critical Path**: `ProteusApplication.buildServer()` → `HandlerGenerator.generateClassSource()` → Runtime compilation → Handler registration
 
 #### Dependency Injection (Guice)
+
 - Configuration bound via `ConfigModule` (Typesafe Config)
 - Services extend `DefaultService` and use `@Singleton` + `@Inject`
 - Controllers injected with `ObjectMapper`, `Config`, and custom dependencies
 - Module registration: `app.addModule(YourModule.class)` before `app.start()`
 
 #### Service Lifecycle
+
 Services implement `BaseService` or extend `DefaultService`:
+
 - Extend `com.google.common.util.concurrent.AbstractIdleService`
 - Override `startUp()` and `shutDown()` for lifecycle management
 - Registered via `app.addService(YourService.class)`
 - Managed by Guava's `ServiceManager` with health monitoring
 
 #### Configuration System
+
 Uses Typesafe Config (`application.conf`) with HOCON format:
+
 - Default location: `src/test/resources/application.conf` (tests) or custom path
 - Configuration injection via `@Named` annotations
 - Key sections: `application`, `undertow`, `assets`, `openapi`, `globalHeaders`
 
 ### Critical Files
+
 - `ProteusApplication.java`: Main application bootstrap and server builder
 - `HandlerGenerator.java`: Runtime code generation for endpoint handlers
 - `ServerRequest.java` / `ServerResponse.java`: Request/response abstractions
@@ -92,6 +104,7 @@ Uses Typesafe Config (`application.conf`) with HOCON format:
 ## Development Guidelines
 
 ### Controller Development
+
 ```java
 @Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
@@ -119,12 +132,14 @@ public class MyController {
 ```
 
 **Important**:
+
 - Methods returning `ServerResponse<T>` benefit from type safety
 - Methods taking `HttpServerExchange` must handle response completion
 - Use `@Blocking` for operations that must block (DB queries, etc.)
 - Use `@Chain` to wrap handlers in custom middleware
 
 ### Service Development
+
 ```java
 @Singleton
 public class MyService extends DefaultService {
@@ -150,7 +165,9 @@ public class MyService extends DefaultService {
 ```
 
 ### JSON Serialization
+
 Access the configured `ObjectMapper` via dependency injection:
+
 ```java
 @Inject
 protected ObjectMapper objectMapper;
@@ -163,6 +180,7 @@ protected ObjectMapper objectMapper;
 ```
 
 ### CompletableFuture Support
+
 ```java
 @GET
 @Path("/async")
@@ -187,6 +205,7 @@ public CompletableFuture<ServerResponse<User>> asyncEndpoint() {
 ## Configuration Reference
 
 ### Key Config Paths
+
 ```hocon
 application {
   name = "my-app"
@@ -228,6 +247,7 @@ globalHeaders {
 ## Testing
 
 Test structure follows JUnit 5:
+
 - Base test class: `AbstractEndpointTest`
 - Uses REST Assured for HTTP testing
 - Config: `src/test/resources/application.conf` with random port (`ports.http = 0`)
@@ -236,6 +256,7 @@ Test structure follows JUnit 5:
 ## Module System (Guice)
 
 Creating custom modules for external integrations:
+
 ```java
 public class MyModule extends AbstractModule {
     @Inject
@@ -251,6 +272,7 @@ public class MyModule extends AbstractModule {
 ```
 
 Register before starting:
+
 ```java
 app.addModule(MyModule.class);
 app.start();
@@ -259,6 +281,7 @@ app.start();
 ## OpenAPI Support
 
 When using `proteus-openapi` module:
+
 - Spec generated at `${application.path}/openapi.yaml`
 - UI served at `${application.path}/openapi`
 - Use `@Operation`, `@Parameter`, `@RequestBody` annotations
@@ -266,7 +289,10 @@ When using `proteus-openapi` module:
 
 ## Virtual Threads
 
+!!!!!!!!!!!!!!!! THIS IS NOT TRUE, IT CAN, IT SHOULD NOT BY DEFAULT!
+
 Proteus uses Java 21+ virtual threads for Undertow's XNIO worker:
+
 ```java
 ThreadGroup virtualThreadGroup = Thread.ofVirtual().unstarted(() -> {}).getThreadGroup();
 XnioWorker worker = xnio.createWorkerBuilder().setThreadGroup(virtualThreadGroup).build();

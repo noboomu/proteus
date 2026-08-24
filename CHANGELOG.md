@@ -4,6 +4,26 @@ Proteus Changelog.
 ## Unreleased
 ### No issue
 
+**test(openapi): restore legacy served-output assertions**
+
+
+[a938cc4217b226e](https://github.com/noboomu/proteus/commit/a938cc4217b226e) Joshua Lee Bauer *2026-08-24 22:13:41*
+
+**fix: restore legacy ServerModelResolver mappings for ByteBuffer and Path to java.io.File, preserving custom annotation behavior**
+
+
+[9e03e49d041bc3c](https://github.com/noboomu/proteus/commit/9e03e49d041bc3c) Joshua Lee Bauer *2026-08-20 05:37:49*
+
+**[verified] Omit default OpenAPI external docs**
+
+
+[2f953b223e072ae](https://github.com/noboomu/proteus/commit/2f953b223e072ae) Joshua Lee Bauer *2026-08-17 20:10:20*
+
+**WIP: Secure current dirty tree for parity work**
+
+
+[3a5741d35cc2522](https://github.com/noboomu/proteus/commit/3a5741d35cc2522) Joshua Lee Bauer *2026-08-10 19:29:39*
+
 **Fix OpenAPI reader content payload generation and generic references**
 
 

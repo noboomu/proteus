@@ -11,7 +11,9 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Indicates that this route should use a BlockingHandler
+ * Indicates that the route may block and should execute on a virtual thread
+ * rather than Undertow's I/O thread. A method-level value overrides a
+ * class-level value.
  */
 @Retention(RUNTIME)
 @Target({TYPE, METHOD})

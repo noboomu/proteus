@@ -3,7 +3,6 @@
  
  
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<withJansi>true</withJansi>
 		<encoder>
 			<pattern>%date{ISO8601} [%thread] %highlight(%-5level) [%boldCyan(%logger{36})] [%boldYellow(%method %F) %line] - %boldWhite(%message) %n %red(%rEx) %nopex
 						</pattern>

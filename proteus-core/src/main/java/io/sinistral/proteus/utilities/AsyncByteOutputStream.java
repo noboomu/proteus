@@ -182,7 +182,7 @@ public class AsyncByteOutputStream extends OutputStream {
 
     /**
      * Converts the buffer's contents into a string decoding bytes using the
-     * platform's default character set. The length of the new <tt>String</tt>
+     * platform's default character set. The length of the new {@code String}
      * is a function of the character set, and hence may not be equal to the
      * size of the buffer.
      *
@@ -203,7 +203,7 @@ public class AsyncByteOutputStream extends OutputStream {
     /**
      * Converts the buffer's contents into a string by decoding the bytes using
      * the specified {@link java.nio.charset.Charset charsetName}. The length of
-     * the new <tt>String</tt> is a function of the charset, and hence may not be
+     * the new {@code String} is a function of the charset, and hence may not be
      * equal to the length of the byte array.
      *
      * <p> This method always replaces malformed-input and unmappable-character
@@ -212,7 +212,7 @@ public class AsyncByteOutputStream extends OutputStream {
      * over the decoding process is required.
      *
      * @param charsetName the name of a supported
-     *                    {@linkplain java.nio.charset.Charset </code>charset<code>}
+     *                    {@linkplain java.nio.charset.Charset charset}
      * @return String decoded from the buffer's contents.
      * @throws UnsupportedEncodingException If the named charset is not supported
      * @since JDK1.1
@@ -252,10 +252,9 @@ public class AsyncByteOutputStream extends OutputStream {
     }
 
     /**
-     * Closing a <tt>ByteArrayOutputStream</tt> has no effect. The methods in
+     * Closing this output stream has no effect. The methods in
      * this class can be called after the stream has been closed without
-     * generating an <tt>IOException</tt>.
-     * <p>
+     * generating an {@code IOException}.
      */
     public void close() throws IOException {
 

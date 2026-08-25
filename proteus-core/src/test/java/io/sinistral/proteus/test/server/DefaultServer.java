@@ -3,6 +3,8 @@ package io.sinistral.proteus.test.server;
 import java.util.List;
 
 import io.sinistral.proteus.test.controllers.Tests;
+import io.sinistral.proteus.test.controllers.SecurityTestController;
+import io.sinistral.proteus.test.controllers.BlockingTestController;
 import io.sinistral.proteus.test.util.TestClient;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -35,6 +37,11 @@ public class DefaultServer implements BeforeAllCallback, AfterAllCallback
             app = new ProteusApplication();
             app.addService(AssetsService.class);
             app.addController(Tests.class);
+            app.addController(SecurityTestController.class);
+            app.addController(SecurityTestController.ClassDeniedController.class);
+            app.addController(SecurityTestController.ClassAdminController.class);
+            app.addController(SecurityTestController.ClassPublicController.class);
+            app.addController(BlockingTestController.class);
             app.start();
 
             if (!app.isRunning()) {

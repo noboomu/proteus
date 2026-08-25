@@ -3,6 +3,7 @@
  */
 package io.sinistral.proteus.openapi.jaxrs2;
 
+import io.sinistral.proteus.annotations.security.Claim;
 import io.sinistral.proteus.openapi.models.Components;
 import io.sinistral.proteus.openapi.models.parameters.Parameter;
 import io.sinistral.proteus.openapi.util.Json;
@@ -59,6 +60,9 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
         JsonView jsonViewAnnotation,
         Iterator<OpenAPIExtension> chain
     ) {
+        if (annotations.stream().anyMatch(Claim.class::isInstance)) {
+            return new ResolvedParameter();
+        }
         if (shouldIgnoreType(type, typesToSkip)) {
             return new ResolvedParameter();
         }

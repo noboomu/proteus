@@ -23,8 +23,10 @@ cd proteus-openapi && mvn clean install
 # Skip tests
 mvn clean install -DskipTests
 
-# Build with specific Java version (requires Java 21+)
-mvn clean install -Djava.version=21
+# Verify with JDK 26 while retaining the project's Java 25 release target
+export JAVA_HOME=/usr/lib/jvm/java-26-openjdk
+export PATH="$JAVA_HOME/bin:$PATH"
+mvn clean verify
 ```
 
 ### Testing
@@ -56,6 +58,8 @@ mvn deploy -P central
 
 - **proteus-core**: Core framework including Undertow integration, handler generation, DI (Guice), and service management
 - **proteus-openapi**: OpenAPI v3 support with auto-generated specs and Swagger UI
+
+Event Bus and WebSocket support are intentionally deferred. They are not part of the current reactor, dependencies, configuration, or runtime surface.
 
 ### Key Architectural Components
 
@@ -99,7 +103,7 @@ Uses Typesafe Config (`application.conf`) with HOCON format:
 - `ProteusApplication.java`: Main application bootstrap and server builder
 - `HandlerGenerator.java`: Runtime code generation for endpoint handlers
 - `ServerRequest.java` / `ServerResponse.java`: Request/response abstractions
-- `JacksonModule.java`: Configured ObjectMapper with Blackbird, JSR310, JDK8 modules
+- `JacksonModule.java`: Jackson 3 `ObjectMapper` configured with Blackbird and a shared concurrent recycler pool
 
 ## Development Guidelines
 
@@ -173,10 +177,9 @@ Access the configured `ObjectMapper` via dependency injection:
 protected ObjectMapper objectMapper;
 
 // The ObjectMapper is pre-configured in JacksonModule with:
-// - Blackbird (fast serialization)
-// - JSR310 (Java 8 date/time)
-// - JDK8 Module (Optional, etc.)
-// - Parameter names preservation
+// - Jackson 3 and Blackbird
+// - A shared concurrent recycler pool
+// - Tolerant request deserialization settings
 ```
 
 ### CompletableFuture Support
@@ -201,6 +204,12 @@ public CompletableFuture<ServerResponse<User>> asyncEndpoint() {
 ```
 
 **Preferred Pattern**: Declare `CompletableFuture` promise, use executor's `execute()` with inlined runnable, handle exceptions via `completeExceptionally()`.
+
+### Request Security Context
+
+`SecurityContext` is request-scoped state attached to the `HttpServerExchange`. Controllers that need it must declare an explicit `SecurityContext` parameter.
+
+There is no ambient `SecurityContext.getCurrent()` API. Controller-created futures, executors, or reactive work must capture and pass the injected context explicitly.
 
 ## Configuration Reference
 
@@ -249,7 +258,7 @@ globalHeaders {
 Test structure follows JUnit 5:
 
 - Base test class: `AbstractEndpointTest`
-- Uses REST Assured for HTTP testing
+- Uses the project `TestClient`, built on Java `HttpClient` and Jackson 3
 - Config: `src/test/resources/application.conf` with random port (`ports.http = 0`)
 - Test server: `DefaultServer` bootstraps test application
 
@@ -286,33 +295,30 @@ When using `proteus-openapi` module:
 - UI served at `${application.path}/openapi`
 - Use `@Operation`, `@Parameter`, `@RequestBody` annotations
 - Configure via `openapi {}` block in config
+- Generation is asynchronous; getters may be null and spec routes may return `404` until generation completes
+- Generated security requirements use the same `SecurityPolicy` resolution as runtime handlers
 
 ## Virtual Threads
 
-!!!!!!!!!!!!!!!! THIS IS NOT TRUE, IT CAN, IT SHOULD NOT BY DEFAULT!
+Proteus does not replace Undertow's XNIO worker with a virtual-thread worker. Normal handlers remain on Undertow's configured execution model.
 
-Proteus uses Java 21+ virtual threads for Undertow's XNIO worker:
-
-```java
-ThreadGroup virtualThreadGroup = Thread.ofVirtual().unstarted(() -> {}).getThreadGroup();
-XnioWorker worker = xnio.createWorkerBuilder().setThreadGroup(virtualThreadGroup).build();
-```
-
-This enables massive concurrency for blocking operations.
+Generated handlers dispatch routes marked `@Blocking` to a virtual thread when Undertow invokes them on an I/O thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
 
 ## Performance Characteristics
 
 - Handler generation happens once at startup
 - Zero reflection overhead during request processing
 - Undertow's direct buffer pool with configurable buffer sizes
-- Virtual threads prevent blocking operation bottlenecks
+- Explicitly blocking routes are isolated from Undertow I/O threads through virtual-thread dispatch
 - Regularly ranks top in Techempower benchmarks for Java frameworks
 
 ## Important Notes
 
-- **Java Version**: Requires JDK 21+ (enforced by maven-enforcer-plugin)
+- **Java Version**: Requires JDK 25+ and is verified with JDK 26
 - **Compiler Args**: `-parameters` flag required for parameter name preservation
-- **Current Branch**: `jackson-3.0` (migrating to Jackson 3.x)
+- **Development Branch**: `development`, with the Jackson 3 migration integrated
 - **Main Branch**: `master` (use for PRs)
+- **Security Context**: Exchange-attached and explicitly injected; never ambient or ThreadLocal-backed
+- **Deferred Features**: Event Bus and WebSocket support must not be documented or wired as current production features
 - **No Spring**: Framework explicitly avoids Spring dependencies
-- **Minimal Dependencies**: Core framework < 340KB
+- **Minimal Dependencies**: Core intentionally avoids Spring and Vert.x

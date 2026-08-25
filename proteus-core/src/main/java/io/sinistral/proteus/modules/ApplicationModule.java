@@ -5,20 +5,31 @@ import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.typesafe.config.Config;
+import io.sinistral.proteus.security.handlers.SecurityProcessor;
+import io.sinistral.proteus.security.jwt.DefaultJwtConfiguration;
+import io.sinistral.proteus.security.jwt.DefaultJwtService;
+import io.sinistral.proteus.security.jwt.JwtConfiguration;
+import io.sinistral.proteus.security.jwt.JwtService;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
+
 import io.sinistral.proteus.services.BaseService;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.undertow.server.DefaultResponseListener;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
+
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Root Guice module for framework defaults and application registries.
+ * It installs configured JSON/XML mappers, binds route and endpoint registries, and creates
+ * the JWT services used by generated security handlers.
+ *
  * @author jbauer
  */
 @Singleton
@@ -156,5 +167,13 @@ public class ApplicationModule extends AbstractModule {
         this.bind(new TypeLiteral<Map<String, HandlerWrapper>>() {})
             .annotatedWith(Names.named("registeredHandlerWrappers"))
             .toInstance(registeredHandlerWrappers);
+
+        JwtConfiguration jwtConfiguration = new DefaultJwtConfiguration(config);
+        JwtService jwtService = new DefaultJwtService(jwtConfiguration);
+        this.bind(JwtConfiguration.class).toInstance(jwtConfiguration);
+        this.bind(JwtService.class).toInstance(jwtService);
+        this.bind(SecurityProcessor.class)
+            .toInstance(new SecurityProcessor(jwtService));
+
     }
 }

@@ -20,6 +20,13 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.annotations.Debug;
+import io.sinistral.proteus.annotations.security.Claim;
+import io.sinistral.proteus.annotations.security.DenyAll;
+import io.sinistral.proteus.annotations.security.PermitAll;
+import io.sinistral.proteus.annotations.security.RolesAllowed;
+import io.sinistral.proteus.security.SecurityContext;
+import io.sinistral.proteus.security.handlers.SecurityContextAttachment;
+import io.sinistral.proteus.security.handlers.SecurityProcessor;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
@@ -71,9 +78,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Generates code and compiles a <code>Supplier<RoutingHandler></code> class
+ * Generates code and compiles a {@code Supplier<RoutingHandler>} class
  * from the target class's methods that are annotated with a JAX-RS method
- * annotation (i.e. <code>jakarta.ws.rs.GET</code>)
+ * annotation (for example, {@code jakarta.ws.rs.GET}).
  *
  * @author jbauer
  */
@@ -229,12 +236,24 @@ public class HandlerGenerator {
             annotatedMapOfWrappers,
             "registeredHandlerWrappers"
         );
+        typeBuilder.addField(
+            SecurityProcessor.class,
+            "securityProcessor",
+            Modifier.PROTECTED,
+            Modifier.FINAL
+        );
+        constructor.addParameter(SecurityProcessor.class, "securityProcessor");
 
         constructor.addStatement("this.$N = $N", className, className);
         constructor.addStatement(
             "this.$N = $N",
             "registeredHandlerWrappers",
             "registeredHandlerWrappers"
+        );
+        constructor.addStatement(
+            "this.$N = $N",
+            "securityProcessor",
+            "securityProcessor"
         );
 
         addClassMethodHandlers(typeBuilder, this.controllerClass);
@@ -580,10 +599,11 @@ public class HandlerGenerator {
 
             boolean isBlocking = false;
             boolean isDebug = false;
+            boolean hasProteusSecurity = hasProteusSecurity(m, clazz);
 
             Optional<Blocking> blockingAnnotation = Optional.ofNullable(
                 m.getAnnotation(Blocking.class)
-            );
+            ).or(() -> Optional.ofNullable(clazz.getAnnotation(Blocking.class)));
 
             if (blockingAnnotation.isPresent()) {
                 isBlocking = blockingAnnotation.get().value();
@@ -795,7 +815,10 @@ public class HandlerGenerator {
 
                 methodBuilder.beginControlFlow("if (exchange.isInIoThread())");
 
-                methodBuilder.addStatement("exchange.dispatch(this)");
+                methodBuilder.addStatement(
+                    "exchange.dispatch($T::startVirtualThread, this)",
+                    Thread.class
+                );
 
                 methodBuilder.nextControlFlow("else");
             }
@@ -817,7 +840,22 @@ public class HandlerGenerator {
                         type
                     );
 
-                    if (p.getType().equals(ServerRequest.class)) {
+                    Claim claim = p.getAnnotation(Claim.class);
+                    if (claim != null) {
+                        addClaimStatement(methodBuilder, p, claim);
+                        continue;
+                    }
+
+                    if (p.getType().equals(SecurityContext.class)) {
+                        // The exchange attachment is authoritative and survives Undertow dispatch.
+                        // Do not use an ambient ThreadLocal: it cannot cross async boundaries safely.
+                        methodBuilder.addStatement(
+                            "$T $L = exchange.getAttachment($T.KEY)",
+                            SecurityContext.class,
+                            p.getName(),
+                            SecurityContextAttachment.class
+                        );
+                    } else if (p.getType().equals(ServerRequest.class)) {
                         methodBuilder.addStatement(
                             "$T $L = new $T(exchange)",
                             ServerRequest.class,
@@ -1412,7 +1450,8 @@ public class HandlerGenerator {
             if (
                 wrapAnnotation.isPresent() ||
                 typeLevelHandlerWrapperMap.size() > 0 ||
-                securityDefinitions.size() > 0
+                securityDefinitions.size() > 0 ||
+                hasProteusSecurity
             ) {
                 initBuilder.addStatement("currentHandler = $L", handlerName);
 
@@ -1473,6 +1512,20 @@ public class HandlerGenerator {
                     );
                 }
 
+                if (hasProteusSecurity) {
+                    CodeBlock.Builder securityWrapper = CodeBlock.builder()
+                        .add(
+                            "currentHandler = securityProcessor.createSecureHandler(currentHandler, $T.class, $S",
+                            clazz,
+                            m.getName()
+                        );
+                    for (Class<?> parameterType : m.getParameterTypes()) {
+                        securityWrapper.add(", $T.class", parameterType);
+                    }
+                    securityWrapper.add(")");
+                    initBuilder.addStatement(securityWrapper.build());
+                }
+
                 initBuilder.addStatement(
                     "$L.add(io.undertow.util.Methods.$L,$S,$L)",
                     "router",
@@ -1503,6 +1556,103 @@ public class HandlerGenerator {
         initBuilder.addCode("$Lreturn router;\n", "\n");
 
         typeBuilder.addMethod(initBuilder.build());
+    }
+
+    private static boolean hasProteusSecurity(Method method, Class<?> clazz) {
+        return method.isAnnotationPresent(DenyAll.class) ||
+            method.isAnnotationPresent(PermitAll.class) ||
+            method.isAnnotationPresent(RolesAllowed.class) ||
+            clazz.isAnnotationPresent(DenyAll.class) ||
+            clazz.isAnnotationPresent(PermitAll.class) ||
+            clazz.isAnnotationPresent(RolesAllowed.class) ||
+            Arrays.stream(method.getParameters())
+                .anyMatch(parameter -> parameter.isAnnotationPresent(Claim.class));
+    }
+
+    private static void addClaimStatement(
+        MethodSpec.Builder methodBuilder,
+        Parameter parameter,
+        Claim claim
+    ) {
+        String claimName = claim.value().isBlank()
+            ? parameter.getName()
+            : claim.value();
+        Type parameterType = parameter.getParameterizedType();
+
+        if (parameter.getType().equals(Optional.class)) {
+            Class<?> valueType = claimValueType(parameterType, parameter);
+            methodBuilder.addStatement(
+                "$T $L = $T.getOptionalClaim(exchange, $S, $T.class)",
+                parameterType,
+                parameter.getName(),
+                SecurityProcessor.class,
+                claimName,
+                valueType
+            );
+            return;
+        }
+
+        if (parameter.getType().equals(List.class)) {
+            Class<?> valueType = claimValueType(parameterType, parameter);
+            methodBuilder.addStatement(
+                "$T $L = $T.getClaimList(exchange, $S, $T.class, $L)",
+                parameterType,
+                parameter.getName(),
+                SecurityProcessor.class,
+                claimName,
+                valueType,
+                claim.required()
+            );
+            return;
+        }
+
+        Class<?> parameterClass = parameter.getType();
+        if (parameterClass.isPrimitive() && !claim.required()) {
+            throw new IllegalArgumentException(
+                "Optional @Claim parameters must use boxed or Optional types: " +
+                parameter.getName()
+            );
+        }
+        if (
+            parameterClass != String.class &&
+            parameterClass != Long.class &&
+            parameterClass != long.class &&
+            parameterClass != Boolean.class &&
+            parameterClass != boolean.class
+        ) {
+            throw new IllegalArgumentException(
+                "Unsupported @Claim parameter type " +
+                parameterType.getTypeName() + " for " + parameter.getName()
+            );
+        }
+
+        methodBuilder.addStatement(
+            "$T $L = $T.getClaim(exchange, $S, $T.class, $S, $L)",
+            parameterType,
+            parameter.getName(),
+            SecurityProcessor.class,
+            claimName,
+            parameterClass,
+            claim.defaultValue(),
+            claim.required()
+        );
+    }
+
+    private static Class<?> claimValueType(Type parameterType, Parameter parameter) {
+        if (!(parameterType instanceof ParameterizedType parameterizedType)) {
+            throw new IllegalArgumentException(
+                "@Claim parameter must declare its generic value type: " +
+                parameter.getName()
+            );
+        }
+        Type valueType = parameterizedType.getActualTypeArguments()[0];
+        if (valueType instanceof Class<?> valueClass) {
+            return valueClass;
+        }
+        throw new IllegalArgumentException(
+            "Unsupported @Claim generic value type " + valueType.getTypeName() +
+            " for " + parameter.getName()
+        );
     }
 
     /**

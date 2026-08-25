@@ -267,7 +267,7 @@ public class TestClient {
                 }
 
                 byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
-                
+
                 int totalLength = byteArrays.stream().mapToInt(b -> b.length).sum();
                 byte[] allBytes = new byte[totalLength];
                 int offset = 0;
@@ -359,7 +359,7 @@ public class TestClient {
                 if (body() == null || body().isEmpty()) {
                     fail("Response body is empty, cannot check path: " + jsonPath);
                 }
-                
+
                 Map<?, ?> json = OBJECT_MAPPER.readValue(body(), Map.class);
                 Object actualValue = json.get(jsonPath);
 

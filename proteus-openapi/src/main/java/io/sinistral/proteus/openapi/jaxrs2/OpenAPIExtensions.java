@@ -6,7 +6,18 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 /**
- * Registry for OpenAPI extensions
+ * Process-global registry for OpenAPI extensions.
+ *
+ * <p>The registry is initialized once from {@link ServiceLoader}, then ensures the default
+ * {@link ServerParameterExtension} is present. {@link #register(OpenAPIExtension)} preserves
+ * the first instance of each implementation class; it does not replace an existing instance.
+ * {@link #chain()} and {@link #getExtensions()} return snapshots. {@link #clear()} removes all
+ * entries, including service-loaded defaults, and does not reload them.
+ *
+ * <p>Registration is synchronized. Callers that clear or register extensions while another
+ * thread is generating a specification are responsible for external coordination.
+ *
+ * @since 1.0
  */
 public class OpenAPIExtensions {
     private static List<OpenAPIExtension> extensions = new ArrayList<>();
@@ -32,28 +43,38 @@ public class OpenAPIExtensions {
     }
 
     /**
-     * Get an iterator over the extension chain
+     * Returns an iterator over a snapshot of the current extension chain.
+     *
+     * @return snapshot iterator
      */
     public static Iterator<OpenAPIExtension> chain() {
         return new ArrayList<>(extensions).iterator();
     }
 
     /**
-     * Register an extension
+     * Registers an extension if no instance of its implementation class is already present.
+     *
+     * @param extension extension to register
      */
-    public static void register(OpenAPIExtension extension) {
-        extensions.add(extension);
+    public static synchronized void register(OpenAPIExtension extension) {
+        boolean alreadyRegistered = extensions.stream()
+            .anyMatch(existing -> existing.getClass().equals(extension.getClass()));
+        if (!alreadyRegistered) {
+            extensions.add(extension);
+        }
     }
 
     /**
-     * Clear all registered extensions
+     * Removes every registered extension without reloading defaults.
      */
     public static void clear() {
         extensions.clear();
     }
 
     /**
-     * Get all registered extensions
+     * Returns a snapshot of all currently registered extensions.
+     *
+     * @return immutable-by-copy extension snapshot
      */
     public static List<OpenAPIExtension> getExtensions() {
         return new ArrayList<>(extensions);

@@ -46,7 +46,7 @@ public class AbstractEndpointTest {
                 dataPath.toFile().getParentFile().mkdirs();
 
                 Files.write(dataPath, bytes);
-                
+
                 dataPath.toFile().deleteOnExit();
 
 

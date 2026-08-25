@@ -2,6 +2,14 @@
 Proteus Changelog.
 
 ## Unreleased
+### Agent work log
+
+- 🧭🚧 [jcode/ember-storm] #proteus #jdk26 #jackson3 INTENT: Resume the verified Hermes candidate, inspect staged custody and docs, then produce one local-only `development` branch without touching remotes or unrelated work.
+- 🔎💡 [jcode/ember-storm] #proteus #handoff The Hermes candidate is intact and fully staged with no unstaged changes. Its product tree was verified, but `AGENTS.md` is still stale and `HERMES-RESUME.md` is a handoff-only staged artifact that should not ship.
+- 📝✅ [jcode/ember-storm] #proteus #docs OUTCOME: Aligned `AGENTS.md` and `README.md` with the verified Java 25 target/JDK 26 runtime, Jackson 3, explicit security context, virtual-thread dispatch, and deferred realtime surface; removed the handoff-only file from the product tree.
+- 🔒🚧 [jcode/ember-storm] #proteus #git INTENT: Amend the local merge candidate, atomically advance `development`, remove the temporary feature worktree/ref, and prove remote refs remain unchanged.
+- 🌿✅ [jcode/ember-storm] #proteus #development OUTCOME: One local `development` branch contains the verified JDK 26/Jackson 3/security/OpenAPI line; 151 tests pass, Event Bus/WebSocket/Vert.x are deferred, and remote refs remain unchanged.
+
 ### No issue
 
 **test(openapi): restore legacy served-output assertions**
@@ -2203,5 +2211,3 @@ Proteus Changelog.
 
 
 [2d41345e1de9bb0](https://github.com/noboomu/proteus/commit/2d41345e1de9bb0) joshua bauer *2017-03-31 14:30:07*
-
-

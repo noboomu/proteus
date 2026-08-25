@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package io.sinistral.proteus.openapi.test.controllers;
 

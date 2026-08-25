@@ -21,6 +21,7 @@ import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.services.BaseService;
 import io.sinistral.proteus.utilities.SecurityUtilities;
 import io.sinistral.proteus.utilities.TablePrinter;
+
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
@@ -107,6 +108,18 @@ public class ProteusApplication {
 
     public AtomicBoolean running = new AtomicBoolean(false);
 
+    /**
+     * Note on lifecycle flags: Startup is transactional. This flag means "a start attempt
+     * may have acquired Undertow resources," not "the listener is confirmed live." It is set 
+     * before Undertow.start() so partially acquired resources are stopped if start throws.
+     * Shutdown intentionally performs owned-resource cleanup before or after a failed startup.
+     */
+    private final AtomicBoolean undertowStarted = new AtomicBoolean(false);
+
+    private volatile XnioWorker worker;
+
+    private volatile Thread shutdownHook;
+
     public List<Integer> ports = new ArrayList<>();
 
     public Function<
@@ -144,152 +157,241 @@ public class ProteusApplication {
             return;
         }
 
-        final Thread mainThread = Thread.currentThread();
-
-        log.info(
-            "Installing modules: {}",
-            registeredModules
-                .stream()
-                .map(Class::getSimpleName)
-                .collect(Collectors.joining(","))
-        );
-
-        Set<Module> modules = registeredModules
-            .stream()
-            .map(mc -> injector.getInstance(mc))
-            .collect(Collectors.toSet());
-
-        injector = injector.createChildInjector(modules);
-
-        if (rootHandlerClass == null && rootHandler == null) {
-            //log.debug("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
-            rootHandlerClass = ServerDefaultHttpHandler.class;
-        }
-
-        log.info(
-            "Installing services: {}",
-            registeredServices
-                .stream()
-                .map(Class::getSimpleName)
-                .collect(Collectors.joining(","))
-        );
-
-        Set<BaseService> services = registeredServices
-            .stream()
-            .map(sc -> injector.getInstance(sc))
-            .collect(Collectors.toSet());
-
-        //injector = injector.createChildInjector(services);
-
-        serviceManager = new ServiceManager(services);
-
-        serviceManager.addListener(
-            new Listener() {
-                public void stopped() {
-                    log.warn("Services are stopped");
-                }
-
-                public void healthy() {
-                    log.info("Services are healthy");
-
-                    startupDuration = Duration.between(
-                        startTime,
-                        Instant.now()
-                    );
-
-                    for (ListenerInfo info : undertow.getListenerInfo()) {
-                        log.debug("listener info: {}", info);
-                        SocketAddress address = info.getAddress();
-
-                        if (address != null) {
-                            ports.add(
-                                ((java.net.InetSocketAddress) address).getPort()
-                            );
-                        }
-                    }
-
-                    printStatus();
-                }
-
-                public void failure(Service service) {
-                    log.error("Service failure: {}", service);
-
-                    startupDuration = Duration.between(
-                        startTime,
-                        Instant.now()
-                    );
-
-                    for (ListenerInfo info : undertow.getListenerInfo()) {
-                        log.debug("listener info: {}", info);
-                        SocketAddress address = info.getAddress();
-
-                        if (address != null) {
-                            ports.add(
-                                ((java.net.InetSocketAddress) address).getPort()
-                            );
-                        }
-                    }
-
-                    printStatus();
-
-                    running.set(false);
-                }
-            },
-            MoreExecutors.directExecutor()
-        );
-
-        Runtime.getRuntime().addShutdownHook(
-            new Thread(() -> {
-                if (!this.isRunning()) {
-                    log.warn("Server is not running...");
-                    return;
-                }
-
-                try {
-                    shutdown();
-                    mainThread.join();
-                } catch (InterruptedException ex) {
-                    log.error("Shutdown was interrupted", ex);
-                } catch (TimeoutException timeout) {
-                    log.error("Shutdown timed out", timeout);
-                }
-            })
-        );
-
-        buildServer();
-
-        undertow.start();
-
-        Duration timeout = config.getDuration("application.services.timeout");
-
+        Duration timeout = null;
         try {
+            log.info(
+                "Installing modules: {}",
+                registeredModules
+                    .stream()
+                    .map(Class::getSimpleName)
+                    .collect(Collectors.joining(","))
+            );
+
+            Set<Module> modules = registeredModules
+                .stream()
+                .map(mc -> injector.getInstance(mc))
+                .collect(Collectors.toSet());
+
+            injector = injector.createChildInjector(modules);
+
+            if (rootHandlerClass == null && rootHandler == null) {
+                //log.debug("No root handler class or root HttpHandler was specified, using default ServerDefaultHttpHandler.");
+                rootHandlerClass = ServerDefaultHttpHandler.class;
+            }
+
+            log.info(
+                "Installing services: {}",
+                registeredServices
+                    .stream()
+                    .map(Class::getSimpleName)
+                    .collect(Collectors.joining(","))
+            );
+
+            Set<BaseService> services = registeredServices
+                .stream()
+                .map(sc -> injector.getInstance(sc))
+                .collect(Collectors.toSet());
+
+            //injector = injector.createChildInjector(services);
+
+            serviceManager = new ServiceManager(services);
+
+            serviceManager.addListener(
+                new Listener() {
+                    public void stopped() {
+                        log.warn("Services are stopped");
+                    }
+
+                    public void healthy() {
+                        log.info("Services are healthy");
+
+                        startupDuration = Duration.between(
+                            startTime,
+                            Instant.now()
+                        );
+
+                        for (ListenerInfo info : undertow.getListenerInfo()) {
+                            log.debug("listener info: {}", info);
+                            SocketAddress address = info.getAddress();
+
+                            if (address != null) {
+                                ports.add(
+                                    ((java.net.InetSocketAddress) address).getPort()
+                                );
+                            }
+                        }
+
+                        printStatus();
+                    }
+
+                    public void failure(Service service) {
+                        log.error("Service failure: {}", service);
+
+                        startupDuration = Duration.between(
+                            startTime,
+                            Instant.now()
+                        );
+
+                        for (ListenerInfo info : undertow.getListenerInfo()) {
+                            log.debug("listener info: {}", info);
+                            SocketAddress address = info.getAddress();
+
+                            if (address != null) {
+                                ports.add(
+                                    ((java.net.InetSocketAddress) address).getPort()
+                                );
+                            }
+                        }
+
+                        printStatus();
+
+                        running.set(false);
+                    }
+                },
+                MoreExecutors.directExecutor()
+            );
+
+            shutdownHook = new Thread(
+                () -> {
+                    if (!this.isRunning()) {
+                        log.warn("Server is not running...");
+                        return;
+                    }
+
+                    try {
+                        shutdown();
+                    } catch (TimeoutException shutdownTimeout) {
+                        log.error("Shutdown timed out", shutdownTimeout);
+                    }
+                },
+                "proteus-shutdown"
+            );
+            Runtime.getRuntime().addShutdownHook(shutdownHook);
+
+            timeout = config.getDuration("application.services.timeout");
+
+            buildServer();
+            undertowStarted.set(true);
+            undertow.start();
             serviceManager.startAsync().awaitHealthy(timeout);
         } catch (TimeoutException e) {
-            log.error("Failed start to services within {} minutes", timeout, e);
-            return;
+            cleanupAfterFailedStart();
+            throw new IllegalStateException(
+                "Failed to start services within " + timeout,
+                e
+            );
         } catch (Exception e) {
-            log.error("Failed to start services", e);
-            return;
+            cleanupAfterFailedStart();
+            throw new IllegalStateException("Failed to start application", e);
         }
 
         this.running.set(true);
     }
 
+    /**
+     * Performs complete teardown of the application. This method stops Undertow, 
+     * waits up to two seconds for Guava services to stop, shuts down the application-owned
+     * XNIO worker, clears ports, and removes the JVM shutdown hook.
+     * 
+     * <p>Worker shutdown failures are suppressed and logged; only a Guava service timeout
+     * is rethrown as a TimeoutException. The method is idempotent and safe to call before
+     * startup if partial Undertow or XNIO resources were allocated.
+     *
+     * @throws TimeoutException if managed services fail to stop within the timeout
+     */
     public void shutdown() throws TimeoutException {
-        if (!this.isRunning()) {
+        if (!this.isRunning() && !undertowStarted.get() && worker == null) {
             log.warn("Server is not running...");
             return;
         }
 
         log.info("Shutting down...");
 
-        undertow.stop();
+        stopUndertow();
 
-        serviceManager.stopAsync().awaitStopped(2, TimeUnit.SECONDS);
+        TimeoutException serviceTimeout = null;
+        if (serviceManager != null) {
+            try {
+                serviceManager.stopAsync().awaitStopped(2, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                serviceTimeout = e;
+            }
+        }
+
+        stopWorker();
 
         this.running.set(false);
+        ports.clear();
+        removeShutdownHook();
 
         log.info("Shutdown complete");
+
+        if (serviceTimeout != null) {
+            throw serviceTimeout;
+        }
+    }
+
+    private void cleanupAfterFailedStart() {
+        log.warn("Cleaning up after failed application startup");
+        stopUndertow();
+
+        if (serviceManager != null) {
+            try {
+                serviceManager.stopAsync().awaitStopped(2, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                log.warn("Service cleanup after failed startup did not complete", e);
+            }
+        }
+
+        stopWorker();
+
+        ports.clear();
+        running.set(false);
+        removeShutdownHook();
+    }
+
+
+    private void stopUndertow() {
+        if (undertow != null && undertowStarted.compareAndSet(true, false)) {
+            try {
+                undertow.stop();
+            } catch (Exception e) {
+                log.warn("Undertow shutdown did not complete cleanly", e);
+            }
+        }
+    }
+
+    private void stopWorker() {
+        XnioWorker currentWorker = worker;
+        if (currentWorker == null || currentWorker.isShutdown()) {
+            return;
+        }
+
+        currentWorker.shutdown();
+        try {
+            if (!currentWorker.awaitTermination(2, TimeUnit.SECONDS)) {
+                currentWorker.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            currentWorker.shutdownNow();
+            log.warn("XNIO worker shutdown was interrupted", e);
+        }
+    }
+
+    private void removeShutdownHook() {
+        Thread hook = shutdownHook;
+        if (hook == null || Thread.currentThread() == hook) {
+            return;
+        }
+
+        try {
+            if (Runtime.getRuntime().removeShutdownHook(hook)) {
+                shutdownHook = null;
+            }
+        } catch (IllegalStateException e) {
+            log.debug("JVM shutdown is already in progress", e);
+        }
     }
 
     public boolean isRunning() {
@@ -342,9 +444,18 @@ public class ProteusApplication {
                     routerClasses.add(routerClass);
                 } catch (Exception e) {
                     log.error("Failed to compile {}", controllerClass, e);
+                    throw new IllegalStateException(
+                        "Failed to compile handler for " + controllerClass.getName(),
+                        e
+                    );
                 }
             } catch (Exception e) {
-                log.error("Failed to compile", e);
+                throw e instanceof IllegalStateException illegalStateException
+                    ? illegalStateException
+                    : new IllegalStateException(
+                        "Failed to generate handler for " + controllerClass.getName(),
+                        e
+                    );
             }
         }
 
@@ -364,6 +475,7 @@ public class ProteusApplication {
         this.addDefaultRoutes(router);
 
         log.info("Route handlers generated");
+
 
         HttpHandler handler;
 
@@ -405,16 +517,9 @@ public class ProteusApplication {
 
         final int processorCount = Runtime.getRuntime().availableProcessors();
 
-        ThreadGroup virtualThreadGroup = Thread.ofVirtual()
-            .unstarted(() -> {})
-            .getThreadGroup();
-
         Xnio xnio = Xnio.getInstance();
 
-        XnioWorker worker = xnio
-            .createWorkerBuilder()
-            .setThreadGroup(virtualThreadGroup)
-            .build();
+        worker = xnio.createWorkerBuilder().build();
 
         Undertow.Builder undertowBuilder = Undertow.builder()
             .addHttpListener(httpPort, config.getString("application.host"))
@@ -742,6 +847,11 @@ public class ProteusApplication {
         return ports;
     }
 
+    /**
+     * Low-level Undertow-only stop. This does not stop managed services, terminate the
+     * XNIO worker, clear running/ports state, or remove the shutdown hook. Normal
+     * consumers must use {@link #shutdown()}.
+     */
     public void stop() {
         undertow.stop();
     }
@@ -751,7 +861,7 @@ public class ProteusApplication {
     }
 
     public XnioWorker getWorker() {
-        return undertow.getWorker();
+        return worker;
     }
 
     public List<ListenerInfo> getListenerInfo() {

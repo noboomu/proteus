@@ -16,6 +16,8 @@ import io.sinistral.proteus.openapi.models.OpenAPI.SpecVersion;
 import io.sinistral.proteus.openapi.models.info.Info;
 import io.sinistral.proteus.openapi.models.security.SecurityScheme;
 import io.sinistral.proteus.openapi.models.servers.Server;
+import io.sinistral.proteus.openapi.security.SecurityAnnotationExtension;
+import io.sinistral.proteus.openapi.security.OpenApiSecuritySchemeService;
 import io.sinistral.proteus.openapi.util.Json;
 import io.sinistral.proteus.openapi.util.Yaml;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
@@ -58,7 +60,13 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * A service for generating and serving an OpenAPI v3 spec and ui.
+ * Service for asynchronously generating and serving an OpenAPI 3.1 specification and UI.
+ *
+ * <p>Startup registers the UI and specification routes, then submits generation to one owned
+ * executor thread. Until generation completes, {@link #getOpenApi()}, {@link #getYamlSpec()},
+ * and {@link #getJsonSpec()} return {@code null}; the JSON and YAML routes return HTTP 404.
+ * {@link #waitForSpecGeneration(long)} exposes the bounded synchronization point for callers
+ * that need the generated model before serving dependent work.
  *
  * @author jbauer
  */
@@ -137,6 +145,9 @@ public class OpenAPIService
     @Named("registeredHandlerWrappers")
     protected Map<String, HandlerWrapper> registeredHandlerWrappers;
 
+    @Inject
+    protected OpenApiSecuritySchemeService securitySchemeService;
+
     ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public OpenAPIService() {
@@ -147,35 +158,6 @@ public class OpenAPIService
     public void setObjectMapper(ObjectMapper objectMapper) {
         this.jsonMapper = objectMapper;
     }
-
-    /**
-     *   public static ObjectMapper create(JsonFactory jsonFactory, boolean openapi31) {
-           ObjectMapper mapper = jsonFactory == null ? new ObjectMapper() : new ObjectMapper(jsonFactory);
-
-           if (!openapi31) {
-               // handle ref schema serialization skipping all other props
-               mapper.registerModule(new SimpleModule() {
-                   @Override
-                   public void setupModule(SetupContext context) {
-                       super.setupModule(context);
-                       context.addBeanSerializerModifier(new BeanSerializerModifier() {
-                           @Override
-                           public JsonSerializer<?> modifySerializer(
-                                   SerializationConfig config, BeanDescription desc, JsonSerializer<?> serializer) {
-                               if (Schema.class.isAssignableFrom(desc.getBeanClass())) {
-                                   return new SchemaSerializer((JsonSerializer<Object>) serializer);
-                               } else if (MediaType.class.isAssignableFrom(desc.getBeanClass())) {
-                                   return new MediaTypeSerializer((JsonSerializer<Object>) serializer);
-                               } else if (Example.class.isAssignableFrom(desc.getBeanClass())) {
-                                   return new ExampleSerializer((JsonSerializer<Object>) serializer);
-                               }
-                               return serializer;
-                           }
-                       });
-                   }
-               });
-           } else {
-     */
 
     protected void generateHTML() {
         try {
@@ -327,6 +309,7 @@ public class OpenAPIService
         ObjectMapper openApiMapper = Json.mapper();
 
         OpenAPIExtensions.register(new ServerParameterExtension(openApiMapper));
+        OpenAPIExtensions.register(new SecurityAnnotationExtension());
 
         OpenAPI openApi = new OpenAPI(SpecVersion.V31);
 
@@ -382,6 +365,7 @@ public class OpenAPIService
         // Use Reader directly to scan and generate OpenAPI
         Reader reader = new Reader(config, openApiMapper);
         openApi = reader.read(classes);
+        securitySchemeService.configureSecuritySchemes(openApi);
 
         this.openApi = openApi;
 
@@ -413,14 +397,26 @@ public class OpenAPIService
         }
     }
 
+    /**
+     * Gets the parsed OpenAPI model.
+     * @return the model, or null if generation is still pending or failed
+     */
     public OpenAPI getOpenApi() {
         return openApi;
     }
 
+    /**
+     * Gets the YAML OpenAPI specification.
+     * @return the YAML string, or null if generation is still pending or failed
+     */
     public String getYamlSpec() {
         return yamlSpec;
     }
 
+    /**
+     * Gets the JSON OpenAPI specification.
+     * @return the JSON string, or null if generation is still pending or failed
+     */
     public String getJsonSpec() {
         return jsonSpec;
     }
@@ -450,14 +446,33 @@ public class OpenAPIService
         });
     }
 
+    /**
+     * Reports whether asynchronous specification generation completed successfully.
+     *
+     * @return {@code true} after a successful generation run
+     */
     public boolean isSpecGenerated() {
         return specGenerated;
     }
 
+    /**
+     * Returns the generation failure, if asynchronous generation has failed.
+     *
+     * @return generation error or {@code null} when generation has not failed
+     */
     public Exception getSpecGenerationError() {
         return specGenerationError;
     }
 
+    /**
+     * Waits for the asynchronous OpenAPI generation to complete or fail.
+     * <p>Generation occurs on a single-thread executor after service startup. HTTP routes 
+     * serving the spec return 404 until this completes. This method polls at 100 ms intervals.
+     *
+     * @param timeoutMs maximum time to wait in milliseconds
+     * @throws InterruptedException if the waiting thread is interrupted
+     * @throws RuntimeException if generation times out or fails (wrapping the underlying error)
+     */
     public void waitForSpecGeneration(long timeoutMs) throws InterruptedException, Exception {
         long start = System.currentTimeMillis();
         while (!specGenerated && specGenerationError == null) {
@@ -471,6 +486,13 @@ public class OpenAPIService
         }
     }
 
+    /**
+     * Creates the UI, JSON, YAML, ReDoc, and static-resource routes for this service.
+     * Spec routes are intentionally registered before generation finishes and respond with
+     * HTTP 404 while the corresponding rendered specification is unavailable.
+     *
+     * @return routing handler containing the OpenAPI service routes
+     */
     public RoutingHandler get() {
         FileResourceManager resourceManager = new FileResourceManager(
             this.resourcePath.toFile(),

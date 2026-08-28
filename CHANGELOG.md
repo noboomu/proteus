@@ -9,8 +9,16 @@ Proteus Changelog.
 - 📝✅ [jcode/ember-storm] #proteus #docs OUTCOME: Aligned `AGENTS.md` and `README.md` with the verified Java 25 target/JDK 26 runtime, Jackson 3, explicit security context, virtual-thread dispatch, and deferred realtime surface; removed the handoff-only file from the product tree.
 - 🔒🚧 [jcode/ember-storm] #proteus #git INTENT: Amend the local merge candidate, atomically advance `development`, remove the temporary feature worktree/ref, and prove remote refs remain unchanged.
 - 🌿✅ [jcode/ember-storm] #proteus #development OUTCOME: One local `development` branch contains the verified JDK 26/Jackson 3/security/OpenAPI line; 151 tests pass, Event Bus/WebSocket/Vert.x are deferred, and remote refs remain unchanged.
+- 🔀🚧 [jcode/ember-storm] #proteus #checkout INTENT: Move the stray Hermes archive out of the repository, merge the existing `CHANGELOG.md` work into `development`, and switch this worktree to the consolidated branch without losing data.
+- 🔎💡 [jcode/ember-storm] #proteus #workspace The dirty `CHANGELOG.md` is only the missing five-line `6680b55` entry; `default.tar.gz` is a 161 MB Hermes profile archive, not a Proteus artifact.
+- 🔀✅ [jcode/ember-storm] #proteus #checkout OUTCOME: Merged the missing `6680b55` changelog entry, moved the stray Hermes archive out of the repository, and switched this worktree cleanly to `development`.
 
 ### No issue
+
+**docs: update changelog and agents guidance**
+
+
+[6680b55b4a07d15](https://github.com/noboomu/proteus/commit/6680b55b4a07d15) Joshua Lee Bauer *2026-08-24 23:36:46*
 
 **test(openapi): restore legacy served-output assertions**
 

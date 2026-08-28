@@ -12,6 +12,9 @@ Proteus Changelog.
 - 🔀🚧 [jcode/ember-storm] #proteus #checkout INTENT: Move the stray Hermes archive out of the repository, merge the existing `CHANGELOG.md` work into `development`, and switch this worktree to the consolidated branch without losing data.
 - 🔎💡 [jcode/ember-storm] #proteus #workspace The dirty `CHANGELOG.md` is only the missing five-line `6680b55` entry; `default.tar.gz` is a 161 MB Hermes profile archive, not a Proteus artifact.
 - 🔀✅ [jcode/ember-storm] #proteus #checkout OUTCOME: Merged the missing `6680b55` changelog entry, moved the stray Hermes archive out of the repository, and switched this worktree cleanly to `development`.
+- 🧭🌿 [jcode/ember-storm] #proteus #development INTENT: Finalize the consolidated branch by removing obsolete local branches already dealt with, auditing/updating docs and Javadocs for JDK 26/Jackson 3/security/OpenAPI changes, verifying, and committing.
+- 🔎📚 [jcode/ember-storm] #proteus #javadoc DISCOVERY: Targeted JDK 26 doclint found 15 warnings in the new core security APIs and 3 in the OpenAPI security package; full-module strict builds also expose unrelated legacy warning debt.
+- 📐✅ [jcode/ember-storm] #proteus #spec OUTCOME: Added and linted the self-contained Proteus development specification covering runtime, security, OpenAPI, documentation, branch-state, and verification requirements.
 
 ### No issue
 

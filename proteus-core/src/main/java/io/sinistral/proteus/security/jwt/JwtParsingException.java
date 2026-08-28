@@ -4,7 +4,7 @@ package io.sinistral.proteus.security.jwt;
  * Exception thrown when a JWT token cannot be parsed.
  * This typically indicates malformed or invalid JWT structure.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class JwtParsingException extends RuntimeException {
 

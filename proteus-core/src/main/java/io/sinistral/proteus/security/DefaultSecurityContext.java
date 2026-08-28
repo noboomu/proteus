@@ -9,13 +9,13 @@ import java.util.Optional;
 
 /**
  * Default implementation of SecurityContext.
- * 
+ *
  * Represents validated authentication state associated with an HTTP request.
  * The context is stored on that request's Undertow exchange and is injected explicitly
  * into a controller when the controller declares a {@link SecurityContext} parameter.
  * It is not held in a thread-local variable.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class DefaultSecurityContext implements SecurityContext {
 
@@ -145,6 +145,9 @@ public class DefaultSecurityContext implements SecurityContext {
         private String authenticationScheme;
         private String rawToken;
         private Map<String, Object> attributes = new HashMap<>();
+
+        /** Creates an empty security-context builder. */
+        public Builder() {}
 
         /**
          * Sets the authenticated principal.

@@ -15,7 +15,7 @@ import java.util.Set;
  * Runtime handlers and OpenAPI generation both use this resolver so annotation precedence
  * cannot drift between authorization and published documentation.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public final class SecurityPolicy {
 
@@ -23,10 +23,15 @@ public final class SecurityPolicy {
 
     /** Supported endpoint access modes. */
     public enum Access {
+        /** No Proteus authentication or authorization policy applies. */
         NONE,
+        /** Anonymous access is permitted and a valid optional token may attach context. */
         PERMIT_ALL,
+        /** Every request is denied. */
         DENY_ALL,
+        /** A validated identity is required. */
         AUTHENTICATED,
+        /** A validated identity with any declared role is required. */
         ROLES
     }
 
@@ -37,20 +42,29 @@ public final class SecurityPolicy {
      * @param roles normalized roles for {@link Access#ROLES}; empty otherwise
      */
     public record Requirement(Access access, List<String> roles) {
+        /** Copies the role list so the effective policy remains immutable. */
         public Requirement {
             roles = List.copyOf(roles);
         }
 
+        /**
+         * Reports whether this policy requires a validated security context.
+         *
+         * @return {@code true} for authenticated or role-based access
+         */
         public boolean requiresAuthentication() {
             return access == Access.AUTHENTICATED || access == Access.ROLES;
         }
     }
 
     /**
-     * Resolve the effective policy in fail-closed order: method declaration, then class declaration,
-     * then AUTHENTICATED for claim injection, otherwise NONE. An explicit class or method policy
-     * always beats the claim fallback. Empty @RolesAllowed means DENY_ALL; conflicting declarations
-     * and blank role names are rejected during startup.
+     * Resolves the effective policy in fail-closed order: method declaration, class declaration,
+     * authenticated claim fallback, then no policy. An explicit class or method policy always
+     * beats the claim fallback. Empty {@code @RolesAllowed} means deny all.
+     *
+     * @param method endpoint controller method
+     * @return immutable effective policy
+     * @throws IllegalArgumentException if an element has conflicting policies or invalid roles
      */
     public static Requirement resolve(Method method) {
         Requirement methodRequirement = explicitRequirement(method);

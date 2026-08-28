@@ -9,7 +9,7 @@ import java.util.List;
  * This interface defines all the configuration options needed for JWT validation
  * including signing keys, validation rules, and security settings.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public interface JwtConfiguration {
 

@@ -152,7 +152,6 @@ public class SecurityTestController {
 
     @GET
     @Path("/context-state")
-    @PermitAll
     public ServerResponse<?> contextStateEndpoint(SecurityContext securityContext) {
         return ServerResponse.response(Map.of(
             "injected", securityContext != null

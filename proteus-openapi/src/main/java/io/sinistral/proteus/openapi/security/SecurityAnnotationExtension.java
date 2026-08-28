@@ -15,13 +15,16 @@ import org.slf4j.LoggerFactory;
  * This extension delegates to {@link SecurityPolicy#resolve(Method)} so the OpenAPI operation
  * uses the same method-over-class and claim-fallback precedence as the runtime handler.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class SecurityAnnotationExtension extends AbstractOpenAPIExtension {
 
     private static final Logger logger = LoggerFactory.getLogger(
         SecurityAnnotationExtension.class
     );
+
+    /** Creates an extension that documents the effective Proteus endpoint policy. */
+    public SecurityAnnotationExtension() {}
 
     @Override
     public void decorateOperation(

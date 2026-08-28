@@ -46,6 +46,8 @@
 - Request context signatures:
   - `ServerRequest` for request abstraction injection.
   - `SecurityContext` for validated authentication context injection.
+  - A `SecurityContext` parameter activates optional Bearer-token processing without requiring authentication.
+  - Anonymous requests and requests with invalid optional credentials receive a `null` parameter value.
   - `SecurityContext` is carried by an Undertow exchange attachment.
   - No ambient or thread-local security context exists.
 
@@ -70,6 +72,10 @@
   - Supported optional types: `Optional<String>`, `Optional<Long>`, `Optional<Boolean>`.
   - Unsupported or nested generic types fail startup.
   - Optional primitive scalar claims fail startup.
+  - A non-empty String default supplies a missing scalar claim before requiredness is evaluated.
+  - Missing required non-defaulted scalar and list claims reject the request.
+  - Missing optional boxed scalars receive `null`, and missing optional lists receive an empty immutable list.
+  - `Optional<T>` ignores requiredness and receives `Optional.empty()` when the claim is absent.
   - A claim parameter without an explicit endpoint policy requires authentication.
 - Policy precedence:
   - Explicit method policy.
@@ -154,9 +160,10 @@
 ## Application Lifecycle API
 
 - `void start()`
-  - Builds handlers and Undertow resources transactionally.
+  - Builds handlers, creates Undertow resources, and starts managed services.
   - Starts Undertow and waits for managed services to become healthy.
-  - Cleans partial Undertow, service, worker, port, and shutdown-hook state when startup fails.
+  - Cleans acquired Undertow listener, managed-service, worker, port, and shutdown-hook resources when startup fails.
+  - Does not reset controller registrations, injector state, or generated routing metadata after failure.
   - Throws `IllegalStateException` when startup fails or times out.
 - `void shutdown()`
   - Stops Undertow.

@@ -17,7 +17,7 @@ import java.util.ServiceLoader;
  * <p>Registration is synchronized. Callers that clear or register extensions while another
  * thread is generating a specification are responsible for external coordination.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class OpenAPIExtensions {
     private static List<OpenAPIExtension> extensions = new ArrayList<>();

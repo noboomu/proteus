@@ -32,7 +32,7 @@ import java.util.List;
  * multiple configured issuers with one global verification-key set fail construction. Individual
  * unreadable RSA, EC, or HMAC key files are logged and skipped.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 @Singleton
 public class DefaultJwtConfiguration implements JwtConfiguration {

@@ -1,10 +1,11 @@
 package io.sinistral.proteus.security.jwt;
 
 /**
- * Exception thrown when authentication fails due to JWT-related issues.
- * This includes missing tokens, invalid tokens, and authorization failures.
+ * General-purpose exception for JWT authentication failures raised by applications or custom
+ * integrations. The default Proteus request pipeline reports routine invalid credentials through
+ * HTTP status responses and optional results instead of throwing this type.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class JwtAuthenticationException extends RuntimeException {
 

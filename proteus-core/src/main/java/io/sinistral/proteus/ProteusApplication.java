@@ -109,10 +109,11 @@ public class ProteusApplication {
     public AtomicBoolean running = new AtomicBoolean(false);
 
     /**
-     * Note on lifecycle flags: Startup is transactional. This flag means "a start attempt
-     * may have acquired Undertow resources," not "the listener is confirmed live." It is set 
-     * before Undertow.start() so partially acquired resources are stopped if start throws.
-     * Shutdown intentionally performs owned-resource cleanup before or after a failed startup.
+     * Note on lifecycle flags: Listener acquisition is provisional during startup. This flag
+     * means "a start attempt may have acquired Undertow resources," not "the listener is
+     * confirmed live." It is set before Undertow.start() so partially acquired resources are
+     * stopped if start throws. Shutdown performs owned-resource cleanup before or after a failed
+     * startup.
      */
     private final AtomicBoolean undertowStarted = new AtomicBoolean(false);
 
@@ -151,6 +152,14 @@ public class ProteusApplication {
         injector.injectMembers(this);
     }
 
+    /**
+     * Builds and starts the application, then waits for every managed service to become healthy.
+     * If startup fails, acquired Undertow listener, managed-service, XNIO worker, port, and
+     * shutdown-hook resources are released before this method returns. Controller registrations,
+     * injector state, and generated routing metadata are not reset by failure cleanup.
+     *
+     * @throws IllegalStateException if handler generation, server startup, or service startup fails
+     */
     public void start() {
         if (this.isRunning()) {
             log.warn("Server has already started...");
@@ -289,10 +298,10 @@ public class ProteusApplication {
     }
 
     /**
-     * Performs complete teardown of the application. This method stops Undertow, 
+     * Performs complete teardown of the application. This method stops Undertow,
      * waits up to two seconds for Guava services to stop, shuts down the application-owned
      * XNIO worker, clears ports, and removes the JVM shutdown hook.
-     * 
+     *
      * <p>Worker shutdown failures are suppressed and logged; only a Guava service timeout
      * is rethrown as a TimeoutException. The method is idempotent and safe to call before
      * startup if partial Undertow or XNIO resources were allocated.
@@ -398,6 +407,12 @@ public class ProteusApplication {
         return this.running.get();
     }
 
+    /**
+     * Generates and compiles controller handlers, assembles the root handler, and creates the
+     * application-owned XNIO worker and Undertow server without starting the listener.
+     *
+     * @throws IllegalStateException if a controller handler cannot be generated or compiled
+     */
     public void buildServer() {
         final Instant compilationStartTime = Instant.now();
 
@@ -860,6 +875,11 @@ public class ProteusApplication {
         return undertow.getXnio();
     }
 
+    /**
+     * Returns the XNIO worker owned by this application.
+     *
+     * @return the worker, or {@code null} before the server has been built
+     */
     public XnioWorker getWorker() {
         return worker;
     }

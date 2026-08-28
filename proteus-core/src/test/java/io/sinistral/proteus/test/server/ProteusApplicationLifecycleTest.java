@@ -71,6 +71,17 @@ public class ProteusApplicationLifecycleTest {
     }
 
     @Test
+    public void unsupportedSimpleGenericClaimFailsStartup() {
+        ProteusApplication application = new ProteusApplication();
+        application.addController(UnsupportedSimpleClaimController.class);
+
+        assertThrows(IllegalStateException.class, application::start);
+
+        assertFalse(application.isRunning());
+        assertTrue(application.getPorts().isEmpty());
+    }
+
+    @Test
     public void blankRolePolicyFailsStartup() {
         ProteusApplication application = new ProteusApplication();
         application.addController(BlankRoleController.class);
@@ -110,6 +121,17 @@ public class ProteusApplicationLifecycleTest {
             @Claim(value = "absent", required = false) long absent
         ) {
             return Long.toString(absent);
+        }
+    }
+
+    @Path("/unsupported-simple-claim")
+    public static class UnsupportedSimpleClaimController {
+        @GET
+        @Path("/value")
+        public String unsupported(
+            @Claim(value = "ratio", required = false) Optional<Double> ratio
+        ) {
+            return ratio.map(Object::toString).orElse("unreachable");
         }
     }
 

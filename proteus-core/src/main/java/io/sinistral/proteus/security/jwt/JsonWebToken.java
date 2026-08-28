@@ -13,7 +13,7 @@ import java.util.Set;
  * <p>Standard JWT claims are provided as dedicated methods for convenience,
  * while custom claims can be accessed via the generic claim methods.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public interface JsonWebToken {
 

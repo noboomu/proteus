@@ -78,9 +78,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Generates code and compiles a {@code Supplier<RoutingHandler>} class
- * from the target class's methods that are annotated with a JAX-RS method
- * annotation (for example, {@code jakarta.ws.rs.GET}).
+ * Generates source for a {@code Supplier<RoutingHandler>} from controller methods annotated
+ * with Jakarta REST HTTP methods such as {@code jakarta.ws.rs.GET}.
+ *
+ * <p>The generated handlers extract request values, inject {@code @Claim} and
+ * {@link SecurityContext} parameters, apply the resolved Proteus security policy, dispatch
+ * blocking I/O-thread invocations to virtual threads, and serialize supported response types.
  *
  * @author jbauer
  */
@@ -175,7 +178,10 @@ public class HandlerGenerator {
     }
 
     /**
-     * Generates the routing Java source code
+     * Generates the complete Java source for the controller's routing supplier.
+     *
+     * @return generated Java source
+     * @throws Exception if endpoint metadata, parameter validation, or source generation fails
      */
     public String generateClassSource() throws Exception {
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(className)
@@ -1558,6 +1564,7 @@ public class HandlerGenerator {
         typeBuilder.addMethod(initBuilder.build());
     }
 
+    /** Determines whether a route needs the request security processor. */
     private static boolean hasProteusSecurity(Method method, Class<?> clazz) {
         return method.isAnnotationPresent(DenyAll.class) ||
             method.isAnnotationPresent(PermitAll.class) ||
@@ -1566,7 +1573,10 @@ public class HandlerGenerator {
             clazz.isAnnotationPresent(PermitAll.class) ||
             clazz.isAnnotationPresent(RolesAllowed.class) ||
             Arrays.stream(method.getParameters())
-                .anyMatch(parameter -> parameter.isAnnotationPresent(Claim.class));
+                .anyMatch(parameter ->
+                    parameter.isAnnotationPresent(Claim.class) ||
+                    parameter.getType().equals(SecurityContext.class)
+                );
     }
 
     private static void addClaimStatement(
@@ -1638,6 +1648,7 @@ public class HandlerGenerator {
         );
     }
 
+    /** Validates and returns the supported element type of a generic claim parameter. */
     private static Class<?> claimValueType(Type parameterType, Parameter parameter) {
         if (!(parameterType instanceof ParameterizedType parameterizedType)) {
             throw new IllegalArgumentException(
@@ -1647,7 +1658,17 @@ public class HandlerGenerator {
         }
         Type valueType = parameterizedType.getActualTypeArguments()[0];
         if (valueType instanceof Class<?> valueClass) {
-            return valueClass;
+            if (
+                valueClass == String.class ||
+                valueClass == Long.class ||
+                valueClass == Boolean.class
+            ) {
+                return valueClass;
+            }
+            throw new IllegalArgumentException(
+                "Unsupported @Claim generic value type " + valueClass.getName() +
+                " for " + parameter.getName()
+            );
         }
         throw new IllegalArgumentException(
             "Unsupported @Claim generic value type " + valueType.getTypeName() +

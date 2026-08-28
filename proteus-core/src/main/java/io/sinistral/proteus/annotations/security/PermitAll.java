@@ -8,14 +8,14 @@ import java.lang.annotation.Target;
 
 /**
  * Specifies that the resource allows anonymous access.
- * 
- * <p>No authentication is required. Anonymous requests are admitted, and invalid 
- * credentials do not cause rejection. However, if a valid optional Bearer token 
+ *
+ * <p>No authentication is required. Anonymous requests are admitted, and invalid
+ * credentials do not cause rejection. However, if a valid optional Bearer token
  * is supplied, it will still populate the {@code SecurityContext}.
  *
  * <p>When applied to a class, all methods in the class are anonymous-accessible.
- * When applied to a method, that specific method is accessible, overriding any 
- * restrictive class-level annotations. Multiple security annotations on the same 
+ * When applied to a method, that specific method is accessible, overriding any
+ * restrictive class-level annotations. Multiple security annotations on the same
  * element are invalid and fail application startup.
  *
  * <p>Example:
@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  *
- * @since 1.0
+ * @since 0.9.5
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

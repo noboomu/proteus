@@ -25,6 +25,10 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 /**
+ * Converts Jakarta REST method parameters into OpenAPI parameters and request-body metadata.
+ * JWT {@code @Claim} parameters are internal controller injections and are deliberately omitted
+ * from the HTTP contract.
+ *
  * @author jbauer
  */
 public class ServerParameterExtension extends AbstractOpenAPIExtension {
@@ -40,14 +44,25 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
 
     private final ObjectMapper mapper;
 
+    /** Creates an extension using the shared OpenAPI Jackson 3 mapper. */
     public ServerParameterExtension() {
         this(Json.mapper());
     }
 
+    /**
+     * Creates an extension using the supplied Jackson 3 mapper.
+     *
+     * @param mapper mapper used to inspect bean parameters
+     */
     public ServerParameterExtension(ObjectMapper mapper) {
         this.mapper = Objects.requireNonNull(mapper, "mapper");
     }
 
+    /**
+     * Resolves one controller parameter, omitting security claim injections from the public API.
+     *
+     * @return resolved OpenAPI parameter and request-body metadata
+     */
     @Override
     public ResolvedParameter extractParameters(
         List<Annotation> annotations,

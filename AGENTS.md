@@ -209,11 +209,15 @@ public CompletableFuture<ServerResponse<User>> asyncEndpoint() {
 
 `SecurityContext` is request-scoped state attached to the `HttpServerExchange`. Controllers that need it must declare an explicit `SecurityContext` parameter.
 
+A `SecurityContext` parameter activates optional Bearer-token processing but does not require authentication by itself. Use `@RolesAllowed`, `@DenyAll`, `@PermitAll`, or `@Claim` when the endpoint needs an explicit policy; `@Claim` without another policy requires authentication.
+
 There is no ambient `SecurityContext.getCurrent()` API. Controller-created futures, executors, or reactive work must capture and pass the injected context explicitly.
 
 ## Configuration Reference
 
 ### Key Config Paths
+
+The following is an illustrative application override. Canonical built-in defaults are in `proteus-core/src/main/resources/reference.conf`.
 
 ```hocon
 application {
@@ -229,6 +233,7 @@ application {
 }
 
 undertow {
+  gracefulShutdown = true
   ioThreadsMultiplier = 2        # x availableProcessors
   workerThreadsMultiplier = 12   # x availableProcessors
   bufferSize = 16K
@@ -245,6 +250,25 @@ undertow {
     keystorePath = "development.jks"
     keystorePassword = "password"
   }
+}
+
+proteus.security.jwt {
+  allowedAlgorithms = ["RS256", "ES256", "HS256"]
+  allowedIssuers = []
+  allowedAudiences = []
+  clockSkewToleranceSeconds = 30
+  expirationRequired = true
+  issuerRequired = false
+  audienceRequired = false
+  maxTokenAgeSeconds = 0
+  signatureVerificationRequired = true
+
+  rsa.publicKeys = []
+  rsa.publicKeysPem = []
+  ec.publicKeys = []
+  hmac.secrets = []
+  hmac.secretsBase64 = []
+  hmac.secretFiles = []
 }
 
 globalHeaders {
@@ -297,12 +321,14 @@ When using `proteus-openapi` module:
 - Configure via `openapi {}` block in config
 - Generation is asynchronous; getters may be null and spec routes may return `404` until generation completes
 - Generated security requirements use the same `SecurityPolicy` resolution as runtime handlers
+- `@Claim` parameters are omitted from the public HTTP parameter list
+- The generated document is OpenAPI 3.1; no runtime `openapi.openapi` version switch exists
 
 ## Virtual Threads
 
 Proteus does not replace Undertow's XNIO worker with a virtual-thread worker. Normal handlers remain on Undertow's configured execution model.
 
-Generated handlers dispatch routes marked `@Blocking` to a virtual thread when Undertow invokes them on an I/O thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
+Generated handlers dispatch routes marked `@Blocking` to a virtual thread when Undertow invokes them on an I/O thread. A handler already running on a worker remains on that thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
 
 ## Performance Characteristics
 

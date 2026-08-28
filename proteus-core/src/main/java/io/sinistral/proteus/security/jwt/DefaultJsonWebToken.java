@@ -24,7 +24,7 @@ import java.util.Set;
  * This implementation provides efficient JWT parsing and validation with
  * support for RSA, ECDSA, and HMAC signature algorithms.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class DefaultJsonWebToken implements JsonWebToken {
 

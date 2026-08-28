@@ -8,7 +8,7 @@ import io.undertow.util.AttachmentKey;
  * This is the authoritative request-scoped carrier between security and generated endpoint
  * handlers; it is deliberately not a thread-local carrier.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class SecurityContextAttachment {
 

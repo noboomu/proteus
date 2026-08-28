@@ -8,29 +8,33 @@ import java.lang.annotation.Target;
 
 /**
  * Injects a claim value from the current JWT token into a method parameter.
- * 
+ *
  * <p><strong>Security Note:</strong> Any method containing a {@code @Claim} parameter
- * (including Optional or required=false claims) implicitly requires an authenticated JWT. 
- * If the class or method lacks an explicit security policy, the effective policy becomes 
+ * (including Optional or required=false claims) implicitly requires an authenticated JWT.
+ * If the class or method lacks an explicit security policy, the effective policy becomes
  * {@code AUTHENTICATED}. To override this fallback and allow anonymous access, explicitly
  * annotate the method or class with {@code @PermitAll}.
  *
  * <p>Supported parameter types:
  * <ul>
- *   <li>Scalars: {@code String}, {@code Long}, {@code Boolean}</li>
+ *   <li>Scalars: {@code String}, {@code Long}, {@code long}, {@code Boolean}, {@code boolean}</li>
  *   <li>Lists: {@code List<String>}, {@code List<Long>}, {@code List<Boolean>}</li>
  *   <li>Optionals: {@code Optional<String>}, {@code Optional<Long>}, {@code Optional<Boolean>}</li>
  * </ul>
  *
  * <p><strong>Missing Values:</strong>
  * <ul>
- *   <li>If required=true: The endpoint rejects a request that lacks the claim.</li>
- *   <li>If required=false and the type is a scalar: Primitive targets (like {@code long}) fail startup validation; wrapper types (like {@code Long}) receive {@code null}. A {@code defaultValue} is applied only to {@code String} parameters.</li>
- *   <li>If required=false and the type is an Optional: Receives {@code Optional.empty()}.</li>
- *   <li>If required=false and the type is a List: Receives {@code List.of()}.</li>
+ *   <li>A non-empty {@code defaultValue} supplies a missing {@code String} claim before
+ *       {@code required} is considered.</li>
+ *   <li>For other scalar and list parameters, {@code required=true} rejects a missing claim.</li>
+ *   <li>With {@code required=false}, boxed scalars receive {@code null}, and lists receive
+ *       {@code List.of()}; optional primitive scalar targets fail startup validation.</li>
+ *   <li>{@code Optional<T>} always receives {@code Optional.empty()} when absent, and ignores
+ *       the {@code required} setting.</li>
  * </ul>
  *
- * <p><strong>Validation:</strong> Unsupported nested generics fail fast during application startup.
+ * <p><strong>Validation:</strong> Unsupported scalar types, generic element types, and nested
+ * generics fail fast during application startup.
  *
  * <p>Example:
  * <pre>
@@ -38,19 +42,18 @@ import java.lang.annotation.Target;
  * @GET
  * @Path("/profile")
  * @RolesAllowed("user")
- * public Response getUserProfile(@Claim("sub") String userId,
- *                               @Claim("roles") List<String> roles,
- *                               @Claim("exp") Long expiration,
- *                               @Claim(value = "email", defaultValue = "unknown") String email) {
- *     // userId contains the "sub" claim value
- *     // roles contains the "roles" claim as a list
- *     // expiration contains the "exp" claim as a timestamp
- *     // email contains the "email" claim or "unknown" if not present
+ * public ServerResponse<?> getUserProfile(@Claim("sub") String userId,
+ *                                         @Claim("roles") List<String> roles,
+ *                                         @Claim("exp") Long expiration,
+ *                                         @Claim(value = "email", defaultValue = "unknown")
+ *                                         String email) {
+ *     return response(Map.of("userId", userId, "roles", roles, "email", email))
+ *         .applicationJson();
  * }
  * }
  * </pre>
  *
- * @since 1.0
+ * @since 0.9.5
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -67,7 +70,8 @@ public @interface Claim {
 
     /**
      * Default value to use if the claim is not present in the token.
-     * Only applicable for String parameters.
+     * Only applicable for String parameters. A non-empty default takes precedence over
+     * {@link #required()} for a missing claim.
      *
      * @return The default value
      */
@@ -75,10 +79,10 @@ public @interface Claim {
 
     /**
      * Whether this claim is required.
-     * If true and the claim is not present, the endpoint rejects the request. If false,
-     * absent wrapper scalar claims receive {@code null}; absent list claims receive an empty
-     * list; and {@link java.util.Optional} parameters receive {@code Optional.empty()}.
-     * Optional parameters are always optional, so this setting is ignored for them.
+     * If true and a non-defaulted scalar or list claim is absent, the endpoint rejects the
+     * request. If false, absent wrapper scalar claims receive {@code null} and absent list claims
+     * receive an empty list. {@link java.util.Optional} parameters are always optional, so this
+     * setting is ignored for them.
      *
      * @return true if the claim is required
      */

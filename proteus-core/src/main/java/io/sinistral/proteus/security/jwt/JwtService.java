@@ -12,7 +12,7 @@ import java.util.Optional;
  * Service for processing and validating JWT tokens.
  * This service handles token extraction, parsing, validation, and security context creation.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public interface JwtService {
 

@@ -24,7 +24,7 @@ import java.util.Optional;
  * controllers receive that same value when they declare a {@code SecurityContext} parameter.
  * The processor never publishes authentication through a thread-local value.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class SecurityProcessor {
 
@@ -33,6 +33,11 @@ public class SecurityProcessor {
 
     private final JwtService jwtService;
 
+    /**
+     * Creates a request security processor backed by the supplied JWT service.
+     *
+     * @param jwtService token extraction and validation service
+     */
     public SecurityProcessor(JwtService jwtService) {
         this.jwtService = jwtService;
     }
@@ -79,6 +84,16 @@ public class SecurityProcessor {
         };
     }
 
+    /**
+     * Resolves an endpoint method and wraps its handler with the effective security policy.
+     *
+     * @param originalHandler handler to invoke after security processing
+     * @param targetClass controller class declaring the endpoint
+     * @param methodName endpoint method name
+     * @param parameterTypes exact endpoint parameter types
+     * @return security-aware handler
+     * @throws IllegalArgumentException if the endpoint method cannot be resolved
+     */
     public HttpHandler createSecureHandler(
         HttpHandler originalHandler,
         Class<?> targetClass,
@@ -132,6 +147,18 @@ public class SecurityProcessor {
         return Optional.ofNullable(exchange.getAttachment(SecurityContextAttachment.KEY));
     }
 
+    /**
+     * Reads and converts one scalar claim from the exchange-attached security context.
+     *
+     * @param <T> requested scalar type
+     * @param exchange current HTTP exchange
+     * @param claimName JWT claim name
+     * @param targetType requested scalar class
+     * @param defaultValue fallback used only for missing string claims
+     * @param required whether a missing claim is an error
+     * @return converted value, the configured string fallback, or {@code null}
+     * @throws IllegalArgumentException if a required claim is absent or conversion fails
+     */
     public static <T> T getClaim(
         HttpServerExchange exchange,
         String claimName,
@@ -154,6 +181,16 @@ public class SecurityProcessor {
         return convertClaim(claim.get(), targetType, claimName);
     }
 
+    /**
+     * Reads and converts an optional scalar claim.
+     *
+     * @param <T> requested scalar type
+     * @param exchange current HTTP exchange
+     * @param claimName JWT claim name
+     * @param targetType requested scalar class
+     * @return converted value or an empty optional when the claim is absent
+     * @throws IllegalArgumentException if conversion fails
+     */
     public static <T> Optional<T> getOptionalClaim(
         HttpServerExchange exchange,
         String claimName,
@@ -163,6 +200,17 @@ public class SecurityProcessor {
             .map(value -> convertClaim(value, targetType, claimName));
     }
 
+    /**
+     * Reads and converts a collection-valued claim into an immutable list.
+     *
+     * @param <T> requested element type
+     * @param exchange current HTTP exchange
+     * @param claimName JWT claim name
+     * @param elementType requested element class
+     * @param required whether a missing claim is an error
+     * @return immutable converted list, or an empty list when an optional claim is absent
+     * @throws IllegalArgumentException if the claim is absent, is not a collection, or conversion fails
+     */
     public static <T> List<T> getClaimList(
         HttpServerExchange exchange,
         String claimName,

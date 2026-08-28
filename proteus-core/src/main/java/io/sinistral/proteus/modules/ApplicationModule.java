@@ -48,6 +48,11 @@ public class ApplicationModule extends AbstractModule {
 
     protected Config config;
 
+    /**
+     * Creates the framework module from the resolved application configuration.
+     *
+     * @param config resolved Typesafe Config tree
+     */
     public ApplicationModule(Config config) {
         this.config = config;
     }

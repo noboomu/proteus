@@ -20,7 +20,7 @@ import java.util.Optional;
  * Configuration fails closed by default when signature verification is required but no usable
  * key verifies the token.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 @Singleton
 public class DefaultJwtService implements JwtService {

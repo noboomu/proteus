@@ -115,10 +115,6 @@ public class OpenAPIService
     protected String applicationName;
 
     @Inject
-    @Named("openapi.port")
-    protected Integer port;
-
-    @Inject
     @Named("openapi.redocPath")
     protected String redocPath;
 
@@ -150,10 +146,16 @@ public class OpenAPIService
 
     ExecutorService executor = Executors.newSingleThreadExecutor();
 
+    /** Creates an OpenAPI service using the module's default Jackson 3 mapper. */
     public OpenAPIService() {
         jsonMapper = Json.mapper();
     }
 
+    /**
+     * Replaces the mapper used to render the generated OpenAPI document.
+     *
+     * @param objectMapper injected Jackson 3 mapper
+     */
     @Inject
     public void setObjectMapper(ObjectMapper objectMapper) {
         this.jsonMapper = objectMapper;
@@ -466,7 +468,7 @@ public class OpenAPIService
 
     /**
      * Waits for the asynchronous OpenAPI generation to complete or fail.
-     * <p>Generation occurs on a single-thread executor after service startup. HTTP routes 
+     * <p>Generation occurs on a single-thread executor after service startup. HTTP routes
      * serving the spec return 404 until this completes. This method polls at 100 ms intervals.
      *
      * @param timeoutMs maximum time to wait in milliseconds

@@ -15,6 +15,13 @@ Proteus Changelog.
 - 🧭🌿 [jcode/ember-storm] #proteus #development INTENT: Finalize the consolidated branch by removing obsolete local branches already dealt with, auditing/updating docs and Javadocs for JDK 26/Jackson 3/security/OpenAPI changes, verifying, and committing.
 - 🔎📚 [jcode/ember-storm] #proteus #javadoc DISCOVERY: Targeted JDK 26 doclint found 15 warnings in the new core security APIs and 3 in the OpenAPI security package; full-module strict builds also expose unrelated legacy warning debt.
 - 📐✅ [jcode/ember-storm] #proteus #spec OUTCOME: Added and linted the self-contained Proteus development specification covering runtime, security, OpenAPI, documentation, branch-state, and verification requirements.
+- 🧹🌿 [jcode/ember-storm] #proteus #branches INTENT: Bundle retired branch history outside the repository, preserve the unique AsyncAPI worktree file, remove 12 integrated/superseded local archive refs and their linked worktrees, retain uncertain `archive/openapi31`, and leave remotes untouched.
+- 🔎🌿 [jcode/ember-storm] #proteus #branches DISCOVERY: `archive/openapi31` still contains one unique, non-patch-equivalent reader/media-type commit, so it was retained; all other local archive refs were integrated, superseded, or explicitly deferred.
+- 🧹✅ [jcode/ember-storm] #proteus #branches OUTCOME: Removed 12 integrated/superseded local archive refs and two linked worktrees; preserved retired history in a verified external bundle, hash-preserved the AsyncAPI spec, retained `archive/openapi31`, and confirmed remote refs are unchanged.
+- 📝🚧 [jcode/ember-storm] #proteus #docs #javadoc INTENT: Correct configuration/reference drift, document optional security-context activation and JWT/OpenAPI behavior, complete Javadocs/package docs for changed APIs, align `@since` tags, and add focused regression coverage for discovered mismatches.
+- 🔎🧾 [jcode/ember-storm] #proteus #docs DISCOVERY: Final review found that String claim defaults precede requiredness, Optional claims ignore requiredness, and startup cleanup only guarantees owned runtime-resource release. The docs now state those limits explicitly.
+- 📝✅ [jcode/ember-storm] #proteus #docs #javadoc OUTCOME: Updated runtime/configuration docs and changed API/package Javadocs, corrected final-review wording, enabled doclint, passed targeted warning-strict checks, and generated both module Javadoc jars on JDK 26.
+- 💾✅ [jcode/ember-storm] #proteus #commit OUTCOME: Finalized and committed development after JDK 26 clean verify passed 153 tests. Removed 12 dealt-with archive refs, retained unique `archive/openapi31`, and left remotes unchanged.
 
 ### No issue
 

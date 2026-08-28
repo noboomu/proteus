@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  *
  * <p>When applied to a class, all methods in the class are inaccessible.
  * When applied to a method, that specific method is inaccessible,
- * overriding the class-level annotation. Multiple security annotations on the same element 
+ * overriding the class-level annotation. Multiple security annotations on the same element
  * (e.g. putting @DenyAll and @PermitAll on the same method) are invalid and fail application startup.
  *
  * <p>Example:
@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  *
- * @since 1.0
+ * @since 0.9.5
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

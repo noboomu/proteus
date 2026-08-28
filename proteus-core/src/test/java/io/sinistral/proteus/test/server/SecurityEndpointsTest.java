@@ -295,6 +295,30 @@ public class SecurityEndpointsTest {
             .then()
             .statusCode(200)
             .body(containsString("\"injected\":false"));
+
+        given()
+            .header("Authorization", "Bearer not-a-jwt")
+            .when()
+            .get("v1/security/context-state")
+            .then()
+            .statusCode(200)
+            .body(containsString("\"injected\":false"));
+
+        given()
+            .header(
+                "Authorization",
+                "Bearer " + token(
+                    "context-user",
+                    List.of("user"),
+                    true,
+                    SIGNING_SECRET
+                )
+            )
+            .when()
+            .get("v1/security/context-state")
+            .then()
+            .statusCode(200)
+            .body(containsString("\"injected\":true"));
     }
 
     @Test

@@ -18,21 +18,26 @@ import java.util.Map;
 /**
  * Service that automatically configures OpenAPI security schemes based on JWT configuration.
  * This service integrates the JWT security framework with OpenAPI documentation generation.
- * 
- * <p>Note: The {@code SecurityAnnotationExtension} deliberately delegates to 
+ *
+ * <p>Note: The {@code SecurityAnnotationExtension} deliberately delegates to
  * {@code SecurityPolicy.resolve} so documentation and runtime precedence share one resolver.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 @Singleton
 public class OpenApiSecuritySchemeService {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenApiSecuritySchemeService.class);
 
-    // Standard security scheme names
+    /** Component name used by generated Bearer security requirements. */
     public static final String JWT_BEARER_SCHEME = "bearerAuth";
     private final JwtConfiguration jwtConfiguration;
 
+    /**
+     * Creates a scheme service backed by the runtime JWT configuration.
+     *
+     * @param jwtConfiguration verification configuration used to detect enabled JWT support
+     */
     @Inject
     public OpenApiSecuritySchemeService(JwtConfiguration jwtConfiguration) {
         this.jwtConfiguration = jwtConfiguration;
@@ -40,11 +45,11 @@ public class OpenApiSecuritySchemeService {
 
     /**
      * Configures security schemes in the OpenAPI specification based on JWT configuration.
-     * 
-     * <p>Add bearerAuth when verification is configured or when any generated operation 
-     * references it. The latter keeps the OpenAPI document internally complete and is not 
+     *
+     * <p>Add bearerAuth when verification is configured or when any generated operation
+     * references it. The latter keeps the OpenAPI document internally complete and is not
      * an assertion that runtime verification keys are available.
-     * 
+     *
      * <p>If a scheme already exists with the name "bearerAuth", it is unconditionally overwritten.
      *
      * @param openApi The OpenAPI specification to configure (mutated by this method)

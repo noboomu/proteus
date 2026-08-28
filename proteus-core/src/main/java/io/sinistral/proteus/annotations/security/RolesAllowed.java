@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  *
- * @since 1.0
+ * @since 0.9.5
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -30,8 +30,8 @@ public class AsyncByteOutputStream extends OutputStream {
     protected int count;
 
     /**
-     * Creates a new byte array output stream. The buffer capacity is
-     * initially 32 bytes, though its size increases if necessary.
+     * Creates a new byte array output stream with an initial capacity of 32,784 bytes.
+     * The capacity increases when required.
      */
     public AsyncByteOutputStream() {
 
@@ -170,14 +170,12 @@ public class AsyncByteOutputStream extends OutputStream {
     }
 
     /**
-     * Returns the current size of the buffer.
+     * Returns the number of valid bytes written to this output stream.
      *
-     * @return the value of the <code>count</code> field, which is the number
-     * of valid bytes in this output stream.
+     * @return the value of the {@code count} field
      */
     public int size() {
-
-        return buf.length;
+        return count;
     }
 
     /**

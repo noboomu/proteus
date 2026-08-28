@@ -5,16 +5,16 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Represents the security context containing authentication and authorization 
+ * Represents the security context containing authentication and authorization
  * information derived from JWT tokens or other security mechanisms.
- * 
+ *
  * <p>Proteus stores this context explicitly on the {@code HttpServerExchange} attachment
  * for an HTTP request. A controller can receive it as a {@code SecurityContext} parameter,
  * or retrieve it through {@code SecurityProcessor.getSecurityContext(exchange)}. There is no
  * ambient or thread-local context, so controller-created asynchronous work must retain the
  * explicitly received context if it needs authentication data after the request returns.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public interface SecurityContext {
 

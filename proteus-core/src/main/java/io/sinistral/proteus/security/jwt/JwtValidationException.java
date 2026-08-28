@@ -4,7 +4,7 @@ package io.sinistral.proteus.security.jwt;
  * Exception thrown when JWT token validation fails.
  * This includes signature verification failures, key issues, and other validation problems.
  *
- * @since 1.0
+ * @since 0.9.5
  */
 public class JwtValidationException extends RuntimeException {
 

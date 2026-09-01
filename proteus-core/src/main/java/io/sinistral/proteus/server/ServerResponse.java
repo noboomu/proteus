@@ -496,7 +496,7 @@ public class ServerResponse<T> {
 
     public ServerResponse<T> withIoCallback(IoCallback ioCallback) {
         this.ioCallback = ioCallback;
-        this.hasIoCallback = ioCallback == null;
+        this.hasIoCallback = ioCallback != null;
         return this;
     }
 
@@ -583,7 +583,9 @@ public class ServerResponse<T> {
             for (Cookie cookie : this.cookies) {
                 exchange.setResponseCookie(cookie);
             }
-        } else if (!this.processJson && !this.processXml) {
+        }
+
+        if (!this.processJson && !this.processXml) {
             if (ServerPredicates.ACCEPT_JSON_PREDICATE.resolve(exchange)) {
                 this.applicationJson();
                 exchange

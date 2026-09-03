@@ -1739,6 +1739,14 @@ public class Reader {
                         )
                     );
                 }
+                // Class-level error @ApiResponses leave the map non-empty with
+                // no success entry; generated clients then type the call as
+                // void. Synthesize a typed default success response.
+                if (operation.getResponses().getDefault() == null
+                    && operation.getResponses().keySet().stream().noneMatch(code -> code.startsWith("2"))) {
+                    operation.getResponses()._default(
+                        new ApiResponse().description(DEFAULT_DESCRIPTION).content(content));
+                }
                 if (operation.getResponses().getDefault() != null
                     && StringUtils.isBlank(operation.getResponses().getDefault().get$ref())) {
                     if (operation.getResponses().getDefault().getContent() == null) {

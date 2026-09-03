@@ -284,5 +284,13 @@ public class OpenAPITests
         return ServerResponse.response(new PagedResponse<>(List.of(new Pojo(1L, "page item")), 1)).applicationJson().ok();
     }
 
+    /** Serves a parameterized page response with no response annotations. */
+    @GET
+    @Path("/paged-response-unannotated")
+    @Operation(description = "Test typed generic page response without declared responses")
+    public ServerResponse<PagedResponse<Pojo>> pagedResponseUnannotated(ServerRequest request)
+    {
+        return ServerResponse.response(new PagedResponse<>(List.of(new Pojo(2L, "unannotated item")), 2)).applicationJson().ok();
+    }
 
 }

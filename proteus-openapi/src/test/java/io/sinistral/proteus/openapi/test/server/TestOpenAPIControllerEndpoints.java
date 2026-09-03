@@ -62,6 +62,16 @@ public class TestOpenAPIControllerEndpoints {
         assertEquals("#/components/schemas/Pojo", itemSchema.asText());
     }
 
+    /** Verifies a method with no declared success response still gets a typed one. */
+    @Test
+    public void testJsonSpecAddsTypedDefaultForUnannotatedResponses() throws Exception {
+        String response = when().get("v1/openapi.json").then().statusCode(200).extract().asString();
+        JsonNode document = new ObjectMapper().readTree(response);
+        JsonNode responseSchema = document.at("/paths/~1tests~1paged-response-unannotated/get/responses/default/content/application~1json/schema/$ref");
+
+        assertEquals("#/components/schemas/PagedResponsePojo", responseSchema.asText());
+    }
+
     @Test
     public void testYmlSpec() throws Exception {
         HttpRequest request = HttpRequest.newBuilder()

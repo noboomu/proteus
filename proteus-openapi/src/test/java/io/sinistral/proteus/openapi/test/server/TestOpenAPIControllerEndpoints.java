@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /**
@@ -53,7 +52,7 @@ public class TestOpenAPIControllerEndpoints {
     /** Verifies that an explicit raw page annotation retains the method item type. */
     @Test
     public void testJsonSpecSpecializesGenericResponse() throws Exception {
-        String response = when().get("v1/openapi.json").then().statusCode(200).extract().asString();
+        String response = fetchJsonSpec();
         JsonNode document = new ObjectMapper().readTree(response);
         JsonNode responseSchema = document.at("/paths/~1tests~1paged-response/get/responses/200/content/application~1json/schema/$ref");
         JsonNode itemSchema = document.at("/components/schemas/PagedResponsePojo/properties/data/items/$ref");
@@ -65,11 +64,23 @@ public class TestOpenAPIControllerEndpoints {
     /** Verifies a method with no declared success response still gets a typed one. */
     @Test
     public void testJsonSpecAddsTypedDefaultForUnannotatedResponses() throws Exception {
-        String response = when().get("v1/openapi.json").then().statusCode(200).extract().asString();
+        String response = fetchJsonSpec();
         JsonNode document = new ObjectMapper().readTree(response);
         JsonNode responseSchema = document.at("/paths/~1tests~1paged-response-unannotated/get/responses/default/content/application~1json/schema/$ref");
 
         assertEquals("#/components/schemas/PagedResponsePojo", responseSchema.asText());
+    }
+
+    /** Fetches the served JSON OpenAPI document over real HTTP. */
+    private String fetchJsonSpec() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/openapi.json"))
+            .GET()
+            .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, response.statusCode(), response.body());
+        return response.body();
     }
 
     @Test
@@ -129,9 +140,10 @@ public class TestOpenAPIControllerEndpoints {
             "/paths/~1tests~1generic/get/responses/200/content/application~1json/schema/$ref"
         );
 
-        assertTrue(
-            schemaRef.isMissingNode(),
-            "legacy Proteus does not backfill an explicit 200 response from the return type"
+        assertEquals(
+            "#/components/schemas/PagedResponseOrder",
+            schemaRef.asText(),
+            "typed generic responses backfill an explicit 200 response from the return type"
         );
         JsonNode page = root.at("/components/schemas/PagedResponseOrder");
         assertTrue(!page.isMissingNode());
@@ -219,9 +231,10 @@ public class TestOpenAPIControllerEndpoints {
             "#/components/schemas/Order",
             root.at("/paths/~1tests~1explicit-array-response/get/responses/200/content/application~1json/schema/items/$ref").asText()
         );
-        assertTrue(
-            root.at("/paths/~1tests~1return-type-schema/get/responses/200/content/application~1json/schema").isMissingNode(),
-            "legacy Proteus does not apply useReturnTypeSchema to explicit 200 responses"
+        assertEquals(
+            "#/components/schemas/PagedResponseOrder",
+            root.at("/paths/~1tests~1return-type-schema/get/responses/200/content/application~1json/schema/$ref").asText(),
+            "useReturnTypeSchema now applies to explicit 200 responses"
         );
         assertEquals(
             "Metadata-only response schema",
@@ -277,11 +290,13 @@ public class TestOpenAPIControllerEndpoints {
 
         JsonNode yaml = new YAMLMapper().readTree(response.body());
         assertAllLocalSchemaReferencesResolve(yaml);
-        assertTrue(
-            json.at("/paths/~1tests~1generic/get/responses/200/content/application~1json/schema").isMissingNode()
+        assertEquals(
+            "#/components/schemas/PagedResponseOrder",
+            json.at("/paths/~1tests~1generic/get/responses/200/content/application~1json/schema/$ref").asText()
         );
-        assertTrue(
-            yaml.at("/paths/~1tests~1generic/get/responses/200/content/application~1json/schema").isMissingNode()
+        assertEquals(
+            "#/components/schemas/PagedResponseOrder",
+            yaml.at("/paths/~1tests~1generic/get/responses/200/content/application~1json/schema/$ref").asText()
         );
     }
 

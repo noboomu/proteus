@@ -4,6 +4,7 @@
 package io.sinistral.proteus.openapi.test.server;
 
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +48,18 @@ public class TestOpenAPIControllerEndpoints {
         JsonNode yaml = new YAMLMapper().readTree(response.body());
         assertTrue(yaml.has("openapi"));
         assertTrue(!yaml.at("/paths/~1tests~1generic/get").isMissingNode());
+    }
+
+    /** Verifies that an explicit raw page annotation retains the method item type. */
+    @Test
+    public void testJsonSpecSpecializesGenericResponse() throws Exception {
+        String response = when().get("v1/openapi.json").then().statusCode(200).extract().asString();
+        JsonNode document = new ObjectMapper().readTree(response);
+        JsonNode responseSchema = document.at("/paths/~1tests~1paged-response/get/responses/200/content/application~1json/schema/$ref");
+        JsonNode itemSchema = document.at("/components/schemas/PagedResponsePojo/properties/data/items/$ref");
+
+        assertEquals("#/components/schemas/PagedResponsePojo", responseSchema.asText());
+        assertEquals("#/components/schemas/Pojo", itemSchema.asText());
     }
 
     @Test

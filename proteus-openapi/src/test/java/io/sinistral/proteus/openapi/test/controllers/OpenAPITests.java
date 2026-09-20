@@ -11,12 +11,16 @@ import com.google.inject.Singleton;
 import io.sinistral.proteus.annotations.Blocking;
 import io.sinistral.proteus.annotations.Chain;
 import io.sinistral.proteus.annotations.Debug;
+import io.sinistral.proteus.openapi.test.models.PagedResponse;
 import io.sinistral.proteus.openapi.test.models.Pojo;
 import io.sinistral.proteus.openapi.wrappers.BearerTokenWrapper;
 import io.sinistral.proteus.server.ServerRequest;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.wrappers.JsonViewWrapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
@@ -29,6 +33,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -266,6 +271,17 @@ public class OpenAPITests
         Object result = request.getAttachment(BearerTokenWrapper.BEARER_VALIDATION_RESULT_KEY);
 
         return ServerResponse.response(Map.of("token",token, "result", result)).applicationJson().ok();
+    }
+
+    /** Serves a parameterized page response with a raw OpenAPI response annotation. */
+    @GET
+    @Path("/paged-response")
+    @Operation(description = "Test typed generic page response", responses = {
+            @ApiResponse(responseCode = "200", description = "Success", content = @Content(
+                    mediaType = "application/json", schema = @Schema(implementation = PagedResponse.class)))})
+    public ServerResponse<PagedResponse<Pojo>> pagedResponse(ServerRequest request)
+    {
+        return ServerResponse.response(new PagedResponse<>(List.of(new Pojo(1L, "page item")), 1)).applicationJson().ok();
     }
 
 

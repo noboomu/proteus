@@ -1726,6 +1726,10 @@ public class Reader {
                     content,
                     mediaType
                 );
+                // Raw generic annotations reference the erased wrapper schema; track that ref for replacement.
+                JavaType resolvedReturnType = mapper.getTypeFactory().constructType(returnType);
+                String rawResponseSchemaReference = resolvedReturnType.getRawClass() == null ? null
+                    : "#/components/schemas/" + resolvedReturnType.getRawClass().getSimpleName();
                 if (operation.getResponses() == null) {
                     operation.responses(
                         new ApiResponses()._default(
@@ -1747,6 +1751,24 @@ public class Reader {
                         }
                     }
                 }
+                // Replace raw generic success schemas with the resolved parameterized schema.
+                operation.getResponses().forEach((responseCode, apiResponse) -> {
+                    if (!StringUtils.isBlank(apiResponse.get$ref())
+                        || (!"default".equals(responseCode) && !responseCode.startsWith("2"))) {
+                        return;
+                    }
+                    if (apiResponse.getContent() == null) {
+                        apiResponse.content(content);
+                        return;
+                    }
+                    apiResponse.getContent().forEach((mediaTypeName, responseMediaType) -> {
+                        Schema responseSchema = responseMediaType.getSchema();
+                        if (responseSchema == null
+                            || Objects.equals(rawResponseSchemaReference, responseSchema.get$ref())) {
+                            responseMediaType.setSchema(returnTypeSchema);
+                        }
+                    });
+                });
                 if (resolvedSchema.referencedSchemas != null) {
                     resolvedSchema.referencedSchemas.forEach(components::addSchemas);
                 }

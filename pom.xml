@@ -56,7 +56,7 @@
         <jackson-annotations.version>2.20</jackson-annotations.version>
         <jakarta-ws-rs.version>3.1.0</jakarta-ws-rs.version>
         <jansi.version>2.4.2</jansi.version>
-        <java.version>25</java.version>
+        <java.version>27</java.version>
         <javapoet.version>1.13.0</javapoet.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>

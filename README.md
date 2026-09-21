@@ -4,7 +4,7 @@ Proteus is a minimal Java API framework built on Undertow. At startup it turns J
 
 ## Requirements
 
-- JDK 25 or newer; Maven Enforcer requires the configured project version. The consolidated development line is verified with JDK 26.
+- JDK 27 or newer; Maven Enforcer requires the configured project version. The consolidated development line is verified with JDK 27.
 - Maven 3.
 
 The current development version is `0.9.5-SNAPSHOT`.

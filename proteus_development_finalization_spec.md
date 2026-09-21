@@ -10,9 +10,9 @@
 
 ## Runtime Baseline
 
-- Source and bytecode release: Java 25.
-- Supported build runtime: JDK 25 or newer.
-- Required verification runtime: JDK 26.
+- Source and bytecode release: Java 27.
+- Supported build runtime: JDK 27 or newer.
+- Required verification runtime: JDK 27.
 - Build system: Maven 3.
 - Serialization namespace: `tools.jackson`.
 - Compatibility annotation namespace: `com.fasterxml.jackson.annotation` only.
@@ -194,7 +194,7 @@
 ## Documentation Requirements
 
 - README content must document:
-  - Java 25 release target and JDK 26 verification.
+  - Java 27 release target and JDK 27 verification.
   - Jackson 3 namespace and dependency baseline.
   - Blocking virtual-thread dispatch behavior.
   - Explicit request-scoped security context behavior.

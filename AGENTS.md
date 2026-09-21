@@ -23,8 +23,8 @@ cd proteus-openapi && mvn clean install
 # Skip tests
 mvn clean install -DskipTests
 
-# Verify with JDK 26 while retaining the project's Java 25 release target
-export JAVA_HOME=/usr/lib/jvm/java-26-openjdk
+# Verify with the project's Java 27 release target
+export JAVA_HOME=/usr/lib/jvm/java-27-openjdk
 export PATH="$JAVA_HOME/bin:$PATH"
 mvn clean verify
 ```

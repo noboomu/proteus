@@ -11,9 +11,9 @@
 
 ## Runtime Baseline
 
-- Source and bytecode release: Java 25.
-- Supported build runtime: JDK 25 or newer.
-- Required verification runtime: JDK 26.
+- Source and bytecode release: Java 27.
+- Supported build runtime: JDK 27 or newer.
+- Required verification runtime: JDK 27.
 - Build system: Maven 3.
 - Event bus engine: Vert.x core 5.1.8 embedded in `proteus-core`.
 - NATS client: jnats 2.23.0.
@@ -371,6 +371,5 @@ public record CloseReason(int code, String reason) {}
   - Close with `CloseReason` delivers the code and reason to the client.
   - Handler exception closes the connection with code `1011`.
 - Reactor build:
-  - Full Maven `clean verify` on JDK 26 passes with zero failures, errors, or skipped tests.
-  - Full Maven `clean verify` on JDK 25 passes with zero failures, errors, or skipped tests.
+  - Full Maven `clean verify` on JDK 27 passes with zero failures, errors, or skipped tests.
   - Targeted strict doclint with warnings treated as errors passes for the eventbus, NATS bridge, and WebSocket production packages.

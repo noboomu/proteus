@@ -320,7 +320,7 @@ public record CloseReason(int code, String reason) {}
 ### NATS Bridge
 
 - `proteus.messaging.nats.enabled`: boolean, default `false`.
-- `proteus.messaging.nats.url`: string, default `nats://127.0.0.1:4222`.
+- `proteus.messaging.nats.url`: string, default `nats://tachikoma:4232`.
 - `proteus.messaging.nats.subjectPrefix`: string, default `proteus`.
 - `proteus.messaging.nats.queueGroup`: string, default `proteus`.
 - `proteus.messaging.nats.requestTimeoutMs`: long, default `5000`.
@@ -358,7 +358,7 @@ public record CloseReason(int code, String reason) {}
   - Metrics counters increase for sent, received, and published messages.
   - Named codec encode and decode round trip a payload.
 - NATS bridge tests:
-  - A running local NATS server is required at `nats://127.0.0.1:4232`.
+  - A running NATS service is required at `nats://tachikoma:4232`.
   - A publish on one bridge instance is received by a consumer on another bridge instance.
   - Queue-group subscription delivers exactly one copy of a sent message across two bridge instances.
   - `forwardRequest` returns the reply payload from a remote consumer.

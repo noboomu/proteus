@@ -25,8 +25,16 @@ Proteus Changelog.
 - ⚙️🚧 [jcode/jbauerMcpRoot308276] #proteus #branch-reconciliation INTENT: Move the three unpushed master commits (typed OpenAPI response work) onto development, port semantics into the vendored Jackson 3 Reader, and reset master to origin.
 - ✅ #openapi #branch-reconciliation OUTCOME [jbauerMcpRoot308276]: `35902a5`/`a040def`/`2c6b631` are now on `development` as `7b08133`/`fe40dbc`/`b66c564` plus test adaptation `dadef03`. Full reactor `clean verify` on JDK 26: BUILD SUCCESS, 155 tests, 0 failures. master reset to `origin/master` (`ae23059`).
 - 🔎 #proteus #messaging STATUS: Event Bus (226ab79) and WebSocket (e509240) were implemented on retired archive lines but deferred out of the consolidated tree by `b82e995`. No NATS support exists anywhere in the repo or history; the roadmap planned a Vert.x event bus. AsyncAPI is spec-only, never implemented, depends on the deferred WebSocket/EventBus surface. Custody: `~/.jcode/scratch/proteus-branch-custody-1ff1eb0/`.
+- ⚙️✅ [jcode/proteusRevival] #proteus #jdk #jdk25 #jdk26 OUTCOME: Installed `jdk25-openjdk` 25.0.4.1 LTS via pacman (system default stays java-21). Full reactor `clean verify` green on BOTH JDK 26 (exit 0, 16/16 suites `Skipped: 0`) and JDK 25 LTS (exit 0, 16/16 suites `Skipped: 0`). `java.version=25` release target confirmed; next LTS (29) is Sept 2027, so 25 remains the correct target.
+- 📝🚧 [jcode/proteusRevival] #proteus #changelog STATUS: An external process rewrote CHANGELOG.md after commit `298f0cc`, stripping the Agent work log and adding a git-log-derived `### No issue` entry. No hook/timer/script found anywhere on the system that does this. Restored the work log alongside the generated entry; both coexist. ⚠️ Re-verify CHANGELOG.md after every commit.
+- ⏳🚧 [jcode/proteusRevival] #proteus #messaging INTENT: After development push, plan the Event Bus + WebSocket revival (Vert.x internal bus + bridge, NATS cross-process/machine) with a world-class implementation, then upgrade s1-backend onto latest proteus.
 
 ### No issue
+
+**docs: restore agent work log and record branch reconciliation [jbauerMcpRoot308276] 📝**
+
+
+[298f0cc9c2f2965](https://github.com/noboomu/proteus/commit/298f0cc9c2f2965) Joshua Lee Bauer *2026-09-20 03:34:13*
 
 **test: update legacy response assertions for typed generic backfill [jbauerMcpRoot308276] 🧪**
 

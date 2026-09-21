@@ -15,12 +15,19 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Identity manager backed by an in-memory username-to-password map.
+ *
  * @author jbauer
  */
 public class MapIdentityManager implements IdentityManager
 {
     private final Map<String, char[]> identities;
 
+    /**
+     * Creates a manager over the given identity map.
+     *
+     * @param identities map of username to expected password
+     */
     public MapIdentityManager(final Map<String, char[]> identities)
     {
         this.identities = identities;
@@ -36,7 +43,7 @@ public class MapIdentityManager implements IdentityManager
     @Override
     public Account verify(Credential credential)
     {
-        // TODO Auto-generated method stub
+        // Raw credentials are not verifiable without an identity id.
         return null;
     }
 

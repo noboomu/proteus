@@ -2,46 +2,57 @@
 Proteus Changelog.
 
 ## Unreleased
-### Agent work log
-
-- 🧭🚧 [jcode/ember-storm] #proteus #jdk26 #jackson3 INTENT: Resume the verified Hermes candidate, inspect staged custody and docs, then produce one local-only `development` branch without touching remotes or unrelated work.
-- 🔎💡 [jcode/ember-storm] #proteus #handoff The Hermes candidate is intact and fully staged with no unstaged changes. Its product tree was verified, but `AGENTS.md` is still stale and `HERMES-RESUME.md` is a handoff-only staged artifact that should not ship.
-- 📝✅ [jcode/ember-storm] #proteus #docs OUTCOME: Aligned `AGENTS.md` and `README.md` with the verified Java 25 target/JDK 26 runtime, Jackson 3, explicit security context, virtual-thread dispatch, and deferred realtime surface; removed the handoff-only file from the product tree.
-- 🔒🚧 [jcode/ember-storm] #proteus #git INTENT: Amend the local merge candidate, atomically advance `development`, remove the temporary feature worktree/ref, and prove remote refs remain unchanged.
-- 🌿✅ [jcode/ember-storm] #proteus #development OUTCOME: One local `development` branch contains the verified JDK 26/Jackson 3/security/OpenAPI line; 151 tests pass, Event Bus/WebSocket/Vert.x are deferred, and remote refs remain unchanged.
-- 🔀🚧 [jcode/ember-storm] #proteus #checkout INTENT: Move the stray Hermes archive out of the repository, merge the existing `CHANGELOG.md` work into `development`, and switch this worktree to the consolidated branch without losing data.
-- 🔎💡 [jcode/ember-storm] #proteus #workspace The dirty `CHANGELOG.md` is only the missing five-line `6680b55` entry; `default.tar.gz` is a 161 MB Hermes profile archive, not a Proteus artifact.
-- 🔀✅ [jcode/ember-storm] #proteus #checkout OUTCOME: Merged the missing `6680b55` changelog entry, moved the stray Hermes archive out of the repository, and switched this worktree cleanly to `development`.
-- 🧭🌿 [jcode/ember-storm] #proteus #development INTENT: Finalize the consolidated branch by removing obsolete local branches already dealt with, auditing/updating docs and Javadocs for JDK 26/Jackson 3/security/OpenAPI changes, verifying, and committing.
-- 🔎📚 [jcode/ember-storm] #proteus #javadoc DISCOVERY: Targeted JDK 26 doclint found 15 warnings in the new core security APIs and 3 in the OpenAPI security package; full-module strict builds also expose unrelated legacy warning debt.
-- 📐✅ [jcode/ember-storm] #proteus #spec OUTCOME: Added and linted the self-contained Proteus development specification covering runtime, security, OpenAPI, documentation, branch-state, and verification requirements.
-- 🧹🌿 [jcode/ember-storm] #proteus #branches INTENT: Bundle retired branch history outside the repository, preserve the unique AsyncAPI worktree file, remove 12 integrated/superseded local archive refs and their linked worktrees, retain uncertain `archive/openapi31`, and leave remotes untouched.
-- 🔎🌿 [jcode/ember-storm] #proteus #branches DISCOVERY: `archive/openapi31` still contains one unique, non-patch-equivalent reader/media-type commit, so it was retained; all other local archive refs were integrated, superseded, or explicitly deferred.
-- 🧹✅ [jcode/ember-storm] #proteus #branches OUTCOME: Removed 12 integrated/superseded local archive refs and two linked worktrees; preserved retired history in a verified external bundle, hash-preserved the AsyncAPI spec, retained `archive/openapi31`, and confirmed remote refs are unchanged.
-- 📝🚧 [jcode/ember-storm] #proteus #docs #javadoc INTENT: Correct configuration/reference drift, document optional security-context activation and JWT/OpenAPI behavior, complete Javadocs/package docs for changed APIs, align `@since` tags, and add focused regression coverage for discovered mismatches.
-- 🔎🧾 [jcode/ember-storm] #proteus #docs DISCOVERY: Final review found that String claim defaults precede requiredness, Optional claims ignore requiredness, and startup cleanup only guarantees owned runtime-resource release. The docs now state those limits explicitly.
-- 📝✅ [jcode/ember-storm] #proteus #docs #javadoc OUTCOME: Updated runtime/configuration docs and changed API/package Javadocs, corrected final-review wording, enabled doclint, passed targeted warning-strict checks, and generated both module Javadoc jars on JDK 26.
-- 💾✅ [jcode/ember-storm] #proteus #commit OUTCOME: Finalized and committed development after JDK 26 clean verify passed 153 tests. Removed 12 dealt-with archive refs, retained unique `archive/openapi31`, and left remotes unchanged.
-- ⚙️🚧 [jcode/jbauerMcpRoot308276] #proteus #branch-reconciliation INTENT: Move the three unpushed master commits (typed OpenAPI response work) onto development, port semantics into the vendored Jackson 3 Reader, and reset master to origin.
-- ✅ #openapi #branch-reconciliation OUTCOME [jbauerMcpRoot308276]: `35902a5`/`a040def`/`2c6b631` are now on `development` as `7b08133`/`fe40dbc`/`b66c564` plus test adaptation `dadef03`. Full reactor `clean verify` on JDK 26: BUILD SUCCESS, 155 tests, 0 failures. master reset to `origin/master` (`ae23059`).
-- 🔎 #proteus #messaging STATUS: Event Bus (226ab79) and WebSocket (e509240) were implemented on retired archive lines but deferred out of the consolidated tree by `b82e995`. No NATS support exists anywhere in the repo or history; the roadmap planned a Vert.x event bus. AsyncAPI is spec-only, never implemented, depends on the deferred WebSocket/EventBus surface. Custody: `~/.jcode/scratch/proteus-branch-custody-1ff1eb0/`.
-- ⚙️✅ [jcode/proteusRevival] #proteus #jdk #jdk25 #jdk26 OUTCOME: Installed `jdk25-openjdk` 25.0.4.1 LTS via pacman (system default stays java-21). Full reactor `clean verify` green on BOTH JDK 26 (exit 0, 16/16 suites `Skipped: 0`) and JDK 25 LTS (exit 0, 16/16 suites `Skipped: 0`). `java.version=25` release target confirmed; next LTS (29) is Sept 2027, so 25 remains the correct target.
-- 📝🚧 [jcode/proteusRevival] #proteus #changelog STATUS: An external process rewrote CHANGELOG.md after commit `298f0cc`, stripping the Agent work log and adding a git-log-derived `### No issue` entry. No hook, timer, or script was found during investigation. Restored the work log alongside the generated entry; both coexist. ⚠️ Re-verify CHANGELOG.md after every commit.
-
-- 📐✅ [jcode/proteusRevival] #proteus #messaging #spec OUTCOME: Authored specs/proteus_messaging.md (spec-lock draft accepted): Vert.x 5.1.8 embedded event bus + @ConsumeEvent in proteus-core, NATS bridge (jnats 2.23.0, JSON envelope, queue groups, subject mapping), proteus-websocket module revival (Undertow-native annotations + broadcast service), full HOCON config contract, verification gates incl. a NATS service at `nats://tachikoma:4232`. Supersedes the finalization spec's messaging exclusion.
-- ⚙️✅ [jcode/proteusRevival] #proteus #messaging #nats OUTCOME: Corrected the bridge default and test endpoint to the named cluster service `nats://tachikoma:4232`, verified the named endpoint reaches NATS, then completed the spec-lock draft → seal → unlock cycle. Pushed as `273bca5`.
-- 🔎✅ [jcode/proteusRevival] #proteus #changelog DISCOVERY: Maven `generate-sources` runs `git-changelog-maven-plugin` from `proteus-core/pom.xml`; it regenerates root CHANGELOG.md from its template and erases manual Agent work-log sections after every Maven verification. Restore Agent work-log content after Maven operations until the plugin output contract is revised.
-- ⚙️✅ [jcode/proteusRevival] #proteus #jdk27 OUTCOME: Replaced generic JDK 26 with official signed Arch packages `jdk-openjdk`, `openjdk-doc`, and `openjdk-src` `27.u35-1`. `archlinux-java` now lists `java-27-openjdk`; Java 21 remains the selected system default. The unmanaged `/opt/openjdk-27` archive was removed.
-- 🧪✅ [jcode/proteusRevival] #proteus #jdk27 OUTCOME: Maven source and bytecode target is Java 27. Full reactor `clean verify` on `/usr/lib/jvm/java-27-openjdk` completed with exit 0, `BUILD SUCCESS`, and 16 test-suite summaries reporting `Skipped: 0`.
-- 🔎💡 [jcode/proteusRevival] #proteus #jdk27 DISCOVERY: Arch published `jdk-openjdk 27.u35-1` today, while current CachyOS mirror metadata still resolves `jdk-openjdk` to 26.0.2. The signed official Arch package transaction kept the system Java manager consistent while mirror propagation catches up.
-- 🧪✅ [jcode/proteusRevival] #proteus #functional-tests OUTCOME: On JDK 27, real Undertow-server coverage passed through the production HTTP path: StandardEndpointsTest (47), SecurityEndpointsTest (18), and IsolatedEndpointsTest (3), all zero failures/errors/skips. Served OpenAPI functional coverage also passed: TestOpenAPIControllerEndpoints (12), zero failures/errors/skips. The legacy REST Assured-style tests now use Java HttpClient and Jackson 3 while retaining real server startup, bound-port discovery, and HTTP assertions.
-- 🔎💡 [jcode/proteusRevival] #proteus #controller-compilation DISCOVERY: `ProteusApplication.buildServer()` is serial and calls `Compiler.java().from(source).compile()` separately per controller. First six-controller test-server build measured about 842 ms, later warmed-process builds about 314 ms and 269 ms. Handler generation writes into the shared non-thread-safe TreeSet endpoint registry, so direct task parallelism is unsafe. SourceBuddy supports multi-source compile in one compiler invocation and byte output, but supplies no cache API. JDK 27 adds no javac source-cache or controller parallelization feature. Candidate improvement: serialize source generation and metadata collection, batch compile generated sources once, then merge routes deterministically with benchmark and functional regression gates.
-- 📐✅ [jcode/proteusRevival] #proteus #controller-compilation #openapi OUTCOME: Added and sealed specs/proteus_controller_compilation.md, specifying JDK 27 compiler-only batch generation, virtual-thread source generation, ordered endpoint metadata, atomic route merge, timing telemetry, SourceBuddy removal, and expanded served OpenAPI coverage.
-- ⚙️✅ [jcode/proteusRevival] #proteus #jdk27 #compiler OUTCOME: Removed SourceBuddy. JdkControllerCompiler batches generated sources with `ToolProvider.getSystemJavaCompiler()`, stores class bytes in memory, and loads them through an application-child class loader. Generated controller sources run concurrently with private endpoint sets; routes and metadata merge only after all source generation and compilation succeeds. Application endpoint registry is now ConcurrentSkipListSet-backed and generated route supplier names include the full controller name.
-- 🧪✅ [jcode/proteusRevival] #proteus #openapi #functional-tests OUTCOME: Expanded served OpenAPI tests from 12 to 17, adding live documented route responses, JSON request round trip, query/header delivery, JSON/YAML operation equivalence, and minimum operation contracts. JdkControllerCompiler unit tests cover multi-source batch loading and diagnostics. Final JDK 27 clean verify: exit 0, BUILD SUCCESS, 112 core + 50 OpenAPI tests, 17 zero-skip suite summaries.
-
-
 ### No issue
+
+**feat: batch generated controllers with JDK compiler [jcode/proteusRevival] 🦾**
+
+
+[a17345ab719e16f](https://github.com/noboomu/proteus/commit/a17345ab719e16f) Joshua Lee Bauer *2026-09-22 05:45:16*
+
+**docs: specify JDK compiler batch and OpenAPI coverage [jcode/proteusRevival] 📐**
+
+
+[13ca1efd7fe3d8d](https://github.com/noboomu/proteus/commit/13ca1efd7fe3d8d) Joshua Lee Bauer *2026-09-22 05:38:37*
+
+**docs: record running-server coverage and compilation audit [jcode/proteusRevival] 🧪**
+
+
+[f178c41e9e39c3b](https://github.com/noboomu/proteus/commit/f178c41e9e39c3b) Joshua Lee Bauer *2026-09-21 21:48:56*
+
+**build: target Arch-managed JDK 27 [jcode/proteusRevival] ⚙️**
+
+
+[490c432da113d79](https://github.com/noboomu/proteus/commit/490c432da113d79) Joshua Lee Bauer *2026-09-21 21:03:26*
+
+**docs: set messaging contract to JDK 27 [jcode/proteusRevival] ⚙️**
+
+
+[72f7288045217cc](https://github.com/noboomu/proteus/commit/72f7288045217cc) Joshua Lee Bauer *2026-09-21 20:58:57*
+
+**docs: record named NATS contract correction [jcode/proteusRevival] 📝**
+
+
+[2390668a55808cc](https://github.com/noboomu/proteus/commit/2390668a55808cc) Joshua Lee Bauer *2026-09-21 20:41:19*
+
+**docs: configure messaging bridge for named NATS service [jcode/proteusRevival] ⚙️**
+
+
+[273bca5c6b3cf79](https://github.com/noboomu/proteus/commit/273bca5c6b3cf79) Joshua Lee Bauer *2026-09-21 20:40:43*
+
+**docs: record messaging specification work [jcode/proteusRevival] 📝**
+
+
+[3cf5591808f85b1](https://github.com/noboomu/proteus/commit/3cf5591808f85b1) Joshua Lee Bauer *2026-09-21 20:38:56*
+
+**docs: specify event bus, NATS bridge, and WebSocket messaging contract [jcode/proteusRevival] 📐**
+
+
+[b2a71ac44b9c17b](https://github.com/noboomu/proteus/commit/b2a71ac44b9c17b) Joshua Lee Bauer *2026-09-21 20:38:04*
+
+**docs: restore agent work log (post-rewrite, final pre-push state) [jcode/proteusRevival] 📝**
+
+
+[6ef5db61bdc3a5a](https://github.com/noboomu/proteus/commit/6ef5db61bdc3a5a) Joshua Lee Bauer *2026-09-21 05:12:35*
 
 **docs: add missing Javadoc to MapIdentityManager for strict doclint [jcode/proteusRevival] 📝**
 
@@ -2499,3 +2510,7 @@ Proteus Changelog.
 [2d41345e1de9bb0](https://github.com/noboomu/proteus/commit/2d41345e1de9bb0) joshua bauer *2017-03-31 14:30:07*
 
 
+- 🧪🚧 [jcode/lead-pencil] #proteus #openapi31 INTENT: Complete the OpenAPI 3.1 running-server coverage expansion (security components, live enforcement, documentation/UI routes, document equivalence) left open by proteusRevival.
+- 💡 [jcode/lead-pencil] #proteus #test-infra DISCOVERY: OpenAPIDefaultServer never reset its static started flag in afterAll, so a second running-server test class in one surefire fork skipped startup entirely and got connection-refused errors. Fixed by resetting app/started/baseURI after shutdown.
+- 💡 [jcode/lead-pencil] #proteus #openapi DISCOVERY: SecurityAnnotationExtension.addList(name) emits an empty scope array for role-protected operations (roles live in x-required-roles); redoc's served specPath is /v1/openapi.yaml at applicationPath, not basePath.
+- ✅ [jcode/lead-pencil] #proteus #openapi31 OUTCOME: Added TestOpenAPISecurityAndUiEndpoints (13 tests) covering declared bearer + API-key schemes, public/authenticated/role-protected/denied metadata and live 200/401/403 enforcement, requirement-to-scheme resolution, swagger UI document reference, static assets, redoc spec reference, and JSON/YAML info+securityScheme equivalence. Full reactor clean verify on JDK 27: BUILD SUCCESS, 112 + 63 tests, 0 failures, 0 skipped.

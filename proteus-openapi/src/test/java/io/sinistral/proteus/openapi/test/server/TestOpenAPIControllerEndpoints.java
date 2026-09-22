@@ -14,6 +14,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -122,6 +123,111 @@ public class TestOpenAPIControllerEndpoints {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         assertEquals(200, response.statusCode());
         return new ObjectMapper().readTree(response.body());
+    }
+
+    /** Verifies every documented test operation serves the declared JSON response media type. */
+    @Test
+    public void testDocumentedOperationsServeJsonResponses() throws Exception {
+        List<String> paths = List.of(
+            "generic",
+            "explicit-response",
+            "explicit-array-response",
+            "return-type-schema",
+            "metadata-return-type-schema",
+            "paged-response",
+            "paged-response-unannotated"
+        );
+
+        for (String path : paths) {
+            HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder()
+                    .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/tests/" + path))
+                    .GET()
+                    .build(),
+                HttpResponse.BodyHandlers.ofString()
+            );
+            assertEquals(200, response.statusCode(), path + ": " + response.body());
+            assertTrue(
+                response.headers().firstValue("content-type").orElse("").contains("application/json"),
+                path
+            );
+            JsonNode body = new ObjectMapper().readTree(response.body());
+            assertTrue(body.isObject() || body.isArray(), path);
+        }
+    }
+
+    /** Verifies the documented JSON request body is accepted and serialized as its declared response. */
+    @Test
+    public void testExplicitRequestRoundTripsServedJson() throws Exception {
+        HttpResponse<String> response = httpClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/tests/explicit-request"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString("{\"id\":7,\"description\":\"Request\"}"))
+                .build(),
+            HttpResponse.BodyHandlers.ofString()
+        );
+
+        assertEquals(200, response.statusCode(), response.body());
+        JsonNode body = new ObjectMapper().readTree(response.body());
+        assertEquals(7, body.path("id").asInt());
+        assertEquals("Request", body.path("description").asText());
+    }
+
+    /** Verifies documented query and header parameters reach the live controller. */
+    @Test
+    public void testDocumentedParametersReachServedOperation() throws Exception {
+        HttpResponse<String> response = httpClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/tests/parameters?limit=5"))
+                .header("X-Mode", "safe")
+                .GET()
+                .build(),
+            HttpResponse.BodyHandlers.ofString()
+        );
+
+        assertEquals(200, response.statusCode(), response.body());
+        assertEquals("safe", new ObjectMapper().readTree(response.body()).path("description").asText());
+    }
+
+    /** Verifies the JSON and YAML documents publish equivalent operation shapes. */
+    @Test
+    public void testJsonAndYamlDocumentsHaveEquivalentOperations() throws Exception {
+        JsonNode json = openApiJson();
+        HttpResponse<String> response = httpClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(OpenAPIDefaultServer.getBaseURI() + "v1/openapi.yaml"))
+                .GET()
+                .build(),
+            HttpResponse.BodyHandlers.ofString()
+        );
+
+        assertEquals(200, response.statusCode(), response.body());
+        JsonNode yaml = new YAMLMapper().readTree(response.body());
+        assertEquals(json.path("openapi"), yaml.path("openapi"));
+        assertEquals(json.path("paths"), yaml.path("paths"));
+        assertEquals(json.path("components"), yaml.path("components"));
+    }
+
+    /** Verifies every emitted operation declares an id, text, and response contract. */
+    @Test
+    public void testEveryServedOperationHasMinimumContract() throws Exception {
+        Iterator<Map.Entry<String, JsonNode>> paths = openApiJson().path("paths").properties().iterator();
+        while (paths.hasNext()) {
+            Map.Entry<String, JsonNode> path = paths.next();
+            for (String method : List.of("get", "post", "put", "delete", "patch", "head", "options")) {
+                JsonNode operation = path.getValue().path(method);
+                if (operation.isMissingNode()) {
+                    continue;
+                }
+                assertFalse(operation.path("operationId").asText().isBlank(), path.getKey() + " " + method);
+                assertFalse(
+                    operation.path("description").asText().isBlank() && operation.path("summary").asText().isBlank(),
+                    path.getKey() + " " + method
+                );
+                assertFalse(operation.path("responses").isEmpty(), path.getKey() + " " + method);
+            }
+        }
     }
 
     @Test

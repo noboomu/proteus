@@ -165,7 +165,10 @@ public class HandlerGenerator {
     public HandlerGenerator(String packageName, Class<?> controllerClass) {
         this.packageName = packageName;
         this.controllerClass = controllerClass;
-        this.className = controllerClass.getSimpleName() + "RouteSupplier";
+        this.className = controllerClass
+            .getName()
+            .replace('.', '_')
+            .replace('$', '_') + "RouteSupplier";
         this.canonicalName = String.format(
             "%s.%s",
             this.packageName,
@@ -175,6 +178,15 @@ public class HandlerGenerator {
 
     public String getCanonicalName() {
         return canonicalName;
+    }
+
+    /**
+     * Uses a private endpoint set while one controller source is generated.
+     *
+     * @param endpointRegistry endpoint metadata collector for this generator
+     */
+    public void setEndpointRegistry(Set<EndpointInfo> endpointRegistry) {
+        this.registeredEndpoints = endpointRegistry;
     }
 
     /**

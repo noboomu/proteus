@@ -12,10 +12,10 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Named;
-import com.javax0.sourcebuddy.Compiler;
 import com.typesafe.config.Config;
 import io.sinistral.proteus.modules.ConfigModule;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
+import io.sinistral.proteus.server.compilation.ControllerCompiler;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
 import io.sinistral.proteus.server.handlers.ServerDefaultHttpHandler;
 import io.sinistral.proteus.services.BaseService;
@@ -46,9 +46,17 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -93,6 +101,9 @@ public class ProteusApplication {
 
     @Inject
     public Config config;
+
+    @Inject
+    public ControllerCompiler controllerCompiler;
 
     public List<Class<? extends Module>> registeredModules = new ArrayList<>();
 
@@ -414,78 +425,54 @@ public class ProteusApplication {
      * @throws IllegalStateException if a controller handler cannot be generated or compiled
      */
     public void buildServer() {
-        final Instant compilationStartTime = Instant.now();
-
-        List<Class<? extends Supplier<RoutingHandler>>> routerClasses =
-            new ArrayList<>();
-        //
-        //        ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-
         log.info("Compiling route handlers...");
 
-        for (Class<?> controllerClass : registeredControllers) {
-            try {
-                log.debug("Generating {}...", controllerClass);
-
-                HandlerGenerator generator = new HandlerGenerator(
-                    "io.sinistral.proteus.controllers.handlers",
-                    controllerClass
-                );
-
-                log.debug("injecting {}...", controllerClass);
-
-                injector.injectMembers(generator);
-
-                log.debug("Compiling {}...", controllerClass);
-
-                final String source = generator.generateClassSource();
-
-                log.debug("Generated {}...", controllerClass);
-
-                try {
-                    final var compiled = Compiler.java().from(source).compile();
-
-                    //                        compiled.saveTo(Paths.get("./target/generated_classes"));
-
-                    Class<? extends Supplier<RoutingHandler>> routerClass =
-                        (Class<? extends Supplier<RoutingHandler>>) compiled
-                            .load()
-                            .get(generator.getCanonicalName());
-
-                    //   Class<? extends Supplier<RoutingHandler>> routerClass = (Class<? extends Supplier<RoutingHandler>>) cachedCompiler.loadFromJava(generator.getCanonicalName(), source);  Compiler.java().from(source).compile().load().newInstance(PrintInterface.class);
-
-                    log.debug("Loaded from java {}...", controllerClass);
-
-                    routerClasses.add(routerClass);
-                } catch (Exception e) {
-                    log.error("Failed to compile {}", controllerClass, e);
-                    throw new IllegalStateException(
-                        "Failed to compile handler for " + controllerClass.getName(),
-                        e
-                    );
-                }
-            } catch (Exception e) {
-                throw e instanceof IllegalStateException illegalStateException
-                    ? illegalStateException
-                    : new IllegalStateException(
-                        "Failed to generate handler for " + controllerClass.getName(),
-                        e
-                    );
-            }
-        }
+        Instant sourceGenerationStartTime = Instant.now();
+        List<GeneratedController> generatedControllers = generateControllerSources();
+        log.debug(
+            "Generated {} controller sources in {}",
+            generatedControllers.size(),
+            DurationFormatUtils.formatDurationHMS(
+                Duration.between(sourceGenerationStartTime, Instant.now()).toMillis()
+            )
+        );
+        Map<String, String> sources = new LinkedHashMap<>();
+        generatedControllers.forEach(generated ->
+            sources.put(generated.generatedClassName(), generated.source())
+        );
+        Instant compilationStartTime = Instant.now();
+        Map<String, Class<? extends Supplier<RoutingHandler>>> routerClasses =
+            controllerCompiler.compile(sources, getClass().getClassLoader());
 
         log.debug(
-            "Compilation completed in {}",
+            "Compiled {} controller sources in {}",
+            sources.size(),
             DurationFormatUtils.formatDurationHMS(
                 Duration.between(compilationStartTime, Instant.now()).toMillis()
             )
         );
 
-        for (Class<? extends Supplier<RoutingHandler>> clazz : routerClasses) {
+        Instant routeMergeStartTime = Instant.now();
+        RoutingHandler generatedRouter = new RoutingHandler();
+        for (GeneratedController generated : generatedControllers) {
+            Class<? extends Supplier<RoutingHandler>> clazz = routerClasses.get(
+                generated.generatedClassName()
+            );
             Supplier<RoutingHandler> generatedRouteSupplier =
                 injector.getInstance(clazz);
-            router.addAll(generatedRouteSupplier.get());
+            generatedRouter.addAll(generatedRouteSupplier.get());
         }
+        router.addAll(generatedRouter);
+        generatedControllers.forEach(generated ->
+            registeredEndpoints.addAll(generated.endpoints())
+        );
+        log.debug(
+            "Merged {} generated routes in {}",
+            generatedControllers.size(),
+            DurationFormatUtils.formatDurationHMS(
+                Duration.between(routeMergeStartTime, Instant.now()).toMillis()
+            )
+        );
 
         this.addDefaultRoutes(router);
 
@@ -635,6 +622,73 @@ public class ProteusApplication {
 
         this.undertow = undertowBuilder.build();
     }
+
+    /** Generates all controller sources concurrently with isolated endpoint metadata. */
+    private List<GeneratedController> generateControllerSources() {
+        List<Class<?>> controllers = registeredControllers
+            .stream()
+            .sorted(Comparator.comparing(Class::getName))
+            .toList();
+        List<Future<GeneratedController>> tasks = new ArrayList<>();
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (Class<?> controller : controllers) {
+                tasks.add(executor.submit(() -> generateControllerSource(controller)));
+            }
+            List<GeneratedController> generated = new ArrayList<>();
+            for (Future<GeneratedController> task : tasks) {
+                generated.add(task.get());
+            }
+            generated.sort(
+                Comparator.comparing(GeneratedController::generatedClassName)
+            );
+            return List.copyOf(generated);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            cancel(tasks);
+            throw new IllegalStateException(
+                "Controller source generation was interrupted",
+                e
+            );
+        } catch (ExecutionException e) {
+            cancel(tasks);
+            throw new IllegalStateException(
+                "Failed to generate controller source",
+                e.getCause()
+            );
+        }
+    }
+
+    /** Generates one controller source and privately collects its endpoint metadata. */
+    private GeneratedController generateControllerSource(Class<?> controllerClass)
+        throws Exception {
+        HandlerGenerator generator = new HandlerGenerator(
+            "io.sinistral.proteus.controllers.handlers",
+            controllerClass
+        );
+        injector.injectMembers(generator);
+        NavigableSet<EndpointInfo> endpoints = new TreeSet<>();
+        generator.setEndpointRegistry(endpoints);
+        String source = generator.generateClassSource();
+        return new GeneratedController(
+            controllerClass.getName(),
+            generator.getCanonicalName(),
+            source,
+            List.copyOf(endpoints)
+        );
+    }
+
+    /** Cancels source-generation tasks after one task fails. */
+    private void cancel(List<Future<GeneratedController>> tasks) {
+        tasks.forEach(task -> task.cancel(true));
+    }
+
+    /** Holds one isolated generated source and its endpoint metadata. */
+    private record GeneratedController(
+        String controllerClassName,
+        String generatedClassName,
+        String source,
+        List<EndpointInfo> endpoints
+    ) {}
 
     /**
      * Add a service class to the application

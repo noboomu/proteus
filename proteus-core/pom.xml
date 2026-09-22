@@ -223,12 +223,6 @@ Proteus Changelog.
 
 
         <dependency>
-            <groupId>com.javax0.sourcebuddy</groupId>
-            <artifactId>SourceBuddy</artifactId>
-            <version>${sourcebuddy.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
             <version>${javapoet.version}</version>

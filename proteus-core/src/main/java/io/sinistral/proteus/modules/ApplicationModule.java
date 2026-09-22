@@ -10,6 +10,8 @@ import io.sinistral.proteus.security.jwt.DefaultJwtConfiguration;
 import io.sinistral.proteus.security.jwt.DefaultJwtService;
 import io.sinistral.proteus.security.jwt.JwtConfiguration;
 import io.sinistral.proteus.security.jwt.JwtService;
+import io.sinistral.proteus.server.compilation.ControllerCompiler;
+import io.sinistral.proteus.server.compilation.JdkControllerCompiler;
 import io.sinistral.proteus.server.Extractors;
 import io.sinistral.proteus.server.ServerResponse;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
@@ -22,6 +24,7 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +42,7 @@ public class ApplicationModule extends AbstractModule {
         ApplicationModule.class.getCanonicalName()
     );
 
-    protected Set<EndpointInfo> registeredEndpoints = new TreeSet<>();
+    protected Set<EndpointInfo> registeredEndpoints = new ConcurrentSkipListSet<>();
     protected Set<Class<?>> registeredControllers = new HashSet<>();
     protected Set<Class<? extends BaseService>> registeredServices =
         new HashSet<>();
@@ -179,6 +182,9 @@ public class ApplicationModule extends AbstractModule {
         this.bind(JwtService.class).toInstance(jwtService);
         this.bind(SecurityProcessor.class)
             .toInstance(new SecurityProcessor(jwtService));
+        this.bind(ControllerCompiler.class)
+            .to(JdkControllerCompiler.class)
+            .in(Singleton.class);
 
     }
 }

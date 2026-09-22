@@ -8,6 +8,8 @@ import com.nimbusds.jwt.SignedJWT;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -15,13 +17,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -81,7 +83,7 @@ public class TestOpenAPISecurityAndUiEndpoints {
         assertEquals(0, requirement.size(), "bearer requirement carries no role scopes: " + requirement);
         assertArrayEquals(
             new String[] {"admin"},
-            jsonArrayToStrings(adminOp.path("x-required-roles"))
+            jsonArrayToStrings(adminOp.path("x-required-roles")).toArray(String[]::new)
         );
 
         JsonNode deniedOp = paths
@@ -109,35 +111,42 @@ public class TestOpenAPISecurityAndUiEndpoints {
         JsonNode root = openApiJson();
         JsonNode schemes = root.path("components").path("securitySchemes");
 
-        java.util.List<String> schemeNames = new java.util.ArrayList<>();
+        List<String> schemeNames = new ArrayList<>();
         schemes.properties().forEach(entry -> schemeNames.add(entry.getKey()));
 
-        java.util.List<String> problems = new java.util.ArrayList<>();
+        List<String> unresolved = new ArrayList<>();
         List<String> httpMethods = List.of("get", "post", "put", "delete", "patch", "head", "options");
 
+        // document-level requirements first, then per-operation requirements
+        List<JsonNode> requirements = new ArrayList<>();
+        if (root.path("security").isArray()) {
+            root.path("security").forEach(requirements::add);
+        }
         root.path("paths").properties().forEach(pathEntry ->
             pathEntry.getValue().properties().forEach(methodEntry -> {
-                if (!httpMethods.contains(methodEntry.getKey())) {
-                    return;
-                }
-                JsonNode security = methodEntry.getValue().path("security");
-                if (!security.isArray()) {
-                    return;
-                }
-                for (JsonNode requirement : security) {
-                    requirement.properties().forEach(nameEntry -> {
-                        if (!schemeNames.contains(nameEntry.getKey())) {
-                            problems.add(nameEntry.getKey());
-                        }
-                    });
+                if (httpMethods.contains(methodEntry.getKey())) {
+                    JsonNode security = methodEntry.getValue().path("security");
+                    if (security.isArray()) {
+                        security.forEach(requirements::add);
+                    }
                 }
             })
         );
 
+        requirements.forEach(requirement ->
+            requirement.properties().forEach(nameEntry -> {
+                if (!schemeNames.contains(nameEntry.getKey())) {
+                    unresolved.add(nameEntry.getKey());
+                }
+            })
+        );
+
+        assertFalse(schemeNames.isEmpty(), "document declares security schemes");
         assertTrue(schemeNames.contains("bearerAuth"), "bearerAuth component is declared: " + schemeNames);
+        assertFalse(requirements.isEmpty(), "document declares at least one security requirement");
         assertTrue(
-            problems.isEmpty(),
-            "every security requirement resolves to a declared scheme, unresolved: " + problems
+            unresolved.isEmpty(),
+            "every security requirement resolves to a declared scheme, unresolved: " + unresolved
         );
     }
 
@@ -179,11 +188,9 @@ public class TestOpenAPISecurityAndUiEndpoints {
         );
 
         assertEquals(200, response.statusCode(), response.body());
-        JsonNode body = new tools.jackson.databind.ObjectMapper().readTree(response.body());
-        assertTrue(
-            body.toString().contains("admin"),
-            "operation body echoes the protected payload: " + body
-        );
+        // the controller returns {"result":"admin"}; assert the parsed field, not substring noise
+        JsonNode body = JSON.readTree(response.body());
+        assertEquals("admin", body.path("result").asText(), body.toString());
     }
 
     /** Verifies claim-secured operations reject anonymous and accept authenticated callers. */
@@ -201,8 +208,9 @@ public class TestOpenAPISecurityAndUiEndpoints {
             HttpResponse.BodyHandlers.ofString()
         );
         assertEquals(200, authenticated.statusCode(), authenticated.body());
-        JsonNode body = new tools.jackson.databind.ObjectMapper().readTree(authenticated.body());
-        assertTrue(body.toString().contains("openapi-coverage"), body.toString());
+        JsonNode body = JSON.readTree(authenticated.body());
+        assertEquals("authenticated", body.path("result").asText(), body.toString());
+        assertEquals("openapi-coverage", body.path("subject").asText(), body.toString());
     }
 
     /** Verifies the public operation answers anonymous callers. */
@@ -283,7 +291,7 @@ public class TestOpenAPISecurityAndUiEndpoints {
         JsonNode json = openApiJson();
 
         HttpResponse<String> response = get("v1/openapi.yaml");
-        JsonNode yaml = new tools.jackson.dataformat.yaml.YAMLMapper().readTree(response.body());
+        JsonNode yaml = YAML.readTree(response.body());
 
         assertEquals(json.path("info"), yaml.path("info"), "info");
         assertEquals(
@@ -294,6 +302,9 @@ public class TestOpenAPISecurityAndUiEndpoints {
     }
 
     // --- Helpers ---
+
+    private static final ObjectMapper JSON = new ObjectMapper();
+    private static final YAMLMapper YAML = new YAMLMapper();
 
     private static HttpResponse<String> get(String path) throws Exception {
         return httpClient.send(
@@ -308,15 +319,13 @@ public class TestOpenAPISecurityAndUiEndpoints {
     private static JsonNode openApiJson() throws Exception {
         HttpResponse<String> response = get("v1/openapi.json");
         assertEquals(200, response.statusCode(), response.body());
-        return new tools.jackson.databind.ObjectMapper().readTree(response.body());
+        return JSON.readTree(response.body());
     }
 
-    private static String[] jsonArrayToStrings(JsonNode array) {
-        String[] values = new String[array.isArray() ? array.size() : 0];
+    private static List<String> jsonArrayToStrings(JsonNode array) {
+        List<String> values = new ArrayList<>();
         if (array.isArray()) {
-            for (int i = 0; i < array.size(); i++) {
-                values[i] = array.get(i).asText();
-            }
+            array.forEach(item -> values.add(item.asText()));
         }
         return values;
     }

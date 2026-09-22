@@ -87,8 +87,11 @@ Proteus Changelog.
 
  {{/issues}}
 {{/tags}}
-         ]]>
+                                ]]>
                             </templateContent>
+                            <!-- keep generated output out of the repo root; the tracked
+                                 CHANGELOG.md is a manual append-only agent work log -->
+                            <file>${project.build.directory}/CHANGELOG-generated.md</file>
                         </configuration>
                     </execution>
                 </executions>

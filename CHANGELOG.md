@@ -2505,3 +2505,6 @@ Proteus Changelog.
 
 
 - 🧹✅ [jcode/lead-pencil] #proteus #openapi31 CLEANUP: Post-review fixes on TestOpenAPISecurityAndUiEndpoints: restored agent work log clobbered by git-changelog-maven-plugin output in ce99e25 (f37f2da), removed unused imports, tightened substring assertions to parsed-field equality (result/subject), hoisted shared ObjectMapper/YAMLMapper, extended scheme-resolution coverage to document-level security requirements, and closed the empty-requirements blindspot. Final JDK 27 clean verify: BUILD SUCCESS, 112 + 63 tests, 0 failures, 0 skipped.
+
+## [2026-09-22] lead-pencil — durable changelog clobber fix
+- `88ed176` fix 🔧 redirect git-changelog-maven-plugin output to target/CHANGELOG-generated.md; root CHANGELOG.md is no longer rewritten on mvn runs (verified: sha unchanged through full reactor verify, 112+63 green). #proteus #changelog #build

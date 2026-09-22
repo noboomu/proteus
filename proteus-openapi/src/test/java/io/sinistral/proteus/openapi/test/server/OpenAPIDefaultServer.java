@@ -3,6 +3,7 @@ package io.sinistral.proteus.openapi.test.server;
 import io.sinistral.proteus.ProteusApplication;
 import io.sinistral.proteus.openapi.services.OpenAPIService;
 import io.sinistral.proteus.openapi.test.controllers.OpenAPITests;
+import io.sinistral.proteus.openapi.test.controllers.SecurityMetadataTests;
 import io.sinistral.proteus.openapi.test.modules.AuthorizationModule;
 import io.sinistral.proteus.services.AssetsService;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -34,6 +35,7 @@ public class OpenAPIDefaultServer implements BeforeAllCallback, AfterAllCallback
             app.addService(OpenAPIService.class);
             app.addService(AssetsService.class);
             app.addController(OpenAPITests.class);
+            app.addController(SecurityMetadataTests.class);
             app.start();
 
             if (!app.isRunning()) {
@@ -74,6 +76,10 @@ public class OpenAPIDefaultServer implements BeforeAllCallback, AfterAllCallback
     public void afterAll(ExtensionContext context) throws Exception {
         if (app != null) {
             app.shutdown();
+            app = null;
+            // reset so a later test class in the same fork starts a fresh server
+            started = false;
+            baseURI = null;
         }
     }
 }

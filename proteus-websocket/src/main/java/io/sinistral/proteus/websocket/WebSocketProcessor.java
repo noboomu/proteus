@@ -23,11 +23,19 @@ import java.lang.reflect.Modifier;
 @Singleton
 public class WebSocketProcessor {
 
+    /** Class logger. */
     private static final Logger log = LoggerFactory.getLogger(WebSocketProcessor.class);
 
+    /** Guice injector used to realize endpoint singletons. */
     private final Injector injector;
+    /** Service receiving the registered endpoints. */
     private final DefaultWebSocketService service;
 
+    /** Creates the processor.
+     *
+     * @param injector Guice injector for endpoint lookup
+     * @param service the websocket service receiving registrations
+     */
     @Inject
     public WebSocketProcessor(Injector injector, DefaultWebSocketService service) {
         this.injector = injector;
@@ -56,7 +64,10 @@ public class WebSocketProcessor {
         return registered;
     }
 
-    /** Validates handler method shapes on one endpoint class. */
+    /** Validates handler method shapes on one endpoint class.
+     *
+     * @param beanClass the endpoint class to validate
+     */
     private void validate(Class<?> beanClass) {
         for (Method method : beanClass.getDeclaredMethods()) {
             if (method.isAnnotationPresent(OnOpen.class)) {
@@ -89,7 +100,12 @@ public class WebSocketProcessor {
         }
     }
 
-    /** Rejects static handlers. */
+    /** Rejects static handlers.
+     *
+     * @param method the annotated handler method
+     * @param required required first parameter type, or null when unconstrained
+     * @param label annotation label used in error messages
+     */
     private void requireHandler(Method method, Class<?> required, String label) {
         if (Modifier.isStatic(method.getModifiers())) {
             throw new IllegalArgumentException(label + " method must not be static: " + method);

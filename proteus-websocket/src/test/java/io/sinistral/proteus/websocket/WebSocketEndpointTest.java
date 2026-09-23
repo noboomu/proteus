@@ -77,6 +77,7 @@ public class WebSocketEndpointTest {
         final BlockingQueue<String> text = new LinkedBlockingQueue<>();
         final BlockingQueue<byte[]> binary = new LinkedBlockingQueue<>();
         final BlockingQueue<Integer> closes = new LinkedBlockingQueue<>();
+        final BlockingQueue<String> closeReasons = new LinkedBlockingQueue<>();
         final StringBuilder partial = new StringBuilder();
 
         @Override
@@ -102,6 +103,7 @@ public class WebSocketEndpointTest {
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
             closes.add(statusCode);
+            closeReasons.add(reason);
             return null;
         }
 
@@ -194,8 +196,8 @@ public class WebSocketEndpointTest {
         assertThat(listener.text.poll(10, TimeUnit.SECONDS), is("connected"));
         // "close:1000:bye" is an echo-endpoint command that closes with the given reason.
         socket.sendText("close:1000:bye", true);
-        Integer code = listener.closes.poll(10, TimeUnit.SECONDS);
-        assertThat(code, is(1000));
+        assertThat(listener.closes.poll(10, TimeUnit.SECONDS), is(1000));
+        assertThat(listener.closeReasons.poll(10, TimeUnit.SECONDS), is("bye"));
     }
 
     @Test
@@ -206,6 +208,18 @@ public class WebSocketEndpointTest {
         socket.sendText("boom", true);
         Integer code = listener.closes.poll(10, TimeUnit.SECONDS);
         assertThat(code, is(1011));
+    }
+
+    @Test
+    void oversizedFrameIsRejected() throws Exception {
+        // Test config caps proteus.websocket.maxFrameSizeBytes at 64 KiB; a larger text
+        // frame must be rejected with close code 1009 (message too big).
+        RecordingListener listener = new RecordingListener();
+        WebSocket socket = connect("/echo", listener);
+        assertThat(listener.text.poll(10, TimeUnit.SECONDS), is("connected"));
+        socket.sendText("x".repeat(65_537), true);
+        Integer code = listener.closes.poll(10, TimeUnit.SECONDS);
+        assertThat(code, is(1009));
     }
 
     private void sendTextAndWaitEcho(RecordingListener listener, String message) throws Exception {

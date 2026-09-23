@@ -9,14 +9,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author jbauer
  */
 final class LatencyRecorder {
+    /** Cumulative recorded nanoseconds. */
     private final AtomicLong totalNanos = new AtomicLong();
+    /** Number of recorded samples. */
     private final AtomicLong count = new AtomicLong();
+    /** Maximum observed sample in nanoseconds. */
     private final AtomicLong maxNanos = new AtomicLong();
 
     // Guards average consistency between total and count reads.
+    /** Serializes total/count updates for consistent averages. */
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    /** Records one round-trip latency. */
+    /** Records one round-trip latency.
+     *
+     * @param nanos the round-trip duration in nanoseconds
+     */
     void record(long nanos) {
         lock.writeLock().lock();
         try {
@@ -28,7 +35,10 @@ final class LatencyRecorder {
         }
     }
 
-    /** @return the mean latency in milliseconds, or zero when nothing was recorded */
+    /** Returns the mean latency in milliseconds, or zero when nothing was recorded.
+     *
+     * @return mean latency in milliseconds
+     */
     double averageMs() {
         lock.readLock().lock();
         try {
@@ -39,8 +49,15 @@ final class LatencyRecorder {
         }
     }
 
-    /** @return the maximum observed latency in milliseconds */
+    /** Returns the maximum observed latency in milliseconds.
+     *
+     * @return maximum latency in milliseconds
+     */
     long maxMs() {
         return maxNanos.get() / 1_000_000L;
+    }
+
+    /** Default constructor for a fresh, empty recorder. */
+    LatencyRecorder() {
     }
 }

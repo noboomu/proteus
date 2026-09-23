@@ -112,6 +112,11 @@ public class DefaultEventBusService extends AbstractIdleService
         blockingExecutor = Executors.newFixedThreadPool(
                 blockingPoolSize, Thread.ofVirtual().factory());
         vertx = Vertx.vertx(new VertxOptions());
+        // Default wire format for every payload type: JSON via the application mapper.
+        // Local delivery stays by reference (codec transform is identity).
+        vertx.eventBus()
+                .registerCodec(new JsonMessageCodec(objectMapper))
+                .codecSelector(object -> JsonMessageCodec.CODEC_NAME);
         log.info("Event bus started with blocking pool size {}", blockingPoolSize);
     }
 
@@ -311,7 +316,12 @@ public class DefaultEventBusService extends AbstractIdleService
                 }
                 Object reply = processing.join();
                 if (message.replyAddress() != null && reply != null) {
-                    message.reply(reply);
+                    try {
+                        message.reply(reply);
+                    } catch (RuntimeException e) {
+                        // Reply codec failures must surface in the error metric, not vanish.
+                        failDelivery(message, e);
+                    }
                 }
             });
         } catch (RuntimeException e) {

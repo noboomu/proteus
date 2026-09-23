@@ -18,18 +18,33 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ConsumeEvent {
-    /** @return the event bus address to consume */
+    /** The event bus address to consume.
+     *
+     * @return the event bus address
+     */
     String value();
 
-    /** @return true to execute on the virtual-thread blocking executor */
+    /** True to execute on the virtual-thread blocking executor.
+     *
+     * @return the blocking flag
+     */
     boolean blocking() default false;
 
-    /** @return true to dispatch messages serially in arrival order */
+    /** True to dispatch messages serially in arrival order.
+     *
+     * @return the ordered flag
+     */
     boolean ordered() default false;
 
-    /** @return true to receive only messages delivered within this process */
+    /** True to receive only messages delivered within this process.
+     *
+     * @return the local-only flag
+     */
     boolean local() default true;
 
-    /** @return empty for the default JSON codec, otherwise a registered codec name */
+    /** Empty for the default JSON codec, otherwise a registered codec name.
+     *
+     * @return the codec selector
+     */
     String codec() default "";
 }

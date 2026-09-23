@@ -26,13 +26,23 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ConsumeEventProcessor {
 
+    /** Class logger. */
     private static final Logger log = LoggerFactory.getLogger(ConsumeEventProcessor.class);
 
+    /** Guice injector used to discover singleton beans. */
     private final Injector injector;
+
+    /** Event bus the consumers bind to. */
     private final EventBusService eventBusService;
 
+    /** Active registrations created by this processor. */
     private final List<EventBusRegistration> registrations = new ArrayList<>();
 
+    /** Creates the processor.
+     *
+     * @param injector the Guice injector
+     * @param eventBusService the event bus service
+     */
     @Inject
     public ConsumeEventProcessor(Injector injector, EventBusService eventBusService) {
         this.injector = injector;
@@ -68,7 +78,12 @@ public class ConsumeEventProcessor {
         registrations.clear();
     }
 
-    /** Validates one annotated method and binds it to its address. */
+    /** Validates one annotated method and binds it to its address.
+     *
+     * @param bean the singleton bean instance owning the method
+     * @param method the annotated method
+     * @param annotation the {@link ConsumeEvent} declaration
+     */
     private void register(Object bean, Method method, ConsumeEvent annotation) {
         if (Modifier.isStatic(method.getModifiers())) {
             throw new IllegalArgumentException(

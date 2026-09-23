@@ -32,20 +32,33 @@ import java.util.stream.Collectors;
 @Singleton
 public class DefaultWebSocketService implements WebSocketService {
 
+    /** Class logger. */
     private static final Logger log = LoggerFactory.getLogger(DefaultWebSocketService.class);
 
+    /** Shared Jackson 3 mapper for JSON sends. */
     private final ObjectMapper objectMapper;
+    /** Configured inbound frame limit; oversized frames close with 1009. */
     private final int maxFrameSizeBytes;
+    /** Configured idle timeout applied at upgrade. */
     private final int idleTimeoutMs;
+    /** Configured per-path connection cap; 0 disables the cap. */
     private final int maxConnectionsPerPath;
 
     // endpoint path -> endpoint singleton instance
+    /** Registered endpoint singletons keyed by path. */
     private final Map<String, Object> endpointsByPath = new ConcurrentHashMap<>();
     // channel -> live connection wrapper
+    /** Live connection wrappers keyed by Undertow channel. */
     private final Map<WebSocketChannel, DefaultWebSocketConnection> connections = new ConcurrentHashMap<>();
     // connection id -> live connection wrapper
+    /** Live connection wrappers keyed by connection id. */
     private final Map<String, DefaultWebSocketConnection> connectionsById = new ConcurrentHashMap<>();
 
+    /** Creates the service from configuration.
+     *
+     * @param objectMapper shared Jackson 3 mapper
+     * @param config Typesafe config holding the proteus.websocket settings
+     */
     @Inject
     public DefaultWebSocketService(ObjectMapper objectMapper, com.typesafe.config.Config config) {
         this.objectMapper = objectMapper;
@@ -60,17 +73,28 @@ public class DefaultWebSocketService implements WebSocketService {
                 : 0;
     }
 
-    /** Registers one endpoint bean; invoked by the scanner at application startup. */
+    /** Registers one endpoint bean; invoked by the scanner at application startup.
+     *
+     * @param path the endpoint path
+     * @param endpoint the endpoint singleton instance
+     */
     public void registerEndpoint(String path, Object endpoint) {
         endpointsByPath.put(path, endpoint);
     }
 
-    /** @return the connection wrapper for a live Undertow channel, or null */
+    /** Returns the connection wrapper for a live Undertow channel.
+     *
+     * @param channel the Undertow channel
+     * @return the connection wrapper, or null when unknown
+     */
     public DefaultWebSocketConnection connectionFor(WebSocketChannel channel) {
         return connections.get(channel);
     }
 
-    /** Removes a closed channel from the registries. */
+    /** Removes a closed channel from the registries.
+     *
+     * @param channel the closed Undertow channel
+     */
     public void remove(WebSocketChannel channel) {
         DefaultWebSocketConnection connection = connections.remove(channel);
         if (connection != null) {
@@ -115,7 +139,11 @@ public class DefaultWebSocketService implements WebSocketService {
         }
     }
 
-    /** Builds the frame dispatcher for one endpoint bean. */
+    /** Builds the frame dispatcher for one endpoint bean.
+     *
+     * @param endpoint the endpoint singleton instance
+     * @return the configured receive listener
+     */
     private EndpointReceiveListener listenerFor(Object endpoint) {
         Method onOpen = null;
         Method onTextMessage = null;
@@ -149,6 +177,11 @@ public class DefaultWebSocketService implements WebSocketService {
                 maxFrameSizeBytes);
     }
 
+    /** Makes the handler method accessible for reflective invocation.
+     *
+     * @param method the annotated handler method
+     * @return the same method, now accessible
+     */
     private static Method accessible(Method method) {
         method.setAccessible(true);
         return method;
@@ -203,7 +236,12 @@ public class DefaultWebSocketService implements WebSocketService {
         return broadcastHelper(getConnectionsForPath(path), connection -> connection.sendBinary(data));
     }
 
-    /** Sends to every open target; a failed send fails the future but does not abort the rest. */
+    /** Sends to every open target; a failed send fails the future but does not abort the rest.
+     *
+     * @param targets candidate connections
+     * @param sender per-connection send function
+     * @return a future completing when all sends settle
+     */
     private CompletableFuture<Void> broadcastHelper(
             Set<WebSocketConnection> targets, java.util.function.Function<WebSocketConnection, CompletableFuture<Void>> sender) {
         List<WebSocketConnection> open = targets.stream()

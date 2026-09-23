@@ -23,18 +23,38 @@ import java.nio.ByteBuffer;
  */
 class EndpointReceiveListener extends AbstractReceiveListener {
 
+    /** Class logger. */
     private static final org.slf4j.Logger log =
             org.slf4j.LoggerFactory.getLogger(EndpointReceiveListener.class);
 
+    /** Endpoint singleton receiving dispatched frames. */
     private final Object endpoint;
+    /** Handler for {@code @OnOpen}, or null. */
     private final Method onOpen;
+    /** Handler for {@code @OnMessage} text frames, or null. */
     private final Method onTextMessage;
+    /** Handler for {@code @OnMessage} binary frames, or null. */
     private final Method onBinaryMessage;
+    /** Handler for {@code @OnClose}, or null. */
     private final Method onClose;
+    /** Handler for {@code @OnError}, or null. */
     private final Method onError;
+    /** Owning service used for connection lookup and cleanup. */
     private final DefaultWebSocketService service;
+    /** Inbound frame limit; oversized frames close with 1009. */
     private final long maxFrameSizeBytes;
 
+    /** Binds the dispatcher to its handlers.
+     *
+     * @param endpoint endpoint singleton receiving dispatched frames
+     * @param onOpen handler for {@code @OnOpen}, or null
+     * @param onTextMessage handler for {@code @OnMessage} text frames, or null
+     * @param onBinaryMessage handler for {@code @OnMessage} binary frames, or null
+     * @param onClose handler for {@code @OnClose}, or null
+     * @param onError handler for {@code @OnError}, or null
+     * @param service owning service for connection bookkeeping
+     * @param maxFrameSizeBytes inbound frame limit in bytes
+     */
     EndpointReceiveListener(
             Object endpoint,
             Method onOpen,
@@ -54,7 +74,10 @@ class EndpointReceiveListener extends AbstractReceiveListener {
         this.maxFrameSizeBytes = maxFrameSizeBytes;
     }
 
-    /** Invoked by the service after registration; fires the open side effect. */
+    /** Invoked by the service after registration; fires the open side effect.
+     *
+     * @param connection the newly registered connection wrapper
+     */
     void fireOpen(DefaultWebSocketConnection connection) {
         invokeHandler(onOpen, connection, null, null);
     }
@@ -95,7 +118,10 @@ class EndpointReceiveListener extends AbstractReceiveListener {
         invokeHandler(onBinaryMessage, connection, bytes, null);
     }
 
-    /** Closes the channel with 1009 (message too big) per RFC 6455. */
+    /** Closes the channel with 1009 (message too big) per RFC 6455.
+     *
+     * @param channel the channel carrying the oversized frame
+     */
     private void rejectOversized(WebSocketChannel channel) {
         WebSockets.sendClose(new CloseMessage(1009, "message too big"), channel, null);
         try {
@@ -105,6 +131,11 @@ class EndpointReceiveListener extends AbstractReceiveListener {
         }
     }
 
+    /** Sums remaining bytes across a fragmented buffer chain.
+     *
+     * @param buffers the fragmented payload buffers
+     * @return total remaining bytes
+     */
     private static int remaining(ByteBuffer[] buffers) {
         int total = 0;
         for (ByteBuffer buffer : buffers) {
@@ -132,7 +163,10 @@ class EndpointReceiveListener extends AbstractReceiveListener {
     /**
      * Invokes one annotated handler with flexible argument order.
      *
+     * @param handler the annotated method to invoke
+     * @param connection the live connection wrapper
      * @param textOrBytes the text payload, binary payload, or null
+     * @param error the dispatched error, or null
      */
     private void invokeHandler(
             Method handler,

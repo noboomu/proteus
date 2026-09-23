@@ -13,6 +13,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WebSocket {
-    /** @return the URL path the endpoint is served at */
+    /** Returns the URL path the endpoint is served at.
+     *
+     * @return the endpoint path
+     */
     String value();
 }

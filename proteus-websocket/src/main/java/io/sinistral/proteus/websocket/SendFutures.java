@@ -13,10 +13,16 @@ import java.nio.ByteBuffer;
  */
 final class SendFutures {
 
+    /** Utility class; no instances. */
     private SendFutures() {
     }
 
-    /** Sends a text frame, completing the future when the send finishes. */
+    /** Sends a text frame, completing the future when the send finishes.
+     *
+     * @param message the text payload
+     * @param channel the target channel
+     * @return a future completing when the send finishes
+     */
     static java.util.concurrent.CompletableFuture<Void> sendText(
             String message, WebSocketChannel channel) {
         java.util.concurrent.CompletableFuture<Void> future = new java.util.concurrent.CompletableFuture<>();
@@ -24,7 +30,12 @@ final class SendFutures {
         return future;
     }
 
-    /** Sends a binary frame, completing the future when the send finishes. */
+    /** Sends a binary frame, completing the future when the send finishes.
+     *
+     * @param data the binary payload
+     * @param channel the target channel
+     * @return a future completing when the send finishes
+     */
     static java.util.concurrent.CompletableFuture<Void> sendBinary(
             ByteBuffer data, WebSocketChannel channel) {
         java.util.concurrent.CompletableFuture<Void> future = new java.util.concurrent.CompletableFuture<>();
@@ -32,7 +43,12 @@ final class SendFutures {
         return future;
     }
 
-    /** Sends a close frame with a status code and reason. */
+    /** Sends a close frame with a status code and reason.
+     *
+     * @param code the WebSocket close status code
+     * @param reason the close reason text
+     * @param channel the target channel
+     */
     static void sendClose(int code, String reason, WebSocketChannel channel) {
         WebSockets.sendClose(code, reason, channel, new WebSocketCallback<Void>() {
             @Override
@@ -47,6 +63,10 @@ final class SendFutures {
         });
     }
 
+    /** Closes the channel, tolerating an already-closed channel.
+     *
+     * @param channel the channel to close
+     */
     private static void closeChannel(WebSocketChannel channel) {
         try {
             channel.close();
@@ -55,6 +75,11 @@ final class SendFutures {
         }
     }
 
+    /** Adapts send completion into the future.
+     *
+     * @param future the future to complete
+     * @return an Undertow callback bridging to the future
+     */
     private static WebSocketCallback<Void> callback(java.util.concurrent.CompletableFuture<Void> future) {
         return new WebSocketCallback<Void>() {
             @Override

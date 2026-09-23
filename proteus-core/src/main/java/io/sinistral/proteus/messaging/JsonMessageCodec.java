@@ -18,8 +18,13 @@ public class JsonMessageCodec implements MessageCodec<Object, Object> {
     /** Codec name registered with the Vert.x event bus. */
     public static final String CODEC_NAME = "proteus-json";
 
+    /** Shared Jackson mapper for wire encoding. */
     private final ObjectMapper objectMapper;
 
+    /** Creates the codec.
+     *
+     * @param objectMapper shared Jackson mapper
+     */
     public JsonMessageCodec(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }

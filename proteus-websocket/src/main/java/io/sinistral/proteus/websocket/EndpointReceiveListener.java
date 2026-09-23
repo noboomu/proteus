@@ -5,6 +5,7 @@ import io.undertow.websockets.core.BufferedBinaryMessage;
 import io.undertow.websockets.core.BufferedTextMessage;
 import io.undertow.websockets.core.CloseMessage;
 import io.undertow.websockets.core.WebSocketChannel;
+import io.undertow.websockets.core.WebSockets;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -32,6 +33,7 @@ class EndpointReceiveListener extends AbstractReceiveListener {
     private final Method onClose;
     private final Method onError;
     private final DefaultWebSocketService service;
+    private final long maxFrameSizeBytes;
 
     EndpointReceiveListener(
             Object endpoint,
@@ -40,7 +42,8 @@ class EndpointReceiveListener extends AbstractReceiveListener {
             Method onBinaryMessage,
             Method onClose,
             Method onError,
-            DefaultWebSocketService service) {
+            DefaultWebSocketService service,
+            long maxFrameSizeBytes) {
         this.endpoint = endpoint;
         this.onOpen = onOpen;
         this.onTextMessage = onTextMessage;
@@ -48,6 +51,7 @@ class EndpointReceiveListener extends AbstractReceiveListener {
         this.onClose = onClose;
         this.onError = onError;
         this.service = service;
+        this.maxFrameSizeBytes = maxFrameSizeBytes;
     }
 
     /** Invoked by the service after registration; fires the open side effect. */
@@ -58,8 +62,16 @@ class EndpointReceiveListener extends AbstractReceiveListener {
     @Override
     protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message)
             throws IOException {
+        // Undertow 2.3.17's async read path never applies BufferedTextMessage's
+        // maxMessageSize check, so enforce the cap here on the assembled message.
+        // NB: getData() consumes the underlying UTF8Output, so extract exactly once.
+        String payload = message.getData();
+        if (maxFrameSizeBytes > 0 && payload.length() > maxFrameSizeBytes) {
+            rejectOversized(channel);
+            return;
+        }
         DefaultWebSocketConnection connection = service.connectionFor(channel);
-        invokeHandler(onTextMessage, connection, message.getData(), null);
+        invokeHandler(onTextMessage, connection, payload, null);
     }
 
     @Override
@@ -67,6 +79,11 @@ class EndpointReceiveListener extends AbstractReceiveListener {
             throws IOException {
         DefaultWebSocketConnection connection = service.connectionFor(channel);
         ByteBuffer[] payload = message.getData().getResource();
+        if (maxFrameSizeBytes > 0 && remaining(payload) > maxFrameSizeBytes) {
+            message.getData().free();
+            rejectOversized(channel);
+            return;
+        }
         byte[] bytes = new byte[remaining(payload)];
         int offset = 0;
         for (ByteBuffer buffer : payload) {
@@ -76,6 +93,16 @@ class EndpointReceiveListener extends AbstractReceiveListener {
         }
         message.getData().free();
         invokeHandler(onBinaryMessage, connection, bytes, null);
+    }
+
+    /** Closes the channel with 1009 (message too big) per RFC 6455. */
+    private void rejectOversized(WebSocketChannel channel) {
+        WebSockets.sendClose(new CloseMessage(1009, "message too big"), channel, null);
+        try {
+            channel.close();
+        } catch (IOException e) {
+            log.warn("Failed closing oversized-frame channel", e);
+        }
     }
 
     private static int remaining(ByteBuffer[] buffers) {

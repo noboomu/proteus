@@ -40,36 +40,62 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultEventBusService extends AbstractIdleService
         implements EventBusService, io.sinistral.proteus.services.BaseService {
 
+    /** Class logger. */
     private static final Logger log = LoggerFactory.getLogger(DefaultEventBusService.class);
 
+    /** Default request-reply timeout. */
     private static final long DEFAULT_REQUEST_TIMEOUT_MS = 30_000L;
 
+    /** Shared Jackson mapper for payload conversion. */
     private final ObjectMapper objectMapper;
+    /** Whether the event bus service is enabled by configuration. */
     private final boolean enabled;
+    /** Size of the dedicated blocking-consumer thread pool. */
     private final int blockingPoolSize;
 
+    /** Embedded Vert.x platform; null before start and after stop. */
     private volatile Vertx vertx;
+    /** Blocking executor for consumers registered with the blocking option. */
     private volatile ExecutorService blockingExecutor;
 
     // Counters are monotonic from service start.
+    /** Point-to-point sends completed. */
     private final AtomicLong messagesSent = new AtomicLong();
+    /** Deliveries received by registered consumers. */
     private final AtomicLong messagesReceived = new AtomicLong();
+    /** Fan-out publishes completed. */
     private final AtomicLong messagesPublished = new AtomicLong();
+    /** Request-reply requests issued. */
     private final AtomicLong requestsSent = new AtomicLong();
+    /** Request replies received. */
     private final AtomicLong repliesReceived = new AtomicLong();
+    /** Consumer, codec, or bridge failures recorded. */
     private final AtomicLong errorCount = new AtomicLong();
+    /** Requests that ended in timeout. */
     private final AtomicLong timeoutCount = new AtomicLong();
+    /** Requests issued but not yet replied. */
     private final AtomicLong pendingRequests = new AtomicLong();
+    /** Rolling reply-latency samples. */
     private final LatencyRecorder latencyRecorder = new LatencyRecorder();
 
+    /** Vert.x consumer per address; register is replace-per-address. */
     private final Map<String, MessageConsumer<Object>> registrations = new ConcurrentHashMap<>();
+    /** Registration handles returned to callers, keyed by address. */
     private final Map<String, RegistrationHandle> handles = new ConcurrentHashMap<>();
+    /** Options captured per address at registration time. */
     private final Map<String, EventBusConsumerOptions> optionsByAddress = new ConcurrentHashMap<>();
+    /** Named codecs selectable by consumers. */
     private final Map<String, EventBusCodec<?>> codecs = new ConcurrentHashMap<>();
 
     // Bridge hook installed by the NATS bridge when active; send=false for publish.
+    /** Currently installed bridge hook; null when no bridge is active. */
     private final AtomicReference<BridgeHook> bridgeHook = new AtomicReference<>();
 
+    /** Creates the service from configuration.
+     *
+     * @param objectMapper shared Jackson mapper
+     * @param config application configuration
+     */
     @Inject
     public DefaultEventBusService(ObjectMapper objectMapper, Config config) {
         this.objectMapper = objectMapper;
@@ -80,7 +106,10 @@ public class DefaultEventBusService extends AbstractIdleService
                 : 32;
     }
 
-    /** Installs the bridge dispatch hook consulted by publish and send. */
+    /** Installs the bridge dispatch hook consulted by publish and send.
+     *
+     * @param hook the bridge hook, or null to clear
+     */
     public void setBridgeHook(BridgeHook hook) {
         bridgeHook.set(hook);
     }
@@ -88,11 +117,19 @@ public class DefaultEventBusService extends AbstractIdleService
     /** Callback consulted by publish and send to mirror traffic to a remote bridge. */
     @FunctionalInterface
     public interface BridgeHook {
-        /** Mirrors one publish (send=false) or send (send=true) to the bridge. */
+        /** Mirrors one publish (send=false) or send (send=true) to the bridge.
+         *
+         * @param address the event bus address
+         * @param message the payload being delivered
+         * @param send true for point-to-point, false for fan-out
+         */
         void dispatch(String address, Object message, boolean send);
     }
 
-    /** @return the embedded Vert.x instance, or null when the service is not running */
+    /** Returns the embedded Vert.x instance, or null when the service is not running.
+     *
+     * @return the running Vert.x instance, or null
+     */
     public Vertx vertx() {
         return vertx;
     }
@@ -212,12 +249,20 @@ public class DefaultEventBusService extends AbstractIdleService
         codecs.put(codecName, codec);
     }
 
-    /** @return options registered for the address, or null when no consumer is registered */
+    /** Returns options registered for the address, or null when no consumer is registered.
+     *
+     * @param address the event bus address
+     * @return the registered options, or null
+     */
     public EventBusConsumerOptions optionsFor(String address) {
         return optionsByAddress.get(address);
     }
 
-    /** @return true when a consumer registration is currently bound to the address */
+    /** Returns true when a consumer registration is currently bound to the address.
+     *
+     * @param address the event bus address
+     * @return true when a consumer is bound
+     */
     public boolean hasConsumer(String address) {
         return registrations.containsKey(address);
     }
@@ -226,6 +271,11 @@ public class DefaultEventBusService extends AbstractIdleService
      * Bridged-request entry point: asks local consumers of the address for a reply without
      * NATS forwarding. Returns a failed future when the bus is unavailable; a request to an
      * address with no consumer fails on timeout.
+     *
+     * @param address the event bus address
+     * @param message the request payload
+     * @param timeoutMs reply wait in milliseconds
+     * @return a future completed with the reply
      */
     public CompletableFuture<Object> requestInternal(
             String address, Object message, long timeoutMs) {
@@ -236,7 +286,11 @@ public class DefaultEventBusService extends AbstractIdleService
         return request(address, message, Object.class, timeoutMs);
     }
 
-    /** Records one bridge or decode failure against the error metric with a warn log. */
+    /** Records one bridge or decode failure against the error metric with a warn log.
+     *
+     * @param context short description of the failing operation
+     * @param cause the failure cause
+     */
     public void recordError(String context, Throwable cause) {
         errorCount.incrementAndGet();
         log.warn("{}: {}", context, String.valueOf(cause.getMessage()));
@@ -245,6 +299,9 @@ public class DefaultEventBusService extends AbstractIdleService
     /**
      * Delivers a payload that arrived from the NATS bridge to local consumers of the address.
      * Local-only consumers receive it because the delivery itself happens in-process.
+     *
+     * @param address the event bus address
+     * @param payload the decoded payload from the remote publisher
      */
     public void deliverRemote(String address, Object payload) {
         if (!isAvailable()) {
@@ -275,6 +332,10 @@ public class DefaultEventBusService extends AbstractIdleService
                 latencyRecorder.maxMs());
     }
 
+    /** Removes the Vert.x consumer and bookkeeping for the address.
+     *
+     * @param address the event bus address to tear down
+     */
     private void unregister(String address) {
         MessageConsumer<Object> previous = registrations.remove(address);
         if (previous != null) {
@@ -284,13 +345,20 @@ public class DefaultEventBusService extends AbstractIdleService
         optionsByAddress.remove(address);
     }
 
+    /** Throws when the bus is not running. */
     private void requireAvailable() {
         if (!isAvailable()) {
             throw new IllegalStateException("Event bus is not available");
         }
     }
 
-    /** Wraps a typed consumer with metrics, error policy, and executor dispatch. */
+    /** Wraps a typed consumer with metrics, error policy, and executor dispatch.
+     *
+     * @param consumer the typed consumer callback
+     * @param options delivery options for the consumer
+     * @param <T> the payload type the consumer accepts
+     * @return the Vert.x handler
+     */
     @SuppressWarnings("unchecked")
     private <T> Handler<Message<Object>> wrapConsumer(
             EventBusConsumer<T> consumer, EventBusConsumerOptions options) {
@@ -304,7 +372,12 @@ public class DefaultEventBusService extends AbstractIdleService
         };
     }
 
-    /** Runs one consumer callback; a non-null result or future value becomes the reply. */
+    /** Runs one consumer callback; a non-null result or future value becomes the reply.
+     *
+     * @param consumer the typed consumer callback
+     * @param message the delivered message
+     * @param <T> the payload type the consumer accepts
+     */
     @SuppressWarnings("unchecked")
     private <T> void invokeConsumer(EventBusConsumer<T> consumer, Message<Object> message) {
         try {
@@ -329,7 +402,11 @@ public class DefaultEventBusService extends AbstractIdleService
         }
     }
 
-    /** Marks one delivery failed: error metric, warn log, and 500 reply when expected. */
+    /** Marks one delivery failed: error metric, warn log, and 500 reply when expected.
+     *
+     * @param message the failed delivery
+     * @param cause the failure cause
+     */
     private void failDelivery(Message<Object> message, Throwable cause) {
         errorCount.incrementAndGet();
         log.warn("Event bus consumer failed on address {}", message.address(), cause);
@@ -338,7 +415,13 @@ public class DefaultEventBusService extends AbstractIdleService
         }
     }
 
-    /** Converts a reply body to the declared response type using the Jackson mapper. */
+    /** Converts a reply body to the declared response type using the Jackson mapper.
+     *
+     * @param body the raw reply body
+     * @param responseType the declared reply type
+     * @param <R> the reply type
+     * @return the converted reply value
+     */
     @SuppressWarnings("unchecked")
     private <R> R convert(Object body, Class<R> responseType) {
         if (body == null || responseType.isInstance(body)) {
@@ -347,6 +430,11 @@ public class DefaultEventBusService extends AbstractIdleService
         return objectMapper.convertValue(body, responseType);
     }
 
+    /** Completes a request future exceptionally and classifies the failure metric.
+     *
+     * @param cause the request failure
+     * @param result the future to fail
+     */
     private void recordRequestFailure(Throwable cause, CompletableFuture<?> result) {
         if (cause instanceof ReplyException replyException
                 && replyException.failureType() == ReplyFailure.TIMEOUT) {
@@ -358,6 +446,12 @@ public class DefaultEventBusService extends AbstractIdleService
         }
     }
 
+    /** Forwards one delivery to the installed bridge hook, if any.
+     *
+     * @param address the event bus address
+     * @param message the payload being delivered
+     * @param send true for point-to-point, false for fan-out
+     */
     private void bridgeDispatch(String address, Object message, boolean send) {
         BridgeHook hook = bridgeHook.get();
         if (hook != null) {
@@ -367,9 +461,15 @@ public class DefaultEventBusService extends AbstractIdleService
 
     /** Registration handle bound to the service registration map. */
     private final class RegistrationHandle implements EventBusRegistration {
+        /** Address this handle was created for. */
         private final String address;
+        /** Guards one-shot unregister semantics. */
         private final AtomicBoolean active = new AtomicBoolean(true);
 
+        /** Creates the handle.
+         *
+         * @param address the bound event bus address
+         */
         RegistrationHandle(String address) {
             this.address = address;
         }

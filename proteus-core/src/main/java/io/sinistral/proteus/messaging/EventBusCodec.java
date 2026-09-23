@@ -8,9 +8,17 @@ import io.vertx.core.buffer.Buffer;
  * @param <T> the payload type
  */
 public interface EventBusCodec<T> {
-    /** Encodes a payload for the wire. */
+    /** Encodes a payload for the wire.
+     *
+     * @param object the payload instance to encode
+     * @return the encoded buffer
+     */
     Buffer encode(T object);
 
-    /** Decodes a payload from the wire. */
+    /** Decodes a payload from the wire.
+     *
+     * @param buffer the wire representation produced by {@link #encode(Object)}
+     * @return the decoded payload instance
+     */
     T decode(Buffer buffer);
 }

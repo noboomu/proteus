@@ -2519,3 +2519,11 @@ Proteus Changelog.
 
 - 🔧 [jcode/lead-pencil] websocket: enforce `proteus.websocket.maxFrameSizeBytes` in `EndpointReceiveListener` (Undertow 2.3.17 never applies `BufferedTextMessage`'s cap on the async read path). Oversized text/binary frames now close with 1009. Gotcha fixed along the way: `BufferedTextMessage.getData()` consumes the underlying `UTF8Output`, so the payload must be extracted exactly once.
 - ✅ [jcode/lead-pencil] tests: `WebSocketEndpointTest.oversizedFrameIsRejected` (64 KiB cap via test `application.conf`), close-reason text assertion, `EventBusServiceTest` now asserts `messagesSent`/`messagesPublished` counters.
+
+## 2026-09-23 — doclint: strict javadoc for messaging + websocket [jcode/lead-pencil]
+
+- 🧾 proteus-core messaging (eventbus + nats bridge): all 100 doclint warnings fixed; `javac -Xdoclint:all -Werror` exit 0
+- 🧾 proteus-websocket: all 49 doclint warnings fixed, including `{@code @OnX}` tag escaping in EndpointReceiveListener and explicit documented ctors; `-Werror` exit 0
+- 🧾 javadoc jar attach goal now builds clean for both modules
+- ✅ full reactor `mvn clean verify` on JDK 27: core 130, openapi 63, websocket 9, all 0F/0E/0S, BUILD SUCCESS
+- commits `9f9bc8c..73d4daa`, file-by-file

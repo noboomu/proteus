@@ -20,6 +20,7 @@
     <modules>
         <module>proteus-core</module>
         <module>proteus-openapi</module>
+        <module>proteus-websocket</module>
     </modules>
 
     <licenses>
@@ -86,6 +87,8 @@
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <jaxb-runtime.version>4.0.3</jaxb-runtime.version>
         <nimbus-jose-jwt.version>9.41.2</nimbus-jose-jwt.version>
+        <vertx.version>5.1.8</vertx.version>
+        <jnats.version>2.23.0</jnats.version>
     </properties>
 
 
@@ -117,6 +120,12 @@
             <dependency>
                 <groupId>io.sinistral</groupId>
                 <artifactId>proteus-openapi</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.sinistral</groupId>
+                <artifactId>proteus-websocket</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

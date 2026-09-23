@@ -171,10 +171,14 @@ public class EventBusServiceTest {
         EventBusMetrics before = service.getMetrics();
         register("test.metrics", message -> CompletableFuture.completedFuture("ok"));
         service.request("test.metrics", "ask", String.class).get(10, TimeUnit.SECONDS);
+        service.send("test.metrics.send", "payload");
+        service.publish("test.metrics.publish", "payload");
         EventBusMetrics after = service.getMetrics();
         assertThat(after.requestsSent(), greaterThan(before.requestsSent()));
         assertThat(after.repliesReceived(), greaterThan(before.repliesReceived()));
         assertThat(after.messagesReceived(), greaterThan(before.messagesReceived()));
+        assertThat(after.messagesSent(), greaterThan(before.messagesSent()));
+        assertThat(after.messagesPublished(), greaterThan(before.messagesPublished()));
     }
 
     @Test

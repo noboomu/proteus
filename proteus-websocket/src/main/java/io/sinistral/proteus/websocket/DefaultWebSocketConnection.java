@@ -15,13 +15,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultWebSocketConnection implements WebSocketConnection {
 
+    /** UUID generated for this connection at upgrade. */
     private final String connectionId = UUID.randomUUID().toString();
+    /** Endpoint path this connection upgraded on. */
     private final String path;
+    /** Underlying Undertow channel. */
     private final WebSocketChannel channel;
+    /** Shared Jackson 3 mapper for JSON sends. */
     private final ObjectMapper objectMapper;
+    /** Connection-scoped attributes. */
     private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-    /** Binds the wrapper to a live channel. */
+    /** Binds the wrapper to a live channel.
+     *
+     * @param path the endpoint path
+     * @param channel the upgraded Undertow channel
+     * @param objectMapper shared Jackson 3 mapper
+     */
     public DefaultWebSocketConnection(
             String path, WebSocketChannel channel, ObjectMapper objectMapper) {
         this.path = path;

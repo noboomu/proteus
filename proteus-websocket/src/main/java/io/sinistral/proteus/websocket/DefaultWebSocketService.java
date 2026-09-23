@@ -145,7 +145,8 @@ public class DefaultWebSocketService implements WebSocketService {
             }
         }
         return new EndpointReceiveListener(
-                endpoint, onOpen, onTextMessage, onBinaryMessage, onClose, onError, this);
+                endpoint, onOpen, onTextMessage, onBinaryMessage, onClose, onError, this,
+                maxFrameSizeBytes);
     }
 
     private static Method accessible(Method method) {

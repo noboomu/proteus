@@ -17,27 +17,47 @@ public record EventBusConsumerOptions(
         this(false, false, true, "", 30_000L);
     }
 
-    /** @return a copy with the blocking flag set */
+    /** Returns a copy with the blocking flag set.
+     *
+     * @param blocking run the consumer on a blocking executor
+     * @return a copy with the flag applied
+     */
     public EventBusConsumerOptions withBlocking(boolean blocking) {
         return new EventBusConsumerOptions(blocking, ordered, local, codec, timeout);
     }
 
-    /** @return a copy with the ordered flag set */
+    /** Returns a copy with the ordered flag set.
+     *
+     * @param ordered dispatch messages serially in arrival order
+     * @return a copy with the flag applied
+     */
     public EventBusConsumerOptions withOrdered(boolean ordered) {
         return new EventBusConsumerOptions(blocking, ordered, local, codec, timeout);
     }
 
-    /** @return a copy with the local flag set */
+    /** Returns a copy with the local flag set.
+     *
+     * @param local deliver only messages published within this process
+     * @return a copy with the flag applied
+     */
     public EventBusConsumerOptions withLocal(boolean local) {
         return new EventBusConsumerOptions(blocking, ordered, local, codec, timeout);
     }
 
-    /** @return a copy with the codec name set */
+    /** Returns a copy with the codec name set.
+     *
+     * @param codec empty for the default JSON codec, otherwise a registered codec name
+     * @return a copy with the codec applied
+     */
     public EventBusConsumerOptions withCodec(String codec) {
         return new EventBusConsumerOptions(blocking, ordered, local, codec, timeout);
     }
 
-    /** @return a copy with the request timeout set */
+    /** Returns a copy with the request timeout set.
+     *
+     * @param timeoutMs request-reply timeout in milliseconds
+     * @return a copy with the timeout applied
+     */
     public EventBusConsumerOptions withTimeout(long timeoutMs) {
         return new EventBusConsumerOptions(blocking, ordered, local, codec, timeoutMs);
     }

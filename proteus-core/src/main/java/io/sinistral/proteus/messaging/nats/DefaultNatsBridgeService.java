@@ -42,33 +42,58 @@ import java.util.function.Consumer;
 @Singleton
 public class DefaultNatsBridgeService implements NatsBridgeService {
 
+    /** Class logger. */
     private static final Logger log = LoggerFactory.getLogger(DefaultNatsBridgeService.class);
 
     /** NATS message header carrying the bridge instance id, used for echo suppression. */
     static final String ORIGIN_HEADER = "X-Proteus-Bridge-Origin";
 
+    /** Local event bus whose traffic is mirrored to NATS. */
     private final DefaultEventBusService eventBusService;
+    /** Shared Jackson mapper for envelope serialization. */
     private final ObjectMapper objectMapper;
+    /** Whether the bridge is enabled in configuration. */
     private final boolean enabled;
+    /** NATS server URL. */
     private final String url;
+    /** Subject prefix applied to every mirrored address. */
     private final String subjectPrefix;
+    /** Queue group distributing inbound messages across cluster nodes. */
     private final String queueGroup;
+    /** Request-reply timeout in milliseconds. */
     private final long requestTimeoutMs;
+    /** Maximum NATS client reconnect attempts. */
     private final int maxReconnects;
+    /** Delay between reconnect attempts in milliseconds. */
     private final long reconnectWaitMs;
+    /** Bearer token when token auth is configured. */
     private final String authToken;
+    /** Username when basic auth is configured. */
     private final String authUsername;
+    /** Password when basic auth is configured. */
     private final String authPassword;
+    /** Unique bridge instance id used for echo suppression. */
     private final String originId = UUID.randomUUID().toString();
 
+    /** Active NATS connection; null when stopped. */
     private volatile Connection connection;
+    /** Dispatcher dedicated to point-to-point sends. */
     private volatile Dispatcher sendDispatcher;
+    /** Dispatcher dedicated to publish fan-out. */
     private volatile Dispatcher publishDispatcher;
+    /** Dispatcher dedicated to request-reply calls. */
     private volatile Dispatcher requestDispatcher;
 
     // Handlers for messages arriving from NATS, keyed by event bus address.
+    /** Registered inbound handlers keyed by event bus address. */
     private final Map<String, Consumer<JsonObject>> inboundHandlers = new ConcurrentHashMap<>();
 
+    /** Creates the bridge from configuration.
+     *
+     * @param eventBusService local event bus to mirror
+     * @param objectMapper shared Jackson mapper
+     * @param config Typesafe config holding the proteus.messaging.nats settings
+     */
     @Inject
     public DefaultNatsBridgeService(
             DefaultEventBusService eventBusService, ObjectMapper objectMapper, Config config) {
@@ -107,7 +132,11 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         }
     }
 
-    /** @return the NATS subject mapped from an event bus address */
+    /** Returns the NATS subject mapped from an event bus address.
+     *
+     * @param address the event bus address
+     * @return the derived NATS subject
+     */
     public String subjectFor(String address) {
         if (address == null || address.isBlank()) {
             throw new IllegalArgumentException("Address must not be blank: " + address);
@@ -121,7 +150,11 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         return subject;
     }
 
-    /** @return the event bus address mapped from a NATS subject, or null when unprefixed */
+    /** Returns the event bus address mapped from a NATS subject.
+     *
+     * @param subject the NATS subject
+     * @return the mapped address, or null when the subject is unprefixed
+     */
     public String addressFor(String subject) {
         String prefix = subjectPrefix + ".";
         if (!subject.startsWith(prefix)) {
@@ -197,7 +230,10 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         }
     }
 
-    /** Closes one dispatcher, tolerating an already-closed connection. */
+    /** Closes one dispatcher, tolerating an already-closed connection.
+     *
+     * @param dispatcher the dispatcher to close, may be null
+     */
     private void closeDispatcherQuietly(Dispatcher dispatcher) {
         if (dispatcher == null || connection == null) {
             return;
@@ -254,7 +290,13 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         return withTimeout(result, timeoutMs);
     }
 
-    /** Completes the future exceptionally when the deadline elapses first. */
+    /** Completes the future exceptionally when the deadline elapses first.
+     *
+     * @param <T> future value type
+     * @param future the unbounded source future
+     * @param timeoutMs deadline in milliseconds
+     * @return a future bounded by the deadline
+     */
     private <T> CompletableFuture<T> withTimeout(CompletableFuture<T> future, long timeoutMs) {
         CompletableFuture<T> bounded = new CompletableFuture<>();
         future.whenComplete((value, throwable) -> {
@@ -273,6 +315,10 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     /** Shared single-thread scheduler for request deadlines. */
     private java.util.concurrent.ScheduledExecutorService schedulerHolder;
 
+    /** Lazily creates the shared single-thread deadline scheduler.
+     *
+     * @return the shared scheduler instance
+     */
     private java.util.concurrent.ScheduledExecutorService scheduler() {
         if (schedulerHolder == null) {
             synchronized (this) {
@@ -290,17 +336,30 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         inboundHandlers.put(address, handler);
     }
 
-    /** @return the subject carrying send envelopes for the wildcard */
+    /** Returns the subject carrying send envelopes for the wildcard.
+     *
+     * @param wildcard the inbound wildcard subject
+     * @return the send routing subject
+     */
     private String sendSubject(String wildcard) {
         return subjectPrefix + ".send." + wildcard.substring(subjectPrefix.length() + 1);
     }
 
-    /** @return the subject carrying publish envelopes for the wildcard */
+    /** Returns the subject carrying publish envelopes for the wildcard.
+     *
+     * @param wildcard the inbound wildcard subject
+     * @return the publish routing subject
+     */
     private String publishSubject(String wildcard) {
         return subjectPrefix + ".publish." + wildcard.substring(subjectPrefix.length() + 1);
     }
 
-    /** Event bus hook: mirrors publish/send to NATS when running and not local-only. */
+    /** Event bus hook: mirrors publish/send to NATS when running and not local-only.
+     *
+     * @param address the event bus address
+     * @param message the outbound payload
+     * @param send true for point-to-point, false for fan-out
+     */
     private void bridgeHook(String address, Object message, boolean send) {
         if (!isRunning()) {
             return;
@@ -319,7 +378,10 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         flushQuietly();
     }
 
-    /** Queue-group delivery path for publish and send envelopes. */
+    /** Queue-group delivery path for publish and send envelopes.
+     *
+     * @param message the inbound NATS message
+     */
     private void handleDelivery(io.nats.client.Message message) {
         String address = addressFor(message.getSubject());
         if (address == null || isOwnEcho(message)) {
@@ -336,7 +398,10 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         eventBusService.deliverRemote(address, envelope.payload());
     }
 
-    /** Plain dispatcher path: answer remote requests from local consumers. */
+    /** Plain dispatcher path: answer remote requests from local consumers.
+     *
+     * @param message the inbound NATS request
+     */
     private void handleRequest(io.nats.client.Message message) {
         if (message.getReplyTo() == null) {
             return;
@@ -366,7 +431,11 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
                 });
     }
 
-    /** @return the decoded envelope or null after recording a decode failure */
+    /** Returns the decoded envelope or null after recording a decode failure.
+     *
+     * @param message the inbound NATS message
+     * @return decoded envelope, or null on decode failure
+     */
     private NatsEnvelope decodeOrNull(io.nats.client.Message message) {
         try {
             return NatsEnvelope.fromJson(
@@ -378,25 +447,41 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         }
     }
 
-    /** @return true when the message carries this instance's origin header */
+    /** Returns true when the message carries this instance's origin header.
+     *
+     * @param message the inbound NATS message
+     * @return true when the message is this bridge's own echo
+     */
     private boolean isOwnEcho(io.nats.client.Message message) {
         io.nats.client.impl.Headers headers = message.getHeaders();
         return headers != null && originId.equals(headers.getFirst(ORIGIN_HEADER));
     }
 
-    /** @return headers stamped with this bridge instance id */
+    /** Returns headers stamped with this bridge instance id.
+     *
+     * @return origin headers for outgoing publishes
+     */
     private Headers originHeaders() {
         return new Headers().put(ORIGIN_HEADER, originId);
     }
 
-    /** Serializes one envelope for the wire. */
+    /** Serializes one envelope for the wire.
+     *
+     * @param address the event bus address
+     * @param payload the outbound payload
+     * @return the JSON envelope bytes
+     */
     private byte[] envelopeBytes(String address, Object payload) {
         return NatsEnvelope.of(address, payload)
                 .toJson(objectMapper)
                 .getBytes(StandardCharsets.UTF_8);
     }
 
-    /** Wraps a decoded payload as a JsonObject; scalars are wrapped under a value key. */
+    /** Wraps a decoded payload as a JsonObject; scalars are wrapped under a value key.
+     *
+     * @param payload the decoded envelope payload
+     * @return the payload as a JsonObject
+     */
     @SuppressWarnings("unchecked")
     private JsonObject toJsonObject(Object payload) {
         if (payload instanceof Map<?, ?> map) {
@@ -414,6 +499,7 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         }
     }
 
+    /** Throws when the bridge is not connected. */
     private void requireRunning() {
         if (!isRunning()) {
             throw new IllegalStateException("NATS bridge is not running");

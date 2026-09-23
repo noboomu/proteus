@@ -18,13 +18,20 @@ import io.sinistral.proteus.websocket.WebSocketService;
  */
 public class WebSocketModule extends AbstractModule {
 
+    /** Default constructor for Guice installation. */
+    public WebSocketModule() {
+    }
+
     @Override
     protected void configure() {
         bind(WebSocketService.class).to(DefaultWebSocketService.class).in(Singleton.class);
         bind(DefaultWebSocketService.class).in(Singleton.class);
     }
 
-    /** Fallback application config for standalone installs; regular installs reuse the bound instance. */
+    /** Provides a fallback application config for standalone installs; regular installs reuse the bound instance.
+     *
+     * @return the loaded application config
+     */
     @Provides
     @Singleton
     Config provideConfig() {

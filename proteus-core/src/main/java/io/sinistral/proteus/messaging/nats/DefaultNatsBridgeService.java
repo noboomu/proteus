@@ -62,7 +62,8 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     private final String originId = UUID.randomUUID().toString();
 
     private volatile Connection connection;
-    private volatile Dispatcher deliveryDispatcher;
+    private volatile Dispatcher sendDispatcher;
+    private volatile Dispatcher publishDispatcher;
     private volatile Dispatcher requestDispatcher;
 
     // Handlers for messages arriving from NATS, keyed by event bus address.
@@ -123,7 +124,17 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     /** @return the event bus address mapped from a NATS subject, or null when unprefixed */
     public String addressFor(String subject) {
         String prefix = subjectPrefix + ".";
-        return subject.startsWith(prefix) ? subject.substring(prefix.length()) : null;
+        if (!subject.startsWith(prefix)) {
+            return null;
+        }
+        String rest = subject.substring(prefix.length());
+        // Strip the internal routing token from send/publish subjects.
+        if (rest.startsWith("send.")) {
+            rest = rest.substring("send.".length());
+        } else if (rest.startsWith("publish.")) {
+            rest = rest.substring("publish.".length());
+        }
+        return rest;
     }
 
     @Override
@@ -146,14 +157,17 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
             }
             connection = Nats.connect(builder.build());
             String wildcard = subjectPrefix + ".>";
-            // Queue-group dispatcher: publish/send envelopes, exactly one process delivers.
-            deliveryDispatcher = connection.createDispatcher(this::handleDelivery)
-                    .subscribe(wildcard, queueGroup);
+            // Send envelopes: queue-group subscription delivers each to exactly one process.
+            sendDispatcher = connection.createDispatcher(this::handleDelivery)
+                    .subscribe(sendSubject(wildcard), queueGroup);
+            // Publish envelopes: plain subscription fans out to every process's consumers.
+            publishDispatcher = connection.createDispatcher(this::handleDelivery)
+                    .subscribe(publishSubject(wildcard));
             // Plain dispatcher: request-reply; every process with a local consumer answers.
             requestDispatcher = connection.createDispatcher(this::handleRequest)
                     .subscribe(wildcard);
             eventBusService.setBridgeHook(this::bridgeHook);
-            log.info("NATS bridge subscribed to '{}' with queue group '{}'",
+            log.info("NATS bridge subscribed to '{}' (send queue '{}', publish fan-out)",
                     wildcard, queueGroup);
         } catch (Exception e) {
             stop();
@@ -164,9 +178,11 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     @Override
     public void stop() {
         eventBusService.setBridgeHook(null);
-        closeDispatcherQuietly(deliveryDispatcher);
+        closeDispatcherQuietly(sendDispatcher);
+        closeDispatcherQuietly(publishDispatcher);
         closeDispatcherQuietly(requestDispatcher);
-        deliveryDispatcher = null;
+        sendDispatcher = null;
+        publishDispatcher = null;
         requestDispatcher = null;
         Connection current = connection;
         connection = null;
@@ -204,7 +220,11 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     public void forwardPublish(String address, Object message) {
         requireRunning();
         byte[] body = envelopeBytes(address, message);
-        connection.publish(subjectFor(address), originHeaders(), body);
+        // Fan-out subject so every process's publish dispatcher receives the envelope.
+        String base = subjectFor(address);
+        connection.publish(
+                subjectPrefix + ".publish." + base.substring(subjectPrefix.length() + 1),
+                originHeaders(), body);
         flushQuietly();
     }
 
@@ -270,6 +290,16 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         inboundHandlers.put(address, handler);
     }
 
+    /** @return the subject carrying send envelopes for the wildcard */
+    private String sendSubject(String wildcard) {
+        return subjectPrefix + ".send." + wildcard.substring(subjectPrefix.length() + 1);
+    }
+
+    /** @return the subject carrying publish envelopes for the wildcard */
+    private String publishSubject(String wildcard) {
+        return subjectPrefix + ".publish." + wildcard.substring(subjectPrefix.length() + 1);
+    }
+
     /** Event bus hook: mirrors publish/send to NATS when running and not local-only. */
     private void bridgeHook(String address, Object message, boolean send) {
         if (!isRunning()) {
@@ -279,16 +309,14 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         if (options != null && options.local()) {
             return;
         }
-        if (send) {
-            // A send already delivered locally; only remote consumers should see it.
-            connection.publish(subjectFor(address), originHeaders(),
-                    envelopeBytes(address, message));
-            flushQuietly();
-        } else {
-            connection.publish(subjectFor(address), originHeaders(),
-                    envelopeBytes(address, message));
-            flushQuietly();
-        }
+        // Sends already delivered locally and route through the queue-group subject;
+        // publishes fan out to every process that has consumers on the address.
+        String base = subjectFor(address);
+        String subject = send
+                ? subjectPrefix + ".send." + base.substring(subjectPrefix.length() + 1)
+                : subjectPrefix + ".publish." + base.substring(subjectPrefix.length() + 1);
+        connection.publish(subject, originHeaders(), envelopeBytes(address, message));
+        flushQuietly();
     }
 
     /** Queue-group delivery path for publish and send envelopes. */

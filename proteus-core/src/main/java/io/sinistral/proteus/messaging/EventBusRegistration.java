@@ -9,9 +9,15 @@ public interface EventBusRegistration {
     /** Removes the consumer from its address. Idempotent. */
     void unregister();
 
-    /** @return the address this registration is bound to */
+    /** Returns the address this registration is bound to.
+     *
+     * @return the bound event bus address
+     */
     String getAddress();
 
-    /** @return true while the registration is bound */
+    /** Returns true while the registration is bound.
+     *
+     * @return true if still active, false after unregister
+     */
     boolean isActive();
 }

@@ -6,11 +6,23 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.deser.std.StdDeserializer;
 
+/**
+ * Deserializes an {@link ApiResponses} container, routing {@code x-} keys to extensions.
+ */
 public final class ApiResponsesDeserializer extends StdDeserializer<ApiResponses> {
+    /** Creates the deserializer for the {@link ApiResponses} type. */
     public ApiResponsesDeserializer() {
         super(ApiResponses.class);
     }
 
+    /**
+     * Reads status code entries into responses and {@code x-} keys into extensions.
+     *
+     * @param parser the source parser
+     * @param context the deserialization context
+     * @return the populated container
+     * @throws JacksonException when reading fails
+     */
     @Override
     public ApiResponses deserialize(
         JsonParser parser,

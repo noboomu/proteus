@@ -134,11 +134,20 @@ public class DefaultEventBusService extends AbstractIdleService
         return vertx;
     }
 
+    /**
+     * Sets the configure, fluent style.
+     *
+     * @param binder the configure
+     */
     @Override
     public void configure(Binder binder) {
         // no additional bindings; this module only participates in service lifecycle
     }
 
+    /**
+     * Returns the start up.
+     *
+     */
     @Override
     protected void startUp() {
         if (!enabled) {
@@ -157,6 +166,10 @@ public class DefaultEventBusService extends AbstractIdleService
         log.info("Event bus started with blocking pool size {}", blockingPoolSize);
     }
 
+    /**
+     * Returns the shut down.
+     *
+     */
     @Override
     protected void shutDown() {
         registrations.values().forEach(MessageConsumer::unregister);
@@ -173,11 +186,23 @@ public class DefaultEventBusService extends AbstractIdleService
         }
     }
 
+    /**
+     * Returns the available.
+     *
+     * @return the available, or null when unset
+     */
     @Override
     public boolean isAvailable() {
         return enabled && isRunning() && vertx != null;
     }
 
+    /**
+     * Publishes a message to all local and bridged consumers.
+     *
+     * @param address the event bus address
+     * @param message the message payload
+     * @param <T> the payload type
+     */
     @Override
     public <T> void publish(String address, T message) {
         requireAvailable();
@@ -186,6 +211,13 @@ public class DefaultEventBusService extends AbstractIdleService
         bridgeDispatch(address, message, false);
     }
 
+    /**
+     * Sends a message expecting at most one reply.
+     *
+     * @param address the event bus address
+     * @param message the message payload
+     * @param <T> the payload type
+     */
     @Override
     public <T> void send(String address, T message) {
         requireAvailable();
@@ -194,11 +226,28 @@ public class DefaultEventBusService extends AbstractIdleService
         bridgeDispatch(address, message, true);
     }
 
+    /**
+     * Sets the request, fluent style.
+     *
+     * @param address the request
+     * @param message the request
+     * @param responseType the request
+     * @return this instance
+     */
     @Override
     public <T, R> CompletableFuture<R> request(String address, T message, Class<R> responseType) {
         return request(address, message, responseType, DEFAULT_REQUEST_TIMEOUT_MS);
     }
 
+    /**
+     * Sets the request, fluent style.
+     *
+     * @param address the request
+     * @param message the request
+     * @param responseType the request
+     * @param timeoutMs the request
+     * @return this instance
+     */
     @Override
     public <T, R> CompletableFuture<R> request(
             String address, T message, Class<R> responseType, long timeoutMs) {
@@ -222,12 +271,27 @@ public class DefaultEventBusService extends AbstractIdleService
         return result;
     }
 
+    /**
+     * Sets the register consumer, fluent style.
+     *
+     * @param address the register consumer
+     * @param consumer the register consumer
+     * @return this instance
+     */
     @Override
     public <T> EventBusRegistration registerConsumer(
             String address, EventBusConsumer<T> consumer) {
         return registerConsumer(address, consumer, new EventBusConsumerOptions());
     }
 
+    /**
+     * Sets the register consumer, fluent style.
+     *
+     * @param address the register consumer
+     * @param consumer the register consumer
+     * @param options the register consumer
+     * @return this instance
+     */
     @Override
     public <T> EventBusRegistration registerConsumer(
             String address, EventBusConsumer<T> consumer, EventBusConsumerOptions options) {
@@ -244,6 +308,12 @@ public class DefaultEventBusService extends AbstractIdleService
         return handle;
     }
 
+    /**
+     * Sets the register codec, fluent style.
+     *
+     * @param codecName the codec name
+     * @param codec the message codec
+     */
     @Override
     public <T> void registerCodec(String codecName, EventBusCodec<T> codec) {
         codecs.put(codecName, codec);
@@ -317,6 +387,11 @@ public class DefaultEventBusService extends AbstractIdleService
         messagesPublished.incrementAndGet();
     }
 
+    /**
+     * Returns the metrics.
+     *
+     * @return the metrics, or null when unset
+     */
     @Override
     public EventBusMetrics getMetrics() {
         return new EventBusMetrics(
@@ -474,6 +549,10 @@ public class DefaultEventBusService extends AbstractIdleService
             this.address = address;
         }
 
+        /**
+         * Returns the unregister.
+         *
+         */
         @Override
         public void unregister() {
             if (active.compareAndSet(true, false)) {
@@ -481,11 +560,21 @@ public class DefaultEventBusService extends AbstractIdleService
             }
         }
 
+        /**
+         * Returns the address.
+         *
+         * @return the address, or null when unset
+         */
         @Override
         public String getAddress() {
             return address;
         }
 
+        /**
+         * Returns the active.
+         *
+         * @return the active, or null when unset
+         */
         @Override
         public boolean isActive() {
             return active.get() && registrations.containsKey(address);

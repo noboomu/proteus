@@ -15,29 +15,38 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/** Handler wrapper applying the configured Jackson JSON view to serialization. */
 @Singleton
 public class JsonViewWrapper implements HandlerWrapper
 {
+    /** Attachment key for the active JSON view class. */
     public static AttachmentKey<Class> JSON_VIEW_KEY = AttachmentKey.create(Class.class);
 
     private static final Logger logger = LoggerFactory.getLogger(JsonViewWrapper.class.getName());
 
+    /** the view_class_name. */
     @Named("jackson.jsonView.className")
     @Inject(optional = true)
     private static String VIEW_CLASS_NAME = null;
 
+    /** the default_view_class_name. */
     @Named("jackson.jsonView.defaultViewClass")
     @Inject(optional = true)
     private static String DEFAULT_VIEW_CLASS_NAME = null;
 
+    /** the query_parameter_name. */
+    /** the class_map. */
     @Named("jackson.jsonView.queryParameterName")
     @Inject(optional = true)
     private static String QUERY_PARAMETER_NAME = "context";
 
+    /** the class_map. */
     private Map<String, Class> CLASS_MAP = new ConcurrentHashMap<>();
 
+    /** the default view class. */
     private Class defaultViewClass = null;
 
+    /** Creates the wrapper and resolves the configured default view class. */
     public JsonViewWrapper()
     {
         super();
@@ -66,6 +75,12 @@ public class JsonViewWrapper implements HandlerWrapper
         }
     }
 
+    /**
+     * Sets the wrap, fluent style.
+     *
+     * @param handler the wrap
+     * @return this instance
+     */
     @Override
     public HttpHandler wrap(HttpHandler handler)
     {

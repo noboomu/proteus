@@ -33,5 +33,9 @@ public interface ModelConverterContext {
      */
     void defineModel(String name, Schema schema);
 
+    /** Returns the models defined so far.
+     *
+     * @return the defined models keyed by name
+     */
     java.util.Map<String, Schema> getDefinedModels();
 }

@@ -14,28 +14,43 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+/** Handler wrapper extracting an API key header into an exchange attachment. */
 @Singleton
+/** Handler wrapper extracting an API key header attachment. */
 public class HeaderApiKeyWrapper implements HandlerWrapper
 {
+    /** the logger. */
     private static final Logger logger = LoggerFactory.getLogger(HeaderApiKeyWrapper.class.getName());
 
+    /** throwable constant. */
     public static final AttachmentKey<Throwable> THROWABLE = AttachmentKey.create(Throwable.class);
 
+    /** the value. */
     @Inject
     @Named("openapi.securitySchemes.ApiKeyAuth.name")
     protected static String AUTH_KEY_NAME;
 
+    /** the value. */
+    /** the  a p i_ k e y_ h e a d e r. */
     @Inject(optional = true)
     @Named("security.apiKey")
     protected static String API_KEY;
 
+    /** the  a p i_ k e y_ h e a d e r. */
     private final HttpString API_KEY_HEADER;
 
+    /** Creates the wrapper with the configured API key header name. */
     public HeaderApiKeyWrapper()
     {
         API_KEY_HEADER = new HttpString(AUTH_KEY_NAME);
     }
 
+    /**
+     * Operates on the value.
+    *
+    * @param handler the value
+    * @return the result
+     */
     @Override
     public HttpHandler wrap(HttpHandler handler)
     {

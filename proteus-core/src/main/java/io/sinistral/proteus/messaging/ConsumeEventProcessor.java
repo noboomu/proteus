@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author jbauer
  */
+    /** Class logger. */
 @Singleton
 public class ConsumeEventProcessor {
 

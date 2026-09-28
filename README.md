@@ -1,6 +1,6 @@
 # Proteus
 
-Proteus is a minimal Java API framework built on Undertow. At startup it turns Jakarta REST controller methods into generated Undertow handlers, compiles them with SourceBuddy, and registers them on a `RoutingHandler`.
+Proteus is a minimal Java API framework built on Undertow. At startup it turns Jakarta REST controller methods into generated Undertow handlers, compiles them with the JDK compiler API (`javax.tools`), and registers them on a `RoutingHandler`.
 
 ## Requirements
 
@@ -15,10 +15,11 @@ Proteus uses Jackson 3 for databind, core, XML, and related modules under the
 
 ## Modules
 
-- `proteus-core`: Undertow integration, generated handlers, Guice, configuration, services, Jackson 3, and JWT security.
+- `proteus-core`: Undertow integration, generated handlers, Guice, configuration, services, Jackson 3, JWT security, and the messaging services: an embedded Vert.x event bus with an optional NATS bridge.
 - `proteus-openapi`: OpenAPI 3.1 generation and Swagger UI/ReDoc serving.
+- `proteus-websocket`: annotation-driven WebSocket endpoints on Undertow with a connection registry and server-initiated broadcast.
 
-Event Bus and WebSocket support are intentionally deferred. The current reactor does not publish or configure either feature.
+Messaging is a shipped surface. `proteus-core` embeds Vert.x core for the in-process event bus; the NATS bridge is disabled until `proteus.messaging.nats.enabled` is set.
 
 ## Build and test
 
@@ -153,6 +154,47 @@ If `start()` fails, acquired Undertow listener, managed-service, XNIO worker, po
 
 Use `shutdown()` for complete teardown. It stops Undertow, waits up to two seconds for managed services, terminates the application-owned XNIO worker, clears the application state, and removes the shutdown hook. `stop()` is Undertow-only and does not perform complete teardown.
 
+## Messaging
+
+Install `MessagingModule` before `start()` for the event bus and NATS bridge bindings:
+
+```java
+new ProteusApplication()
+    .addModule(io.sinistral.proteus.modules.MessagingModule.class)
+    .addController(ExampleController.class)
+    .start();
+```
+
+The event bus provides `publish`, `send`, `request` with timeout, consumer registration, and custom codecs through `EventBusService`. Guice singleton beans can declare consumers with `@ConsumeEvent("address")`, optionally `blocking`, `ordered`, or local-only.
+
+The NATS bridge forwards event bus traffic across processes when enabled:
+
+```hocon
+proteus.messaging.nats {
+  enabled = true
+  url = "nats://tachikoma:4232"
+  subjectPrefix = "proteus"  // publish fan-out on proteus.publish.>, send on proteus.send.> queue group
+  requestTimeoutMs = 5000
+  maxReconnects = 60
+  reconnectWaitMs = 2000
+  # auth.token = "..." or auth.username / auth.password
+}
+```
+
+## WebSocket
+
+Include `proteus-websocket` and install `WebSocketModule`. A Guice singleton annotated `@WebSocket("/path")` declares `@OnOpen`, `@OnMessage`, `@OnClose`, and `@OnError` methods. `WebSocketService` tracks connections per path and offers path-scoped broadcast futures.
+
+```hocon
+proteus.websocket {
+  maxFrameSizeBytes = 65536   // larger frames close with 1009
+  idleTimeoutMs = 300000
+  maxConnectionsPerPath = 0   // 0 disables the cap; over-cap opens close with 1013
+}
+```
+
+Handler exceptions close the connection with 1011.
+
 ## Dependencies
 
-Proteus uses Undertow, Guice, Typesafe Config, Jackson 3, JavaPoet, SourceBuddy, Nimbus JOSE + JWT, and Jakarta REST annotations. It does not use Spring.
+Proteus uses Undertow, Guice, Typesafe Config, Jackson 3, JavaPoet, the JDK compiler API, Nimbus JOSE + JWT, Vert.x core (event bus), jnats (NATS bridge), and Jakarta REST annotations. It does not use Spring.

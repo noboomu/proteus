@@ -6,11 +6,20 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.deser.std.StdDeserializer;
 
+/** Deserializes a Paths container, routing x- keys to extensions. */
 public final class PathsDeserializer extends StdDeserializer<Paths> {
+    /** Creates the deserializer for the Paths type. */
     public PathsDeserializer() {
         super(Paths.class);
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param parser the value
+    * @param context the value
+    * @return the result
+     */
     @Override
     public Paths deserialize(
         JsonParser parser,

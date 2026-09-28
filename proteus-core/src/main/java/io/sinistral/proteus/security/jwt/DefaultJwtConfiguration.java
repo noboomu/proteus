@@ -39,17 +39,29 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultJwtConfiguration.class);
 
+    /** the rsa public keys. */
     private final List<RSAPublicKey> rsaPublicKeys = new ArrayList<>();
+    /** the ec public keys. */
     private final List<ECPublicKey> ecPublicKeys = new ArrayList<>();
+    /** the hmac secrets. */
     private final List<byte[]> hmacSecrets = new ArrayList<>();
+    /** the allowed algorithms. */
     private final List<String> allowedAlgorithms;
+    /** the allowed issuers. */
     private final List<String> allowedIssuers;
+    /** the allowed audiences. */
     private final List<String> allowedAudiences;
+    /** the clock skew tolerance seconds. */
     private final long clockSkewToleranceSeconds;
+    /** the expiration required. */
     private final boolean expirationRequired;
+    /** the issuer required. */
     private final boolean issuerRequired;
+    /** the audience required. */
     private final boolean audienceRequired;
+    /** the max token age seconds. */
     private final long maxTokenAgeSeconds;
+    /** the signature verification required. */
     private final boolean signatureVerificationRequired;
 
     /**
@@ -285,61 +297,121 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
             """;
     }
 
+    /**
+     * Returns the rsa public keys.
+     *
+     * @return the rsa public keys, or null when unset
+     */
     @Override
     public List<RSAPublicKey> getRsaPublicKeys() {
         return List.copyOf(rsaPublicKeys);
     }
 
+    /**
+     * Returns the ec public keys.
+     *
+     * @return the ec public keys, or null when unset
+     */
     @Override
     public List<ECPublicKey> getEcPublicKeys() {
         return List.copyOf(ecPublicKeys);
     }
 
+    /**
+     * Returns the hmac secrets.
+     *
+     * @return the hmac secrets, or null when unset
+     */
     @Override
     public List<byte[]> getHmacSecrets() {
         return hmacSecrets.stream().map(byte[]::clone).toList();
     }
 
+    /**
+     * Returns the allowed algorithms.
+     *
+     * @return the allowed algorithms, or null when unset
+     */
     @Override
     public List<String> getAllowedAlgorithms() {
         return allowedAlgorithms;
     }
 
+    /**
+     * Returns the allowed issuers.
+     *
+     * @return the allowed issuers, or null when unset
+     */
     @Override
     public List<String> getAllowedIssuers() {
         return allowedIssuers;
     }
 
+    /**
+     * Returns the allowed audiences.
+     *
+     * @return the allowed audiences, or null when unset
+     */
     @Override
     public List<String> getAllowedAudiences() {
         return allowedAudiences;
     }
 
+    /**
+     * Returns the clock skew tolerance seconds.
+     *
+     * @return the clock skew tolerance seconds, or null when unset
+     */
     @Override
     public long getClockSkewToleranceSeconds() {
         return clockSkewToleranceSeconds;
     }
 
+    /**
+     * Returns the expiration required.
+     *
+     * @return the expiration required, or null when unset
+     */
     @Override
     public boolean isExpirationRequired() {
         return expirationRequired;
     }
 
+    /**
+     * Returns the issuer required.
+     *
+     * @return the issuer required, or null when unset
+     */
     @Override
     public boolean isIssuerRequired() {
         return issuerRequired;
     }
 
+    /**
+     * Returns the audience required.
+     *
+     * @return the audience required, or null when unset
+     */
     @Override
     public boolean isAudienceRequired() {
         return audienceRequired;
     }
 
+    /**
+     * Returns the max token age seconds.
+     *
+     * @return the max token age seconds, or null when unset
+     */
     @Override
     public long getMaxTokenAgeSeconds() {
         return maxTokenAgeSeconds;
     }
 
+    /**
+     * Returns the signature verification required.
+     *
+     * @return the signature verification required, or null when unset
+     */
     @Override
     public boolean isSignatureVerificationRequired() {
         return signatureVerificationRequired;

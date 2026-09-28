@@ -28,16 +28,20 @@ import tools.jackson.databind.ObjectWriter;
 import tools.jackson.dataformat.xml.XmlMapper;
 
 /**
- * @author jbauer
  * Base server response. Friendlier interface to underlying exchange.
+ *
+ * @param <T> the response body type
+ * @author jbauer
  */
 
 public class ServerResponse<T> {
 
+    /** the log. */
     private static Logger log = LoggerFactory.getLogger(
         ServerResponse.class.getCanonicalName()
     );
 
+    /** the rfc1123_pattern. */
     private static final String RFC1123_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z";
 
     private static final ThreadLocal<
@@ -46,52 +50,99 @@ public class ServerResponse<T> {
         DateTimeFormatter.ofPattern(RFC1123_PATTERN)
     );
 
+    /** the xml_mapper. */
     @Inject
     protected static XmlMapper XML_MAPPER;
 
+    /** the object_mapper. */
     @Inject
     protected static ObjectMapper OBJECT_MAPPER;
 
+    /** the writer_cache. */
     protected static Map<Class<?>, ObjectWriter> WRITER_CACHE =
         new ConcurrentHashMap<>();
 
+    /** the body. */
     protected ByteBuffer body;
 
+    /** the status. */
     protected int status = StatusCodes.OK;
+    /** the headers. */
     protected final HeaderMap headers = new HeaderMap();
+    /** the cookies. */
     protected final List<Cookie> cookies = new ArrayList<>();
+    /** the content type. */
     protected String contentType = MediaType.APPLICATION_JSON.contentType();
+    /** the entity. */
     protected T entity;
+    /** the throwable. */
     protected Throwable throwable;
     //	protected Class<? extends JsonContext> jsonContext;
+    /** the request method this response answers, or null. */
     protected HttpString method = null;
+    /** the io callback. */
     protected IoCallback ioCallback;
+    /** the has cookies. */
     protected boolean hasCookies = false;
+    /** the has headers. */
     protected boolean hasHeaders = false;
+    /** the has io callback. */
     protected boolean hasIoCallback = false;
+    /** the process xml. */
     protected boolean processXml = false;
+    /** the process json. */
     protected boolean processJson = false;
+    /** the preprocessed. */
     protected boolean preprocessed = false;
+    /** the location. */
     protected String location = null;
 
+    /** Creates an empty response. */
     public ServerResponse() {}
 
+    /**
+     * Returns the body.
+     *
+     * @return the body, or null when unset
+     */
     public ByteBuffer getBody() {
         return body;
     }
 
+    /**
+     * Returns the status.
+     *
+     * @return the status, or null when unset
+     */
     public int getStatus() {
         return this.status;
     }
 
+    /**
+     * Returns the cookies.
+     *
+     * @return the cookies, or null when unset
+     */
     public List<Cookie> getCookies() {
         return this.cookies;
     }
 
+    /**
+     * Returns the headers.
+     *
+     * @return the headers, or null when unset
+     */
     public HeaderMap getHeaders() {
         return this.headers;
     }
 
+    /**
+     * Adds an entry to the header.
+     *
+     * @param headerName the entry
+     * @param headerValue the entry
+    * @return the result
+     */
     public ServerResponse<T> addHeader(
         HttpString headerName,
         String headerValue
@@ -102,6 +153,13 @@ public class ServerResponse<T> {
         return this;
     }
 
+    /**
+     * Adds an entry to the header.
+     *
+     * @param headerString the entry
+     * @param headerValue the entry
+    * @return the result
+     */
     public ServerResponse<T> addHeader(
         String headerString,
         String headerValue
@@ -114,6 +172,13 @@ public class ServerResponse<T> {
         return this;
     }
 
+    /**
+     * Sets the header.
+     *
+     * @param headerName the header
+     * @param headerValue the header
+    * @return the result
+     */
     public ServerResponse<T> setHeader(
         HttpString headerName,
         String headerValue
@@ -124,6 +189,13 @@ public class ServerResponse<T> {
         return this;
     }
 
+    /**
+     * Sets the header.
+     *
+     * @param headerString the header
+     * @param headerValue the header
+    * @return the result
+     */
     public ServerResponse<T> setHeader(
         String headerString,
         String headerValue
@@ -137,6 +209,8 @@ public class ServerResponse<T> {
     }
 
     /**
+     * Returns the contentType.
+     *
      * @return the contentType
      */
     public String getContentType() {
@@ -144,6 +218,8 @@ public class ServerResponse<T> {
     }
 
     /**
+     * Returns the ioCallback.
+     *
      * @return the callback
      */
     public IoCallback getIoCallback() {
@@ -151,22 +227,26 @@ public class ServerResponse<T> {
     }
 
     /**
-     * @param ioCallback
-     *            the ioCallback to set
+     * Sets the ioCallback.
+     *
+     * @param ioCallback the ioCallback to set
      */
     public void setIoCallback(IoCallback ioCallback) {
         this.ioCallback = ioCallback;
     }
 
     /**
-     * @param body
-     *            the body to set
+     * Sets the body.
+     *
+     * @param body the body to set
      */
     public void setBody(ByteBuffer body) {
         this.body = body;
     }
 
     /**
+     * Sets the status.
+     *
      * @param status
      *            the status to set
      */
@@ -174,22 +254,46 @@ public class ServerResponse<T> {
         this.status = status;
     }
 
+    /**
+     * Sets the body, fluent style.
+     *
+     * @param body the body
+     * @return this instance
+     */
     public ServerResponse<T> body(ByteBuffer body) {
         this.body = body;
         this.preprocessed = true;
         return this;
     }
 
+    /**
+     * Sets the body, fluent style.
+     *
+     * @param body the body
+     * @return this instance
+     */
     public ServerResponse<T> body(byte[] body) {
         this.body = ByteBuffer.wrap(body);
         this.preprocessed = true;
         return this;
     }
 
+    /**
+     * Sets the body, fluent style.
+     *
+     * @param body the body
+     * @return this instance
+     */
     public ServerResponse<T> body(String body) {
         return this.body(ByteBuffer.wrap(body.getBytes()));
     }
 
+    /**
+     * Sets the entity, fluent style.
+     *
+     * @param entity the entity
+     * @return this instance
+     */
     public ServerResponse<T> entity(T entity) {
         this.entity = entity;
         this.preprocessed = false;
@@ -197,16 +301,34 @@ public class ServerResponse<T> {
         return this;
     }
 
+    /**
+     * Sets the method, fluent style.
+     *
+     * @param method the method
+     * @return this instance
+     */
     public ServerResponse<T> method(HttpString method) {
         this.method = method;
         return this;
     }
 
+    /**
+     * Sets the method, fluent style.
+     *
+     * @param method the method
+     * @return this instance
+     */
     public ServerResponse<T> method(String method) {
         this.method = Methods.fromString(method);
         return this;
     }
 
+    /**
+     * Sets the Last-Modified header from a date.
+     *
+     * @param date the last modified date
+     * @return this instance
+     */
     public ServerResponse<T> lastModified(Date date) {
         this.headers.put(Headers.LAST_MODIFIED, date.getTime());
         this.hasHeaders = true;
@@ -214,8 +336,10 @@ public class ServerResponse<T> {
     }
 
     /**
-     * @param instant
-     *            the instant to set
+     * Sets the Last-Modified header from an instant.
+     *
+     * @param instant the instant to set
+     * @return this instance
      */
     public ServerResponse<T> lastModified(Instant instant) {
         this.headers.put(
@@ -228,18 +352,36 @@ public class ServerResponse<T> {
         return this;
     }
 
+    /**
+     * Sets the content language, fluent style.
+     *
+     * @param locale the content language
+     * @return this instance
+     */
     public ServerResponse<T> contentLanguage(Locale locale) {
         this.headers.put(Headers.CONTENT_LANGUAGE, locale.toLanguageTag());
         this.hasHeaders = true;
         return this;
     }
 
+    /**
+     * Sets the content language, fluent style.
+     *
+     * @param language the content language
+     * @return this instance
+     */
     public ServerResponse<T> contentLanguage(String language) {
         this.headers.put(Headers.CONTENT_LANGUAGE, language);
         this.hasHeaders = true;
         return this;
     }
 
+    /**
+     * Sets the throwable, fluent style.
+     *
+     * @param throwable the throwable
+     * @return this instance
+     */
     public ServerResponse<T> throwable(Throwable throwable) {
         this.throwable = throwable;
 
@@ -250,17 +392,36 @@ public class ServerResponse<T> {
         return this;
     }
 
+    /**
+     * Sets the status, fluent style.
+     *
+     * @param status the status
+     * @return this instance
+     */
     public ServerResponse<T> status(int status) {
         this.status = status;
         return this;
     }
 
+    /**
+     * Sets the header, fluent style.
+     *
+     * @param headerName the header
+     * @param value the header
+     * @return this instance
+     */
     public ServerResponse<T> header(HttpString headerName, String value) {
         this.headers.put(headerName, value);
         this.hasHeaders = true;
         return this;
     }
 
+    /**
+     * Sets the cookie, fluent style.
+     *
+     * @param cookie the cookie
+     * @return this instance
+     */
     public ServerResponse<T> cookie(Cookie cookie) {
         this.cookies.add(cookie);
         this.hasCookies = true;
@@ -268,6 +429,8 @@ public class ServerResponse<T> {
     }
 
     /**
+     * Sets the contentType.
+     *
      * @param contentType
      *            the contentType to set
      */
@@ -289,16 +452,33 @@ public class ServerResponse<T> {
         }
     }
 
+    /**
+     * Sets the content type, fluent style.
+     *
+     * @param contentType the content type
+     * @return this instance
+     */
     public ServerResponse<T> contentType(String contentType) {
         this.setContentType(contentType);
         return this;
     }
 
+    /**
+     * Sets the content type, fluent style.
+     *
+     * @param mediaType the content type
+     * @return this instance
+     */
     public ServerResponse<T> contentType(MediaType mediaType) {
         this.setContentType(mediaType.contentType());
         return this;
     }
 
+    /**
+     * Returns the application json.
+     *
+     * @return the application json, or null when unset
+     */
     public ServerResponse<T> applicationJson() {
         if (!this.preprocessed) {
             this.processJson = true;
@@ -307,16 +487,31 @@ public class ServerResponse<T> {
         return this;
     }
 
+    /**
+     * Returns the text html.
+     *
+     * @return the text html, or null when unset
+     */
     public ServerResponse<T> textHtml() {
         this.contentType = MediaType.TEXT_HTML_UTF8.contentType();
         return this;
     }
 
+    /**
+     * Returns the application octet stream.
+     *
+     * @return the application octet stream, or null when unset
+     */
     public ServerResponse<T> applicationOctetStream() {
         this.contentType = MediaType.APPLICATION_OCTET_STREAM.contentType();
         return this;
     }
 
+    /**
+     * Returns the application xml.
+     *
+     * @return the application xml, or null when unset
+     */
     public ServerResponse<T> applicationXml() {
         if (!this.preprocessed) {
             this.processXml = true;
@@ -325,6 +520,11 @@ public class ServerResponse<T> {
         return this;
     }
 
+    /**
+     * Returns the text plain.
+     *
+     * @return the text plain, or null when unset
+     */
     public ServerResponse<T> textPlain() {
         this.contentType = MediaType.TEXT_PLAIN_UTF8.contentType();
         return this;
@@ -336,175 +536,373 @@ public class ServerResponse<T> {
     //		return this;
     //	}
 
+    /** Marks the response as 200 OK.
+     *
+     * @return this instance */
     public ServerResponse<T> ok() {
         this.status = StatusCodes.OK;
         return this;
     }
 
+    /**
+     * Sets the redirect, fluent style.
+     *
+     * @param location the redirect
+     * @return this instance
+     */
     public ServerResponse<T> redirect(String location) {
         this.location = location;
         this.status = StatusCodes.FOUND;
         return this;
     }
 
+    /**
+     * Sets the redirect, fluent style.
+     *
+     * @param location the redirect
+     * @param status the redirect
+     * @return this instance
+     */
     public ServerResponse<T> redirect(String location, int status) {
         this.location = location;
         this.status = status;
         return this;
     }
 
+    /**
+     * Sets the redirect permanently, fluent style.
+     *
+     * @param location the redirect permanently
+     * @return this instance
+     */
     public ServerResponse<T> redirectPermanently(String location) {
         this.location = location;
         this.status = StatusCodes.MOVED_PERMANENTLY;
         return this;
     }
 
+    /**
+     * Returns the found.
+     *
+     * @return the found, or null when unset
+     */
     public ServerResponse<T> found() {
         this.status = StatusCodes.FOUND;
         return this;
     }
 
+    /**
+     * Returns the accepted.
+     *
+     * @return the accepted, or null when unset
+     */
     public ServerResponse<T> accepted() {
         this.status = StatusCodes.ACCEPTED;
         return this;
     }
 
+    /**
+     * Returns the bad request.
+     *
+     * @return the bad request, or null when unset
+     */
     public ServerResponse<T> badRequest() {
         this.status = StatusCodes.BAD_REQUEST;
         return this;
     }
 
+    /**
+     * Sets the bad request, fluent style.
+     *
+     * @param t the bad request
+     * @return this instance
+     */
     public ServerResponse<T> badRequest(Throwable t) {
         this.throwable = t;
         return this.badRequest();
     }
 
+    /**
+     * Sets the bad request, fluent style.
+     *
+     * @param message the bad request
+     * @return this instance
+     */
     public ServerResponse<T> badRequest(String message) {
         return this.errorMessage(message).badRequest();
     }
 
+    /**
+     * Returns the internal server error.
+     *
+     * @return the internal server error, or null when unset
+     */
     public ServerResponse<T> internalServerError() {
         this.status = StatusCodes.INTERNAL_SERVER_ERROR;
         return this;
     }
 
+    /**
+     * Sets the internal server error, fluent style.
+     *
+     * @param t the internal server error
+     * @return this instance
+     */
     public ServerResponse<T> internalServerError(Throwable t) {
         this.throwable = t;
         return this.internalServerError();
     }
 
+    /**
+     * Sets the internal server error, fluent style.
+     *
+     * @param message the internal server error
+     * @return this instance
+     */
     public ServerResponse<T> internalServerError(String message) {
         return this.errorMessage(message).internalServerError();
     }
 
+    /**
+     * Returns the created.
+     *
+     * @return the created, or null when unset
+     */
     public ServerResponse<T> created() {
         this.status = StatusCodes.CREATED;
         return this;
     }
 
+    /**
+     * Sets the created, fluent style.
+     *
+     * @param location the created
+     * @return this instance
+     */
     public ServerResponse<T> created(String location) {
         this.status = StatusCodes.CREATED;
         this.location = location;
         return this;
     }
 
+    /**
+     * Sets the created, fluent style.
+     *
+     * @param uri the created
+     * @return this instance
+     */
     public ServerResponse<T> created(URI uri) {
         this.status = StatusCodes.CREATED;
         this.location = uri.toString();
         return this;
     }
 
+    /**
+     * Returns the not modified.
+     *
+     * @return the not modified, or null when unset
+     */
     public ServerResponse<T> notModified() {
         this.status = StatusCodes.NOT_MODIFIED;
         return this;
     }
 
+    /**
+     * Returns the not found.
+     *
+     * @return the not found, or null when unset
+     */
     public ServerResponse<T> notFound() {
         this.status = StatusCodes.NOT_FOUND;
         return this;
     }
 
+    /**
+     * Sets the not found, fluent style.
+     *
+     * @param t the not found
+     * @return this instance
+     */
     public ServerResponse<T> notFound(Throwable t) {
         this.throwable = t;
         return this.notFound();
     }
 
+    /**
+     * Sets the not found, fluent style.
+     *
+     * @param message the not found
+     * @return this instance
+     */
     public ServerResponse<T> notFound(String message) {
         return this.errorMessage(message).notFound();
     }
 
+    /**
+     * Returns the forbidden.
+     *
+     * @return the forbidden, or null when unset
+     */
     public ServerResponse<T> forbidden() {
         this.status = StatusCodes.FORBIDDEN;
         return this;
     }
 
+    /**
+     * Sets the forbidden, fluent style.
+     *
+     * @param t the forbidden
+     * @return this instance
+     */
     public ServerResponse<T> forbidden(Throwable t) {
         this.throwable = t;
         return this.forbidden();
     }
 
+    /**
+     * Sets the forbidden, fluent style.
+     *
+     * @param message the forbidden
+     * @return this instance
+     */
     public ServerResponse<T> forbidden(String message) {
         return this.errorMessage(message).forbidden();
     }
 
+    /**
+     * Returns the no content.
+     *
+     * @return the no content, or null when unset
+     */
     public ServerResponse<T> noContent() {
         this.status = StatusCodes.NO_CONTENT;
         return this;
     }
 
+    /**
+     * Sets the no content, fluent style.
+     *
+     * @param t the no content
+     * @return this instance
+     */
     public ServerResponse<T> noContent(Throwable t) {
         this.throwable = t;
         return this.noContent();
     }
 
+    /**
+     * Sets the no content, fluent style.
+     *
+     * @param message the no content
+     * @return this instance
+     */
     public ServerResponse<T> noContent(String message) {
         return this.errorMessage(message).noContent();
     }
 
+    /**
+     * Returns the service unavailable.
+     *
+     * @return the service unavailable, or null when unset
+     */
     public ServerResponse<T> serviceUnavailable() {
         this.status = StatusCodes.SERVICE_UNAVAILABLE;
         return this;
     }
 
+    /**
+     * Sets the service unavailable, fluent style.
+     *
+     * @param t the service unavailable
+     * @return this instance
+     */
     public ServerResponse<T> serviceUnavailable(Throwable t) {
         this.throwable = t;
         return this.serviceUnavailable();
     }
 
+    /**
+     * Sets the service unavailable, fluent style.
+     *
+     * @param message the service unavailable
+     * @return this instance
+     */
     public ServerResponse<T> serviceUnavailable(String message) {
         return this.errorMessage(message).serviceUnavailable();
     }
 
+    /**
+     * Returns the unauthorized.
+     *
+     * @return the unauthorized, or null when unset
+     */
     public ServerResponse<T> unauthorized() {
         this.status = StatusCodes.UNAUTHORIZED;
         return this;
     }
 
+    /**
+     * Sets the unauthorized, fluent style.
+     *
+     * @param t the unauthorized
+     * @return this instance
+     */
     public ServerResponse<T> unauthorized(Throwable t) {
         this.throwable = t;
         return this.unauthorized();
     }
 
+    /**
+     * Sets the unauthorized, fluent style.
+     *
+     * @param message the unauthorized
+     * @return this instance
+     */
     public ServerResponse<T> unauthorized(String message) {
         return this.errorMessage(message).unauthorized();
     }
 
+    /**
+     * Sets the error message, fluent style.
+     *
+     * @param message the error message
+     * @return this instance
+     */
     public ServerResponse<T> errorMessage(String message) {
         this.throwable = new Throwable(message);
         return this;
     }
 
+    /**
+     * Sets the io callback, fluent style.
+     *
+     * @param ioCallback the io callback
+     * @return this instance
+     */
     public ServerResponse<T> withIoCallback(IoCallback ioCallback) {
         this.ioCallback = ioCallback;
         this.hasIoCallback = ioCallback != null;
         return this;
     }
 
+    /**
+     * Sets the send, fluent style.
+     *
+     * @param exchange the send
+    * @throws RuntimeException when the operation fails
+     */
     public void send(final HttpServerExchange exchange)
         throws RuntimeException {
         send(null, exchange);
     }
 
+    /**
+     * Sets the send, fluent style.
+     *
+     * @param handler the send
+     * @param exchange the send
+    * @throws RuntimeException when the operation fails
+     */
     public void send(
         final HttpHandler handler,
         final HttpServerExchange exchange
@@ -682,26 +1080,52 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Creates builder to build {@link ServerResponse}.
+     * Creates an empty response for the given type.
      *
-     * @return created builder
+     * @param clazz the entity class
+     * @param <T> the entity type
+     * @return created response
      */
     public static <T> ServerResponse<T> response(Class<T> clazz) {
         return new ServerResponse<T>();
     }
 
+    /**
+     * Creates a response wrapping a byte buffer body.
+     *
+     * @param body the body buffer
+     * @return the response
+     */
     public static ServerResponse<ByteBuffer> response(ByteBuffer body) {
         return new ServerResponse<ByteBuffer>().body(body);
     }
 
+    /**
+     * Creates a response wrapping a string body.
+     *
+     * @param body the body string
+     * @return the response
+     */
     public static ServerResponse<ByteBuffer> response(String body) {
         return new ServerResponse<ByteBuffer>().body(body);
     }
 
+    /**
+     * Creates a response wrapping an entity.
+     *
+     * @param entity the response entity
+     * @param <T> the entity type
+     * @return the response
+     */
     public static <T> ServerResponse<T> response(T entity) {
         return new ServerResponse<T>().entity(entity);
     }
 
+    /**
+     * Returns the response.
+     *
+     * @return the response, or null when unset
+     */
     @SuppressWarnings("rawtypes")
     public static ServerResponse response() {
         return new ServerResponse();

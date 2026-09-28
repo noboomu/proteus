@@ -20,6 +20,10 @@ import java.util.ServiceLoader;
  * @since 0.9.5
  */
 public class OpenAPIExtensions {
+
+    /** Creates the object. */
+    public OpenAPIExtensions() {}
+    /** the extensions. */
     private static List<OpenAPIExtension> extensions = new ArrayList<>();
 
     static {

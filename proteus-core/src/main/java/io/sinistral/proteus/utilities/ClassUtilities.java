@@ -12,14 +12,33 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Reflection helpers for generating variable names and type references from generic types
+ * during handler generation.
+ *
+ * @author jbauer
+ */
 public class ClassUtilities {
 
     private static final Logger logger = LoggerFactory.getLogger(ClassUtilities.class.getName());
+    /** the type_name_pattern. */
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)+", Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+    /** the concurrent_type_name_pattern. */
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
+    /** the class_name_pattern. */
     private static final Pattern CLASS_NAME_PATTERN = Pattern.compile("([^<>,\\s]+)+", Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
     static Map<TypeToken<?>, List<TypeToken<?>>> typeTokenMap = new LinkedHashMap<>();
 
+    /** Default constructor for static-only use. */
+    public ClassUtilities() {}
+
+    /**
+     * Generates a unique variable name for a type token, incorporating its generic parameters.
+     *
+     * @param typeToken the type to name
+     * @return the generated variable name, or null when the token has no name mapping
+     * @throws Exception when generic parameters cannot be resolved
+     */
     public static String generateVariableName(TypeToken<?> typeToken) throws Exception {
 
         Collection<TypeToken<?>> typeTokenList = getGenericParameterTypeTokens(typeToken);
@@ -115,6 +134,12 @@ public class ClassUtilities {
     }
 
 
+    /**
+     * Returns a name for a parameterized type suitable for a generated TypeReference constant.
+     *
+     * @param type the parameterized type to name
+     * @return the generated reference name
+     */
     public static String typeReferenceNameForParameterizedType(Type type) {
 
         //  logger.info("creating name for reference: {}", type);

@@ -21,6 +21,7 @@ import java.util.Set;
  */
 public class MapIdentityManager implements IdentityManager
 {
+    /** the identities. */
     private final Map<String, char[]> identities;
 
     /**
@@ -33,6 +34,12 @@ public class MapIdentityManager implements IdentityManager
         this.identities = identities;
     }
 
+    /**
+     * Sets the verify, fluent style.
+     *
+     * @param account the verify
+     * @return this instance
+     */
     @Override
     public Account verify(Account account)
     {
@@ -40,6 +47,12 @@ public class MapIdentityManager implements IdentityManager
         return account;
     }
 
+    /**
+     * Sets the verify, fluent style.
+     *
+     * @param credential the verify
+     * @return this instance
+     */
     @Override
     public Account verify(Credential credential)
     {
@@ -47,6 +60,13 @@ public class MapIdentityManager implements IdentityManager
         return null;
     }
 
+    /**
+     * Sets the verify, fluent style.
+     *
+     * @param id the verify
+     * @param credential the verify
+     * @return this instance
+     */
     @Override
     public Account verify(String id, Credential credential)
     {
@@ -82,13 +102,20 @@ public class MapIdentityManager implements IdentityManager
 
     private static class UserAccount implements Account
     {
+        /** the serial version uid. */
         private static final long serialVersionUID = -8234851531206339721L;
+        /** the principal. */
         private final Principal principal;
 
         public UserAccount(String id)
         {
             principal = new Principal()
             {
+                /**
+                 * Returns the name.
+                 *
+                 * @return the name, or null when unset
+                 */
                 @Override
                 public String getName()
                 {
@@ -97,12 +124,22 @@ public class MapIdentityManager implements IdentityManager
             };
         }
 
+        /**
+         * Returns the principal.
+         *
+         * @return the principal, or null when unset
+         */
         @Override
         public Principal getPrincipal()
         {
             return principal;
         }
 
+        /**
+         * Returns the roles.
+         *
+         * @return the roles, or null when unset
+         */
         @Override
         public Set<String> getRoles()
         {

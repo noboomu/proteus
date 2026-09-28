@@ -29,8 +29,10 @@ import java.util.Optional;
 public class SecurityProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityProcessor.class);
+    /** the security_context_attribute. */
     private static final String SECURITY_CONTEXT_ATTRIBUTE = "proteus.security.context";
 
+    /** the jwt service. */
     private final JwtService jwtService;
 
     /**

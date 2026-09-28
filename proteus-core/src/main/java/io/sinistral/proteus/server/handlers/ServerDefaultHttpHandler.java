@@ -16,22 +16,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Terminal handler that renders a not-found response when no route matched.
+ *
  * @author jbauer
  */
 public class ServerDefaultHttpHandler implements HttpHandler {
 
+    /** the log. */
     private static final Logger log = LoggerFactory.getLogger(
         ServerDefaultHttpHandler.class
     );
 
+    /** the headers. */
     protected final HeaderMap headers = new HeaderMap();
 
+    /** the default response listener. */
     @Inject(optional = true)
     protected DefaultResponseListener defaultResponseListener;
 
+    /** the next. */
     @Inject
     protected volatile RoutingHandler next;
 
+    /** Creates the handler reading global headers from config.
+     *
+     * @param config the application config */
     @Inject
     public ServerDefaultHttpHandler(Config config) {
         Config globalHeaders = config.getConfig("globalHeaders");
@@ -53,9 +62,11 @@ public class ServerDefaultHttpHandler implements HttpHandler {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see io.undertow.server.HttpHandler#handleRequest(io.undertow.server.HttpServerExchange)
+    /**
+     * Applies global headers and forwards to the next handler.
+     *
+     * @param exchange the server exchange
+     * @throws Exception when handling fails
      */
     @Override
     public void handleRequest(final HttpServerExchange exchange)

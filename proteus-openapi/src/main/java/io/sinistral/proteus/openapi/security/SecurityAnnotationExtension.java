@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SecurityAnnotationExtension extends AbstractOpenAPIExtension {
 
+    /** the logger. */
     private static final Logger logger = LoggerFactory.getLogger(
         SecurityAnnotationExtension.class
     );
@@ -26,6 +27,13 @@ public class SecurityAnnotationExtension extends AbstractOpenAPIExtension {
     /** Creates an extension that documents the effective Proteus endpoint policy. */
     public SecurityAnnotationExtension() {}
 
+    /**
+     * Processes this element.
+    *
+    * @param operation the value
+    * @param method the value
+    * @param chain the value
+     */
     @Override
     public void decorateOperation(
         Operation operation,

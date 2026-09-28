@@ -70,14 +70,28 @@ import java.util.UUID;
  * and Jakarta Validation annotations into Proteus' OpenAPI model.</p>
  */
 public final class JacksonModelResolver implements ModelConverter {
+    /** the  c o m p o n e n t_ p r e f i x. */
     private static final String COMPONENT_PREFIX = "#/components/schemas/";
 
+    /** the mapper. */
     private final ObjectMapper mapper;
 
+    /** Creates the resolver with a mapper.
+     *
+     * @param mapper the Jackson mapper
+     */
     public JacksonModelResolver(ObjectMapper mapper) {
         this.mapper = mapper;
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param annotatedType the value
+    * @param context the value
+    * @param next the value
+    * @return the result
+     */
     @Override
     public Schema resolve(
         AnnotatedType annotatedType,
@@ -831,11 +845,21 @@ public final class JacksonModelResolver implements ModelConverter {
         if (view == null) return null;
         return new JsonView() {
             @Override
+            /**
+             * Returns the value.
+             *
+             * @return the value, or null when unset
+             */
             public Class<?>[] value() {
                 return new Class<?>[] {view};
             }
 
             @Override
+            /**
+             * Processes this element.
+            *
+            * @return the result
+             */
             public Class<? extends Annotation> annotationType() {
                 return JsonView.class;
             }

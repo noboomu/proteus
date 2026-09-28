@@ -12,9 +12,18 @@ import io.sinistral.proteus.messaging.nats.NatsBridgeService;
  *
  * @author jbauer
  */
+/** Guice module that binds the messaging event bus services. */
 @Singleton
 public class MessagingModule extends AbstractModule {
 
+    /** Creates the module. */
+    public MessagingModule() {
+    }
+
+    /**
+     * Binds the event bus and optional NATS bridge services.
+     *
+     */
     @Override
     protected void configure() {
         bind(EventBusService.class).to(DefaultEventBusService.class).in(Singleton.class);

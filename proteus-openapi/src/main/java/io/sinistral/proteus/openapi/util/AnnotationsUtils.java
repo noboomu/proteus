@@ -14,12 +14,20 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 
 /**
- * Utilities for processing OpenAPI annotations
+ * Utilities for processing OpenAPI annotations.
  */
 public class AnnotationsUtils {
 
+    /** Default constructor for static-only use. */
+    public AnnotationsUtils() {}
+
     /**
-     * Get annotation of specific type from array
+     * Get annotation of specific type from array.
+     *
+     * @param <T> the annotation type
+     * @param annotationClass the annotation class to look for
+     * @param annotations the candidate annotations, may be null
+     * @return the first matching annotation, or null when absent
      */
     public static <T extends Annotation> T getAnnotation(Class<T> annotationClass, Annotation[] annotations) {
         if (annotations == null || annotationClass == null) {
@@ -34,7 +42,10 @@ public class AnnotationsUtils {
     }
 
     /**
-     * Process Info annotation
+     * Process Info annotation.
+     *
+     * @param infoAnnotation the source annotation, may be null
+     * @return the converted info, or empty when the annotation is null
      */
     public static Optional<Info> getInfo(io.swagger.v3.oas.annotations.info.Info infoAnnotation) {
         if (infoAnnotation == null) {
@@ -69,7 +80,10 @@ public class AnnotationsUtils {
     }
 
     /**
-     * Process ExternalDocumentation annotation
+     * Process ExternalDocumentation annotation.
+     *
+     * @param annotation the source annotation, may be null
+     * @return the converted document, or empty when nothing is specified
      */
     public static Optional<ExternalDocumentation> getExternalDocumentation(
         io.swagger.v3.oas.annotations.ExternalDocumentation annotation
@@ -98,7 +112,11 @@ public class AnnotationsUtils {
     }
 
     /**
-     * Process Tag annotations
+     * Process Tag annotations.
+     *
+     * @param annotations the source annotations, may be null
+     * @param skipEmpty true to drop tags with no description or external docs
+     * @return the converted tags, or empty when none remain
      */
     public static Optional<List<Tag>> getTags(io.swagger.v3.oas.annotations.tags.Tag[] annotations, boolean skipEmpty) {
         if (annotations == null || annotations.length == 0) {
@@ -135,7 +153,10 @@ public class AnnotationsUtils {
     }
 
     /**
-     * Process Server annotations
+     * Process Server annotations.
+     *
+     * @param annotations the source annotations, may be null
+     * @return the converted servers, or empty when none are specified
      */
     public static Optional<List<Server>> getServers(io.swagger.v3.oas.annotations.servers.Server[] annotations) {
         if (annotations == null || annotations.length == 0) {
@@ -150,6 +171,12 @@ public class AnnotationsUtils {
         return servers.isEmpty() ? Optional.empty() : Optional.of(servers);
     }
 
+    /**
+     * Process a single Server annotation.
+     *
+     * @param serverAnnotation the source annotation, may be null
+     * @return the converted server, or empty when nothing is specified
+     */
     public static Optional<Server> getServer(
         io.swagger.v3.oas.annotations.servers.Server serverAnnotation
     ) {
@@ -187,7 +214,10 @@ public class AnnotationsUtils {
     }
 
     /**
-     * Get extensions from Extension annotations
+     * Get extensions from Extension annotations.
+     *
+     * @param annotations the source annotations, may be null
+     * @return the parsed extension map, empty when none are specified
      */
     public static Map<String, Object> getExtensions(io.swagger.v3.oas.annotations.extensions.Extension[] annotations) {
         Map<String, Object> extensions = new LinkedHashMap<>();
@@ -229,7 +259,12 @@ public class AnnotationsUtils {
     }
 
     /**
-     * Apply media types to content
+     * Apply media types to content.
+     *
+     * @param classTypes the class-level media types, used when the method types are empty
+     * @param methodTypes the method-level media types, take precedence when non-empty
+     * @param content the target content object, mutated in place
+     * @param mediaType the media type to register for each selected type
      */
     public static void applyTypes(
         String[] classTypes,

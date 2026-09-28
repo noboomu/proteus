@@ -23,21 +23,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Much of this is taken with reverence from Jooby
+ * Guice module that loads Typesafe Config and binds every configuration value as a named
+ * constant or nested {@link Config}, with reference defaults as fallback.
+ *
+ * <p>Much of this is taken with reverence from Jooby.
  *
  * @author jbauer
  */
 @Singleton
 public class ConfigModule extends AbstractModule {
 
+    /** the log. */
     private static Logger log = LoggerFactory.getLogger(
         ConfigModule.class.getCanonicalName()
     );
 
+    /** Config file path, or null when a URL or default resolution is used. */
     protected String configFile = null;
+    /** Config URL, or null when a file path or default resolution is used. */
     protected URL configURL = null;
+    /** The merged configuration bound by this module, or null before configure runs. */
     protected Config config = null;
 
+    /** Creates a module that loads {@code config.file} or {@code application.conf}. */
     public ConfigModule() {
         this.configFile = System.getProperty("config.file");
 
@@ -46,18 +54,38 @@ public class ConfigModule extends AbstractModule {
         }
     }
 
+    /**
+     * Creates a module that loads the config file at the given path.
+     *
+     * @param configFile the config file path relative to the working directory
+     */
     public ConfigModule(String configFile) {
         this.configFile = configFile;
     }
 
+    /**
+     * Creates a module that loads the config at the given URL.
+     *
+     * @param configURL the config resource URL
+     */
     public ConfigModule(URL configURL) {
         this.configURL = configURL;
     }
 
+    /**
+     * Returns the merged configuration, or null before {@link #configure()} ran.
+     *
+     * @return the bound configuration
+     */
     public Config getConfig() {
         return config;
     }
 
+    /**
+     * Replaces the exposed configuration.
+     *
+     * @param config the configuration to expose
+     */
     public void setConfig(Config config) {
         this.config = config;
     }
@@ -101,6 +129,10 @@ public class ConfigModule extends AbstractModule {
         this.binder().bind(Config.class).toInstance(config);
     }
 
+    /**
+     * Returns the configure.
+     *
+     */
     @Override
     protected void configure() {
         Config config = ConfigFactory.defaultApplication();

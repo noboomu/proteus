@@ -30,8 +30,11 @@ public class DefaultJsonWebToken implements JsonWebToken {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultJsonWebToken.class);
 
+    /** the raw token. */
     private final String rawToken;
+    /** the signed jwt. */
     private final SignedJWT signedJWT;
+    /** the claims set. */
     private final JWTClaimsSet claimsSet;
 
     /**
@@ -110,45 +113,86 @@ public class DefaultJsonWebToken implements JsonWebToken {
         }
     }
 
+    /**
+     * Returns the issuer.
+     *
+     * @return the issuer, or null when unset
+     */
     @Override
     public Optional<String> getIssuer() {
         return Optional.ofNullable(claimsSet.getIssuer());
     }
 
+    /**
+     * Returns the subject.
+     *
+     * @return the subject, or null when unset
+     */
     @Override
     public Optional<String> getSubject() {
         return Optional.ofNullable(claimsSet.getSubject());
     }
 
+    /**
+     * Returns the audience.
+     *
+     * @return the audience, or null when unset
+     */
     @Override
     public List<String> getAudience() {
         List<String> audience = claimsSet.getAudience();
         return audience != null ? audience : List.of();
     }
 
+    /**
+     * Returns the expiration time.
+     *
+     * @return the expiration time, or null when unset
+     */
     @Override
     public Optional<Instant> getExpirationTime() {
         Date exp = claimsSet.getExpirationTime();
         return exp != null ? Optional.of(exp.toInstant()) : Optional.empty();
     }
 
+    /**
+     * Returns the not before.
+     *
+     * @return the not before, or null when unset
+     */
     @Override
     public Optional<Instant> getNotBefore() {
         Date nbf = claimsSet.getNotBeforeTime();
         return nbf != null ? Optional.of(nbf.toInstant()) : Optional.empty();
     }
 
+    /**
+     * Returns the issued at.
+     *
+     * @return the issued at, or null when unset
+     */
     @Override
     public Optional<Instant> getIssuedAt() {
         Date iat = claimsSet.getIssueTime();
         return iat != null ? Optional.of(iat.toInstant()) : Optional.empty();
     }
 
+    /**
+     * Returns the jwt id.
+     *
+     * @return the jwt id, or null when unset
+     */
     @Override
     public Optional<String> getJwtId() {
         return Optional.ofNullable(claimsSet.getJWTID());
     }
 
+    /**
+     * Returns the claim as string.
+     *
+     * @return the claim as string, or null when unset
+    * @param claimName the value
+     */
     @Override
     public Optional<String> getClaimAsString(String claimName) {
         try {
@@ -159,6 +203,12 @@ public class DefaultJsonWebToken implements JsonWebToken {
         }
     }
 
+    /**
+     * Returns the claim as long.
+     *
+     * @return the claim as long, or null when unset
+    * @param claimName the value
+     */
     @Override
     public Optional<Long> getClaimAsLong(String claimName) {
         try {
@@ -170,6 +220,12 @@ public class DefaultJsonWebToken implements JsonWebToken {
         }
     }
 
+    /**
+     * Returns the claim as boolean.
+     *
+     * @return the claim as boolean, or null when unset
+    * @param claimName the value
+     */
     @Override
     public Optional<Boolean> getClaimAsBoolean(String claimName) {
         try {
@@ -181,6 +237,12 @@ public class DefaultJsonWebToken implements JsonWebToken {
         }
     }
 
+    /**
+     * Returns the claim as string list.
+     *
+     * @return the claim as string list, or null when unset
+    * @param claimName the value
+     */
     @Override
     public List<String> getClaimAsStringList(String claimName) {
         try {
@@ -192,16 +254,32 @@ public class DefaultJsonWebToken implements JsonWebToken {
         }
     }
 
+    /**
+     * Returns the claim.
+     *
+     * @return the claim, or null when unset
+    * @param claimName the value
+     */
     @Override
     public Optional<Object> getClaim(String claimName) {
         return Optional.ofNullable(claimsSet.getClaim(claimName));
     }
 
+    /**
+     * Returns the claim names.
+     *
+     * @return the claim names, or null when unset
+     */
     @Override
     public Set<String> getClaimNames() {
         return claimsSet.getClaims().keySet();
     }
 
+    /**
+     * Returns the valid.
+     *
+     * @return the valid, or null when unset
+     */
     @Override
     public boolean isValid() {
         Instant now = Instant.now();
@@ -221,6 +299,11 @@ public class DefaultJsonWebToken implements JsonWebToken {
         return true;
     }
 
+    /**
+     * Returns the expired.
+     *
+     * @return the expired, or null when unset
+     */
     @Override
     public boolean isExpired() {
         return getExpirationTime()
@@ -228,6 +311,11 @@ public class DefaultJsonWebToken implements JsonWebToken {
             .orElse(false);
     }
 
+    /**
+     * Returns the raw token.
+     *
+     * @return the raw token, or null when unset
+     */
     @Override
     public String getRawToken() {
         return rawToken;
@@ -251,6 +339,11 @@ public class DefaultJsonWebToken implements JsonWebToken {
         return claimsSet;
     }
 
+    /**
+     * Returns the to string.
+     *
+     * @return the to string, or null when unset
+     */
     @Override
     public String toString() {
         return "JsonWebToken{" +

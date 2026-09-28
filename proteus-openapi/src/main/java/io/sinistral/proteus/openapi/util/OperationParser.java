@@ -26,6 +26,16 @@ import java.util.Optional;
 public final class OperationParser {
     private OperationParser() {}
 
+    /**
+     * Returns the request body.
+     *
+     * @return the request body, or null when unset
+    * @param annotation the value
+    * @param classConsumes the value
+    * @param methodConsumes the value
+    * @param components the value
+    * @param jsonViewAnnotation the value
+     */
     public static Optional<RequestBody> getRequestBody(
         io.swagger.v3.oas.annotations.parameters.RequestBody annotation,
         jakarta.ws.rs.Consumes classConsumes,
@@ -76,6 +86,16 @@ public final class OperationParser {
         return Optional.of(requestBody);
     }
 
+    /**
+     * Returns the api responses value.
+     *
+     * @return the api responses value, or null when unset
+    * @param annotations the value
+    * @param classProduces the value
+    * @param methodProduces the value
+    * @param components the value
+    * @param jsonViewAnnotation the value
+     */
     public static Optional<ApiResponses> getApiResponses(
         io.swagger.v3.oas.annotations.responses.ApiResponse[] annotations,
         jakarta.ws.rs.Produces classProduces,

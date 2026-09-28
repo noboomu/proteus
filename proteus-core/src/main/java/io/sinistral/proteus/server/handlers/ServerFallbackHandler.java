@@ -14,15 +14,29 @@ import io.undertow.util.Headers;
 import io.undertow.util.StatusCodes;
 
 /**
+ * Fallback handler invoked when no registered route matches, rendering a 404 response.
+ *
  * @author jbauer
  */
 public class ServerFallbackHandler implements HttpHandler
 {
+    /** Creates the fallback handler. */
+    public ServerFallbackHandler() {
+    }
+
+    /** the xml mapper. */
     @Inject
     protected XmlMapper xmlMapper;
+    /** the object mapper. */
     @Inject
     protected ObjectMapper objectMapper;
 
+    /**
+     * Sets the handle request, fluent style.
+     *
+     * @param exchange the handle request
+    * @throws Exception when the operation fails
+     */
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception
     {
@@ -57,8 +71,10 @@ public class ServerFallbackHandler implements HttpHandler
 
     private class Message
     {
+        /** the status code. */
         @SuppressWarnings("unused")
         public final Integer statusCode;
+        /** the reason. */
         @SuppressWarnings("unused")
         public final String reason;
 

@@ -30,22 +30,28 @@ public class AssetsService extends DefaultService implements Supplier<RoutingHan
 
     private static final Logger log = LoggerFactory.getLogger(AssetsService.class.getName());
 
+    /** Registry of discovered endpoints used to skip asset-shadowed routes. */
     @Inject
     @Named("registeredEndpoints")
     protected Set<EndpointInfo> registeredEndpoints;
+    /** The application routing handler to extend with asset routes. */
     @Inject
     protected RoutingHandler router;
+    /** The {@code assets} configuration block. */
     @Inject
     @Named("assets")
     protected Config serviceConfig;
 
-    /**
-     *
-     */
+    /** Creates the assets service, invoked by Guice. */
     public AssetsService()
     {
     }
 
+    /**
+     * Returns the start up.
+     *
+    * @throws Exception when the operation fails
+     */
     @Override
     protected void startUp() throws Exception
     {
@@ -53,6 +59,11 @@ public class AssetsService extends DefaultService implements Supplier<RoutingHan
         router.addAll(this.get());
     }
 
+    /**
+     * Returns the get.
+     *
+     * @return the get, or null when unset
+     */
     public RoutingHandler get()
     {
         RoutingHandler router = new RoutingHandler();

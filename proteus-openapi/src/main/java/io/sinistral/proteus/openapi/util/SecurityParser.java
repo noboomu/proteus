@@ -15,13 +15,23 @@ import java.util.Optional;
  */
 public class SecurityParser {
 
+    /** Creates the object. */
+    public SecurityParser() {}
+
     /**
      * Container for security scheme with its key
      */
     public static class SecuritySchemePair {
+        /** the value. */
         public String key;
+        /** the value. */
         public SecurityScheme securityScheme;
 
+        /** Creates a pair.
+         *
+         * @param key the scheme key
+         * @param securityScheme the scheme value
+         */
         public SecuritySchemePair(String key, SecurityScheme securityScheme) {
             this.key = key;
             this.securityScheme = securityScheme;
@@ -30,6 +40,9 @@ public class SecurityParser {
 
     /**
      * Get SecurityScheme from annotation
+    *
+    * @param annotation the value
+    * @return the result
      */
     public static Optional<SecuritySchemePair> getSecurityScheme(
         io.swagger.v3.oas.annotations.security.SecurityScheme annotation
@@ -147,6 +160,9 @@ public class SecurityParser {
 
     /**
      * Get SecurityRequirements from annotations
+    *
+    * @param annotations the value
+    * @return the result
      */
     public static Optional<List<SecurityRequirement>> getSecurityRequirements(
         io.swagger.v3.oas.annotations.security.SecurityRequirement[] annotations

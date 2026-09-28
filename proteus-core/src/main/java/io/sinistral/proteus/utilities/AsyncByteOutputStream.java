@@ -114,7 +114,6 @@ public class AsyncByteOutputStream extends OutputStream {
      * Writes <code>len</code> bytes from the specified byte array
      * starting at offset <code>off</code> to this byte array output stream.
      *
-     * @param b   the data.
      * @param off the start offset in the data.
      * @param len the number of bytes to write.
      */
@@ -253,6 +252,8 @@ public class AsyncByteOutputStream extends OutputStream {
      * Closing this output stream has no effect. The methods in
      * this class can be called after the stream has been closed without
      * generating an {@code IOException}.
+    *
+    * @throws IOException when the operation fails
      */
     public void close() throws IOException {
 

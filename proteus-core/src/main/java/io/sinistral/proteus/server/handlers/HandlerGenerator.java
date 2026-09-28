@@ -100,59 +100,81 @@ public class HandlerGenerator {
             Pattern.CASE_INSENSITIVE
         );
 
+    /** the type_name_pattern. */
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile(
         "(java\\.util\\.[A-Za-z]+)<([^>]+)",
         Pattern.DOTALL | Pattern.UNIX_LINES
     );
 
+    /** the concurrent_type_name_pattern. */
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile(
         "(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)",
         Pattern.DOTALL | Pattern.UNIX_LINES
     );
 
+    /** the tmp_directory. */
     private static java.nio.file.Path TMP_DIRECTORY = null;
 
+    /** Kind of value a generated statement parameter carries. */
     public enum StatementParameterType {
+        /** Quoted string literal. */
         STRING,
+        /** Raw Java literal or expression. */
         LITERAL,
+        /** Fully qualified type reference. */
         TYPE,
+        /** Unprocessed text. */
         RAW,
     }
 
+    /** The configured application base path. */
+    /** Package name for generated classes. */
     @Inject
     @Named("application.path")
     protected String applicationPath;
 
+    /** Package name for generated classes. */
     protected String packageName;
 
+    /** Fully qualified name of the generated class. */
     protected String canonicalName;
 
+    /** Simple name of the generated class. */
     protected String className;
 
+    /** The most recently generated source text. */
     protected String sourceString;
 
+    /** Registry of discovered endpoints. */
+    /** The controller class handlers are generated from. */
     @Inject
     @Named("registeredEndpoints")
     protected Set<EndpointInfo> registeredEndpoints;
 
+    /** The controller class handlers are generated from. */
     protected Class<?> controllerClass;
 
+    /** Wrapper instance names injected into generated code. */
     protected Set<String> injectedHandlerWrappers = new HashSet<>();
 
+    /** Named handler wrapper instances available for injection. */
     @Inject
     @Named("registeredHandlerWrappers")
     protected Map<String, HandlerWrapper> registeredHandlerWrappers;
 
+    /** Map of wrapper names to wrapper types. */
     protected Map<
         String,
         Class<? extends HandlerWrapper>
     > registeredWrapperTypes = new HashMap<>();
 
+    /** Map of wrapper types to their class-level wrapper names. */
     protected Map<
         Class<? extends HandlerWrapper>,
         String
     > typeLevelHandlerWrapperMap = new LinkedHashMap<>();
 
+    /** Cache of resolved Guava type tokens per reflection type. */
     final Map<Type, TypeToken<?>> typeTokenMap = new ConcurrentHashMap<>();
 
     /**
@@ -176,6 +198,11 @@ public class HandlerGenerator {
         );
     }
 
+    /**
+     * Returns the fully qualified name of the generated class.
+     *
+     * @return the canonical class name
+     */
     public String getCanonicalName() {
         return canonicalName;
     }
@@ -308,6 +335,12 @@ public class HandlerGenerator {
         return this.sourceString;
     }
 
+    /** Adds generated handler methods for each annotated controller method.
+     *
+     * @param typeBuilder the target type builder
+     * @param clazz the controller class
+     * @throws Exception when method inspection or generation fails
+     */
     protected void addClassMethodHandlers(
         TypeSpec.Builder typeBuilder,
         Class<?> clazz
@@ -1689,6 +1722,8 @@ public class HandlerGenerator {
     }
 
     /**
+     * Returns the package name for generated classes.
+     *
      * @return the packageName
      */
     public String getPackageName() {
@@ -1696,6 +1731,8 @@ public class HandlerGenerator {
     }
 
     /**
+     * Sets the package name for generated classes.
+     *
      * @param packageName the packageName to set
      */
     public void setPackageName(String packageName) {
@@ -1703,6 +1740,8 @@ public class HandlerGenerator {
     }
 
     /**
+     * Returns the simple name of the generated class.
+     *
      * @return the className
      */
     public String getClassName() {
@@ -1710,12 +1749,20 @@ public class HandlerGenerator {
     }
 
     /**
+     * Sets the simple name of the generated class.
+     *
      * @param className the className to set
      */
     public void setClassName(String className) {
         this.className = className;
     }
 
+    /** Scans the classpath for class file names under a package.
+     *
+     * @param packageName the package to scan
+     * @return the class simple names found
+     * @throws Exception when the package resource cannot be read
+     */
     protected static ArrayList<String> getClassNamesFromPackage(
         String packageName
     ) throws Exception {
@@ -1748,6 +1795,12 @@ public class HandlerGenerator {
         return names;
     }
 
+    /** Returns controller classes under a base package filtered by path predicate.
+     *
+     * @param basePath the package to scan
+     * @param pathPredicate optional filter on the controller path value
+     * @return the matching controller classes
+     */
     protected static Set<Class<?>> getApiClasses(
         String basePath,
         Predicate<String> pathPredicate
@@ -1770,6 +1823,11 @@ public class HandlerGenerator {
         return stream.collect(Collectors.toSet());
     }
 
+    /** Extracts the erased class from a parameterized type name, or null when not parameterized.
+     *
+     * @param type the source type
+     * @return the erased class, or null
+     */
     public static Type extractErasedType(Type type) {
         String typeName = type.getTypeName();
 
@@ -1812,6 +1870,11 @@ public class HandlerGenerator {
         return null;
     }
 
+    /** Builds a JavaPoet type reference expression for the given type.
+     *
+     * @param type the source type
+     * @return the JavaPoet expression
+     */
     protected static String typeReferenceNameForType(Type type) {
         String typeName = type.getTypeName();
 
@@ -1832,6 +1895,11 @@ public class HandlerGenerator {
         return typeName;
     }
 
+    /** Converts a dotted name into a camelCase field name.
+     *
+     * @param name the dotted source name
+     * @return the camelCase field name
+     */
     protected static String generateFieldName(String name) {
         String[] parts = name.split("\\.");
 
@@ -1862,6 +1930,11 @@ public class HandlerGenerator {
         return sb.toString();
     }
 
+    /** Returns true when the type matches framework types excluded from handler generation.
+     *
+     * @param type the candidate type
+     * @return true when excluded
+     */
     static boolean isIgnoredClass(Type type) {
         java.util.regex.Matcher m = IGNORED_TYPE_NAME_PATTERN.matcher(
             type.getTypeName()
@@ -1870,6 +1943,11 @@ public class HandlerGenerator {
         return m.find();
     }
 
+    /** Emits a local {@code Type} constant referencing the given class into the method body.
+     *
+     * @param builder the method builder to append to
+     * @param clazz the class to reference
+     */
     protected static void generateParameterReference(
         MethodSpec.Builder builder,
         Class<?> clazz
@@ -1877,12 +1955,21 @@ public class HandlerGenerator {
         builder.addCode(CodeBlock.of("\n\nType $LType = $T.", clazz, clazz));
     }
 
+    /** Builds the source directory path for a class package.
+     *
+     * @param clazz the class whose package to use
+     * @return the source directory path
+     */
     protected static java.nio.file.Path generateSourcePath(Class<?> clazz) {
         return java.nio.file.Paths.get(
             clazz.getPackageName().replaceAll("[.$]", "/")
         );
     }
 
+    /** Builds the source directory path for the generator package.
+     *
+     * @return the source directory path
+     */
     protected java.nio.file.Path getPackageSourcePath() {
         return java.nio.file.Paths.get(
             getPackageName().replaceAll("[.$]", "/")
@@ -1942,12 +2029,22 @@ public class HandlerGenerator {
     //
     //    }
 
+    /** Returns true when the class has a static {@code valueOf} conversion method.
+     *
+     * @param clazz the class to inspect
+     * @return true when a {@code valueOf} method exists
+     */
     protected static boolean hasValueOfMethod(Class<?> clazz) {
         return Arrays.stream(clazz.getMethods()).anyMatch(m ->
             m.getName().equals("valueOf")
         );
     }
 
+    /** Returns true when the class has a static {@code fromString} conversion method.
+     *
+     * @param clazz the class to inspect
+     * @return true when a {@code fromString} method exists
+     */
     protected static boolean hasFromStringMethod(Class<?> clazz) {
         return Arrays.stream(clazz.getMethods()).anyMatch(m ->
             m.getName().equals("fromString")

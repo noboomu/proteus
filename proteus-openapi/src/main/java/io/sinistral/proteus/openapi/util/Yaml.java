@@ -7,6 +7,7 @@ import tools.jackson.dataformat.yaml.YAMLMapper;
  * YAML serialization for generated OpenAPI documents.
  */
 public final class Yaml {
+    /** the  m a p p e r. */
     private static final YAMLMapper MAPPER = YAMLMapper.builder()
         .changeDefaultPropertyInclusion(ignored ->
             JsonInclude.Value.construct(
@@ -18,6 +19,12 @@ public final class Yaml {
 
     private Yaml() {}
 
+    /**
+     * Processes this element.
+    *
+    * @param value the value
+    * @return the result
+     */
     public static String pretty(Object value) {
         try {
             return MAPPER.writeValueAsString(Json.mapper().valueToTree(value));

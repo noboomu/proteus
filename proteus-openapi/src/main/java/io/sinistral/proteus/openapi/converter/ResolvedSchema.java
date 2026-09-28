@@ -9,12 +9,19 @@ import java.util.Map;
  * Result of schema resolution containing the main schema and any referenced schemas
  */
 public class ResolvedSchema {
+    /** the schema. */
     public Schema schema;
+    /** the value. */
     public Map<String, Schema> referencedSchemas = new LinkedHashMap<>();
 
+    /** Creates an empty resolved schema. */
     public ResolvedSchema() {
     }
 
+    /** Creates a resolved schema wrapping the given schema.
+     *
+     * @param schema the resolved schema
+     */
     public ResolvedSchema(Schema schema) {
         this.schema = schema;
     }

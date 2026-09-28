@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 
 public enum TypeHandler {
+    /** Handler for long type parameters. */
     LongType(
         "Long $L = $T.longValue(exchange,$S)",
         false,
@@ -29,6 +30,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for integer type parameters. */
     IntegerType(
         "Integer $L = $T.integerValue(exchange,$S)",
         false,
@@ -36,6 +38,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for string type parameters. */
     StringType(
         "String $L =  $T.string(exchange,$S)",
         false,
@@ -43,6 +46,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for boolean type parameters. */
     BooleanType(
         "Boolean $L =  $T.booleanValue(exchange,$S)",
         false,
@@ -50,6 +54,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for file path type parameters. */
     FilePathType(
         "$T $L = $T.filePath(exchange,$S)",
         true,
@@ -59,6 +64,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for any type parameters. */
     AnyType(
         "$T $L = $T.any(exchange)",
         true,
@@ -66,6 +72,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         io.sinistral.proteus.server.Extractors.class
     ),
+    /** Handler for json node type parameters. */
     JsonNodeType(
         "$T $L = $T.jsonNode(exchange)",
         true,
@@ -73,6 +80,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         io.sinistral.proteus.server.Extractors.class
     ),
+    /** Handler for named json node type parameters. */
     NamedJsonNodeType(
         "$T $L = $T.namedJsonNode(exchange,$S)",
         true,
@@ -81,6 +89,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for model type parameters. */
     ModelType(
         "$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)",
         true,
@@ -88,6 +97,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         StatementParameterType.LITERAL
     ),
+    /** Handler for named model type parameters. */
     NamedModelType(
         "$T $L = io.sinistral.proteus.server.Extractors.namedModel(exchange,$L,$S)",
         true,
@@ -102,6 +112,7 @@ public enum TypeHandler {
     // StatementParameterType.LITERAL,io.sinistral.proteus.server.Extractors.class,
     // StatementParameterType.TYPE, StatementParameterType.STRING),
 
+    /** Handler for file type parameters. */
     FileType(
         "$T $L =  $T.file(exchange,$S)",
         true,
@@ -111,6 +122,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for byte buffer type parameters. */
     ByteBufferType(
         "$T $L =  $T.byteBuffer(exchange)",
         true,
@@ -118,6 +130,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         io.sinistral.proteus.server.Extractors.class
     ),
+    /** Handler for named byte buffer type parameters. */
     NamedByteBufferType(
         "$T $L =  $T.namedByteBuffer(exchange,$S)",
         true,
@@ -127,6 +140,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for date type parameters. */
     DateType(
         "$T $L =  $T.date(exchange,$S)",
         false,
@@ -135,6 +149,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for zoned date time type parameters. */
     ZonedDateTimeType(
         "$T $L = $T.zonedDateTime(exchange,$S)",
         false,
@@ -143,6 +158,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for offset date time type parameters. */
     OffsetDateTimeType(
         "$T $L = $T.offsetDateTime(exchange,$S)",
         false,
@@ -152,6 +168,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for instant type parameters. */
     InstantType(
         "$T $L = $T.instant(exchange,$S)",
         false,
@@ -161,6 +178,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for float type parameters. */
     FloatType(
         "Float $L = $T.floatValue(exchange,$S)",
         false,
@@ -168,6 +186,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for double type parameters. */
     DoubleType(
         "Double $L = $T.doubleValue(exchange,$S)",
         false,
@@ -175,6 +194,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for big decimal type parameters. */
     BigDecimalType(
         "BigDecimal $L = $T.bigDecimalValue(exchange,$S)",
         false,
@@ -183,6 +203,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for value of type parameters. */
     ValueOfType(
         "$T $L = $T.valueOf($T.string(exchange,$S))",
         false,
@@ -192,6 +213,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.class,
         StatementParameterType.STRING
     ),
+    /** Handler for from string type parameters. */
     FromStringType(
         "$T $L = $T.fromString($T.string(exchange,$S))",
         false,
@@ -202,6 +224,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for query list value of type parameters. */
     QueryListValueOfType(
         "$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toList())",
         false,
@@ -211,6 +234,7 @@ public enum TypeHandler {
         StatementParameterType.STRING,
         StatementParameterType.RAW
     ),
+    /** Handler for query list from string type parameters. */
     QueryListFromStringType(
         "$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toList())",
         false,
@@ -221,6 +245,7 @@ public enum TypeHandler {
         StatementParameterType.RAW
     ),
 
+    /** Handler for query set value of type parameters. */
     QuerySetValueOfType(
         "$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::valueOf).collect(java.util.stream.Collectors.toSet())",
         false,
@@ -230,6 +255,7 @@ public enum TypeHandler {
         StatementParameterType.STRING,
         StatementParameterType.RAW
     ),
+    /** Handler for query set from string type parameters. */
     QuerySetFromStringType(
         "$T<$T> $L = exchange.getQueryParameters().get($S).stream().map($T::fromString).collect(java.util.stream.Collectors.toSet())",
         false,
@@ -247,6 +273,7 @@ public enum TypeHandler {
     // io.sinistral.proteus.server.Extractors.class,
     // StatementParameterType.LITERAL, StatementParameterType.RAW),
 
+    /** Handler for bean list value of type parameters. */
     BeanListValueOfType(
         "$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)",
         true,
@@ -254,6 +281,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         StatementParameterType.LITERAL
     ),
+    /** Handler for bean list from string type parameters. */
     BeanListFromStringType(
         "$T $L = io.sinistral.proteus.server.Extractors.model(exchange,$L)",
         true,
@@ -262,6 +290,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL
     ),
 
+    /** Handler for file list type parameters. */
     FileListType(
         "$T $L = io.sinistral.proteus.server.Extractors.fileList(exchange,$S)",
         true,
@@ -269,6 +298,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         StatementParameterType.STRING
     ),
+    /** Handler for path list type parameters. */
     PathListType(
         "$T $L = io.sinistral.proteus.server.Extractors.pathList(exchange,$S)",
         true,
@@ -277,6 +307,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for file map type parameters. */
     FileMapType(
         "$T $L = io.sinistral.proteus.server.Extractors.fileMap(exchange,$S)",
         true,
@@ -284,6 +315,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         StatementParameterType.STRING
     ),
+    /** Handler for path map type parameters. */
     PathMapType(
         "$T $L = io.sinistral.proteus.server.Extractors.pathMap(exchange,$S)",
         true,
@@ -292,6 +324,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for header value of type parameters. */
     HeaderValueOfType(
         "$T $L = $T.valueOf($T.string(exchange,$S))",
         false,
@@ -301,6 +334,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Header.class,
         StatementParameterType.STRING
     ),
+    /** Handler for header from string type parameters. */
     HeaderFromStringType(
         "$T $L = $T.fromString($T.string(exchange,$S))",
         false,
@@ -310,6 +344,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Header.class,
         StatementParameterType.STRING
     ),
+    /** Handler for header string type parameters. */
     HeaderStringType(
         "$T $L = $T.string(exchange,$S)",
         false,
@@ -319,6 +354,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for optional header value of type parameters. */
     OptionalHeaderValueOfType(
         "$T<$T> $L = $T.string(exchange,$S).map($T::valueOf)",
         false,
@@ -329,6 +365,7 @@ public enum TypeHandler {
         StatementParameterType.STRING,
         StatementParameterType.RAW
     ),
+    /** Handler for optional header from string type parameters. */
     OptionalHeaderFromStringType(
         "$T<$T> $L = $T.string(exchange,$S).map($T::fromString)",
         false,
@@ -339,6 +376,7 @@ public enum TypeHandler {
         StatementParameterType.STRING,
         StatementParameterType.RAW
     ),
+    /** Handler for optional header string type parameters. */
     OptionalHeaderStringType(
         "$T<$T> $L = $T.string(exchange,$S)",
         false,
@@ -349,6 +387,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for query optional list value of type parameters. */
     QueryOptionalListValueOfType(
         "$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toList()))",
         false,
@@ -357,6 +396,7 @@ public enum TypeHandler {
         StatementParameterType.STRING,
         StatementParameterType.RAW
     ),
+    /** Handler for query optional list from string type parameters. */
     QueryOptionalListFromStringType(
         "$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toList()))",
         false,
@@ -366,6 +406,7 @@ public enum TypeHandler {
         StatementParameterType.RAW
     ),
 
+    /** Handler for query optional set value of type parameters. */
     QueryOptionalSetValueOfType(
         "$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::valueOf).collect(java.util.stream.Collectors.toSet()))",
         false,
@@ -374,6 +415,7 @@ public enum TypeHandler {
         StatementParameterType.STRING,
         StatementParameterType.RAW
     ),
+    /** Handler for query optional set from string type parameters. */
     QueryOptionalSetFromStringType(
         "$T $L = java.util.Optional.ofNullable(exchange.getQueryParameters().get($S)).map(java.util.Deque::stream).map( p -> p.map($T::fromString).collect(java.util.stream.Collectors.toSet()))",
         false,
@@ -383,6 +425,7 @@ public enum TypeHandler {
         StatementParameterType.RAW
     ),
 
+    /** Handler for optional bean list value of type parameters. */
     OptionalBeanListValueOfType(
         "java.util.Optional<$L> $L = $T.model(exchange,$L)",
         false,
@@ -391,6 +434,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.LITERAL
     ),
+    /** Handler for optional bean list from string type parameters. */
     OptionalBeanListFromStringType(
         "java.util.Optional<$L> $L = $T.model(exchange,$L)",
         false,
@@ -400,6 +444,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL
     ),
 
+    /** Handler for optional json node type parameters. */
     OptionalJsonNodeType(
         "$T<$T> $L = $T.jsonNode(exchange)",
         true,
@@ -408,6 +453,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         io.sinistral.proteus.server.Extractors.Optional.class
     ),
+    /** Handler for optional any type parameters. */
     OptionalAnyType(
         "$T<$T> $L = $T.any(exchange)",
         true,
@@ -416,6 +462,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         io.sinistral.proteus.server.Extractors.Optional.class
     ),
+    /** Handler for optional string type parameters. */
     OptionalStringType(
         "$T<String> $L = $T.string(exchange,$S)",
         false,
@@ -424,6 +471,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional long type parameters. */
     OptionalLongType(
         "$T<Long> $L = $T.longValue(exchange,$S)",
         false,
@@ -432,6 +480,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional integer type parameters. */
     OptionalIntegerType(
         "$T<Integer> $L = $T.integerValue(exchange,$S)",
         false,
@@ -440,6 +489,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional boolean type parameters. */
     OptionalBooleanType(
         "$T<Boolean> $L = $T.booleanValue(exchange,$S)",
         false,
@@ -448,6 +498,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional file path type parameters. */
     OptionalFilePathType(
         "$T<$T> $L = $T.filePath(exchange,$S)",
         true,
@@ -458,6 +509,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for optional named byte buffer type parameters. */
     OptionalNamedByteBufferType(
         "$T<$T> $L = $T.namedByteBuffer(exchange,$S)",
         true,
@@ -468,6 +520,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for optional byte buffer type parameters. */
     OptionalByteBufferType(
         "$T<$T> $L = $T.byteBuffer(exchange)",
         true,
@@ -477,6 +530,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class
     ),
 
+    /** Handler for optional file type parameters. */
     OptionalFileType(
         "$T<$T> $L = $T.file(exchange,$S)",
         true,
@@ -487,6 +541,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for optional float type parameters. */
     OptionalFloatType(
         "$T<Float> $L = $T.floatValue(exchange,$S)",
         false,
@@ -495,6 +550,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional double type parameters. */
     OptionalDoubleType(
         "$T<Double> $L = $T.doubleValue(exchange,$S)",
         false,
@@ -503,6 +559,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional big decimal type parameters. */
     OptionalBigDecimalType(
         "$T<BigDecimal> $L = $T.bigDecimalValue(exchange,$S)",
         false,
@@ -512,6 +569,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for optional date type parameters. */
     OptionalDateType(
         "$T<$T> $L = $T.date(exchange,$S)",
         false,
@@ -521,6 +579,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional instant type parameters. */
     OptionalInstantType(
         "$T<$T> $L = $T.instant(exchange,$S)",
         false,
@@ -530,6 +589,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional zoned date time type parameters. */
     OptionalZonedDateTimeType(
         "$T<$T> $L = $T.zonedDateTime(exchange,$S)",
         false,
@@ -539,6 +599,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional offset date time type parameters. */
     OptionalOffsetDateTimeType(
         "$T<$T> $L = $T.offsetDateTime(exchange,$S)",
         false,
@@ -549,6 +610,7 @@ public enum TypeHandler {
         StatementParameterType.STRING
     ),
 
+    /** Handler for optional model type parameters. */
     OptionalModelType(
         "java.util.Optional<$L> $L = $T.model(exchange,$L)",
         false,
@@ -558,6 +620,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL
     ),
 
+    /** Handler for optional named json node type parameters. */
     OptionalNamedJsonNodeType(
         "$T<$T> $L = $T.namedJsonNode(exchange,$s)",
         true,
@@ -567,6 +630,7 @@ public enum TypeHandler {
         io.sinistral.proteus.server.Extractors.Optional.class,
         StatementParameterType.STRING
     ),
+    /** Handler for optional named model type parameters. */
     OptionalNamedModelType(
         "java.util.Optional<$L> $L = $T.namedModel(exchange,$L,$S)",
         false,
@@ -576,6 +640,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL
     ),
 
+    /** Handler for optional value of type parameters. */
     OptionalValueOfType(
         "$T<$T> $L = $T.string(exchange,$S).map($T::valueOf)",
         false,
@@ -586,6 +651,7 @@ public enum TypeHandler {
         StatementParameterType.STRING,
         StatementParameterType.RAW
     ),
+    /** Handler for optional from string type parameters. */
     OptionalFromStringType(
         "$T<$T> $L = $T.string(exchange,$S).map($T::fromString)",
         false,
@@ -597,6 +663,7 @@ public enum TypeHandler {
         StatementParameterType.RAW
     ),
 
+    /** Handler for optional file map type parameters. */
     OptionalFileMapType(
         "$T $L = io.sinistral.proteus.server.Extractors.fileMap(exchange,$S)",
         true,
@@ -604,6 +671,7 @@ public enum TypeHandler {
         StatementParameterType.LITERAL,
         StatementParameterType.STRING
     ),
+    /** Handler for optional path map type parameters. */
     OptionalPathMapType(
         "$T $L = io.sinistral.proteus.server.Extractors.pathMap(exchange,$S)",
         true,
@@ -621,10 +689,20 @@ public enum TypeHandler {
         TypeHandler.class.getName()
     );
 
+    /**
+     * Returns the blocking.
+     *
+     * @return the blocking, or null when unset
+     */
     public boolean isBlocking() {
         return this.isBlocking;
     }
 
+    /**
+     * Returns the statement.
+     *
+     * @return the statement, or null when unset
+     */
     public String statement() {
         return this.statement;
     }
@@ -646,6 +724,7 @@ public enum TypeHandler {
      */
     private final Object[] parameterTypes;
 
+    /** Handler for type handler parameters. */
     TypeHandler(String statement, boolean isBlocking, Object... types) {
         this.statement = statement;
         this.isBlocking = isBlocking;
@@ -656,10 +735,10 @@ public enum TypeHandler {
      * Helper function to bind values to a
      * {@link com.squareup.javapoet.MethodSpec.Builder}
      *
-     * @param builder
-     * @param parameter
-     * @param handler
-     * @throws Exception
+     * @param builder the method spec builder
+     * @param parameter the controller parameter
+     * @param handler the target method
+     * @throws Exception when statement generation fails
      */
     public static void addStatement(
         MethodSpec.Builder builder,
@@ -804,9 +883,9 @@ public enum TypeHandler {
      * Helper function to bind a {@link Parameter} to a
      * {@link com.squareup.javapoet.MethodSpec.Builder}
      *
-     * @param builder
-     * @param parameter
-     * @throws Exception
+     * @param builder the method spec builder
+     * @param parameter the controller parameter
+     * @throws Exception when statement generation fails
      */
     public static void addStatement(
         MethodSpec.Builder builder,
@@ -851,12 +930,22 @@ public enum TypeHandler {
         addStatement(builder, parameter, handler);
     }
 
+    /**
+     * Sets the for type, fluent style.
+     *
+     * @param type the for type
+     * @return this instance
+     */
     public static TypeHandler forType(Type type) {
         return forType(type, false);
     }
 
     /**
      * Lookup the <code>TypeHandler</code> for a {@link Type}
+    *
+    * @param type the value
+    * @param isBeanParam the value
+    * @return the result
      */
     public static TypeHandler forType(Type type, Boolean isBeanParam) {
         boolean hasValueOf = false;

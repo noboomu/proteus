@@ -2527,3 +2527,10 @@ Proteus Changelog.
 - 🧾 javadoc jar attach goal now builds clean for both modules
 - ✅ full reactor `mvn clean verify` on JDK 27: core 130, openapi 63, websocket 9, all 0F/0E/0S, BUILD SUCCESS
 - commits `9f9bc8c..73d4daa`, file-by-file
+
+## 2026-09-27 — docs: sync README + AGENTS.md to shipped messaging reality [jcode/houses]
+
+- 📚 [jcode/houses] Resumed for lead-pencil (crashed Sep 27; all its messaging+doclint work was already committed and pushed at 2c4a475, clean tree).
+- 📚 README.md (`6fbe9d0`): SourceBuddy → JDK compiler API (`javax.tools`); modules list now includes proteus-websocket; new Messaging section (MessagingModule, EventBusService, @ConsumeEvent, NATS bridge config) and WebSocket section (@WebSocket annotations, proteus.websocket.* tuning keys); dependency list updated.
+- 📚 AGENTS.md (`d884eae`): same sync — module list, JdkControllerCompiler, JDK 27, Vert.x core embedded for event bus, pointer to specs/proteus_messaging.md superseding the finalization spec exclusions.
+- ✅ `mvn clean verify -DskipTests` on JDK 27: exit 0. #proteus #docs #messaging #websocket

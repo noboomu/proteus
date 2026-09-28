@@ -7,11 +7,21 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.deser.std.StdDeserializer;
 
+/** Deserializes a {@link Callback}, routing {@code x-} keys to extensions. */
 public final class CallbackDeserializer extends StdDeserializer<Callback> {
+    /** Creates the deserializer for the {@link Callback} type. */
     public CallbackDeserializer() {
         super(Callback.class);
     }
 
+    /**
+     * Reads callback entries into the map and {@code x-} keys into extensions.
+     *
+     * @param parser the source parser
+     * @param context the deserialization context
+     * @return the populated callback
+     * @throws JacksonException when reading fails
+     */
     @Override
     public Callback deserialize(
         JsonParser parser,

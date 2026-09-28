@@ -47,30 +47,46 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.xml.XmlMapper;
 
 /**
+ * Static extraction utilities for controller parameter binding on an {@link HttpServerExchange}.
+ *
+ * <p>Two parallel APIs exist: the required variants throw {@link IllegalArgumentException} when a
+ * value is missing, and the nested {@link Optional} variants return {@link java.util.Optional}
+ * instead. Values are pulled from query parameters, request headers, form data, or the buffered
+ * request body, with JSON and XML deserialization through the injected mappers.
+ *
  * @author jbauer
  */
 public class Extractors {
 
+    /** Default constructor for static-only use. */
+    public Extractors() {}
+
+    /** the log. */
     private static Logger log = LoggerFactory.getLogger(
         Extractors.class.getCanonicalName()
     );
 
+    /** the xml_pattern. */
     private static final Pattern XML_PATTERN = Pattern.compile(
         "^(application/(xml|xhtml\\+xml)|text/xml)(;.*)?$",
         Pattern.CASE_INSENSITIVE
     );
 
+    /** the json_pattern. */
     private static final Pattern JSON_PATTERN = Pattern.compile(
         "^(application/(json|x-javascript)|text/(json|x-javascript|x-json))(;.*)?$",
         Pattern.CASE_INSENSITIVE
     );
 
+    /** the java_type_map. */
     private static final Map<Type, JavaType> JAVA_TYPE_MAP =
         new ConcurrentHashMap<>();
 
+    /** the xml_mapper. */
     @Inject
     private static XmlMapper XML_MAPPER;
 
+    /** the object_mapper. */
     @Inject
     private static ObjectMapper OBJECT_MAPPER;
 
@@ -428,8 +444,20 @@ public class Extractors {
         }
     }
 
+    /** Extractors for request header parameters. */
     public static class Header {
 
+        /** Utility class, not instantiated. */
+        public Header() {}
+
+        /**
+         * Returns the first value of the named request header.
+         *
+         * @param exchange the current server exchange
+         * @param name the header name
+         * @return the first header value
+         * @throws IllegalArgumentException when the header is absent
+         */
         public static String string(
             final HttpServerExchange exchange,
             final String name
@@ -443,8 +471,19 @@ public class Extractors {
                 );
         }
 
+        /** Extractors for optional request header parameters. */
         public static class Optional {
 
+            /** Utility class, not instantiated. */
+            public Optional() {}
+
+            /**
+             * Returns the first value of the named request header.
+             *
+             * @param exchange the current server exchange
+             * @param name the header name
+             * @return the first header value, or empty when the header is absent
+             */
             public static java.util.Optional<String> string(
                 final HttpServerExchange exchange,
                 final String name
@@ -456,8 +495,21 @@ public class Extractors {
         }
     }
 
+    /** Extractors that return {@link java.util.Optional} instead of throwing on missing values. */
     public static class Optional {
 
+        /** Utility class, not instantiated. */
+        public Optional() {}
+
+        /**
+         * Extracts a named query parameter and converts it with the given function.
+         *
+         * @param <T> the converted value type
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @param function the string conversion function
+         * @return the converted value, or empty when the parameter is absent
+         */
         public static <T> java.util.Optional<T> extractWithFunction(
             final HttpServerExchange exchange,
             final String name,
@@ -466,12 +518,25 @@ public class Extractors {
             return string(exchange, name).map(function);
         }
 
+        /**
+         * Parses the buffered request body as a JSON tree.
+         *
+         * @param exchange the current server exchange
+         * @return the parsed tree, or empty when no body is buffered
+         */
         public static java.util.Optional<JsonNode> namedJsonNode(
             final HttpServerExchange exchange
         ) {
             return jsonModel(exchange, JsonNode.class);
         }
 
+        /**
+         * Parses a named form value as a JSON tree.
+         *
+         * @param exchange the current server exchange
+         * @param name the form field name
+         * @return the parsed tree, or empty when the field is absent
+         */
         public static java.util.Optional<JsonNode> namedJsonNode(
             final HttpServerExchange exchange,
             final String name
@@ -481,6 +546,14 @@ public class Extractors {
             );
         }
 
+        /**
+         * Parses the buffered request body as XML or JSON per the content type.
+         *
+         * @param <T> the model type
+         * @param exchange the current server exchange
+         * @param type the target type reference
+         * @return the parsed model, or empty when no body is buffered
+         */
         public static <T> java.util.Optional<T> model(
             final HttpServerExchange exchange,
             final TypeReference<T> type
@@ -492,6 +565,14 @@ public class Extractors {
             }
         }
 
+        /**
+         * Parses the buffered request body as XML or JSON per the content type.
+         *
+         * @param <T> the model type
+         * @param exchange the current server exchange
+         * @param type the target class
+         * @return the parsed model, or empty when no body is buffered
+         */
         public static <T> java.util.Optional<T> model(
             final HttpServerExchange exchange,
             final Class<T> type
@@ -503,6 +584,15 @@ public class Extractors {
             }
         }
 
+        /**
+         * Parses a named form value as a model of the given class.
+         *
+         * @param <T> the model type
+         * @param exchange the current server exchange
+         * @param type the target class
+         * @param name the form field name
+         * @return the parsed model, or empty when the field is absent
+         */
         public static <T> java.util.Optional<T> namedModel(
             final HttpServerExchange exchange,
             final Class<T> type,
@@ -513,6 +603,15 @@ public class Extractors {
             );
         }
 
+        /**
+         * Parses a named form value as a model of the given type reference.
+         *
+         * @param <T> the model type
+         * @param exchange the current server exchange
+         * @param type the target type reference
+         * @param name the form field name
+         * @return the parsed model, or empty when the field is absent
+         */
         public static <T> java.util.Optional<T> namedModel(
             final HttpServerExchange exchange,
             final TypeReference<T> type,
@@ -523,6 +622,14 @@ public class Extractors {
             );
         }
 
+        /**
+         * Parses the buffered request body as JSON.
+         *
+         * @param <T> the model type
+         * @param exchange the current server exchange
+         * @param type the target type reference
+         * @return the parsed model, or empty when no body is buffered
+         */
         public static <T> java.util.Optional<T> jsonModel(
             final HttpServerExchange exchange,
             final TypeReference<T> type
@@ -534,6 +641,14 @@ public class Extractors {
                 .map(b -> parseTypedJson(type, b));
         }
 
+        /**
+         * Parses the buffered request body as JSON.
+         *
+         * @param <T> the model type
+         * @param exchange the current server exchange
+         * @param type the target class
+         * @return the parsed model, or empty when no body is buffered
+         */
         public static <T> java.util.Optional<T> jsonModel(
             final HttpServerExchange exchange,
             final Class<T> type
@@ -545,6 +660,14 @@ public class Extractors {
                 .map(b -> parseTypedJson(type, b));
         }
 
+        /**
+         * Parses the buffered request body as XML.
+         *
+         * @param <T> the model type
+         * @param exchange the current server exchange
+         * @param type the target type reference
+         * @return the parsed model, or empty when no body is buffered
+         */
         public static <T> java.util.Optional<T> xmlModel(
             final HttpServerExchange exchange,
             final TypeReference<T> type
@@ -556,6 +679,14 @@ public class Extractors {
                 .map(b -> parseTypedXML(type, b));
         }
 
+        /**
+         * Parses the buffered request body as XML.
+         *
+         * @param <T> the model type
+         * @param exchange the current server exchange
+         * @param type the target class
+         * @return the parsed model, or empty when no body is buffered
+         */
         public static <T> java.util.Optional<T> xmlModel(
             final HttpServerExchange exchange,
             final Class<T> type
@@ -567,6 +698,13 @@ public class Extractors {
                 .map(b -> parseTypedXML(type, b));
         }
 
+        /**
+         * Returns a named query parameter parsed as an {@link OffsetDateTime} date.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed date, or empty when absent
+         */
         public static java.util.Optional<Date> date(
             final HttpServerExchange exchange,
             final String name
@@ -577,6 +715,13 @@ public class Extractors {
                 .map(Date::from);
         }
 
+        /**
+         * Returns a named query parameter parsed as an {@link OffsetDateTime}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<OffsetDateTime> offsetDateTime(
             final HttpServerExchange exchange,
             final String name
@@ -584,6 +729,13 @@ public class Extractors {
             return string(exchange, name).map(OffsetDateTime::parse);
         }
 
+        /**
+         * Returns a named query parameter parsed as a {@link ZonedDateTime}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<ZonedDateTime> zonedDateTime(
             final HttpServerExchange exchange,
             final String name
@@ -591,6 +743,13 @@ public class Extractors {
             return string(exchange, name).map(ZonedDateTime::parse);
         }
 
+        /**
+         * Returns a named query parameter parsed as an {@link Instant}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<Instant> instant(
             final HttpServerExchange exchange,
             final String name
@@ -598,6 +757,13 @@ public class Extractors {
             return string(exchange, name).map(Instant::parse);
         }
 
+        /**
+         * Returns a named query parameter parsed as an {@link Integer}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<Integer> integerValue(
             final HttpServerExchange exchange,
             final String name
@@ -605,6 +771,13 @@ public class Extractors {
             return string(exchange, name).map(Integer::parseInt);
         }
 
+        /**
+         * Returns a named query parameter parsed as a {@link Short}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<Short> shortValue(
             final HttpServerExchange exchange,
             final String name
@@ -612,6 +785,13 @@ public class Extractors {
             return string(exchange, name).map(Short::parseShort);
         }
 
+        /**
+         * Returns a named query parameter parsed as a {@link Float}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<Float> floatValue(
             final HttpServerExchange exchange,
             final String name
@@ -619,6 +799,13 @@ public class Extractors {
             return string(exchange, name).map(Float::parseFloat);
         }
 
+        /**
+         * Returns a named query parameter parsed as a {@link Double}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<Double> doubleValue(
             final HttpServerExchange exchange,
             final String name
@@ -626,6 +813,13 @@ public class Extractors {
             return string(exchange, name).map(Double::parseDouble);
         }
 
+        /**
+         * Returns a named query parameter parsed as a {@link BigDecimal}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<BigDecimal> bigDecimalValue(
             final HttpServerExchange exchange,
             final String name
@@ -633,6 +827,13 @@ public class Extractors {
             return string(exchange, name).map(BigDecimal::new);
         }
 
+        /**
+         * Returns a named query parameter parsed as a {@link Long}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<Long> longValue(
             final HttpServerExchange exchange,
             final String name
@@ -640,6 +841,13 @@ public class Extractors {
             return string(exchange, name).map(Long::parseLong);
         }
 
+        /**
+         * Returns a named query parameter parsed as a {@link Boolean}.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the parsed value, or empty when absent
+         */
         public static java.util.Optional<Boolean> booleanValue(
             final HttpServerExchange exchange,
             final String name
@@ -652,6 +860,13 @@ public class Extractors {
         //			return string(exchange, name).map(e -> Enum.valueOf(clazz, name));
         //		}
 
+        /**
+         * Returns a named query parameter.
+         *
+         * @param exchange the current server exchange
+         * @param name the query parameter name
+         * @return the first value, or empty when absent
+         */
         public static java.util.Optional<String> string(
             final HttpServerExchange exchange,
             final String name
@@ -661,6 +876,13 @@ public class Extractors {
             ).map(Deque::getFirst);
         }
 
+        /**
+         * Returns a named form file value as a path.
+         *
+         * @param exchange the current server exchange
+         * @param name the form field name
+         * @return the file path, or empty when absent; in-memory items are spilled to a temp file
+         */
         public static java.util.Optional<Path> filePath(
             final HttpServerExchange exchange,
             final String name
@@ -668,6 +890,13 @@ public class Extractors {
             return formValueFilePath(exchange, name);
         }
 
+        /**
+         * Returns a named form file value as a {@link File}.
+         *
+         * @param exchange the current server exchange
+         * @param name the form field name
+         * @return the file, or empty when absent
+         */
         public static java.util.Optional<File> file(
             final HttpServerExchange exchange,
             final String name
@@ -675,6 +904,13 @@ public class Extractors {
             return formValueFilePath(exchange, name).map(Path::toFile);
         }
 
+        /**
+         * Returns the buffered request body.
+         *
+         * @param exchange the current server exchange
+         * @return the body buffer, or empty when absent
+         * @throws IOException when the buffer cannot be read
+         */
         public static java.util.Optional<ByteBuffer> byteBuffer(
             final HttpServerExchange exchange
         ) throws IOException {
@@ -683,6 +919,14 @@ public class Extractors {
             );
         }
 
+        /**
+         * Returns a named form file value as a byte buffer.
+         *
+         * @param exchange the current server exchange
+         * @param name the form field name
+         * @return the buffered file content, or empty when absent
+         * @throws IOException when the content cannot be read
+         */
         public static java.util.Optional<ByteBuffer> namedByteBuffer(
             final HttpServerExchange exchange,
             final String name
@@ -691,6 +935,14 @@ public class Extractors {
         }
     }
 
+    /**
+     * Returns a named query parameter parsed as an {@link OffsetDateTime} date.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed date
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static Date date(
         final HttpServerExchange exchange,
         final String name
@@ -700,6 +952,14 @@ public class Extractors {
         );
     }
 
+    /**
+     * Returns a named query parameter parsed as a {@link ZonedDateTime}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static ZonedDateTime zonedDateTime(
         final HttpServerExchange exchange,
         final String name
@@ -707,6 +967,14 @@ public class Extractors {
         return ZonedDateTime.parse(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as an {@link OffsetDateTime}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static OffsetDateTime offsetDateTime(
         final HttpServerExchange exchange,
         final String name
@@ -714,6 +982,14 @@ public class Extractors {
         return OffsetDateTime.parse(string(exchange, name));
     }
 
+    /**
+     * Returns a named form file value as a path.
+     *
+     * @param exchange the current server exchange
+     * @param name the form field name
+     * @return the file path; in-memory items are spilled to a temp file
+     * @throws IllegalArgumentException when the field is absent
+     */
     public static Path filePath(
         final HttpServerExchange exchange,
         final String name
@@ -723,6 +999,14 @@ public class Extractors {
         );
     }
 
+    /**
+     * Returns every form file value of a field as a list of paths.
+     *
+     * @param exchange the current server exchange
+     * @param name the form field name
+     * @return the file paths, empty when the field is absent
+     * @throws IllegalArgumentException never; retained for generated-code symmetry
+     */
     public static List<Path> pathList(
         final HttpServerExchange exchange,
         final String name
@@ -732,6 +1016,14 @@ public class Extractors {
             .orElse(new ArrayList<>());
     }
 
+    /**
+     * Returns every form file value of a field as a list of files.
+     *
+     * @param exchange the current server exchange
+     * @param name the form field name
+     * @return the files, empty when the field is absent
+     * @throws IllegalArgumentException never; retained for generated-code symmetry
+     */
     public static List<File> fileList(
         final HttpServerExchange exchange,
         final String name
@@ -741,6 +1033,14 @@ public class Extractors {
             .orElse(new ArrayList<>());
     }
 
+    /**
+     * Returns every form file value of a field mapped by file name.
+     *
+     * @param exchange the current server exchange
+     * @param name the form field name
+     * @return the file name to path map, empty when the field is absent
+     * @throws IllegalArgumentException never; retained for generated-code symmetry
+     */
     public static Map<String, Path> pathMap(
         final HttpServerExchange exchange,
         final String name
@@ -748,6 +1048,14 @@ public class Extractors {
         return formValuePathMap(exchange, name).orElse(new HashMap<>());
     }
 
+    /**
+     * Returns every form file value of a field mapped by file name.
+     *
+     * @param exchange the current server exchange
+     * @param name the form field name
+     * @return the file name to file map, empty when the field is absent
+     * @throws IllegalArgumentException never; retained for generated-code symmetry
+     */
     public static Map<String, File> fileMap(
         final HttpServerExchange exchange,
         final String name
@@ -755,6 +1063,14 @@ public class Extractors {
         return formValueFileMap(exchange, name).orElse(new HashMap<>());
     }
 
+    /**
+     * Returns a named form file value as a {@link File}.
+     *
+     * @param exchange the current server exchange
+     * @param name the form field name
+     * @return the file
+     * @throws IllegalArgumentException when the field is absent
+     */
     public static File file(
         final HttpServerExchange exchange,
         final String name
@@ -766,11 +1082,27 @@ public class Extractors {
             );
     }
 
+    /**
+     * Returns the buffered request body.
+     *
+     * @param exchange the current server exchange
+     * @return the body buffer, or null when absent
+     * @throws IOException when the buffer cannot be read
+     */
     public static ByteBuffer byteBuffer(final HttpServerExchange exchange)
         throws IOException {
         return exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY);
     }
 
+    /**
+     * Returns a named form file value as a byte buffer.
+     *
+     * @param exchange the current server exchange
+     * @param name the form field name
+     * @return the buffered file content
+     * @throws IllegalArgumentException when the field is absent
+     * @throws IOException when the content cannot be read
+     */
     public static ByteBuffer namedByteBuffer(
         final HttpServerExchange exchange,
         final String name
@@ -780,6 +1112,14 @@ public class Extractors {
         );
     }
 
+    /**
+     * Returns a named query parameter.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the first value
+     * @throws IllegalArgumentException when the parameter is absent
+     */
     public static String string(
         final HttpServerExchange exchange,
         final String name
@@ -791,6 +1131,16 @@ public class Extractors {
         }
     }
 
+    /**
+     * Extracts a named query parameter and converts it with the given function.
+     *
+     * @param <T> the converted value type
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @param function the string conversion function
+     * @return the converted value
+     * @throws IllegalArgumentException when the parameter is absent
+     */
     public static <T> T extractWithFunction(
         final HttpServerExchange exchange,
         final String name,
@@ -799,6 +1149,14 @@ public class Extractors {
         return function.apply(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as a {@link Float}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static Float floatValue(
         final HttpServerExchange exchange,
         final String name
@@ -806,6 +1164,14 @@ public class Extractors {
         return Float.parseFloat(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as a {@link Double}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static Double doubleValue(
         final HttpServerExchange exchange,
         final String name
@@ -813,6 +1179,14 @@ public class Extractors {
         return Double.parseDouble(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as a {@link BigDecimal}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static BigDecimal bigDecimalValue(
         final HttpServerExchange exchange,
         final String name
@@ -820,6 +1194,14 @@ public class Extractors {
         return new BigDecimal(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as a {@link Long}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static Long longValue(
         final HttpServerExchange exchange,
         final String name
@@ -827,6 +1209,14 @@ public class Extractors {
         return Long.parseLong(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as an {@link Instant}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static Instant instant(
         final HttpServerExchange exchange,
         final String name
@@ -834,6 +1224,14 @@ public class Extractors {
         return Instant.parse(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as an {@link Integer}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static Integer integerValue(
         final HttpServerExchange exchange,
         final String name
@@ -841,6 +1239,14 @@ public class Extractors {
         return Integer.parseInt(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as a {@link Short}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static Short shortValue(
         final HttpServerExchange exchange,
         final String name
@@ -848,6 +1254,14 @@ public class Extractors {
         return Short.parseShort(string(exchange, name));
     }
 
+    /**
+     * Returns a named query parameter parsed as a {@link Boolean}.
+     *
+     * @param exchange the current server exchange
+     * @param name the query parameter name
+     * @return the parsed value
+     * @throws IllegalArgumentException when the parameter is absent or unparseable
+     */
     public static Boolean booleanValue(
         final HttpServerExchange exchange,
         final String name
@@ -855,6 +1269,15 @@ public class Extractors {
         return Boolean.parseBoolean(string(exchange, name));
     }
 
+    /**
+     * Parses the buffered request body as JSON.
+     *
+     * @param <T> the model type
+     * @param exchange the current server exchange
+     * @param type the target type reference
+     * @return the parsed model, or null when parsing fails
+     * @throws IllegalArgumentException when no body is buffered
+     */
     public static <T> T jsonModel(
         final HttpServerExchange exchange,
         final TypeReference<T> type
@@ -865,6 +1288,15 @@ public class Extractors {
         );
     }
 
+    /**
+     * Parses the buffered request body as JSON.
+     *
+     * @param <T> the model type
+     * @param exchange the current server exchange
+     * @param type the target class
+     * @return the parsed model, or null when parsing fails
+     * @throws IllegalArgumentException when no body is buffered
+     */
     public static <T> T jsonModel(
         final HttpServerExchange exchange,
         final Class<T> type
@@ -875,6 +1307,15 @@ public class Extractors {
         );
     }
 
+    /**
+     * Parses the buffered request body as XML.
+     *
+     * @param <T> the model type
+     * @param exchange the current server exchange
+     * @param type the target class
+     * @return the parsed model, or null when parsing fails
+     * @throws IllegalArgumentException when no body is buffered
+     */
     public static <T> T xmlModel(
         final HttpServerExchange exchange,
         final Class<T> type
@@ -885,6 +1326,15 @@ public class Extractors {
         );
     }
 
+    /**
+     * Parses the buffered request body as XML.
+     *
+     * @param <T> the model type
+     * @param exchange the current server exchange
+     * @param type the target type reference
+     * @return the parsed model, or null when parsing fails
+     * @throws IllegalArgumentException when no body is buffered
+     */
     public static <T> T xmlModel(
         final HttpServerExchange exchange,
         final TypeReference<T> type
@@ -895,18 +1345,38 @@ public class Extractors {
         );
     }
 
+    /**
+     * Parses the buffered request body as an arbitrary JSON tree.
+     *
+     * @param exchange the current server exchange
+     * @return the parsed tree, or null when parsing fails
+     */
     public static JsonNode any(final HttpServerExchange exchange) {
         return parseJson(
             exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array()
         );
     }
 
+    /**
+     * Parses the buffered request body as a JSON tree.
+     *
+     * @param exchange the current server exchange
+     * @return the parsed tree, or null when parsing fails
+     */
     public static JsonNode jsonNode(final HttpServerExchange exchange) {
         return parseJson(
             exchange.getAttachment(ServerRequest.BYTE_BUFFER_KEY).array()
         );
     }
 
+    /**
+     * Parses a named form value as a JSON tree.
+     *
+     * @param exchange the current server exchange
+     * @param name the form field name
+     * @return the parsed tree
+     * @throws IllegalArgumentException when the field is absent
+     */
     public static JsonNode namedJsonNode(
         final HttpServerExchange exchange,
         final String name
@@ -918,6 +1388,15 @@ public class Extractors {
             );
     }
 
+    /**
+     * Parses the buffered request body as XML or JSON per the content type.
+     *
+     * @param <T> the model type
+     * @param exchange the current server exchange
+     * @param type the target type reference
+     * @return the parsed model, or null when parsing fails
+     * @throws IllegalArgumentException when no body is buffered
+     */
     public static <T> T model(
         final HttpServerExchange exchange,
         final TypeReference<T> type
@@ -929,6 +1408,15 @@ public class Extractors {
         }
     }
 
+    /**
+     * Parses the buffered request body as XML or JSON per the content type.
+     *
+     * @param <T> the model type
+     * @param exchange the current server exchange
+     * @param type the target class
+     * @return the parsed model, or null when parsing fails
+     * @throws IllegalArgumentException when no body is buffered
+     */
     public static <T> T model(
         final HttpServerExchange exchange,
         final Class<T> type
@@ -940,6 +1428,16 @@ public class Extractors {
         }
     }
 
+    /**
+     * Parses a named form value as a model of the given type reference.
+     *
+     * @param <T> the model type
+     * @param exchange the current server exchange
+     * @param type the target type reference
+     * @param name the form field name
+     * @return the parsed model
+     * @throws IllegalArgumentException when the field is absent
+     */
     public static <T> T namedModel(
         final HttpServerExchange exchange,
         final TypeReference<T> type,
@@ -952,6 +1450,16 @@ public class Extractors {
             );
     }
 
+    /**
+     * Parses a named form value as a model of the given class.
+     *
+     * @param <T> the model type
+     * @param exchange the current server exchange
+     * @param type the target class
+     * @param name the form field name
+     * @return the parsed model
+     * @throws IllegalArgumentException when the field is absent
+     */
     public static <T> T namedModel(
         final HttpServerExchange exchange,
         final Class<T> type,
@@ -964,6 +1472,7 @@ public class Extractors {
             );
     }
 
+    /** Maps a controller method to its Undertow HTTP method from its JAX-RS annotation. */
     public static Function<Method, HttpString> httpMethodFromMethod = m ->
         Arrays.stream(m.getDeclaredAnnotations())
             .map(a -> {
@@ -989,6 +1498,7 @@ public class Extractors {
             .findFirst()
             .get();
 
+    /** Maps a controller method to its full route path by joining the class and method {@code @Path} values. */
     public static Function<Method, String> pathTemplateFromMethod = m -> {
         jakarta.ws.rs.Path childPath = m.getDeclaredAnnotation(
             jakarta.ws.rs.Path.class

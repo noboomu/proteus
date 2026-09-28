@@ -33,15 +33,22 @@ import java.util.*;
  */
 public class ServerParameterExtension extends AbstractOpenAPIExtension {
 
+    /** the log. */
     private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(
         ServerParameterExtension.class.getCanonicalName()
     );
+    /** the  q u e r y_ p a r a m. */
     private static String QUERY_PARAM = "query";
+    /** the  h e a d e r_ p a r a m. */
     private static String HEADER_PARAM = "header";
+    /** the  c o o k i e_ p a r a m. */
     private static String COOKIE_PARAM = "cookie";
+    /** the  p a t h_ p a r a m. */
     private static String PATH_PARAM = "path";
+    /** the  f o r m_ p a r a m. */
     private static String FORM_PARAM = "form";
 
+    /** the mapper. */
     private final ObjectMapper mapper;
 
     /** Creates an extension using the shared OpenAPI Jackson 3 mapper. */
@@ -62,6 +69,15 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
      * Resolves one controller parameter, omitting security claim injections from the public API.
      *
      * @return resolved OpenAPI parameter and request-body metadata
+    * @param annotations the value
+    * @param type the value
+    * @param typesToSkip the value
+    * @param components the value
+    * @param classConsumes the value
+    * @param methodConsumes the value
+    * @param includeRequestBody the value
+    * @param jsonViewAnnotation the value
+    * @param chain the value
      */
     @Override
     public ResolvedParameter extractParameters(
@@ -385,6 +401,12 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
         return processed;
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param cls the value
+    * @return the result
+     */
     @Override
     protected boolean shouldIgnoreClass(Class<?> cls) {
         return (
@@ -393,6 +415,12 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
         );
     }
 
+    /**
+     * Returns the should ignore class value.
+     *
+     * @return the should ignore class value, or null when unset
+    * @param propType the value
+     */
     public boolean isOptionalType(JavaType propType) {
         return Arrays.asList(
             "com.google.common.base.Optional",

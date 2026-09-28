@@ -8,6 +8,10 @@ import java.util.regex.Pattern;
  * Utilities for parsing and processing paths
  */
 public class PathUtils {
+
+    /** Creates the object. */
+    public PathUtils() {}
+    /** the  p a t h_ p a r a m_ p a t t e r n. */
     private static final Pattern PATH_PARAM_PATTERN = Pattern.compile("\\{([^}]+)\\}");
 
     /**
@@ -58,6 +62,10 @@ public class PathUtils {
 
     /**
      * Combine path segments
+    *
+    * @param parent the value
+    * @param child the value
+    * @return the result
      */
     public static String combinePath(String parent, String child) {
         if (parent == null || parent.isEmpty()) {

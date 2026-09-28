@@ -7,15 +7,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Plain-text table formatter used for startup endpoint listings.
+ *
  * @author jbauer
  */
 public class TablePrinter
 {
+    /** the tablepadding. */
     private final int TABLEPADDING = 4;
+    /** the headers. */
     private List<String> headers;
+    /** the table. */
     private List<List<String>> table;
+    /** the max length. */
     private List<Integer> maxLength;
 
+    /** Creates a printer from headers and rows.
+     *
+     * @param headersIn the header labels
+     * @param content the table rows */
     public TablePrinter(List<String> headersIn, List<List<String>> content)
     {
         this.headers = headersIn;
@@ -30,6 +40,11 @@ public class TablePrinter
         updateMaxLengths();
     }
 
+    /**
+     * Returns the to string.
+     *
+     * @return the to string, or null when unset
+     */
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
@@ -86,6 +101,13 @@ public class TablePrinter
         return sb.toString();
     }
 
+    /**
+     * Sets the update field, fluent style.
+     *
+     * @param row the update field
+     * @param col the update field
+     * @param input the update field
+     */
     public void updateField(int row, int col, String input)
     {
         table.get(row).set(col, input);

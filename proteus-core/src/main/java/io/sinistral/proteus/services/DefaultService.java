@@ -18,12 +18,11 @@ public abstract class DefaultService extends AbstractIdleService implements Base
 {
     private static Logger log = LoggerFactory.getLogger(DefaultService.class.getCanonicalName());
 
-    /*
-     * @see com.google.inject.AbstractModule#configure()
-     */
+    /** Application configuration injected by Guice. */
     @Inject
     protected Config config;
 
+    /** Creates the service, invoked by Guice. */
     public DefaultService()
     {
     }
@@ -31,6 +30,7 @@ public abstract class DefaultService extends AbstractIdleService implements Base
     /*
      *  (non-Javadoc)
      * @see com.google.inject.Module#configure(com.google.inject.Binder)
+    *
      */
     @Override
     public void configure(Binder binder)
@@ -40,6 +40,7 @@ public abstract class DefaultService extends AbstractIdleService implements Base
 
     /*
     //* @see com.google.common.util.concurrent.AbstractIdleService#shutDown()
+    * @throws Exception when the operation fails
     */
     @Override
     protected void shutDown() throws Exception

@@ -8,11 +8,21 @@ import tools.jackson.databind.ser.std.StdSerializer;
 
 import java.util.Map;
 
+/** Serializes a {@link Callback} including extensions. */
 public final class CallbackSerializer extends StdSerializer<Callback> {
+    /** Creates the serializer for the {@link Callback} type. */
     public CallbackSerializer() {
         super(Callback.class);
     }
 
+    /**
+     * Writes the callback entries followed by extension properties.
+     *
+     * @param callback the callback to serialize
+     * @param generator the target generator
+     * @param context the serialization context
+     * @throws JacksonException when writing fails
+     */
     @Override
     public void serialize(
         Callback callback,

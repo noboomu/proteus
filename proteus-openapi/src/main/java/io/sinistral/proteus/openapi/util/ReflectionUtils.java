@@ -11,8 +11,16 @@ import java.util.List;
  */
 public class ReflectionUtils {
 
+    /** Creates the object. */
+    public ReflectionUtils() {}
+
     /**
      * Get annotation from class
+    *
+    * @param cls the value
+    * @param annotationClass the value
+    * @param <T> the annotation type
+    * @return the result
      */
     public static <T extends Annotation> T getAnnotation(Class<?> cls, Class<T> annotationClass) {
         if (cls == null || annotationClass == null) {
@@ -23,6 +31,11 @@ public class ReflectionUtils {
 
     /**
      * Get annotation from method
+    *
+    * @param method the value
+    * @param annotationClass the value
+    * @param <T> the annotation type
+    * @return the result
      */
     public static <T extends Annotation> T getAnnotation(Method method, Class<T> annotationClass) {
         if (method == null || annotationClass == null) {
@@ -33,6 +46,11 @@ public class ReflectionUtils {
 
     /**
      * Get repeatable annotations from class
+    *
+    * @param cls the value
+    * @param annotationClass the value
+    * @param <T> the annotation type
+    * @return the result
      */
     public static <T extends Annotation> List<T> getRepeatableAnnotations(Class<?> cls, Class<T> annotationClass) {
         if (cls == null || annotationClass == null) {
@@ -44,6 +62,11 @@ public class ReflectionUtils {
 
     /**
      * Get repeatable annotations from method
+    *
+    * @param method the value
+    * @param annotationClass the value
+    * @param <T> the annotation type
+    * @return the result
      */
     public static <T extends Annotation> List<T> getRepeatableAnnotations(Method method, Class<T> annotationClass) {
         if (method == null || annotationClass == null) {
@@ -55,6 +78,11 @@ public class ReflectionUtils {
 
     /**
      * Get repeatable annotations as array from class
+    *
+    * @param cls the value
+    * @param annotationClass the value
+    * @param <T> the annotation type
+    * @return the result
      */
     public static <T extends Annotation> T[] getRepeatableAnnotationsArray(Class<?> cls, Class<T> annotationClass) {
         if (cls == null || annotationClass == null) {
@@ -65,6 +93,11 @@ public class ReflectionUtils {
 
     /**
      * Get repeatable annotations as array from method
+    *
+    * @param method the value
+    * @param annotationClass the value
+    * @param <T> the annotation type
+    * @return the result
      */
     public static <T extends Annotation> T[] getRepeatableAnnotationsArray(Method method, Class<T> annotationClass) {
         if (method == null || annotationClass == null) {
@@ -75,6 +108,10 @@ public class ReflectionUtils {
 
     /**
      * Check if a method is overridden
+    *
+    * @param method the value
+    * @param cls the value
+    * @return the result
      */
     public static boolean isOverriddenMethod(Method method, Class<?> cls) {
         if (method == null || cls == null) {
@@ -101,6 +138,9 @@ public class ReflectionUtils {
 
     /**
      * Get the overridden method if it exists
+    *
+    * @param method the value
+    * @return the result
      */
     public static Method getOverriddenMethod(Method method) {
         if (method == null) {

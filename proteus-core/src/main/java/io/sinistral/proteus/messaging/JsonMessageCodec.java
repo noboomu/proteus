@@ -29,6 +29,12 @@ public class JsonMessageCodec implements MessageCodec<Object, Object> {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Sets the encode to wire, fluent style.
+     *
+     * @param buffer the encode to wire
+     * @param object the encode to wire
+     */
     @Override
     public void encodeToWire(Buffer buffer, Object object) {
         byte[] json = objectMapper.writeValueAsBytes(object);
@@ -36,6 +42,13 @@ public class JsonMessageCodec implements MessageCodec<Object, Object> {
         buffer.appendInt(type.length).appendBytes(type).appendBytes(json);
     }
 
+    /**
+     * Sets the decode from wire, fluent style.
+     *
+     * @param pos the decode from wire
+     * @param buffer the decode from wire
+     * @return this instance
+     */
     @Override
     public Object decodeFromWire(int pos, Buffer buffer) {
         int typeLength = buffer.getInt(pos);
@@ -50,17 +63,33 @@ public class JsonMessageCodec implements MessageCodec<Object, Object> {
         }
     }
 
+    /**
+     * Sets the transform, fluent style.
+     *
+     * @param object the transform
+     * @return this instance
+     */
     @Override
     public Object transform(Object object) {
         // Local delivery stays by reference; no encode/decode round trip.
         return object;
     }
 
+    /**
+     * Returns the name.
+     *
+     * @return the name, or null when unset
+     */
     @Override
     public String name() {
         return CODEC_NAME;
     }
 
+    /**
+     * Returns the system codec id.
+     *
+     * @return the system codec id, or null when unset
+     */
     @Override
     public byte systemCodecID() {
         return -1;

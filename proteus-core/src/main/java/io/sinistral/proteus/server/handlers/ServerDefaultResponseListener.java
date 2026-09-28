@@ -24,27 +24,39 @@ import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.xml.XmlMapper;
 
 /**
- * @author jbauer
+ * Default listener that serializes a {@code ServerResponse} value to the exchange when no
+ * other listener claimed it.
  *
+ * @author jbauer
  */
 @Singleton
 public class ServerDefaultResponseListener implements DefaultResponseListener {
 
+    /** the log. */
     private static Logger log = LoggerFactory.getLogger(
         ServerDefaultResponseListener.class.getCanonicalName()
     );
 
+    /** the xml mapper. */
     @Inject
     protected XmlMapper xmlMapper;
 
+    /** the object mapper. */
     protected ObjectMapper objectMapper = JsonMapper.builder()
         .changeDefaultPropertyInclusion(incl ->
             incl.withValueInclusion(JsonInclude.Include.NON_NULL)
         )
         .build();
 
+    /** Creates a listener with the default object mapper. */
     public ServerDefaultResponseListener() {}
 
+    /**
+     * Writes a default JSON error body when no response was produced.
+     *
+     * @param exchange the server exchange
+     * @return true when a default response was written
+     */
     @Override
     public boolean handleDefaultResponse(HttpServerExchange exchange) {
         if (!exchange.isResponseChannelAvailable()) {

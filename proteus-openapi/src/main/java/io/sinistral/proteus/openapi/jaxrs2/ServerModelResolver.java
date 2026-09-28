@@ -17,12 +17,25 @@ import java.util.concurrent.CompletionStage;
  * introspection to the next converter.
  */
 public final class ServerModelResolver implements ModelConverter {
+    /** the mapper. */
     private final ObjectMapper mapper;
 
+    /** Creates the resolver with a mapper.
+     *
+     * @param mapper the Jackson mapper
+     */
     public ServerModelResolver(ObjectMapper mapper) {
         this.mapper = mapper;
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param annotatedType the value
+    * @param context the value
+    * @param next the value
+    * @return the result
+     */
     @Override
     public Schema resolve(
         AnnotatedType annotatedType,

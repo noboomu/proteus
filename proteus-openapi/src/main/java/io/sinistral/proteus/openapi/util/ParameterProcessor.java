@@ -21,6 +21,9 @@ import java.util.Map;
  */
 public class ParameterProcessor {
 
+    /** Creates the object. */
+    public ParameterProcessor() {}
+
     /**
      * Apply annotations to a parameter
      *
@@ -193,6 +196,15 @@ public class ParameterProcessor {
 
     /**
      * Apply annotations to a parameter (array version)
+    *
+    * @param parameter the value
+    * @param type the value
+    * @param annotations the value
+    * @param components the value
+    * @param classConsumes the value
+    * @param methodConsumes the value
+    * @param jsonViewAnnotation the value
+    * @return the result
      */
     public static Parameter applyAnnotations(
         Parameter parameter,
@@ -209,6 +221,9 @@ public class ParameterProcessor {
 
     /**
      * Get parameter type from annotation
+    *
+    * @param parameterAnnotation the value
+    * @return the result
      */
     public static Type getParameterType(io.swagger.v3.oas.annotations.Parameter parameterAnnotation) {
         return getParameterType(parameterAnnotation, false);
@@ -216,6 +231,10 @@ public class ParameterProcessor {
 
     /**
      * Get parameter type from annotation with useSchema flag
+    *
+    * @param parameterAnnotation the value
+    * @param useSchema the value
+    * @return the result
      */
     public static Type getParameterType(io.swagger.v3.oas.annotations.Parameter parameterAnnotation, boolean useSchema) {
         if (parameterAnnotation == null) {

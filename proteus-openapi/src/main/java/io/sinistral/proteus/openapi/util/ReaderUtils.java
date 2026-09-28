@@ -18,8 +18,17 @@ import java.util.Optional;
  */
 public class ReaderUtils {
 
+    /** Creates the object. */
+    public ReaderUtils() {}
+
     /**
      * Get path from JAX-RS annotations
+    *
+    * @param classPath the value
+    * @param methodPath the value
+    * @param parentPath the value
+    * @param isSubresource the value
+    * @return the result
      */
     public static String getPath(
         jakarta.ws.rs.Path classPath,
@@ -56,6 +65,10 @@ public class ReaderUtils {
 
     /**
      * Check if a path should be ignored
+    *
+    * @param path the value
+    * @param config the value
+    * @return the result
      */
     public static boolean isIgnored(String path, OpenAPIConfiguration config) {
         // Basic implementation - can be enhanced
@@ -64,6 +77,10 @@ public class ReaderUtils {
 
     /**
      * Extract HTTP method from JAX-RS method annotations
+    *
+    * @param method the value
+    * @param chain the value
+    * @return the result
      */
     public static String extractOperationMethod(Method method, Object chain) {
         if (method.isAnnotationPresent(jakarta.ws.rs.GET.class)) {
@@ -86,6 +103,12 @@ public class ReaderUtils {
 
     /**
      * Collect constructor parameters
+    *
+    * @param cls the value
+    * @param components the value
+    * @param classConsumes the value
+    * @param jsonView the value
+    * @return the result
      */
     public static List<Parameter> collectConstructorParameters(
         Class<?> cls,
@@ -100,6 +123,12 @@ public class ReaderUtils {
 
     /**
      * Collect field parameters
+    *
+    * @param cls the value
+    * @param components the value
+    * @param classConsumes the value
+    * @param jsonView the value
+    * @return the result
      */
     public static List<Parameter> collectFieldParameters(
         Class<?> cls,
@@ -114,6 +143,9 @@ public class ReaderUtils {
 
     /**
      * Get string list from string array
+    *
+    * @param array the value
+    * @return the result
      */
     public static Optional<List<String>> getStringListFromStringArray(String[] array) {
         if (array == null || array.length == 0) {

@@ -19,14 +19,17 @@ import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * @author jbauer
+ * Core generated-handler base wrapping a controller invocation with wrapper chain support.
  *
+ * @author jbauer
  */
 public class ProteusHandler implements HttpHandler
 {
     private static final Logger log = LoggerFactory.getLogger(ProteusHandler.class.getName());
 
+    /** the path matcher. */
     private final PathMatcher<HttpHandler> pathMatcher = new PathMatcher<>();
+    /** the matches. */
     private final Map<HttpString, PathTemplateMatcher<RoutingMatch>> matches = new CopyOnWriteMap<>();
 
     // Matcher used to find if this instance contains matches for any http method for a path.
@@ -41,14 +44,18 @@ public class ProteusHandler implements HttpHandler
     // matched for the same exchange.
     // If this handler is null the fallbackHandler will be used.
     private volatile HttpHandler invalidMethodHandler = ResponseCodeHandler.HANDLE_405;
+    /** the cache. */
     private final LRUCache<String, PathMatcher.PathMatch<HttpHandler>> cache;
 
+    /** Creates a handler with no path cache. */
     public ProteusHandler()
     {
         this(0);
     }
 
-    // If this is true then path matches will be added to the query parameters for easy access by later handlers.
+    /** Creates a handler with a default fallback handler.
+     *
+     * @param defaultHandler the handler invoked when nothing matches */
     public ProteusHandler(final HttpHandler defaultHandler)
     {
         this(0);
@@ -56,6 +63,9 @@ public class ProteusHandler implements HttpHandler
         pathMatcher.addPrefixPath("/", defaultHandler);
     }
 
+    /** Creates a handler with a path match cache.
+     *
+     * @param cacheSize the cache size, zero to disable */
     public ProteusHandler(int cacheSize)
     {
         if (cacheSize > 0) {
@@ -65,6 +75,10 @@ public class ProteusHandler implements HttpHandler
         }
     }
 
+    /** Creates a handler with a default handler and path cache.
+     *
+     * @param defaultHandler the handler invoked when nothing matches
+     * @param cacheSize the cache size, zero to disable */
     public ProteusHandler(final HttpHandler defaultHandler, int cacheSize)
     {
         this(cacheSize);
@@ -72,6 +86,14 @@ public class ProteusHandler implements HttpHandler
         pathMatcher.addPrefixPath("/", defaultHandler);
     }
 
+    /**
+     * Adds an entry to the add.
+     *
+     * @param method the entry
+     * @param template the entry
+     * @param handler the entry
+    * @return the result
+     */
     public synchronized ProteusHandler add(HttpString method, String template, HttpHandler handler)
     {
         PathTemplateMatcher<RoutingMatch> matcher = matches.get(method);
@@ -95,11 +117,28 @@ public class ProteusHandler implements HttpHandler
         return this;
     }
 
+    /**
+     * Adds an entry to the add.
+     *
+     * @param method the entry
+     * @param template the entry
+     * @param handler the entry
+    * @return the result
+     */
     public synchronized ProteusHandler add(final String method, final String template, HttpHandler handler)
     {
         return add(new HttpString(method), template, handler);
     }
 
+    /**
+     * Adds an entry to the add.
+     *
+     * @param method the entry
+     * @param template the entry
+     * @param predicate the entry
+     * @param handler the entry
+    * @return the result
+     */
     public synchronized ProteusHandler add(HttpString method, String template, Predicate predicate, HttpHandler handler)
     {
         PathTemplateMatcher<RoutingMatch> matcher = matches.get(method);
@@ -123,11 +162,26 @@ public class ProteusHandler implements HttpHandler
         return this;
     }
 
+    /**
+     * Adds an entry to the add.
+     *
+     * @param method the entry
+     * @param template the entry
+     * @param predicate the entry
+     * @param handler the entry
+    * @return the result
+     */
     public synchronized ProteusHandler add(final String method, final String template, Predicate predicate, HttpHandler handler)
     {
         return add(new HttpString(method), template, predicate, handler);
     }
 
+    /**
+     * Adds an entry to the all.
+     *
+     * @param routingHandler the entry
+    * @return the result
+     */
     public synchronized ProteusHandler addAll(ProteusHandler routingHandler)
     {
         for (Entry<HttpString, PathTemplateMatcher<RoutingMatch>> entry : routingHandler.getMatches().entrySet()) {
@@ -191,6 +245,11 @@ public class ProteusHandler implements HttpHandler
         return this;
     }
 
+    /**
+     * Returns the clear paths.
+     *
+     * @return the clear paths, or null when unset
+     */
     public synchronized ProteusHandler clearPaths()
     {
         pathMatcher.clearPaths();
@@ -198,11 +257,26 @@ public class ProteusHandler implements HttpHandler
         return this;
     }
 
+    /**
+     * Sets the delete, fluent style.
+     *
+     * @param template the delete
+     * @param handler the delete
+     * @return this instance
+     */
     public synchronized ProteusHandler delete(final String template, HttpHandler handler)
     {
         return add(Methods.DELETE, template, handler);
     }
 
+    /**
+     * Sets the delete, fluent style.
+     *
+     * @param template the delete
+     * @param predicate the delete
+     * @param handler the delete
+     * @return this instance
+     */
     public synchronized ProteusHandler delete(final String template, Predicate predicate, HttpHandler handler)
     {
         return add(Methods.DELETE, template, predicate, handler);
@@ -220,6 +294,12 @@ public class ProteusHandler implements HttpHandler
         fallbackHandler.handleRequest(exchange);
     }
 
+    /**
+     * Sets the handle request, fluent style.
+     *
+     * @param exchange the handle request
+    * @throws Exception when the operation fails
+     */
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception
     {
@@ -261,6 +341,12 @@ public class ProteusHandler implements HttpHandler
         match.getValue().handleRequest(exchange);
     }
 
+    /**
+     * Sets the handle router request, fluent style.
+     *
+     * @param exchange the handle router request
+    * @throws Exception when the operation fails
+     */
     public void handleRouterRequest(HttpServerExchange exchange) throws Exception
     {
         PathTemplateMatcher<RoutingMatch> matcher = matches.get(exchange.getRequestMethod());
@@ -300,21 +386,51 @@ public class ProteusHandler implements HttpHandler
         }
     }
 
+    /**
+     * Sets the post, fluent style.
+     *
+     * @param template the post
+     * @param handler the post
+     * @return this instance
+     */
     public synchronized ProteusHandler post(final String template, HttpHandler handler)
     {
         return add(Methods.POST, template, handler);
     }
 
+    /**
+     * Sets the post, fluent style.
+     *
+     * @param template the post
+     * @param predicate the post
+     * @param handler the post
+     * @return this instance
+     */
     public synchronized ProteusHandler post(final String template, Predicate predicate, HttpHandler handler)
     {
         return add(Methods.POST, template, predicate, handler);
     }
 
+    /**
+     * Sets the put, fluent style.
+     *
+     * @param template the put
+     * @param handler the put
+     * @return this instance
+     */
     public synchronized ProteusHandler put(final String template, HttpHandler handler)
     {
         return add(Methods.PUT, template, handler);
     }
 
+    /**
+     * Sets the put, fluent style.
+     *
+     * @param template the put
+     * @param predicate the put
+     * @param handler the put
+     * @return this instance
+     */
     public synchronized ProteusHandler put(final String template, Predicate predicate, HttpHandler handler)
     {
         return add(Methods.PUT, template, predicate, handler);
@@ -353,6 +469,12 @@ public class ProteusHandler implements HttpHandler
         return this;
     }
 
+    /**
+     * Sets the remove exact path, fluent style.
+     *
+     * @param path the remove exact path
+     * @return this instance
+     */
     public synchronized ProteusHandler removeExactPath(final String path)
     {
         pathMatcher.removeExactPath(path);
@@ -360,6 +482,12 @@ public class ProteusHandler implements HttpHandler
         return this;
     }
 
+    /**
+     * Sets the remove prefix path, fluent style.
+     *
+     * @param path the remove prefix path
+     * @return this instance
+     */
     public synchronized ProteusHandler removePrefixPath(final String path)
     {
         pathMatcher.removePrefixPath(path);
@@ -368,6 +496,8 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
+     * Returns the fallback handler.
+     *
      * @return Handler called when no match was found and invalid method handler can't be invoked.
      */
     public HttpHandler getFallbackHandler()
@@ -376,6 +506,8 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
+     * Sets the fallback handler.
+     *
      * @param fallbackHandler Handler that will be called when no match was found and invalid method handler can't be
      * invoked.
      * @return This instance.
@@ -387,17 +519,34 @@ public class ProteusHandler implements HttpHandler
         return this;
     }
 
+    /**
+     * Registers a GET route.
+     *
+     * @param template the route template
+     * @param handler the route handler
+     * @return this instance
+     */
     public synchronized ProteusHandler get(final String template, HttpHandler handler)
     {
         return add(Methods.GET, template, handler);
     }
 
+    /**
+     * Registers a GET route guarded by a predicate.
+     *
+     * @param template the route template
+     * @param predicate the guard predicate
+     * @param handler the route handler
+     * @return this instance
+     */
     public synchronized ProteusHandler get(final String template, Predicate predicate, HttpHandler handler)
     {
         return add(Methods.GET, template, predicate, handler);
     }
 
     /**
+     * Returns the invalid method handler.
+     *
      * @return Handler called when this instance can not match the http method but can match another http method.
      */
     public HttpHandler getInvalidMethodHandler()

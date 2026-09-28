@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code), Hermes, and other A
 
 Proteus is a blazing fast minimalist Java API server framework built atop Undertow. It's a multi-module Maven project that generates native Undertow handlers from JAX-RS annotated controller classes at runtime for maximum performance.
 
-**Key Philosophy**: NO MAGIC - Proteus rewrites controller methods into high-performance Undertow handlers at runtime using JavaPoet and SourceBuddy for dynamic code generation.
+**Key Philosophy**: NO MAGIC - Proteus rewrites controller methods into high-performance Undertow handlers at runtime using JavaPoet, compiled with the JDK compiler API (`JdkControllerCompiler`, no SourceBuddy) for dynamic code generation.
 
 ## Build & Development Commands
 
@@ -56,10 +56,11 @@ mvn deploy -P central
 
 ### Module Organization
 
-- **proteus-core**: Core framework including Undertow integration, handler generation, DI (Guice), and service management
+- **proteus-core**: Core framework including Undertow integration, handler generation, DI (Guice), service management, JWT security, and messaging (embedded Vert.x event bus + optional NATS bridge via `MessagingModule`)
 - **proteus-openapi**: OpenAPI v3 support with auto-generated specs and Swagger UI
+- **proteus-websocket**: Annotation-driven Undertow WebSocket endpoints (`@WebSocket` + `@OnOpen`/`@OnMessage`/`@OnClose`/`@OnError`), connection registry, and path-scoped broadcast (`WebSocketModule`)
 
-Event Bus and WebSocket support are intentionally deferred. They are not part of the current reactor, dependencies, configuration, or runtime surface.
+Messaging is shipped (see `specs/proteus_messaging.md`). The NATS bridge and websocket tuning live under `proteus.messaging.nats.*` and `proteus.websocket.*`. Note: `specs/proteus_development_finalization_spec.md` defers Event Bus and WebSocket, but `specs/proteus_messaging.md` supersedes those exclusions.
 
 ### Key Architectural Components
 
@@ -69,7 +70,7 @@ The framework's core innovation is in `io.sinistral.proteus.server.handlers.Hand
 
 - Scans controller classes for JAX-RS annotations at startup
 - Generates Undertow `HttpHandler` source code using JavaPoet
-- Compiles handlers at runtime using SourceBuddy compiler
+- Compiles handlers at runtime with the JDK compiler API in an application-child class loader
 - Binds generated handlers to routes via `RoutingHandler`
 
 **Critical Path**: `ProteusApplication.buildServer()` → `HandlerGenerator.generateClassSource()` → Runtime compilation → Handler registration
@@ -340,11 +341,11 @@ Generated handlers dispatch routes marked `@Blocking` to a virtual thread when U
 
 ## Important Notes
 
-- **Java Version**: Requires JDK 25+ and is verified with JDK 26
+- **Java Version**: Requires JDK 27 or newer; verified with JDK 27
 - **Compiler Args**: `-parameters` flag required for parameter name preservation
 - **Development Branch**: `development`, with the Jackson 3 migration integrated
 - **Main Branch**: `master` (use for PRs)
 - **Security Context**: Exchange-attached and explicitly injected; never ambient or ThreadLocal-backed
-- **Deferred Features**: Event Bus and WebSocket support must not be documented or wired as current production features
+- **Messaging**: Event bus and WebSocket are shipped surfaces per `specs/proteus_messaging.md`
 - **No Spring**: Framework explicitly avoids Spring dependencies
-- **Minimal Dependencies**: Core intentionally avoids Spring and Vert.x
+- **Minimal Dependencies**: Core intentionally avoids Spring; Vert.x core is embedded for the event bus

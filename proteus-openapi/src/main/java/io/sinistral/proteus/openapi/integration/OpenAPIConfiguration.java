@@ -11,27 +11,37 @@ import java.util.Set;
 public interface OpenAPIConfiguration {
 
     /**
-     * Get the OpenAPI instance
+     * Get the OpenAPI instance.
+     *
+     * @return the OpenAPI instance
      */
     OpenAPI getOpenAPI();
 
     /**
-     * Get resource packages to scan
+     * Get resource packages to scan.
+     *
+     * @return the resource packages
      */
     Set<String> getResourcePackages();
 
     /**
-     * Get resource classes to scan
+     * Get resource classes to scan.
+     *
+     * @return the resource classes
      */
     Set<String> getResourceClasses();
 
     /**
-     * Get user-defined options
+     * Get user-defined options.
+     *
+     * @return the user-defined options
      */
     Map<String, Object> getUserDefinedOptions();
 
     /**
-     * Whether to read all resources (without @Operation annotation)
+     * Whether to read all resources (without @Operation annotation).
+     *
+     * @return true to read all resources
      */
     Boolean isReadAllResources();
 }

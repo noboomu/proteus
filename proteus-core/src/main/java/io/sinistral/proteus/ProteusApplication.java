@@ -77,46 +77,62 @@ import org.xnio.XnioWorker;
 @SuppressWarnings({ "UnusedReturnValue", "unchecked" })
 public class ProteusApplication {
 
+    /** the log. */
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(
         ProteusApplication.class.getName()
     );
 
+    /** the tmp_directory_name. */
     private static final String TMP_DIRECTORY_NAME =
         "proteus_generated_classes";
 
+    /** the registered controllers. */
     @Inject
     @Named("registeredControllers")
     public Set<Class<?>> registeredControllers;
 
+    /** the registered endpoints. */
     @Inject
     @Named("registeredEndpoints")
     public Set<EndpointInfo> registeredEndpoints;
 
+    /** the registered services. */
     @Inject
     @Named("registeredServices")
     public Set<Class<? extends BaseService>> registeredServices;
 
+    /** the router. */
     @Inject
     public RoutingHandler router;
 
+    /** the config. */
     @Inject
     public Config config;
 
+    /** the controller compiler. */
+    /** the registered modules. */
     @Inject
     public ControllerCompiler controllerCompiler;
 
+    /** the registered modules. */
     public List<Class<? extends Module>> registeredModules = new ArrayList<>();
 
+    /** the injector. */
     public Injector injector;
 
+    /** the service manager. */
     public ServiceManager serviceManager = null;
 
+    /** the undertow. */
     public Undertow undertow = null;
 
+    /** the root handler class. */
     public Class<? extends HttpHandler> rootHandlerClass;
 
+    /** the root handler. */
     public HttpHandler rootHandler;
 
+    /** the running. */
     public AtomicBoolean running = new AtomicBoolean(false);
 
     /**
@@ -128,36 +144,52 @@ public class ProteusApplication {
      */
     private final AtomicBoolean undertowStarted = new AtomicBoolean(false);
 
+    /** the worker. */
     private volatile XnioWorker worker;
 
+    /** the shutdown hook. */
     private volatile Thread shutdownHook;
 
+    /** the ports. */
     public List<Integer> ports = new ArrayList<>();
 
+    /** the startup duration. */
+    public Duration startupDuration;
+
+    /** Optional builder customization applied before server assembly. */
     public Function<
         Undertow.Builder,
         Undertow.Builder
     > serverConfigurationFunction = null;
 
-    public Duration startupDuration;
-
+    /** Tracks when the application was instantiated. */
     final Instant startTime = Instant.now();
 
+    /** Creates an application wired with the default config module. */
     public ProteusApplication() {
         injector = Guice.createInjector(new ConfigModule());
         injector.injectMembers(this);
     }
 
+    /** Creates an application from a config file path.
+     *
+     * @param configFile the config file path */
     public ProteusApplication(String configFile) {
         injector = Guice.createInjector(new ConfigModule(configFile));
         injector.injectMembers(this);
     }
 
+    /** Creates an application from a config URL.
+     *
+     * @param configURL the config URL */
     public ProteusApplication(URL configURL) {
         injector = Guice.createInjector(new ConfigModule(configURL));
         injector.injectMembers(this);
     }
 
+    /** Creates an application from explicit Guice modules.
+     *
+     * @param modules the Guice modules */
     public ProteusApplication(Module... modules) {
         injector = Guice.createInjector(modules);
         injector.injectMembers(this);
@@ -218,10 +250,18 @@ public class ProteusApplication {
 
             serviceManager.addListener(
                 new Listener() {
+                    /**
+                     * Returns the stopped.
+                     *
+                     */
                     public void stopped() {
                         log.warn("Services are stopped");
                     }
 
+                    /**
+                     * Returns the healthy.
+                     *
+                     */
                     public void healthy() {
                         log.info("Services are healthy");
 
@@ -244,6 +284,11 @@ public class ProteusApplication {
                         printStatus();
                     }
 
+                    /**
+                     * Sets the failure, fluent style.
+                     *
+                     * @param service the failure
+                     */
                     public void failure(Service service) {
                         log.error("Service failure: {}", service);
 
@@ -414,6 +459,11 @@ public class ProteusApplication {
         }
     }
 
+    /**
+     * Returns the running.
+     *
+     * @return the running, or null when unset
+     */
     public boolean isRunning() {
         return this.running.get();
     }
@@ -693,7 +743,7 @@ public class ProteusApplication {
     /**
      * Add a service class to the application
      *
-     * @param serviceClass
+     * @param serviceClass the service class to register
      * @return the application
      */
     public ProteusApplication addService(
@@ -706,7 +756,7 @@ public class ProteusApplication {
     /**
      * Add a controller class to the application
      *
-     * @param controllerClass
+     * @param controllerClass the controller class to register
      * @return the application
      */
     public ProteusApplication addController(Class<?> controllerClass) {
@@ -717,7 +767,7 @@ public class ProteusApplication {
     /**
      * Add a module class to the application
      *
-     * @param moduleClass
+     * @param moduleClass the module class to register
      * @return the application
      */
     public ProteusApplication addModule(Class<? extends Module> moduleClass) {
@@ -726,9 +776,10 @@ public class ProteusApplication {
     }
 
     /**
-     * Add utility routes the router
+     * Adds utility routes such as health endpoints to the router.
      *
-     * @param router
+     * @param router the routing handler
+     * @return the application
      */
     public ProteusApplication addDefaultRoutes(RoutingHandler router) {
         if (config.hasPath("health.statusPath")) {
@@ -855,7 +906,7 @@ public class ProteusApplication {
     /**
      * Set the root HttpHandler class
      *
-     * @param rootHandlerClass
+     * @param rootHandlerClass the root handler class
      * @return the application
      */
     public ProteusApplication setRootHandlerClass(
@@ -868,7 +919,7 @@ public class ProteusApplication {
     /**
      * Set the root HttpHandler
      *
-     * @param rootHandler
+     * @param rootHandler the root handler
      * @return the application
      */
     public ProteusApplication setRootHandler(HttpHandler rootHandler) {
@@ -879,7 +930,8 @@ public class ProteusApplication {
     /**
      * Allows direct access to the Undertow.Builder for custom configuration
      *
-     * @param serverConfigurationFunction the serverConfigurationFunction
+     * @param serverConfigurationFunction the builder customization function
+     * @return the application
      */
     public ProteusApplication setServerConfigurationFunction(
         Function<Undertow.Builder, Undertow.Builder> serverConfigurationFunction
@@ -889,6 +941,8 @@ public class ProteusApplication {
     }
 
     /**
+     * Returns the managed service manager.
+     *
      * @return the serviceManager
      */
     public ServiceManager getServiceManager() {
@@ -896,6 +950,8 @@ public class ProteusApplication {
     }
 
     /**
+     * Returns the application config.
+     *
      * @return the config
      */
     public Config getConfig() {
@@ -903,6 +959,8 @@ public class ProteusApplication {
     }
 
     /**
+     * Returns the routing handler.
+     *
      * @return the router
      */
     public RoutingHandler getRouter() {
@@ -910,6 +968,8 @@ public class ProteusApplication {
     }
 
     /**
+     * Returns the ports the server listens on.
+     *
      * @return a list of used ports
      */
     public List<Integer> getPorts() {
@@ -925,6 +985,11 @@ public class ProteusApplication {
         undertow.stop();
     }
 
+    /**
+     * Returns the xnio.
+     *
+     * @return the xnio, or null when unset
+     */
     public Xnio getXnio() {
         return undertow.getXnio();
     }
@@ -938,17 +1003,28 @@ public class ProteusApplication {
         return worker;
     }
 
+    /**
+     * Returns the Undertow listener info.
+     *
+     * @return a list of listener info entries
+     */
     public List<ListenerInfo> getListenerInfo() {
         return undertow.getListenerInfo();
     }
 
     /**
+     * Returns the Undertow server, or null before startup.
+     *
      * @return The Undertow server
      */
     public Undertow getUndertow() {
         return undertow;
     }
 
+    /**
+     * Returns the print status.
+     *
+     */
     public void printStatus() {
         Config globalHeaders = config.getConfig("globalHeaders");
 
@@ -1055,6 +1131,12 @@ public class ProteusApplication {
         log.info(sb.toString());
     }
 
+    /**
+     * Returns the temporary directory path.
+     *
+     * @return the temporary directory path, or null when unset
+    * @throws Exception when the operation fails
+     */
     protected java.nio.file.Path getTemporaryDirectoryPath() throws Exception {
         String tmpDirLocation = System.getProperty("java.io.tmpdir");
 

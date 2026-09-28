@@ -64,33 +64,54 @@ import tools.jackson.databind.introspect.AnnotatedMethod;
 import tools.jackson.databind.introspect.AnnotatedParameter;
 import tools.jackson.databind.type.TypeFactory;
 
+/** Scans JAX-RS annotated classes and builds the OpenAPI document. */
 public class Reader {
 
+    /** the  l o g g e r. */
     private static final Logger LOGGER = LoggerFactory.getLogger(Reader.class);
 
+    /** default media type value constant. */
     public static final String DEFAULT_MEDIA_TYPE_VALUE = "*/*";
+    /** default description constant. */
     public static final String DEFAULT_DESCRIPTION = "default response";
 
+    /** the value. */
     protected OpenAPIConfiguration config;
 
+    /** the application. */
     private Application application;
+    /** the open a p i. */
     private OpenAPI openAPI;
+    /** the components. */
     private Components components;
+    /** the paths. */
     private Paths paths;
+    /** the open api tags. */
     private Set<Tag> openApiTags;
 
+    /** the  g e t_ m e t h o d. */
     private static final String GET_METHOD = "get";
+    /** the  p o s t_ m e t h o d. */
     private static final String POST_METHOD = "post";
+    /** the  p u t_ m e t h o d. */
     private static final String PUT_METHOD = "put";
+    /** the  d e l e t e_ m e t h o d. */
     private static final String DELETE_METHOD = "delete";
+    /** the  p a t c h_ m e t h o d. */
     private static final String PATCH_METHOD = "patch";
+    /** the  t r a c e_ m e t h o d. */
     private static final String TRACE_METHOD = "trace";
+    /** the  h e a d_ m e t h o d. */
     private static final String HEAD_METHOD = "head";
+    /** the  o p t i o n s_ m e t h o d. */
     private static final String OPTIONS_METHOD = "options";
 
+    /** the string schema. */
     private Schema stringSchema;
+    /** the mapper. */
     private final ObjectMapper mapper;
 
+    /** Creates a reader with the default mapper and empty document. */
     public Reader() {
         this(Json.mapper());
     }
@@ -105,24 +126,47 @@ public class Reader {
         stringSchema.setType("string");
     }
 
+    /** Creates a reader targeting the given document.
+     *
+     * @param openAPI the document to populate
+     */
     public Reader(OpenAPI openAPI) {
         this(openAPI, Json.mapper());
     }
 
+    /** Creates a reader with a document and mapper.
+     *
+     * @param openAPI the document to populate
+     * @param mapper the Jackson mapper for schema resolution
+     */
     public Reader(OpenAPI openAPI, ObjectMapper mapper) {
         this(mapper);
         setConfiguration(new SwaggerConfiguration().openAPI(openAPI));
     }
 
+    /** Creates a reader from a configuration.
+     *
+     * @param openApiConfiguration the reader configuration
+     */
     public Reader(OpenAPIConfiguration openApiConfiguration) {
         this(openApiConfiguration, Json.mapper());
     }
 
+    /** Creates a reader from a configuration and mapper.
+     *
+     * @param openApiConfiguration the reader configuration
+     * @param mapper the Jackson mapper for schema resolution
+     */
     public Reader(OpenAPIConfiguration openApiConfiguration, ObjectMapper mapper) {
         this(mapper);
         setConfiguration(openApiConfiguration);
     }
 
+    /**
+     * Returns the open api value.
+     *
+     * @return the open api value, or null when unset
+     */
     public OpenAPI getOpenAPI() {
         return openAPI;
     }
@@ -130,6 +174,9 @@ public class Reader {
     /**
      * Scans a single class for Swagger annotations - does not invoke
      * ReaderListeners
+    *
+    * @param cls the value
+    * @return the result
      */
     public OpenAPI read(Class<?> cls) {
         return read(
@@ -159,6 +206,13 @@ public class Reader {
         Set<Class<?>> sortedClasses = new TreeSet<>(
             new Comparator<Class<?>>() {
                 @Override
+                /**
+                 * Processes this element.
+                *
+                * @param class1 the value
+                * @param class2 the value
+                * @return the result
+                 */
                 public int compare(Class<?> class1, Class<?> class2) {
                     if (class1.equals(class2)) {
                         return 0;
@@ -230,6 +284,12 @@ public class Reader {
         return openAPI;
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param config the value
+    * @return the result
+     */
     public static OpenAPIConfiguration deepCopy(OpenAPIConfiguration config) {
         return deepCopy(config, Json.mapper());
     }
@@ -252,6 +312,11 @@ public class Reader {
         }
     }
 
+    /**
+     * Sets the configuration value.
+     *
+     * @param openApiConfiguration the configuration value
+     */
     public void setConfiguration(OpenAPIConfiguration openApiConfiguration) {
         if (openApiConfiguration != null) {
             this.config = deepCopy(openApiConfiguration, mapper);
@@ -264,10 +329,22 @@ public class Reader {
         }
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param classes the value
+    * @param resources the value
+    * @return the result
+     */
     public OpenAPI read(Set<Class<?>> classes, Map<String, Object> resources) {
         return read(classes);
     }
 
+    /**
+     * Processes this element.
+    *
+    * @return the result
+     */
     protected String resolveApplicationPath() {
         if (application != null) {
             Class<?> applicationToScan = this.application.getClass();
@@ -327,6 +404,20 @@ public class Reader {
         return "";
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param cls the value
+    * @param parentPath the value
+    * @param parentMethod the value
+    * @param isSubresource the value
+    * @param parentRequestBody the value
+    * @param parentResponses the value
+    * @param parentTags the value
+    * @param parentParameters the value
+    * @param scannedResources the value
+    * @return the result
+     */
     public OpenAPI read(
         Class<?> cls,
         String parentPath,
@@ -1039,6 +1130,12 @@ public class Reader {
         return openAPI;
     }
 
+    /**
+     * Returns the optional type value.
+     *
+     * @return the optional type value, or null when unset
+    * @param propType the value
+     */
     public boolean isOptionalType(JavaType propType) {
         return Arrays.asList(
             "com.google.common.base.Optional",
@@ -1046,6 +1143,12 @@ public class Reader {
         ).contains(propType.getRawClass().getCanonicalName());
     }
 
+    /**
+     * Returns the optional type value.
+     *
+     * @return the optional type value, or null when unset
+    * @param method the value
+     */
     public static Annotation[][] getParameterAnnotations(Method method) {
         Annotation[][] methodAnnotations = method.getParameterAnnotations();
 
@@ -1079,11 +1182,21 @@ public class Reader {
 
                     QueryParam queryParam = new QueryParam() {
                         @Override
+                        /**
+                         * Returns the value.
+                         *
+                         * @return the value, or null when unset
+                         */
                         public String value() {
                             return parameterName;
                         }
 
                         @Override
+                        /**
+                         * Processes this element.
+                        *
+                        * @return the result
+                         */
                         public Class<? extends Annotation> annotationType() {
                             return QueryParam.class;
                         }
@@ -1134,6 +1247,15 @@ public class Reader {
         return methodAnnotations;
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param content the value
+    * @param schema the value
+    * @param methodConsumes the value
+    * @param classConsumes the value
+    * @return the result
+     */
     protected Content processContent(
         Content content,
         Schema schema,
@@ -1157,6 +1279,18 @@ public class Reader {
         return content;
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param requestBodyParameter the value
+    * @param operation the value
+    * @param methodConsumes the value
+    * @param classConsumes the value
+    * @param operationParameters the value
+    * @param paramAnnotations the value
+    * @param type the value
+    * @param jsonViewAnnotation the value
+     */
     protected void processRequestBody(
         Parameter requestBodyParameter,
         Operation operation,
@@ -1315,6 +1449,14 @@ public class Reader {
         content.addMediaType(value, mediaTypeObject);
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param method the value
+    * @param globalParameters the value
+    * @param jsonViewAnnotation the value
+    * @return the result
+     */
     public Operation parseMethod(
         Method method,
         List<Parameter> globalParameters,
@@ -1343,6 +1485,26 @@ public class Reader {
         );
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param method the value
+    * @param globalParameters the value
+    * @param methodProduces the value
+    * @param classProduces the value
+    * @param methodConsumes the value
+    * @param classConsumes the value
+    * @param classSecurityRequirements the value
+    * @param classExternalDocs the value
+    * @param classTags the value
+    * @param classServers the value
+    * @param isSubresource the value
+    * @param parentRequestBody the value
+    * @param parentResponses the value
+    * @param jsonViewAnnotation the value
+    * @param classResponses the value
+    * @return the result
+     */
     public Operation parseMethod(
         Method method,
         List<Parameter> globalParameters,
@@ -1887,6 +2049,17 @@ public class Reader {
         }
     }
 
+    /**
+     * Sets the operation object from api operation annotation value.
+     *
+     * @param operation the operation value
+     * @param apiOperation the api operation value
+     * @param methodProduces the method produces value
+     * @param classProduces the class produces value
+     * @param methodConsumes the method consumes value
+     * @param classConsumes the class consumes value
+     * @param jsonViewAnnotation the json view annotation value
+     */
     protected void setOperationObjectFromApiOperationAnnotation(
         Operation operation,
         io.swagger.v3.oas.annotations.Operation apiOperation,
@@ -2002,6 +2175,12 @@ public class Reader {
         }
     }
 
+    /**
+     * Returns the operation id.
+     *
+     * @return the operation id, or null when unset
+    * @param operationId the value
+     */
     protected String getOperationId(String operationId) {
         boolean operationIdUsed = existOperationId(operationId);
         String operationIdToFind = null;
@@ -2032,6 +2211,16 @@ public class Reader {
         return false;
     }
 
+    /**
+     * Returns the exist operation id value.
+     *
+     * @return the exist operation id value, or null when unset
+    * @param parameters the value
+    * @param classConsumes the value
+    * @param methodConsumes the value
+    * @param operation the value
+    * @param jsonViewAnnotation the value
+     */
     protected Optional<List<Parameter>> getParametersListFromAnnotation(
         io.swagger.v3.oas.annotations.Parameter[] parameters,
         Consumes classConsumes,
@@ -2060,6 +2249,17 @@ public class Reader {
         return Optional.of(parametersObject);
     }
 
+    /**
+     * Returns the parameter map.
+     *
+     * @return the parameter map, or null when unset
+    * @param type the value
+    * @param annotations the value
+    * @param operation the value
+    * @param classConsumes the value
+    * @param methodConsumes the value
+    * @param jsonViewAnnotation the value
+     */
     protected ResolvedParameter getParameters(
         Type type,
         List<Annotation> annotations,
@@ -2202,6 +2402,12 @@ public class Reader {
         return true;
     }
 
+    /**
+     * Returns the operation hidden value.
+     *
+     * @return the operation hidden value, or null when unset
+    * @param method the value
+     */
     protected boolean isOperationHidden(Method method) {
         io.swagger.v3.oas.annotations.Operation apiOperation =
             ReflectionUtils.getAnnotation(
@@ -2225,10 +2431,22 @@ public class Reader {
         return false;
     }
 
+    /**
+     * Sets the application value.
+     *
+     * @param application the application value
+     */
     public void setApplication(Application application) {
         this.application = application;
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param path the value
+    * @param parentPath the value
+    * @return the result
+     */
     protected boolean ignoreOperationPath(String path, String parentPath) {
         if (StringUtils.isBlank(path) && StringUtils.isBlank(parentPath)) {
             return true;
@@ -2267,6 +2485,12 @@ public class Reader {
         return false;
     }
 
+    /**
+     * Returns the sub resource with jax rs subresource locator specs value.
+     *
+     * @return the sub resource with jax rs subresource locator specs value, or null when unset
+    * @param method the value
+     */
     protected Class<?> getSubResourceWithJaxRsSubresourceLocatorSpecs(
         Method method
     ) {

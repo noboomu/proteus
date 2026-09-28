@@ -15,9 +15,18 @@ import tools.jackson.dataformat.xml.XmlMapper;
 import tools.jackson.dataformat.xml.XmlWriteFeature;
 import tools.jackson.module.blackbird.BlackbirdModule;
 
+/** Guice module that binds the XML ObjectMapper. */
 @Singleton
 public class XmlModule extends AbstractModule {
 
+    /** Creates the module. */
+    public XmlModule() {
+    }
+
+    /**
+     * Binds the XML ObjectMapper instance.
+     *
+     */
     @Override
     protected void configure() {
         XMLInputFactory inputFactory = new WstxInputFactory();

@@ -13,11 +13,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @author jbauer
+ * Predicate that matches requests whose content length does not exceed a maximum.
  *
+ * @author jbauer
  */
 public class MaxRequestContentLengthPredicate implements Predicate
 {
+    /** the max size. */
     private final long maxSize;
 
     MaxRequestContentLengthPredicate(final long maxSize)
@@ -25,6 +27,12 @@ public class MaxRequestContentLengthPredicate implements Predicate
         this.maxSize = maxSize;
     }
 
+    /**
+     * Sets the resolve, fluent style.
+     *
+     * @param value the resolve
+     * @return this instance
+     */
     @Override
     public boolean resolve(final HttpServerExchange value)
     {
@@ -37,8 +45,18 @@ public class MaxRequestContentLengthPredicate implements Predicate
         return Long.parseLong(length) > maxSize;
     }
 
+    /** Builds the predicate from a {@code value} config entry. */
     public static class Builder implements PredicateBuilder
     {
+        /** Creates the builder. */
+        public Builder() {}
+
+        /**
+         * Sets the build, fluent style.
+         *
+         * @param config the build
+         * @return this instance
+         */
         @Override
         public Predicate build(final Map<String, Object> config)
         {
@@ -47,24 +65,44 @@ public class MaxRequestContentLengthPredicate implements Predicate
             return new MaxRequestContentLengthPredicate(max);
         }
 
+        /**
+         * Returns the default parameter.
+         *
+         * @return the default parameter, or null when unset
+         */
         @Override
         public String defaultParameter()
         {
             return "value";
         }
 
+        /**
+         * Returns the name.
+         *
+         * @return the name, or null when unset
+         */
         @Override
         public String name()
         {
             return "max-content-size";
         }
 
+        /**
+         * Returns the parameters.
+         *
+         * @return the parameters, or null when unset
+         */
         @Override
         public Map<String, Class<?>> parameters()
         {
             return Collections.<String, Class<?>>singletonMap("value", Long.class);
         }
 
+        /**
+         * Returns the required parameters.
+         *
+         * @return the required parameters, or null when unset
+         */
         @Override
         public Set<String> requiredParameters()
         {

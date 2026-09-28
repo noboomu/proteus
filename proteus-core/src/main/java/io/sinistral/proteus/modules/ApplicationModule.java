@@ -38,17 +38,23 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ApplicationModule extends AbstractModule {
 
+    /** the log. */
     private static Logger log = LoggerFactory.getLogger(
         ApplicationModule.class.getCanonicalName()
     );
 
+    /** Registered endpoint metadata exposed under the {@code registeredEndpoints} name. */
     protected Set<EndpointInfo> registeredEndpoints = new ConcurrentSkipListSet<>();
+    /** Registered controller classes exposed under the {@code registeredControllers} name. */
     protected Set<Class<?>> registeredControllers = new HashSet<>();
+    /** Registered service classes exposed under the {@code registeredServices} name. */
     protected Set<Class<? extends BaseService>> registeredServices =
         new HashSet<>();
+    /** Registered middleware wrappers exposed under the {@code registeredHandlerWrappers} name. */
     protected Map<String, HandlerWrapper> registeredHandlerWrappers =
         new HashMap<>();
 
+    /** Resolved application configuration. */
     protected Config config;
 
     /**
@@ -61,7 +67,9 @@ public class ApplicationModule extends AbstractModule {
     }
 
     /**
-     * Override for customizing XmlMapper and ObjectMapper
+     * Installs the configured Jackson and XML mapper modules, falling back to framework
+     * defaults when a configured class cannot be created, then requests static injection for
+     * framework holders.
      */
     public void bindMappers() {
         try {
@@ -111,6 +119,10 @@ public class ApplicationModule extends AbstractModule {
         this.requestStaticInjection(JsonViewWrapper.class);
     }
 
+    /**
+     * Returns the configure.
+     *
+     */
     @SuppressWarnings("unchecked")
     @Override
     protected void configure() {

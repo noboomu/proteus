@@ -22,8 +22,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Registry and execution context for Java type to OpenAPI schema converters.
  */
 public final class ModelConverters {
+    /** the  i n s t a n c e. */
     private static final ModelConverters INSTANCE = create(JsonMapper.builder().build());
 
+    /** the converters. */
     private final CopyOnWriteArrayList<ModelConverter> converters = new CopyOnWriteArrayList<>();
 
     private ModelConverters(ObjectMapper mapper) {
@@ -31,12 +33,20 @@ public final class ModelConverters {
         ServiceLoader.load(ModelConverter.class).forEach(this::addConverter);
     }
 
+    /**
+     * Returns the instance value.
+     *
+     * @return the instance value, or null when unset
+     */
     public static ModelConverters getInstance() {
         return INSTANCE;
     }
 
     /**
      * Creates an isolated converter registry backed by the supplied Jackson 3 mapper.
+    *
+    * @param mapper the value
+    * @return the result
      */
     public static ModelConverters create(ObjectMapper mapper) {
         if (mapper == null) {
@@ -49,6 +59,8 @@ public final class ModelConverters {
      * Replaces the built-in converters so schema introspection uses the same mapper
      * configuration as the application (mix-ins, naming strategy, visibility, etc.).
      * Custom converters remain registered ahead of the built-ins.
+     *
+     * @param mapper the mapper to use for schema introspection
      */
     public synchronized void configure(ObjectMapper mapper) {
         converters.removeIf(converter ->
@@ -58,6 +70,11 @@ public final class ModelConverters {
         converters.add(new JacksonModelResolver(mapper));
     }
 
+    /**
+     * Adds an entry to the converter value.
+     *
+     * @param converter the entry
+     */
     public void addConverter(ModelConverter converter) {
         if (converter == null) {
             return;
@@ -66,10 +83,21 @@ public final class ModelConverters {
         converters.add(0, converter);
     }
 
+    /**
+     * Returns the converters value.
+     *
+     * @return the converters value, or null when unset
+     */
     public List<ModelConverter> getConverters() {
         return Collections.unmodifiableList(converters);
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param type the value
+    * @return the result
+     */
     public ResolvedSchema resolveAsResolvedSchema(AnnotatedType type) {
         if (type == null || type.getType() == null) {
             return new ResolvedSchema();
@@ -81,14 +109,24 @@ public final class ModelConverters {
         return resolved;
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param type the value
+    * @return the result
+     */
     public Schema resolve(AnnotatedType type) {
         return new ModelConverterContextImpl(converters).resolve(type);
     }
 
     private static final class ModelConverterContextImpl implements ModelConverterContext {
+        /** the converters. */
         private final List<ModelConverter> converters;
+        /** the model by name. */
         private final Map<String, Schema> modelByName = new LinkedHashMap<>();
+        /** the model by type. */
         private final Map<String, Schema> modelByType = new LinkedHashMap<>();
+        /** the resolving types. */
         private final Set<String> resolvingTypes = new LinkedHashSet<>();
 
         private ModelConverterContextImpl(List<ModelConverter> converters) {
@@ -96,6 +134,12 @@ public final class ModelConverters {
         }
 
         @Override
+        /**
+         * Processes this element.
+        *
+        * @param type the value
+        * @return the result
+         */
         public Schema resolve(AnnotatedType type) {
             if (type == null || type.getType() == null) {
                 return null;
@@ -124,6 +168,14 @@ public final class ModelConverters {
         }
 
         @Override
+        /**
+         * Processes this element.
+        *
+        * @param name the value
+        * @param schema the value
+        * @param type the value
+        * @param previousName the value
+         */
         public void defineModel(String name, Schema schema, AnnotatedType type, String previousName) {
             if (previousName != null && !previousName.equals(name)) {
                 modelByName.remove(previousName);
@@ -137,6 +189,12 @@ public final class ModelConverters {
         }
 
         @Override
+        /**
+         * Processes this element.
+        *
+        * @param name the value
+        * @param schema the value
+         */
         public void defineModel(String name, Schema schema) {
             if (name != null && !name.isBlank() && schema != null) {
                 modelByName.put(name, schema);
@@ -144,6 +202,11 @@ public final class ModelConverters {
         }
 
         @Override
+        /**
+         * Returns the define model value.
+         *
+         * @return the define model value, or null when unset
+         */
         public Map<String, Schema> getDefinedModels() {
             return Collections.unmodifiableMap(new LinkedHashMap<>(modelByName));
         }

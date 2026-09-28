@@ -7,19 +7,28 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.undertow.util.HttpString;
 
 /**
- * @author jbauer
+ * Endpoint metadata describing one generated route: method, path template, media types, and
+ * originating controller element. Serialized with only non-null fields present.
  *
+ * @author jbauer
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EndpointInfo implements Comparable<EndpointInfo> {
 
+    /** the consumes. */
     private String consumes = "*/*";
+    /** the produces. */
     private String produces = "*/*";
+    /** the controller method. */
     private String controllerMethod = "*";
+    /** the controller name. */
     private String controllerName = "_";
+    /** the method. */
     private HttpString method;
+    /** the path template. */
     private String pathTemplate;
 
+    /** Default constructor for deserialization. */
     public EndpointInfo() {}
 
     private EndpointInfo(Builder builder) {
@@ -39,6 +48,13 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
         return new Builder();
     }
 
+    /**
+     * Orders by path template, then controller name, method name, and HTTP method, with null
+     * components sorting first.
+     *
+     * @param other the endpoint to compare against
+     * @return a negative integer, zero, or positive integer per the ordering
+     */
     public int compareTo(EndpointInfo other) {
         int result = compareNullable(this.pathTemplate, other.pathTemplate);
 
@@ -71,6 +87,11 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
         return a.compareTo(b);
     }
 
+    /**
+     * Returns the hash code.
+     *
+     * @return the hash code, or null when unset
+     */
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -92,6 +113,12 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
         return result;
     }
 
+    /**
+     * Sets the equals, fluent style.
+     *
+     * @param obj the equals
+     * @return this instance
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -121,6 +148,11 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
         return true;
     }
 
+    /**
+     * Returns the to string.
+     *
+     * @return the to string, or null when unset
+     */
     @Override
     public String toString() {
         return String.format(
@@ -134,42 +166,54 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
     }
 
     /**
-     * @return the consumes
+     * Returns the consumed media type, defaulting to {@code APPLICATION_WILDCARD}.
+     *
+     * @return the consumes value
      */
     public String getConsumes() {
         return consumes;
     }
 
     /**
-     * @param consumes the consumes to set
+     * Sets the consumed media type.
+     *
+     * @param consumes the consumes value to set
      */
     public void setConsumes(String consumes) {
         this.consumes = consumes;
     }
 
     /**
-     * @return the controllerMethod
+     * Returns the controller method name, defaulting to {@code *}.
+     *
+     * @return the controller method name
      */
     public String getControllerMethod() {
         return controllerMethod;
     }
 
     /**
-     * @param controllerMethod the controllerMethod to set
+     * Sets the controller method name.
+     *
+     * @param controllerMethod the controller method name to set
      */
     public void setControllerMethod(String controllerMethod) {
         this.controllerMethod = controllerMethod;
     }
 
     /**
-     * @return the controllerName
+     * Returns the controller class name, defaulting to {@code _}.
+     *
+     * @return the controller class name
      */
     public String getControllerName() {
         return controllerName;
     }
 
     /**
-     * @param controllerName the controllerName to set
+     * Sets the controller class name; a null value becomes the empty string.
+     *
+     * @param controllerName the controller class name to set
      */
     public void setControllerName(String controllerName) {
         this.controllerName = controllerName;
@@ -180,42 +224,54 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
     }
 
     /**
-     * @return the method
+     * Returns the HTTP method.
+     *
+     * @return the HTTP method
      */
     public HttpString getMethod() {
         return method;
     }
 
     /**
-     * @param method the method to set
+     * Sets the HTTP method.
+     *
+     * @param method the HTTP method to set
      */
     public void setMethod(HttpString method) {
         this.method = method;
     }
 
     /**
-     * @return the pathTemplate
+     * Returns the route path template.
+     *
+     * @return the path template
      */
     public String getPathTemplate() {
         return pathTemplate;
     }
 
     /**
-     * @param pathTemplate the pathTemplate to set
+     * Sets the route path template.
+     *
+     * @param pathTemplate the path template to set
      */
     public void setPathTemplate(String pathTemplate) {
         this.pathTemplate = pathTemplate;
     }
 
     /**
-     * @return the produces
+     * Returns the produced media type, defaulting to {@code APPLICATION_WILDCARD}.
+     *
+     * @return the produces value
      */
     public String getProduces() {
         return produces;
     }
 
     /**
-     * @param produces the produces to set
+     * Sets the produced media type.
+     *
+     * @param produces the produces value to set
      */
     public void setProduces(String produces) {
         this.produces = produces;
@@ -226,49 +282,96 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
      */
     public static final class Builder {
 
+        /** the consumes. */
         private String consumes = "*/*";
+        /** the produces. */
         private String produces = "*/*";
+        /** the controller method. */
         private String controllerMethod = "_";
+        /** the controller name. */
         private String controllerName = "_";
+        /** the method. */
         private HttpString method;
+        /** the path template. */
         private String pathTemplate;
 
         private Builder() {}
 
+        /**
+         * Builds the endpoint info from the configured values.
+         *
+         * @return a new endpoint info
+         */
         public EndpointInfo build() {
             return new EndpointInfo(this);
         }
 
+        /**
+         * Sets the consumed media type.
+         *
+         * @param consumes the consumes value
+         * @return this builder
+         */
         public Builder withConsumes(String consumes) {
             this.consumes = consumes;
 
             return this;
         }
 
+        /**
+         * Sets the controller method name.
+         *
+         * @param controllerMethod the controller method name
+         * @return this builder
+         */
         public Builder withControllerMethod(String controllerMethod) {
             this.controllerMethod = controllerMethod;
 
             return this;
         }
 
+        /**
+         * Sets the controller class name.
+         *
+         * @param controllerName the controller class name
+         * @return this builder
+         */
         public Builder withControllerName(String controllerName) {
             this.controllerName = controllerName;
 
             return this;
         }
 
+        /**
+         * Sets the HTTP method.
+         *
+         * @param method the HTTP method
+         * @return this builder
+         */
         public Builder withMethod(HttpString method) {
             this.method = method;
 
             return this;
         }
 
+        /**
+         * Sets the route path template.
+         *
+         * @param pathTemplate the path template
+         * @return this builder
+         */
         public Builder withPathTemplate(String pathTemplate) {
             this.pathTemplate = pathTemplate;
 
             return this;
         }
 
+        /**
+         * Sets the produced media type.
+         *
+         * @param produces the produces value
+         * @return this builder
+         */
         public Builder withProduces(String produces) {
             this.produces = produces;
 

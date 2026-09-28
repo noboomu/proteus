@@ -39,6 +39,7 @@ import java.util.function.Consumer;
  *
  * @author jbauer
  */
+    /** Class logger. */
 @Singleton
 public class DefaultNatsBridgeService implements NatsBridgeService {
 
@@ -170,6 +171,10 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         return rest;
     }
 
+    /**
+     * Returns the start.
+     *
+     */
     @Override
     public void start() {
         if (!enabled) {
@@ -208,6 +213,10 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         }
     }
 
+    /**
+     * Returns the stop.
+     *
+     */
     @Override
     public void stop() {
         eventBusService.setBridgeHook(null);
@@ -245,6 +254,11 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         }
     }
 
+    /**
+     * Returns the running.
+     *
+     * @return the running, or null when unset
+     */
     @Override
     public boolean isRunning() {
         Connection current = connection;
@@ -252,6 +266,12 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
                 && current.getStatus() == Connection.Status.CONNECTED;
     }
 
+    /**
+     * Sets the forward publish, fluent style.
+     *
+     * @param address the forward publish
+     * @param message the forward publish
+     */
     @Override
     public void forwardPublish(String address, Object message) {
         requireRunning();
@@ -264,6 +284,14 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         flushQuietly();
     }
 
+    /**
+     * Sets the forward request, fluent style.
+     *
+     * @param address the forward request
+     * @param message the forward request
+     * @param timeoutMs the forward request
+     * @return this instance
+     */
     @Override
     public CompletableFuture<Object> forwardRequest(
             String address, Object message, long timeoutMs) {
@@ -331,6 +359,12 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         return schedulerHolder;
     }
 
+    /**
+     * Sets the subscribe, fluent style.
+     *
+     * @param address the subscribe
+     * @param handler the subscribe
+     */
     @Override
     public void subscribe(String address, Consumer<JsonObject> handler) {
         inboundHandlers.put(address, handler);

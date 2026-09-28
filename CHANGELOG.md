@@ -4,6 +4,7 @@ Proteus Changelog.
 ## Unreleased
 ### Agent work log
 
+- 📚✅ [jcode/houses] #proteus #doclint #javadoc OUTCOME: Strict doclint (`-Xdoclint:all`) now yields zero warnings and zero errors across proteus-core and proteus-openapi (uncapped direct javadoc runs, apidocs regenerated). ~1130 legacy warnings eliminated: full method/field/enum/constructor documentation, missing `<T>` type params, main descriptions, annotation-above-javadoc reordering, and control-char corruption repair from earlier scripted passes. Full reactor `mvn clean install` on JDK 27: BUILD SUCCESS, 202 tests green. Committed file-by-file.
 - 🧭🚧 [jcode/ember-storm] #proteus #jdk26 #jackson3 INTENT: Resume the verified Hermes candidate, inspect staged custody and docs, then produce one local-only `development` branch without touching remotes or unrelated work.
 - 🔎💡 [jcode/ember-storm] #proteus #handoff The Hermes candidate is intact and fully staged with no unstaged changes. Its product tree was verified, but `AGENTS.md` is still stale and `HERMES-RESUME.md` is a handoff-only staged artifact that should not ship.
 - 📝✅ [jcode/ember-storm] #proteus #docs OUTCOME: Aligned `AGENTS.md` and `README.md` with the verified Java 25 target/JDK 26 runtime, Jackson 3, explicit security context, virtual-thread dispatch, and deferred realtime surface; removed the handoff-only file from the product tree.

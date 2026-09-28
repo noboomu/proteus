@@ -26,6 +26,7 @@ import java.util.Optional;
 public class DefaultJwtService implements JwtService {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultJwtService.class);
+    /** the configuration. */
     private final JwtConfiguration configuration;
 
     /**
@@ -38,6 +39,12 @@ public class DefaultJwtService implements JwtService {
         this.configuration = configuration;
     }
 
+    /**
+     * Sets the extract token from header, fluent style.
+     *
+     * @param authorizationHeader the extract token from header
+     * @return this instance
+     */
     @Override
     public Optional<String> extractTokenFromHeader(String authorizationHeader) {
         if (authorizationHeader == null || authorizationHeader.trim().isEmpty()) {
@@ -57,6 +64,12 @@ public class DefaultJwtService implements JwtService {
         return Optional.empty();
     }
 
+    /**
+     * Sets the parse token, fluent style.
+     *
+     * @param tokenString the parse token
+     * @return this instance
+     */
     @Override
     public JsonWebToken parseToken(String tokenString) {
         if (tokenString == null || tokenString.trim().isEmpty()) {
@@ -71,6 +84,12 @@ public class DefaultJwtService implements JwtService {
         }
     }
 
+    /**
+     * Sets the validate token, fluent style.
+     *
+     * @param token the validate token
+     * @return this instance
+     */
     @Override
     public boolean validateToken(JsonWebToken token) {
         try {
@@ -250,6 +269,13 @@ public class DefaultJwtService implements JwtService {
         return false;
     }
 
+    /**
+     * Sets the validate token signature, fluent style.
+     *
+     * @param token the validate token signature
+     * @param publicKey the validate token signature
+     * @return this instance
+     */
     @Override
     public boolean validateTokenSignature(JsonWebToken token, RSAPublicKey publicKey) {
         if (!(token instanceof DefaultJsonWebToken)) {
@@ -264,6 +290,13 @@ public class DefaultJwtService implements JwtService {
         }
     }
 
+    /**
+     * Sets the validate token signature, fluent style.
+     *
+     * @param token the validate token signature
+     * @param publicKey the validate token signature
+     * @return this instance
+     */
     @Override
     public boolean validateTokenSignature(JsonWebToken token, ECPublicKey publicKey) {
         if (!(token instanceof DefaultJsonWebToken)) {
@@ -278,6 +311,13 @@ public class DefaultJwtService implements JwtService {
         }
     }
 
+    /**
+     * Sets the validate token signature, fluent style.
+     *
+     * @param token the validate token signature
+     * @param secret the validate token signature
+     * @return this instance
+     */
     @Override
     public boolean validateTokenSignature(JsonWebToken token, byte[] secret) {
         if (!(token instanceof DefaultJsonWebToken)) {
@@ -292,6 +332,12 @@ public class DefaultJwtService implements JwtService {
         }
     }
 
+    /**
+     * Sets the create security context, fluent style.
+     *
+     * @param token the create security context
+     * @return this instance
+     */
     @Override
     public SecurityContext createSecurityContext(JsonWebToken token) {
         DefaultSecurityContext.Builder builder = DefaultSecurityContext.builder()
@@ -320,6 +366,12 @@ public class DefaultJwtService implements JwtService {
     }
 
 
+    /**
+     * Sets the process authorization header, fluent style.
+     *
+     * @param authorizationHeader the process authorization header
+     * @return this instance
+     */
     @Override
     public Optional<SecurityContext> processAuthorizationHeader(String authorizationHeader) {
         try {
@@ -340,26 +392,55 @@ public class DefaultJwtService implements JwtService {
         }
     }
 
+    /**
+     * Sets the has any role, fluent style.
+     *
+     * @param token the has any role
+     * @param requiredRoles the has any role
+     * @return this instance
+     */
     @Override
     public boolean hasAnyRole(JsonWebToken token, String... requiredRoles) {
         return token.hasAnyRole(requiredRoles);
     }
 
+    /**
+     * Sets the has all roles, fluent style.
+     *
+     * @param token the has all roles
+     * @param requiredRoles the has all roles
+     * @return this instance
+     */
     @Override
     public boolean hasAllRoles(JsonWebToken token, String... requiredRoles) {
         return token.hasAllRoles(requiredRoles);
     }
 
+    /**
+     * Returns the allowed issuers.
+     *
+     * @return the allowed issuers, or null when unset
+     */
     @Override
     public List<String> getAllowedIssuers() {
         return configuration.getAllowedIssuers();
     }
 
+    /**
+     * Returns the allowed audiences.
+     *
+     * @return the allowed audiences, or null when unset
+     */
     @Override
     public List<String> getAllowedAudiences() {
         return configuration.getAllowedAudiences();
     }
 
+    /**
+     * Returns the clock skew tolerance seconds.
+     *
+     * @return the clock skew tolerance seconds, or null when unset
+     */
     @Override
     public long getClockSkewToleranceSeconds() {
         return configuration.getClockSkewToleranceSeconds();

@@ -9,9 +9,18 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.module.blackbird.BlackbirdModule;
 
+/** Guice module that binds the shared Jackson 3 ObjectMapper. */
 @Singleton
 public class JacksonModule extends AbstractModule {
 
+    /** Creates the module. */
+    public JacksonModule() {
+    }
+
+    /**
+     * Binds the shared ObjectMapper instance.
+     *
+     */
     @Override
     protected void configure() {
         JsonFactory factory = JsonFactory.builder()

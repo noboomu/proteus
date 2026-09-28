@@ -7,11 +7,20 @@ import tools.jackson.databind.ser.std.StdSerializer;
 
 import java.util.Map;
 
+/** Serializes a Paths container including extensions. */
 public final class PathsSerializer extends StdSerializer<Paths> {
+    /** Creates the serializer for the Paths type. */
     public PathsSerializer() {
         super(Paths.class);
     }
 
+    /**
+     * Processes this element.
+    *
+    * @param paths the value
+    * @param generator the value
+    * @param context the value
+     */
     @Override
     public void serialize(
         Paths paths,

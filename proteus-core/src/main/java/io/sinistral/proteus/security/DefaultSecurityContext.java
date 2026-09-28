@@ -19,13 +19,21 @@ import java.util.Optional;
  */
 public class DefaultSecurityContext implements SecurityContext {
 
+    /** the principal. */
     private final Principal principal;
+    /** the user id. */
     private final String userId;
+    /** the username. */
     private final String username;
+    /** the roles. */
     private final List<String> roles;
+    /** the permissions. */
     private final List<String> permissions;
+    /** the authentication scheme. */
     private final String authenticationScheme;
+    /** the raw token. */
     private final String rawToken;
+    /** the attributes. */
     private final Map<String, Object> attributes;
 
     /**
@@ -46,41 +54,83 @@ public class DefaultSecurityContext implements SecurityContext {
         this.attributes = new HashMap<>(builder.attributes);
     }
 
+    /**
+     * Returns the principal.
+     *
+     * @return the principal, or null when unset
+     */
     @Override
     public Optional<Principal> getPrincipal() {
         return Optional.ofNullable(principal);
     }
 
+    /**
+     * Returns the user id.
+     *
+     * @return the user id, or null when unset
+     */
     @Override
     public Optional<String> getUserId() {
         return Optional.ofNullable(userId);
     }
 
+    /**
+     * Returns the username.
+     *
+     * @return the username, or null when unset
+     */
     @Override
     public Optional<String> getUsername() {
         return Optional.ofNullable(username);
     }
 
+    /**
+     * Returns the roles.
+     *
+     * @return the roles, or null when unset
+     */
     @Override
     public List<String> getRoles() {
         return roles;
     }
 
+    /**
+     * Returns the permissions.
+     *
+     * @return the permissions, or null when unset
+     */
     @Override
     public List<String> getPermissions() {
         return permissions;
     }
 
+    /**
+     * Returns the authenticated.
+     *
+     * @return the authenticated, or null when unset
+     */
     @Override
     public boolean isAuthenticated() {
         return principal != null || userId != null || rawToken != null;
     }
 
+    /**
+     * Sets the has role, fluent style.
+     *
+     * @param role the has role
+     * @return this instance
+     */
     @Override
     public boolean hasRole(String role) {
         return roles.contains(role);
     }
 
+    /**
+     * Sets the has any role, fluent style.
+     *
+     * @param rolesToCheck the has any role
+     * @return this instance
+     */
     @Override
     public boolean hasAnyRole(String... rolesToCheck) {
         for (String role : rolesToCheck) {
@@ -91,6 +141,12 @@ public class DefaultSecurityContext implements SecurityContext {
         return false;
     }
 
+    /**
+     * Sets the has all roles, fluent style.
+     *
+     * @param rolesToCheck the has all roles
+     * @return this instance
+     */
     @Override
     public boolean hasAllRoles(String... rolesToCheck) {
         for (String role : rolesToCheck) {
@@ -101,26 +157,54 @@ public class DefaultSecurityContext implements SecurityContext {
         return true;
     }
 
+    /**
+     * Sets the has permission, fluent style.
+     *
+     * @param permission the has permission
+     * @return this instance
+     */
     @Override
     public boolean hasPermission(String permission) {
         return permissions.contains(permission);
     }
 
+    /**
+     * Returns the attribute.
+     *
+     * @return the attribute, or null when unset
+    * @param name the value
+     */
     @Override
     public Optional<Object> getAttribute(String name) {
         return Optional.ofNullable(attributes.get(name));
     }
 
+    /**
+     * Sets the attribute.
+     *
+     * @param name the attribute
+     * @param value the attribute
+     */
     @Override
     public void setAttribute(String name, Object value) {
         attributes.put(name, value);
     }
 
+    /**
+     * Returns the authentication scheme.
+     *
+     * @return the authentication scheme, or null when unset
+     */
     @Override
     public Optional<String> getAuthenticationScheme() {
         return Optional.ofNullable(authenticationScheme);
     }
 
+    /**
+     * Returns the raw token.
+     *
+     * @return the raw token, or null when unset
+     */
     @Override
     public Optional<String> getRawToken() {
         return Optional.ofNullable(rawToken);
@@ -137,13 +221,21 @@ public class DefaultSecurityContext implements SecurityContext {
 
     /** Builder for creating {@link DefaultSecurityContext} instances. */
     public static class Builder {
+        /** the principal. */
         private Principal principal;
+        /** the user id. */
         private String userId;
+        /** the username. */
         private String username;
+        /** the roles. */
         private List<String> roles = List.of();
+        /** the permissions. */
         private List<String> permissions = List.of();
+        /** the authentication scheme. */
         private String authenticationScheme;
+        /** the raw token. */
         private String rawToken;
+        /** the attributes. */
         private Map<String, Object> attributes = new HashMap<>();
 
         /** Creates an empty security-context builder. */
@@ -261,6 +353,11 @@ public class DefaultSecurityContext implements SecurityContext {
         }
     }
 
+    /**
+     * Returns the to string.
+     *
+     * @return the to string, or null when unset
+     */
     @Override
     public String toString() {
         return "SecurityContext{" +

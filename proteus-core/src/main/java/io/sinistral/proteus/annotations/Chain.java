@@ -12,13 +12,16 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * Decorates all methods of a controller or a single controller method with one or more <code>HandlerWrapper</code> classes.
- */
+/** Marks a controller or method for wrapping with the given handler wrappers. */
 @Retention(RUNTIME)
 @Target({TYPE, METHOD})
 public @interface Chain
 {
+    /**
+     * Returns the wrapper classes to apply, outermost first.
+     *
+     * @return the wrapper classes
+     */
     Class<? extends HandlerWrapper>[] value();
 }
 

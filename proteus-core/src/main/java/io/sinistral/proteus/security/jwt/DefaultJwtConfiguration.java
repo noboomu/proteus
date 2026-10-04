@@ -39,29 +39,29 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultJwtConfiguration.class);
 
-    /** the rsa public keys. */
+    /** The rsa public keys. */
     private final List<RSAPublicKey> rsaPublicKeys = new ArrayList<>();
-    /** the ec public keys. */
+    /** The ec public keys. */
     private final List<ECPublicKey> ecPublicKeys = new ArrayList<>();
-    /** the hmac secrets. */
+    /** The hmac secrets. */
     private final List<byte[]> hmacSecrets = new ArrayList<>();
-    /** the allowed algorithms. */
+    /** The allowed algorithms. */
     private final List<String> allowedAlgorithms;
-    /** the allowed issuers. */
+    /** The allowed issuers. */
     private final List<String> allowedIssuers;
-    /** the allowed audiences. */
+    /** The allowed audiences. */
     private final List<String> allowedAudiences;
-    /** the clock skew tolerance seconds. */
+    /** The clock skew tolerance seconds. */
     private final long clockSkewToleranceSeconds;
-    /** the expiration required. */
+    /** The expiration required. */
     private final boolean expirationRequired;
-    /** the issuer required. */
+    /** The issuer required. */
     private final boolean issuerRequired;
-    /** the audience required. */
+    /** The audience required. */
     private final boolean audienceRequired;
-    /** the max token age seconds. */
+    /** The max token age seconds. */
     private final long maxTokenAgeSeconds;
-    /** the signature verification required. */
+    /** The signature verification required. */
     private final boolean signatureVerificationRequired;
 
     /**

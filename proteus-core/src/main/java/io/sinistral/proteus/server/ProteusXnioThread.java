@@ -84,11 +84,11 @@ public class ProteusXnioThread extends XnioIoThread {
     }
 
     class RepeatKey implements Key, Runnable {
-        /** the command. */
+        /** The command. */
         private final Runnable command;
-        /** the millis. */
+        /** The millis. */
         private final long millis;
-        /** the current. */
+        /** The current. */
         private final AtomicReference<Key> current = new AtomicReference<>();
 
         RepeatKey(final Runnable command, final long millis) {
@@ -97,7 +97,7 @@ public class ProteusXnioThread extends XnioIoThread {
         }
 
         /**
-         * Returns the remove.
+         * Returns whether this ProteusXnioThread remove.
          *
          * @return the remove, or null when unset
          */
@@ -133,9 +133,9 @@ public class ProteusXnioThread extends XnioIoThread {
     }
 
     /**
-     * Sets the execute, fluent style.
+     * Runs the task on a new virtual thread.
      *
-     * @param runnable the execute
+     * @param runnable the task to run
      */
     @Override
     public void execute(Runnable runnable) {
@@ -143,12 +143,12 @@ public class ProteusXnioThread extends XnioIoThread {
     }
 
     /**
-     * Sets the execute after, fluent style.
+     * Schedules a one-shot task after a delay.
      *
-     * @param task the execute after
-     * @param timeout the execute after
-     * @param timeUnit the execute after
-     * @return this instance
+     * @param task the task to schedule
+     * @param timeout the delay amount
+     * @param timeUnit the delay unit
+     * @return the executor key
      */
     @Override
     public Key executeAfter(Runnable task, long timeout, TimeUnit timeUnit) {
@@ -157,12 +157,12 @@ public class ProteusXnioThread extends XnioIoThread {
 
 
     /**
-     * Sets the execute at interval, fluent style.
+     * Schedules a repeating task at a fixed interval.
      *
-     * @param command the execute at interval
-     * @param time the execute at interval
-     * @param unit the execute at interval
-     * @return this instance
+     * @param command the task to repeat
+     * @param time the interval amount
+     * @param unit the interval unit
+     * @return the executor key
      */
     @Override
     public Key executeAtInterval(Runnable command, long time, TimeUnit unit) {

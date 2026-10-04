@@ -11,21 +11,21 @@ public class Link {
 
     /** Creates the object. */
     public Link() {}
-    /** the operation ref. */
+    /** The operation ref. */
     private String operationRef;
-    /** the operation id. */
+    /** The operation id. */
     private String operationId;
-    /** the parameters. */
+    /** The parameters. */
     private Map<String, Object> parameters;
-    /** the request body. */
+    /** The request body. */
     private Object requestBody;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the server. */
+    /** The server. */
     private Server server;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**

@@ -19,21 +19,21 @@ import java.util.Optional;
  */
 public class DefaultSecurityContext implements SecurityContext {
 
-    /** the principal. */
+    /** The principal. */
     private final Principal principal;
-    /** the user id. */
+    /** The user id. */
     private final String userId;
-    /** the username. */
+    /** The username. */
     private final String username;
-    /** the roles. */
+    /** The roles. */
     private final List<String> roles;
-    /** the permissions. */
+    /** The permissions. */
     private final List<String> permissions;
-    /** the authentication scheme. */
+    /** The authentication scheme. */
     private final String authenticationScheme;
-    /** the raw token. */
+    /** The raw token. */
     private final String rawToken;
-    /** the attributes. */
+    /** The attributes. */
     private final Map<String, Object> attributes;
 
     /**
@@ -115,10 +115,10 @@ public class DefaultSecurityContext implements SecurityContext {
     }
 
     /**
-     * Sets the has role, fluent style.
+     * Returns whether the principal holds the role.
      *
-     * @param role the has role
-     * @return this instance
+     * @param role the role to check
+     * @return true when the role is held
      */
     @Override
     public boolean hasRole(String role) {
@@ -126,10 +126,10 @@ public class DefaultSecurityContext implements SecurityContext {
     }
 
     /**
-     * Sets the has any role, fluent style.
+     * Returns whether the principal holds any of the roles.
      *
-     * @param rolesToCheck the has any role
-     * @return this instance
+     * @param rolesToCheck the roles to check
+     * @return true when at least one role is held
      */
     @Override
     public boolean hasAnyRole(String... rolesToCheck) {
@@ -142,10 +142,10 @@ public class DefaultSecurityContext implements SecurityContext {
     }
 
     /**
-     * Sets the has all roles, fluent style.
+     * Returns whether the principal holds every role.
      *
-     * @param rolesToCheck the has all roles
-     * @return this instance
+     * @param rolesToCheck the roles to check
+     * @return true when all roles are held
      */
     @Override
     public boolean hasAllRoles(String... rolesToCheck) {
@@ -158,10 +158,10 @@ public class DefaultSecurityContext implements SecurityContext {
     }
 
     /**
-     * Sets the has permission, fluent style.
+     * Returns whether the principal holds the permission.
      *
-     * @param permission the has permission
-     * @return this instance
+     * @param permission the permission to check
+     * @return true when the permission is held
      */
     @Override
     public boolean hasPermission(String permission) {
@@ -221,21 +221,21 @@ public class DefaultSecurityContext implements SecurityContext {
 
     /** Builder for creating {@link DefaultSecurityContext} instances. */
     public static class Builder {
-        /** the principal. */
+        /** The principal. */
         private Principal principal;
-        /** the user id. */
+        /** The user id. */
         private String userId;
-        /** the username. */
+        /** The username. */
         private String username;
-        /** the roles. */
+        /** The roles. */
         private List<String> roles = List.of();
-        /** the permissions. */
+        /** The permissions. */
         private List<String> permissions = List.of();
-        /** the authentication scheme. */
+        /** The authentication scheme. */
         private String authenticationScheme;
-        /** the raw token. */
+        /** The raw token. */
         private String rawToken;
-        /** the attributes. */
+        /** The attributes. */
         private Map<String, Object> attributes = new HashMap<>();
 
         /** Creates an empty security-context builder. */

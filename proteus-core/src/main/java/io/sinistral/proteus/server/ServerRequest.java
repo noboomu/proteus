@@ -70,28 +70,28 @@ public class ServerRequest {
     /** Attachment key for the server request instance. */
     public static final AttachmentKey<ServerRequest> SERVER_REQUEST_ATTACHMENT_KEY = AttachmentKey.create(ServerRequest.class);
 
-    /** the error_callback. */
+    /** The error_callback. */
     protected static final Receiver.ErrorCallback ERROR_CALLBACK = (exchange, e) -> {
         exchange.putAttachment(ExceptionHandler.THROWABLE, e);
         exchange.endExchange();
     };
 
-    /** the tmp_dir. */
+    /** The tmp_dir. */
     protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
-    /** the exchange. */
+    /** The exchange. */
     public final HttpServerExchange exchange;
 
-    /** the path. */
+    /** The path. */
     protected final String path;
 
-    /** the content type. */
+    /** The content type. */
     protected final String contentType;
 
-    /** the method. */
+    /** The method. */
     protected final String method;
 
-    /** the accept. */
+    /** The accept. */
     protected final String accept;
 
     /** Creates an empty request with no exchange. */
@@ -174,7 +174,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the files, fluent style.
+     * Sets the files and returns this instance.
      *
      * @param name the files
      * @return this instance
@@ -237,7 +237,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the start async, fluent style.
+     * Sets the start async and returns this instance.
      *
      * @param executor the start async
      * @param runnable the start async
@@ -734,7 +734,7 @@ public class ServerRequest {
     }
 
     /**
-     * Returns the dispatched.
+     * Returns whether this ServerRequest dispatched.
      *
      * @return the dispatched, or null when unset
      */
@@ -754,9 +754,9 @@ public class ServerRequest {
     }
 
     /**
-     * Returns the dispatch.
+     * Returns the exchange in dispatch mode.
      *
-     * @return the dispatch, or null when unset
+     * @return the exchange
      */
     @Deprecated
     public HttpServerExchange dispatch() {
@@ -765,7 +765,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the dispatch, fluent style.
+     * Sets the dispatch and returns this instance.
      *
      * @param runnable the dispatch
      * @return this instance
@@ -776,7 +776,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the dispatch, fluent style.
+     * Sets the dispatch and returns this instance.
      *
      * @param executor the dispatch
      * @param runnable the dispatch
@@ -788,7 +788,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the dispatch, fluent style.
+     * Sets the dispatch and returns this instance.
      *
      * @param handler the dispatch
      * @return this instance
@@ -799,7 +799,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the dispatch, fluent style.
+     * Sets the dispatch and returns this instance.
      *
      * @param executor the dispatch
      * @param handler the dispatch
@@ -832,7 +832,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the upgrade channel, fluent style.
+     * Sets the upgrade channel and returns this instance.
      *
      * @param listener the upgrade channel
      * @return this instance
@@ -843,7 +843,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the upgrade channel, fluent style.
+     * Sets the upgrade channel and returns this instance.
      *
      * @param productName the upgrade channel
      * @param listener the upgrade channel
@@ -855,7 +855,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the accept connect request, fluent style.
+     * Sets the accept connect request and returns this instance.
      *
      * @param connectListener the accept connect request
      * @return this instance
@@ -1233,7 +1233,7 @@ public class ServerRequest {
     }
 
     /**
-     * Sets the start blocking, fluent style.
+     * Sets the start blocking and returns this instance.
      *
      * @param httpExchange the start blocking
      * @return this instance

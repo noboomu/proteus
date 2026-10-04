@@ -9,15 +9,15 @@ public class OAuthFlow {
 
     /** Creates the object. */
     public OAuthFlow() {}
-    /** the authorization url. */
+    /** The authorization url. */
     private String authorizationUrl;
-    /** the token url. */
+    /** The token url. */
     private String tokenUrl;
-    /** the refresh url. */
+    /** The refresh url. */
     private String refreshUrl;
-    /** the scopes. */
+    /** The scopes. */
     private Map<String, String> scopes;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**

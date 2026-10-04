@@ -22,19 +22,19 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerDefaultHttpHandler implements HttpHandler {
 
-    /** the log. */
+    /** The log. */
     private static final Logger log = LoggerFactory.getLogger(
         ServerDefaultHttpHandler.class
     );
 
-    /** the headers. */
+    /** The headers. */
     protected final HeaderMap headers = new HeaderMap();
 
-    /** the default response listener. */
+    /** The default response listener. */
     @Inject(optional = true)
     protected DefaultResponseListener defaultResponseListener;
 
-    /** the next. */
+    /** The next. */
     @Inject
     protected volatile RoutingHandler next;
 

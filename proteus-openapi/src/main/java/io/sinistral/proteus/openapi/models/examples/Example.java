@@ -9,17 +9,17 @@ public class Example {
 
     /** Creates an empty example object. */
     public Example() {}
-    /** the summary. */
+    /** The summary. */
     private String summary;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the value. */
+    /** The value. */
     private Object value;
-    /** the external value. */
+    /** The external value. */
     private String externalValue;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**

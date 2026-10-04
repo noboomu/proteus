@@ -32,16 +32,16 @@ import tools.jackson.dataformat.xml.XmlMapper;
 @Singleton
 public class ServerDefaultResponseListener implements DefaultResponseListener {
 
-    /** the log. */
+    /** The log. */
     private static Logger log = LoggerFactory.getLogger(
         ServerDefaultResponseListener.class.getCanonicalName()
     );
 
-    /** the xml mapper. */
+    /** The xml mapper. */
     @Inject
     protected XmlMapper xmlMapper;
 
-    /** the object mapper. */
+    /** The object mapper. */
     protected ObjectMapper objectMapper = JsonMapper.builder()
         .changeDefaultPropertyInclusion(incl ->
             incl.withValueInclusion(JsonInclude.Include.NON_NULL)

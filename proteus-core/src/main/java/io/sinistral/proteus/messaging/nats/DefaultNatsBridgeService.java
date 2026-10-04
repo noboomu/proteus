@@ -267,10 +267,10 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     }
 
     /**
-     * Sets the forward publish, fluent style.
+     * Publishes an envelope to the NATS fan-out subject for the address.
      *
-     * @param address the forward publish
-     * @param message the forward publish
+     * @param address the event bus address
+     * @param message the message payload
      */
     @Override
     public void forwardPublish(String address, Object message) {
@@ -285,12 +285,12 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     }
 
     /**
-     * Sets the forward request, fluent style.
+     * Forwards a request-reply message over NATS and awaits the reply.
      *
-     * @param address the forward request
-     * @param message the forward request
-     * @param timeoutMs the forward request
-     * @return this instance
+     * @param address the event bus address
+     * @param message the message payload
+     * @param timeoutMs the reply timeout in milliseconds
+     * @return a future completed with the reply payload
      */
     @Override
     public CompletableFuture<Object> forwardRequest(
@@ -360,10 +360,10 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     }
 
     /**
-     * Sets the subscribe, fluent style.
+     * Registers the inbound handler for a bridged address.
      *
-     * @param address the subscribe
-     * @param handler the subscribe
+     * @param address the event bus address
+     * @param handler the decoded-envelope handler
      */
     @Override
     public void subscribe(String address, Consumer<JsonObject> handler) {

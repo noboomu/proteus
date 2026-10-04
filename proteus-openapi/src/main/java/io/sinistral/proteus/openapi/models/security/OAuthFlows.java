@@ -9,15 +9,15 @@ public class OAuthFlows {
 
     /** Creates the object. */
     public OAuthFlows() {}
-    /** the implicit. */
+    /** The implicit. */
     private OAuthFlow implicit;
-    /** the password. */
+    /** The password. */
     private OAuthFlow password;
-    /** the client credentials. */
+    /** The client credentials. */
     private OAuthFlow clientCredentials;
-    /** the authorization code. */
+    /** The authorization code. */
     private OAuthFlow authorizationCode;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**

@@ -23,7 +23,7 @@ public class OpenAPIExtensions {
 
     /** Creates the object. */
     public OpenAPIExtensions() {}
-    /** the extensions. */
+    /** The extensions. */
     private static List<OpenAPIExtension> extensions = new ArrayList<>();
 
     static {
@@ -76,7 +76,7 @@ public class OpenAPIExtensions {
     }
 
     /**
-     * Returns a snapshot of all currently registered extensions.
+     * Returns the extensions.
      *
      * @return immutable-by-copy extension snapshot
      */

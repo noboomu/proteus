@@ -11,7 +11,7 @@ public class Paths extends LinkedHashMap<String, PathItem> {
 
     /** Creates the object. */
     public Paths() {}
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**

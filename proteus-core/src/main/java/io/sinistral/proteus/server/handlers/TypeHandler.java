@@ -931,7 +931,7 @@ public enum TypeHandler {
     }
 
     /**
-     * Sets the for type, fluent style.
+     * Sets the for type and returns this instance.
      *
      * @param type the for type
      * @return this instance

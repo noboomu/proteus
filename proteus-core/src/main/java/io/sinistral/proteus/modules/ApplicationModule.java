@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ApplicationModule extends AbstractModule {
 
-    /** the log. */
+    /** The log. */
     private static Logger log = LoggerFactory.getLogger(
         ApplicationModule.class.getCanonicalName()
     );

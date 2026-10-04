@@ -13,27 +13,27 @@ public class Header {
 
     /** Creates the object. */
     public Header() {}
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the required. */
+    /** The required. */
     private Boolean required;
-    /** the deprecated. */
+    /** The deprecated. */
     private Boolean deprecated;
-    /** the style. */
+    /** The style. */
     private StyleEnum style;
-    /** the explode. */
+    /** The explode. */
     private Boolean explode;
-    /** the schema. */
+    /** The schema. */
     private Schema schema;
-    /** the example. */
+    /** The example. */
     private Object example;
-    /** the examples. */
+    /** The examples. */
     private Map<String, Example> examples;
-    /** the content. */
+    /** The content. */
     private Content content;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /** Header serialization style selector. */
@@ -41,7 +41,7 @@ public class Header {
         /** The simple value. */
         SIMPLE("simple");
 
-        /** the value. */
+        /** The value. */
         private final String value;
 
         StyleEnum(String value) {
@@ -268,10 +268,10 @@ public class Header {
     }
 
     /**
-     * Adds an entry to the value.
+     * Adds a vendor extension entry, ignoring names that are not {@code x-} prefixed.
      *
-     * @param name the entry
-     * @param value the entry
+     * @param name the extension name
+     * @param value the extension value
      */
     @com.fasterxml.jackson.annotation.JsonAnySetter
     public void addExtension(String name, Object value) {

@@ -9,13 +9,13 @@ public class Server {
 
     /** Creates the object. */
     public Server() {}
-    /** the url. */
+    /** The url. */
     private String url;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the variables. */
+    /** The variables. */
     private Map<String, ServerVariable> variables;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -37,7 +37,7 @@ public class Server {
     }
 
     /**
-     * Sets the URL, fluent style.
+     * Sets the url and returns this instance.
      *
      * @param url the URL
      * @return this instance
@@ -66,7 +66,7 @@ public class Server {
     }
 
     /**
-     * Sets the description, fluent style.
+     * Sets the description and returns this instance.
      *
      * @param description the description
      * @return this instance

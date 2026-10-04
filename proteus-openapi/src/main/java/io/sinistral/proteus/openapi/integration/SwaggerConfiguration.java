@@ -8,15 +8,15 @@ import java.util.*;
  * Default implementation of OpenAPIConfiguration
  */
 public class SwaggerConfiguration implements OpenAPIConfiguration {
-    /** the open a p i. */
+    /** The open a p i. */
     private OpenAPI openAPI;
-    /** the resource packages. */
+    /** The resource packages. */
     private Set<String> resourcePackages = new LinkedHashSet<>();
-    /** the resource classes. */
+    /** The resource classes. */
     private Set<String> resourceClasses = new LinkedHashSet<>();
-    /** the user defined options. */
+    /** The user defined options. */
     private Map<String, Object> userDefinedOptions = new LinkedHashMap<>();
-    /** the read all resources. */
+    /** The read all resources. */
     private Boolean readAllResources = true;
 
     /** Creates a configuration with defaults. */

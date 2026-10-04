@@ -20,12 +20,12 @@ import java.util.stream.Collectors;
     /** Media type constant. */
 public class MediaType {
 
-    /** the file_extensions. */
+    /** The file_extensions. */
     private static final Map<String, MediaType> FILE_EXTENSIONS =
         new LinkedHashMap<>();
-    /** the no_attr. */
+    /** The no_attr. */
     private static final String[] NO_ATTR = new String[0];
-    /** the utf8_attr. */
+    /** The utf8_attr. */
     private static final String[] UTF8_ATTR = { "charset=utf-8" };
 
     /*******************************************************/
@@ -5039,7 +5039,7 @@ public class MediaType {
     }
 
     /**
-     * Sets the charset, fluent style.
+     * Returns a value with the charset applied.
      *
      * @param charset the charset
      * @return this instance
@@ -5055,19 +5055,19 @@ public class MediaType {
     }
 
     /**
-     * Sets the of, fluent style.
+     * Creates an instance from the given content type.
      *
-     * @param contentType the of
+     * @param contentType the content type
      * @return this instance
      */
     public static MediaType of(String contentType) {
         return new MediaType(contentType);
     }
 
-    /** the bytes. */
+    /** The bytes. */
     private final byte[] bytes;
 
-    /** the content type. */
+    /** The content type. */
     private final String contentType;
 
     private MediaType(String contentType) {
@@ -5163,10 +5163,10 @@ public class MediaType {
         return this.contentType.substring(0, this.contentType.lastIndexOf(";"));
     }
 
-    /** the type_map. */
+    /** The type_map. */
     private static final Map<String, MediaType> TYPE_MAP = new HashMap<>();
 
-    /** the extension_map. */
+    /** The extension_map. */
     private static final Map<MediaType, List<String>> EXTENSION_MAP =
         new HashMap<>();
 
@@ -5233,10 +5233,10 @@ public class MediaType {
     }
 
     /**
-     * Sets the equals, fluent style.
+     * Compares media types by content type bytes.
      *
-     * @param obj the equals
-     * @return this instance
+     * @param obj the object to compare
+     * @return true when the media types match
      */
     @Override
     public boolean equals(Object obj) {

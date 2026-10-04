@@ -9,25 +9,25 @@ public class SecurityScheme {
 
     /** Creates the object. */
     public SecurityScheme() {}
-    /** the type. */
+    /** The type. */
     private Type type;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the name. */
+    /** The name. */
     private String name;
-    /** the in. */
+    /** The in. */
     private In in;
-    /** the scheme. */
+    /** The scheme. */
     private String scheme;
-    /** the bearer format. */
+    /** The bearer format. */
     private String bearerFormat;
-    /** the flows. */
+    /** The flows. */
     private OAuthFlows flows;
-    /** the open id connect url. */
+    /** The open id connect url. */
     private String openIdConnectUrl;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /** Security scheme type selector. */
@@ -43,7 +43,7 @@ public class SecurityScheme {
         /** The mutualTLS value. */
         MUTUALTLS("mutualTLS");
 
-        /** the value. */
+        /** The value. */
         private final String value;
 
         Type(String value) {
@@ -79,7 +79,7 @@ public class SecurityScheme {
         /** The cookie value. */
         COOKIE("cookie");
 
-        /** the value. */
+        /** The value. */
         private final String value;
 
         In(String value) {

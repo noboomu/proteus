@@ -61,32 +61,32 @@ public class Extractors {
     /** Default constructor for static-only use. */
     public Extractors() {}
 
-    /** the log. */
+    /** The log. */
     private static Logger log = LoggerFactory.getLogger(
         Extractors.class.getCanonicalName()
     );
 
-    /** the xml_pattern. */
+    /** The xml_pattern. */
     private static final Pattern XML_PATTERN = Pattern.compile(
         "^(application/(xml|xhtml\\+xml)|text/xml)(;.*)?$",
         Pattern.CASE_INSENSITIVE
     );
 
-    /** the json_pattern. */
+    /** The json_pattern. */
     private static final Pattern JSON_PATTERN = Pattern.compile(
         "^(application/(json|x-javascript)|text/(json|x-javascript|x-json))(;.*)?$",
         Pattern.CASE_INSENSITIVE
     );
 
-    /** the java_type_map. */
+    /** The java_type_map. */
     private static final Map<Type, JavaType> JAVA_TYPE_MAP =
         new ConcurrentHashMap<>();
 
-    /** the xml_mapper. */
+    /** The xml_mapper. */
     @Inject
     private static XmlMapper XML_MAPPER;
 
-    /** the object_mapper. */
+    /** The object_mapper. */
     @Inject
     private static ObjectMapper OBJECT_MAPPER;
 
@@ -716,7 +716,7 @@ public class Extractors {
         }
 
         /**
-         * Returns a named query parameter parsed as an {@link OffsetDateTime}.
+         * Creates an instance from fset date time.
          *
          * @param exchange the current server exchange
          * @param name the query parameter name
@@ -968,7 +968,7 @@ public class Extractors {
     }
 
     /**
-     * Returns a named query parameter parsed as an {@link OffsetDateTime}.
+     * Creates an instance from fset date time.
      *
      * @param exchange the current server exchange
      * @param name the query parameter name

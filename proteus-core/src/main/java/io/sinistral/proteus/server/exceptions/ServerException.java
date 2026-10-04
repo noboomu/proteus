@@ -17,7 +17,7 @@ public class ServerException extends RuntimeException
      */
     private static final long serialVersionUID = 8360356916374374408L;
 
-    /** the status. */
+    /** The status. */
     private Integer status = StatusCodes.BAD_REQUEST;
 
     /** Creates an exception with a status and no message.

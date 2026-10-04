@@ -9,9 +9,9 @@ public class Discriminator {
 
     /** Creates an empty discriminator object. */
     public Discriminator() {}
-    /** the property name. */
+    /** The property name. */
     private String propertyName;
-    /** the mapping. */
+    /** The mapping. */
     private Map<String, String> mapping;
 
     /**
@@ -33,7 +33,7 @@ public class Discriminator {
     }
 
     /**
-     * Sets the discriminator property name, fluent style.
+     * Sets the property name and returns this instance.
      *
      * @param propertyName the discriminator property name
      * @return this instance

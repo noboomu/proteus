@@ -9,13 +9,13 @@ public class Contact {
 
     /** Creates an empty contact object. */
     public Contact() {}
-    /** the name. */
+    /** The name. */
     private String name;
-    /** the url. */
+    /** The url. */
     private String url;
-    /** the email. */
+    /** The email. */
     private String email;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -55,7 +55,7 @@ public class Contact {
     }
 
     /**
-     * Returns the email address.
+     * Returns the email.
      *
      * @return the email address, or null when unset
      */

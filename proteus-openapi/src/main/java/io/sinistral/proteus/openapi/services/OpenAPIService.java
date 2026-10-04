@@ -76,93 +76,93 @@ public class OpenAPIService
     extends DefaultService
     implements Supplier<RoutingHandler> {
 
-    /** the log. */
+    /** The log. */
     private static Logger log = LoggerFactory.getLogger(
         OpenAPIService.class.getCanonicalName()
     );
 
-    /** the value. */
+    /** The value. */
     protected ObjectMapper jsonMapper;
 
-    /** the value. */
+    /** The value. */
     protected Path resourcePath = null;
 
-    /** the value. */
+    /** The value. */
     protected ClassLoader serviceClassLoader = null;
 
-    /** the value. */
+    /** The value. */
     protected OpenAPI openApi = null;
 
-    /** the value. */
+    /** The value. */
     protected String yamlSpec = null;
 
-    /** the value. */
+    /** The value. */
     protected String jsonSpec = null;
 
-    /** the value. */
+    /** The value. */
     protected String indexHTML = null;
 
-    /** the value. */
+    /** The value. */
     protected String redocHTML = null;
 
-    /** the value. */
+    /** The value. */
     protected final String resourcePrefix = "io/sinistral/proteus/openapi";
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("openapi.basePath")
     protected String basePath;
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("openapi.specFilename")
     protected String specFilename;
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("openapi")
     protected Config openAPIConfig;
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("application.name")
     protected String applicationName;
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("openapi.redocPath")
     protected String redocPath;
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("application.path")
     protected String applicationPath;
 
-    /** the value. */
+    /** The value. */
     @Inject
     protected RoutingHandler router;
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("registeredEndpoints")
     protected Set<EndpointInfo> registeredEndpoints;
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("registeredControllers")
     protected Set<Class<?>> registeredControllers;
 
-    /** the value. */
+    /** The value. */
     @Inject(optional = true)
     @Named("jackson.jsonView.queryParameterName")
     protected String jsonViewQueryParameterName;
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("registeredHandlerWrappers")
     protected Map<String, HandlerWrapper> registeredHandlerWrappers;
 
-    /** the value. */
+    /** The value. */
     @Inject
     protected OpenApiSecuritySchemeService securitySchemeService;
 
@@ -453,9 +453,9 @@ public class OpenAPIService
         return jsonSpec;
     }
 
-    /** the spec generated. */
+    /** The spec generated. */
     private volatile boolean specGenerated = false;
-    /** the spec generation error. */
+    /** The spec generation error. */
     private volatile Exception specGenerationError = null;
 
     /**

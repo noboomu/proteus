@@ -100,19 +100,19 @@ public class HandlerGenerator {
             Pattern.CASE_INSENSITIVE
         );
 
-    /** the type_name_pattern. */
+    /** The type_name_pattern. */
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile(
         "(java\\.util\\.[A-Za-z]+)<([^>]+)",
         Pattern.DOTALL | Pattern.UNIX_LINES
     );
 
-    /** the concurrent_type_name_pattern. */
+    /** The concurrent_type_name_pattern. */
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile(
         "(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)",
         Pattern.DOTALL | Pattern.UNIX_LINES
     );
 
-    /** the tmp_directory. */
+    /** The tmp_directory. */
     private static java.nio.file.Path TMP_DIRECTORY = null;
 
     /** Kind of value a generated statement parameter carries. */
@@ -199,7 +199,7 @@ public class HandlerGenerator {
     }
 
     /**
-     * Returns the fully qualified name of the generated class.
+     * Returns the canonical name.
      *
      * @return the canonical class name
      */
@@ -1740,7 +1740,7 @@ public class HandlerGenerator {
     }
 
     /**
-     * Returns the simple name of the generated class.
+     * Returns the class name.
      *
      * @return the className
      */

@@ -24,18 +24,18 @@ public class ServerFallbackHandler implements HttpHandler
     public ServerFallbackHandler() {
     }
 
-    /** the xml mapper. */
+    /** The xml mapper. */
     @Inject
     protected XmlMapper xmlMapper;
-    /** the object mapper. */
+    /** The object mapper. */
     @Inject
     protected ObjectMapper objectMapper;
 
     /**
-     * Sets the handle request, fluent style.
+     * Renders the 404 fallback response.
      *
-     * @param exchange the handle request
-    * @throws Exception when the operation fails
+     * @param exchange the server exchange
+     * @throws Exception when rendering fails
      */
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception
@@ -71,10 +71,10 @@ public class ServerFallbackHandler implements HttpHandler
 
     private class Message
     {
-        /** the status code. */
+        /** The status code. */
         @SuppressWarnings("unused")
         public final Integer statusCode;
-        /** the reason. */
+        /** The reason. */
         @SuppressWarnings("unused")
         public final String reason;
 

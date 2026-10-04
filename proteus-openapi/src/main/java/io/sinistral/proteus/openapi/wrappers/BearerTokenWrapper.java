@@ -20,11 +20,11 @@ public class BearerTokenWrapper implements HandlerWrapper {
     /** Attachment key holding the validator result for the bearer token. */
     public static final AttachmentKey<Object> BEARER_VALIDATION_RESULT_KEY = AttachmentKey.create(Object.class);
 
-    /** the  b e a r e r. */
+    /** The  b e a r e r. */
     private static final String BEARER = "bearer ";
-    /** the  p r e f i x_ l e n g t h. */
+    /** The  p r e f i x_ l e n g t h. */
     private static final int PREFIX_LENGTH = BEARER.length();
-    /** the  a u t h o r i z a t i o n. */
+    /** The  a u t h o r i z a t i o n. */
     private static final String AUTHORIZATION = "Authorization";
 
     /** Callback that validates a bearer token and returns an arbitrary result. */
@@ -39,7 +39,7 @@ public class BearerTokenWrapper implements HandlerWrapper {
     }
 
 
-    /** the token validator. */
+    /** The token validator. */
     private final BearerTokenValidator tokenValidator;
 
     /**

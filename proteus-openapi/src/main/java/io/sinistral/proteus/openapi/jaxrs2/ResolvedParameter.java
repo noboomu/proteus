@@ -9,11 +9,11 @@ import java.util.List;
  * Container for resolved JAX-RS parameters
  */
 public class ResolvedParameter {
-    /** the parameter map. */
+    /** The parameter map. */
     public List<Parameter> parameters = new ArrayList<>();
-    /** the value. */
+    /** The value. */
     public List<Parameter> formParameters = new ArrayList<>();
-    /** the request body. */
+    /** The request body. */
     public Parameter requestBody;
 
     /** Creates an empty resolved parameter. */

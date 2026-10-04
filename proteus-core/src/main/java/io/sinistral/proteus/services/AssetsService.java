@@ -60,9 +60,9 @@ public class AssetsService extends DefaultService implements Supplier<RoutingHan
     }
 
     /**
-     * Returns the get.
+     * Builds the asset routing handler.
      *
-     * @return the get, or null when unset
+     * @return the routing handler serving assets
      */
     public RoutingHandler get()
     {

@@ -33,22 +33,22 @@ import java.util.*;
  */
 public class ServerParameterExtension extends AbstractOpenAPIExtension {
 
-    /** the log. */
+    /** The log. */
     private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(
         ServerParameterExtension.class.getCanonicalName()
     );
-    /** the  q u e r y_ p a r a m. */
+    /** The  q u e r y_ p a r a m. */
     private static String QUERY_PARAM = "query";
-    /** the  h e a d e r_ p a r a m. */
+    /** The  h e a d e r_ p a r a m. */
     private static String HEADER_PARAM = "header";
-    /** the  c o o k i e_ p a r a m. */
+    /** The  c o o k i e_ p a r a m. */
     private static String COOKIE_PARAM = "cookie";
-    /** the  p a t h_ p a r a m. */
+    /** The  p a t h_ p a r a m. */
     private static String PATH_PARAM = "path";
-    /** the  f o r m_ p a r a m. */
+    /** The  f o r m_ p a r a m. */
     private static String FORM_PARAM = "form";
 
-    /** the mapper. */
+    /** The mapper. */
     private final ObjectMapper mapper;
 
     /** Creates an extension using the shared OpenAPI Jackson 3 mapper. */

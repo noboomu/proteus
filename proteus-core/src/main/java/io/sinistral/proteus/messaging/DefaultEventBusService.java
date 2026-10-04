@@ -135,9 +135,9 @@ public class DefaultEventBusService extends AbstractIdleService
     }
 
     /**
-     * Sets the configure, fluent style.
+     * No-op; this module participates only in service lifecycle.
      *
-     * @param binder the configure
+     * @param binder the guice binder
      */
     @Override
     public void configure(Binder binder) {
@@ -227,12 +227,12 @@ public class DefaultEventBusService extends AbstractIdleService
     }
 
     /**
-     * Sets the request, fluent style.
+     * Sends a request-reply message with the default timeout.
      *
-     * @param address the request
-     * @param message the request
-     * @param responseType the request
-     * @return this instance
+     * @param address the event bus address
+     * @param message the message payload
+     * @param responseType the expected reply type
+     * @return a future completed with the converted reply
      */
     @Override
     public <T, R> CompletableFuture<R> request(String address, T message, Class<R> responseType) {
@@ -240,13 +240,13 @@ public class DefaultEventBusService extends AbstractIdleService
     }
 
     /**
-     * Sets the request, fluent style.
+     * Sends a request-reply message with an explicit timeout.
      *
-     * @param address the request
-     * @param message the request
-     * @param responseType the request
-     * @param timeoutMs the request
-     * @return this instance
+     * @param address the event bus address
+     * @param message the message payload
+     * @param responseType the expected reply type
+     * @param timeoutMs the reply timeout in milliseconds
+     * @return a future completed with the converted reply
      */
     @Override
     public <T, R> CompletableFuture<R> request(
@@ -272,11 +272,11 @@ public class DefaultEventBusService extends AbstractIdleService
     }
 
     /**
-     * Sets the register consumer, fluent style.
+     * Registers a consumer with default options, replacing any prior registration.
      *
-     * @param address the register consumer
-     * @param consumer the register consumer
-     * @return this instance
+     * @param address the event bus address
+     * @param consumer the consumer callback
+     * @return the registration handle
      */
     @Override
     public <T> EventBusRegistration registerConsumer(
@@ -285,12 +285,12 @@ public class DefaultEventBusService extends AbstractIdleService
     }
 
     /**
-     * Sets the register consumer, fluent style.
+     * Registers a consumer with options, replacing any prior registration.
      *
-     * @param address the register consumer
-     * @param consumer the register consumer
-     * @param options the register consumer
-     * @return this instance
+     * @param address the event bus address
+     * @param consumer the consumer callback
+     * @param options the consumer options
+     * @return the registration handle
      */
     @Override
     public <T> EventBusRegistration registerConsumer(
@@ -309,7 +309,7 @@ public class DefaultEventBusService extends AbstractIdleService
     }
 
     /**
-     * Sets the register codec, fluent style.
+     * Registers a named codec applied to matching payloads.
      *
      * @param codecName the codec name
      * @param codec the message codec

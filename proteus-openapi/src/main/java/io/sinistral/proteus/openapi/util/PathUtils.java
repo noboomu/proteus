@@ -11,7 +11,7 @@ public class PathUtils {
 
     /** Creates the object. */
     public PathUtils() {}
-    /** the  p a t h_ p a r a m_ p a t t e r n. */
+    /** The  p a t h_ p a r a m_ p a t t e r n. */
     private static final Pattern PATH_PARAM_PATTERN = Pattern.compile("\\{([^}]+)\\}");
 
     /**

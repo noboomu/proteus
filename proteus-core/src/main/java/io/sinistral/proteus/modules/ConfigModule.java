@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ConfigModule extends AbstractModule {
 
-    /** the log. */
+    /** The log. */
     private static Logger log = LoggerFactory.getLogger(
         ConfigModule.class.getCanonicalName()
     );

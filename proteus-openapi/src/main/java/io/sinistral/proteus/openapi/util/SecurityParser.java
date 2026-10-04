@@ -22,9 +22,9 @@ public class SecurityParser {
      * Container for security scheme with its key
      */
     public static class SecuritySchemePair {
-        /** the value. */
+        /** The value. */
         public String key;
-        /** the value. */
+        /** The value. */
         public SecurityScheme securityScheme;
 
         /** Creates a pair.

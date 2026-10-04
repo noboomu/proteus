@@ -77,62 +77,62 @@ import org.xnio.XnioWorker;
 @SuppressWarnings({ "UnusedReturnValue", "unchecked" })
 public class ProteusApplication {
 
-    /** the log. */
+    /** The log. */
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(
         ProteusApplication.class.getName()
     );
 
-    /** the tmp_directory_name. */
+    /** The tmp_directory_name. */
     private static final String TMP_DIRECTORY_NAME =
         "proteus_generated_classes";
 
-    /** the registered controllers. */
+    /** The registered controllers. */
     @Inject
     @Named("registeredControllers")
     public Set<Class<?>> registeredControllers;
 
-    /** the registered endpoints. */
+    /** The registered endpoints. */
     @Inject
     @Named("registeredEndpoints")
     public Set<EndpointInfo> registeredEndpoints;
 
-    /** the registered services. */
+    /** The registered services. */
     @Inject
     @Named("registeredServices")
     public Set<Class<? extends BaseService>> registeredServices;
 
-    /** the router. */
+    /** The router. */
     @Inject
     public RoutingHandler router;
 
-    /** the config. */
+    /** The config. */
     @Inject
     public Config config;
 
-    /** the controller compiler. */
-    /** the registered modules. */
+    /** The controller compiler. */
+    /** The registered modules. */
     @Inject
     public ControllerCompiler controllerCompiler;
 
-    /** the registered modules. */
+    /** The registered modules. */
     public List<Class<? extends Module>> registeredModules = new ArrayList<>();
 
-    /** the injector. */
+    /** The injector. */
     public Injector injector;
 
-    /** the service manager. */
+    /** The service manager. */
     public ServiceManager serviceManager = null;
 
-    /** the undertow. */
+    /** The undertow. */
     public Undertow undertow = null;
 
-    /** the root handler class. */
+    /** The root handler class. */
     public Class<? extends HttpHandler> rootHandlerClass;
 
-    /** the root handler. */
+    /** The root handler. */
     public HttpHandler rootHandler;
 
-    /** the running. */
+    /** The running. */
     public AtomicBoolean running = new AtomicBoolean(false);
 
     /**
@@ -144,16 +144,16 @@ public class ProteusApplication {
      */
     private final AtomicBoolean undertowStarted = new AtomicBoolean(false);
 
-    /** the worker. */
+    /** The worker. */
     private volatile XnioWorker worker;
 
-    /** the shutdown hook. */
+    /** The shutdown hook. */
     private volatile Thread shutdownHook;
 
-    /** the ports. */
+    /** The ports. */
     public List<Integer> ports = new ArrayList<>();
 
-    /** the startup duration. */
+    /** The startup duration. */
     public Duration startupDuration;
 
     /** Optional builder customization applied before server assembly. */
@@ -285,7 +285,7 @@ public class ProteusApplication {
                     }
 
                     /**
-                     * Sets the failure, fluent style.
+                     * Sets the failure and returns this instance.
                      *
                      * @param service the failure
                      */

@@ -27,9 +27,9 @@ public class ProteusHandler implements HttpHandler
 {
     private static final Logger log = LoggerFactory.getLogger(ProteusHandler.class.getName());
 
-    /** the path matcher. */
+    /** The path matcher. */
     private final PathMatcher<HttpHandler> pathMatcher = new PathMatcher<>();
-    /** the matches. */
+    /** The matches. */
     private final Map<HttpString, PathTemplateMatcher<RoutingMatch>> matches = new CopyOnWriteMap<>();
 
     // Matcher used to find if this instance contains matches for any http method for a path.
@@ -44,7 +44,7 @@ public class ProteusHandler implements HttpHandler
     // matched for the same exchange.
     // If this handler is null the fallbackHandler will be used.
     private volatile HttpHandler invalidMethodHandler = ResponseCodeHandler.HANDLE_405;
-    /** the cache. */
+    /** The cache. */
     private final LRUCache<String, PathMatcher.PathMatch<HttpHandler>> cache;
 
     /** Creates a handler with no path cache. */
@@ -87,12 +87,12 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Adds an entry to the add.
+     * Adds a route for the HTTP method and template.
      *
-     * @param method the entry
-     * @param template the entry
-     * @param handler the entry
-    * @return the result
+     * @param method the HTTP method name
+     * @param template the route template
+     * @param handler the route handler
+     * @return this instance
      */
     public synchronized ProteusHandler add(HttpString method, String template, HttpHandler handler)
     {
@@ -118,12 +118,12 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Adds an entry to the add.
+     * Adds a route for the HTTP method and template.
      *
-     * @param method the entry
-     * @param template the entry
-     * @param handler the entry
-    * @return the result
+     * @param method the HTTP method name
+     * @param template the route template
+     * @param handler the route handler
+     * @return this instance
      */
     public synchronized ProteusHandler add(final String method, final String template, HttpHandler handler)
     {
@@ -131,13 +131,13 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Adds an entry to the add.
+     * Adds a predicate-guarded route for the HTTP method and template.
      *
-     * @param method the entry
-     * @param template the entry
-     * @param predicate the entry
-     * @param handler the entry
-    * @return the result
+     * @param method the HTTP method name
+     * @param template the route template
+     * @param predicate the guard predicate
+     * @param handler the route handler
+     * @return this instance
      */
     public synchronized ProteusHandler add(HttpString method, String template, Predicate predicate, HttpHandler handler)
     {
@@ -163,13 +163,13 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Adds an entry to the add.
+     * Adds a predicate-guarded route for the HTTP method and template.
      *
-     * @param method the entry
-     * @param template the entry
-     * @param predicate the entry
-     * @param handler the entry
-    * @return the result
+     * @param method the HTTP method name
+     * @param template the route template
+     * @param predicate the guard predicate
+     * @param handler the route handler
+     * @return this instance
      */
     public synchronized ProteusHandler add(final String method, final String template, Predicate predicate, HttpHandler handler)
     {
@@ -258,10 +258,10 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the delete, fluent style.
+     * Registers a DELETE route.
      *
-     * @param template the delete
-     * @param handler the delete
+     * @param template the route template
+     * @param handler the route handler
      * @return this instance
      */
     public synchronized ProteusHandler delete(final String template, HttpHandler handler)
@@ -270,11 +270,11 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the delete, fluent style.
+     * Registers a predicate-guarded DELETE route.
      *
-     * @param template the delete
-     * @param predicate the delete
-     * @param handler the delete
+     * @param template the route template
+     * @param predicate the guard predicate
+     * @param handler the route handler
      * @return this instance
      */
     public synchronized ProteusHandler delete(final String template, Predicate predicate, HttpHandler handler)
@@ -295,10 +295,10 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the handle request, fluent style.
+     * Matches the request path and delegates to the registered handler.
      *
-     * @param exchange the handle request
-    * @throws Exception when the operation fails
+     * @param exchange the server exchange
+     * @throws Exception when handling fails
      */
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception
@@ -342,7 +342,7 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the handle router request, fluent style.
+     * Sets the handle router request and returns this instance.
      *
      * @param exchange the handle router request
     * @throws Exception when the operation fails
@@ -387,10 +387,10 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the post, fluent style.
+     * Registers a POST route.
      *
-     * @param template the post
-     * @param handler the post
+     * @param template the route template
+     * @param handler the route handler
      * @return this instance
      */
     public synchronized ProteusHandler post(final String template, HttpHandler handler)
@@ -399,11 +399,11 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the post, fluent style.
+     * Registers a predicate-guarded POST route.
      *
-     * @param template the post
-     * @param predicate the post
-     * @param handler the post
+     * @param template the route template
+     * @param predicate the guard predicate
+     * @param handler the route handler
      * @return this instance
      */
     public synchronized ProteusHandler post(final String template, Predicate predicate, HttpHandler handler)
@@ -412,10 +412,10 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the put, fluent style.
+     * Registers a PUT route.
      *
-     * @param template the put
-     * @param handler the put
+     * @param template the route template
+     * @param handler the route handler
      * @return this instance
      */
     public synchronized ProteusHandler put(final String template, HttpHandler handler)
@@ -424,11 +424,11 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the put, fluent style.
+     * Registers a predicate-guarded PUT route.
      *
-     * @param template the put
-     * @param predicate the put
-     * @param handler the put
+     * @param template the route template
+     * @param predicate the guard predicate
+     * @param handler the route handler
      * @return this instance
      */
     public synchronized ProteusHandler put(final String template, Predicate predicate, HttpHandler handler)
@@ -470,7 +470,7 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the remove exact path, fluent style.
+     * Sets the remove exact path and returns this instance.
      *
      * @param path the remove exact path
      * @return this instance
@@ -483,7 +483,7 @@ public class ProteusHandler implements HttpHandler
     }
 
     /**
-     * Sets the remove prefix path, fluent style.
+     * Sets the remove prefix path and returns this instance.
      *
      * @param path the remove prefix path
      * @return this instance

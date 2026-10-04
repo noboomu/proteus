@@ -16,9 +16,9 @@ public class Callback extends LinkedHashMap<String, PathItem> {
 
     /** Creates the object. */
     public Callback() {}
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -34,7 +34,7 @@ public class Callback extends LinkedHashMap<String, PathItem> {
     }
 
     /**
-     * Returns the reference target.
+     * Returns the $ref.
      *
      * @return the reference, or null when unset
      */
@@ -52,7 +52,7 @@ public class Callback extends LinkedHashMap<String, PathItem> {
     }
 
     /**
-     * Sets the reference target, fluent style.
+     * $ref and returns this instance.
      *
      * @param $ref the reference
      * @return this instance

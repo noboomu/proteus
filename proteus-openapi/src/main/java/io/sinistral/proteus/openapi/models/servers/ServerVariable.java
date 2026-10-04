@@ -11,13 +11,13 @@ public class ServerVariable {
 
     /** Creates the object. */
     public ServerVariable() {}
-    /** the enum. */
+    /** The enum. */
     private List<String> _enum;
-    /** the default. */
+    /** The default. */
     private String _default;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**

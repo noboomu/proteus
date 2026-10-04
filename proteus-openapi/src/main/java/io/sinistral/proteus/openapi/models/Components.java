@@ -19,27 +19,27 @@ public class Components {
 
     /** Creates an empty components object. */
     public Components() {}
-    /** the schemas. */
+    /** The schemas. */
     private Map<String, Schema> schemas;
-    /** the responses. */
+    /** The responses. */
     private Map<String, ApiResponse> responses;
-    /** the parameters. */
+    /** The parameters. */
     private Map<String, Parameter> parameters;
-    /** the examples. */
+    /** The examples. */
     private Map<String, Example> examples;
-    /** the request bodies. */
+    /** The request bodies. */
     private Map<String, RequestBody> requestBodies;
-    /** the headers. */
+    /** The headers. */
     private Map<String, Header> headers;
-    /** the security schemes. */
+    /** The security schemes. */
     private Map<String, SecurityScheme> securitySchemes;
-    /** the links. */
+    /** The links. */
     private Map<String, Link> links;
-    /** the callbacks. */
+    /** The callbacks. */
     private Map<String, Callback> callbacks;
-    /** the path items. */
+    /** The path items. */
     private Map<String, PathItem> pathItems;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**

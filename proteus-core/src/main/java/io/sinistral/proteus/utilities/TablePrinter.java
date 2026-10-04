@@ -13,13 +13,13 @@ import java.util.List;
  */
 public class TablePrinter
 {
-    /** the tablepadding. */
+    /** The tablepadding. */
     private final int TABLEPADDING = 4;
-    /** the headers. */
+    /** The headers. */
     private List<String> headers;
-    /** the table. */
+    /** The table. */
     private List<List<String>> table;
-    /** the max length. */
+    /** The max length. */
     private List<Integer> maxLength;
 
     /** Creates a printer from headers and rows.
@@ -102,7 +102,7 @@ public class TablePrinter
     }
 
     /**
-     * Sets the update field, fluent style.
+     * Sets the update field and returns this instance.
      *
      * @param row the update field
      * @param col the update field

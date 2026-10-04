@@ -36,12 +36,12 @@ import tools.jackson.dataformat.xml.XmlMapper;
 
 public class ServerResponse<T> {
 
-    /** the log. */
+    /** The log. */
     private static Logger log = LoggerFactory.getLogger(
         ServerResponse.class.getCanonicalName()
     );
 
-    /** the rfc1123_pattern. */
+    /** The rfc1123_pattern. */
     private static final String RFC1123_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z";
 
     private static final ThreadLocal<
@@ -50,51 +50,51 @@ public class ServerResponse<T> {
         DateTimeFormatter.ofPattern(RFC1123_PATTERN)
     );
 
-    /** the xml_mapper. */
+    /** The xml_mapper. */
     @Inject
     protected static XmlMapper XML_MAPPER;
 
-    /** the object_mapper. */
+    /** The object_mapper. */
     @Inject
     protected static ObjectMapper OBJECT_MAPPER;
 
-    /** the writer_cache. */
+    /** The writer_cache. */
     protected static Map<Class<?>, ObjectWriter> WRITER_CACHE =
         new ConcurrentHashMap<>();
 
-    /** the body. */
+    /** The body. */
     protected ByteBuffer body;
 
-    /** the status. */
+    /** The status. */
     protected int status = StatusCodes.OK;
-    /** the headers. */
+    /** The headers. */
     protected final HeaderMap headers = new HeaderMap();
-    /** the cookies. */
+    /** The cookies. */
     protected final List<Cookie> cookies = new ArrayList<>();
-    /** the content type. */
+    /** The content type. */
     protected String contentType = MediaType.APPLICATION_JSON.contentType();
-    /** the entity. */
+    /** The entity. */
     protected T entity;
-    /** the throwable. */
+    /** The throwable. */
     protected Throwable throwable;
     //	protected Class<? extends JsonContext> jsonContext;
-    /** the request method this response answers, or null. */
+    /** The request method this response answers, or null. */
     protected HttpString method = null;
-    /** the io callback. */
+    /** The io callback. */
     protected IoCallback ioCallback;
-    /** the has cookies. */
+    /** The has cookies. */
     protected boolean hasCookies = false;
-    /** the has headers. */
+    /** The has headers. */
     protected boolean hasHeaders = false;
-    /** the has io callback. */
+    /** The has io callback. */
     protected boolean hasIoCallback = false;
-    /** the process xml. */
+    /** The process xml. */
     protected boolean processXml = false;
-    /** the process json. */
+    /** The process json. */
     protected boolean processJson = false;
-    /** the preprocessed. */
+    /** The preprocessed. */
     protected boolean preprocessed = false;
-    /** the location. */
+    /** The location. */
     protected String location = null;
 
     /** Creates an empty response. */
@@ -255,7 +255,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the body, fluent style.
+     * Sets the body and returns this instance.
      *
      * @param body the body
      * @return this instance
@@ -267,7 +267,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the body, fluent style.
+     * Sets the body and returns this instance.
      *
      * @param body the body
      * @return this instance
@@ -279,7 +279,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the body, fluent style.
+     * Sets the body and returns this instance.
      *
      * @param body the body
      * @return this instance
@@ -289,7 +289,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the entity, fluent style.
+     * Sets the entity and returns this instance.
      *
      * @param entity the entity
      * @return this instance
@@ -302,7 +302,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the method, fluent style.
+     * Sets the method and returns this instance.
      *
      * @param method the method
      * @return this instance
@@ -313,7 +313,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the method, fluent style.
+     * Sets the method and returns this instance.
      *
      * @param method the method
      * @return this instance
@@ -353,7 +353,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the content language, fluent style.
+     * Sets the content language and returns this instance.
      *
      * @param locale the content language
      * @return this instance
@@ -365,7 +365,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the content language, fluent style.
+     * Sets the content language and returns this instance.
      *
      * @param language the content language
      * @return this instance
@@ -377,7 +377,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the throwable, fluent style.
+     * Sets the throwable and returns this instance.
      *
      * @param throwable the throwable
      * @return this instance
@@ -393,7 +393,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the status, fluent style.
+     * Sets the status and returns this instance.
      *
      * @param status the status
      * @return this instance
@@ -404,7 +404,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the header, fluent style.
+     * Sets the header and returns this instance.
      *
      * @param headerName the header
      * @param value the header
@@ -417,7 +417,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the cookie, fluent style.
+     * Sets the cookie and returns this instance.
      *
      * @param cookie the cookie
      * @return this instance
@@ -453,7 +453,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the content type, fluent style.
+     * Sets the content type and returns this instance.
      *
      * @param contentType the content type
      * @return this instance
@@ -464,7 +464,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the content type, fluent style.
+     * Sets the content type and returns this instance.
      *
      * @param mediaType the content type
      * @return this instance
@@ -545,7 +545,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the redirect, fluent style.
+     * Sets the redirect and returns this instance.
      *
      * @param location the redirect
      * @return this instance
@@ -557,7 +557,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the redirect, fluent style.
+     * Sets the redirect and returns this instance.
      *
      * @param location the redirect
      * @param status the redirect
@@ -570,7 +570,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the redirect permanently, fluent style.
+     * Sets the redirect permanently and returns this instance.
      *
      * @param location the redirect permanently
      * @return this instance
@@ -612,7 +612,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the bad request, fluent style.
+     * Sets the bad request and returns this instance.
      *
      * @param t the bad request
      * @return this instance
@@ -623,7 +623,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the bad request, fluent style.
+     * Sets the bad request and returns this instance.
      *
      * @param message the bad request
      * @return this instance
@@ -643,7 +643,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the internal server error, fluent style.
+     * Sets the internal server error and returns this instance.
      *
      * @param t the internal server error
      * @return this instance
@@ -654,7 +654,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the internal server error, fluent style.
+     * Sets the internal server error and returns this instance.
      *
      * @param message the internal server error
      * @return this instance
@@ -674,7 +674,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the created, fluent style.
+     * Sets the created and returns this instance.
      *
      * @param location the created
      * @return this instance
@@ -686,7 +686,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the created, fluent style.
+     * Sets the created and returns this instance.
      *
      * @param uri the created
      * @return this instance
@@ -718,7 +718,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the not found, fluent style.
+     * Sets the not found and returns this instance.
      *
      * @param t the not found
      * @return this instance
@@ -729,7 +729,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the not found, fluent style.
+     * Sets the not found and returns this instance.
      *
      * @param message the not found
      * @return this instance
@@ -749,7 +749,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the forbidden, fluent style.
+     * Sets the forbidden and returns this instance.
      *
      * @param t the forbidden
      * @return this instance
@@ -760,7 +760,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the forbidden, fluent style.
+     * Sets the forbidden and returns this instance.
      *
      * @param message the forbidden
      * @return this instance
@@ -780,7 +780,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the no content, fluent style.
+     * Sets the no content and returns this instance.
      *
      * @param t the no content
      * @return this instance
@@ -791,7 +791,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the no content, fluent style.
+     * Sets the no content and returns this instance.
      *
      * @param message the no content
      * @return this instance
@@ -811,7 +811,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the service unavailable, fluent style.
+     * Sets the service unavailable and returns this instance.
      *
      * @param t the service unavailable
      * @return this instance
@@ -822,7 +822,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the service unavailable, fluent style.
+     * Sets the service unavailable and returns this instance.
      *
      * @param message the service unavailable
      * @return this instance
@@ -842,7 +842,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the unauthorized, fluent style.
+     * Sets the unauthorized and returns this instance.
      *
      * @param t the unauthorized
      * @return this instance
@@ -853,7 +853,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the unauthorized, fluent style.
+     * Sets the unauthorized and returns this instance.
      *
      * @param message the unauthorized
      * @return this instance
@@ -863,7 +863,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the error message, fluent style.
+     * Sets the error message and returns this instance.
      *
      * @param message the error message
      * @return this instance
@@ -874,7 +874,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the io callback, fluent style.
+     * Returns a value with the io callback applied.
      *
      * @param ioCallback the io callback
      * @return this instance
@@ -886,7 +886,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the send, fluent style.
+     * Sets the send and returns this instance.
      *
      * @param exchange the send
     * @throws RuntimeException when the operation fails
@@ -897,7 +897,7 @@ public class ServerResponse<T> {
     }
 
     /**
-     * Sets the send, fluent style.
+     * Sets the send and returns this instance.
      *
      * @param handler the send
      * @param exchange the send

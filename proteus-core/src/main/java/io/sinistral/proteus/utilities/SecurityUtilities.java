@@ -22,7 +22,7 @@ public class SecurityUtilities
     }
 
     /**
-     * Sets the create ssl context, fluent style.
+     * Sets the create s s l context and returns this instance.
      *
      * @param keyStore the create ssl context
      * @param trustStore the create ssl context
@@ -56,12 +56,12 @@ public class SecurityUtilities
     }
 
     /**
-     * Sets the load key store, fluent style.
+     * Loads a key store from the classpath or file system.
      *
-     * @param name the load key store
-     * @param password the load key store
-     * @return this instance
-    * @throws Exception when the operation fails
+     * @param name the key store resource name
+     * @param password the key store password
+     * @return the loaded key store
+     * @throws Exception when the key store cannot be loaded
      */
     @SuppressWarnings("resource")
     public static KeyStore loadKeyStore(String name, String password) throws Exception

@@ -14,35 +14,35 @@ public class Parameter {
 
     /** Creates the object. */
     public Parameter() {}
-    /** the name. */
+    /** The name. */
     private String name;
-    /** the in. */
+    /** The in. */
     private String in;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the required. */
+    /** The required. */
     private Boolean required;
-    /** the deprecated. */
+    /** The deprecated. */
     private Boolean deprecated;
-    /** the allow empty value. */
+    /** The allow empty value. */
     private Boolean allowEmptyValue;
-    /** the style. */
+    /** The style. */
     private StyleEnum style;
-    /** the explode. */
+    /** The explode. */
     private Boolean explode;
-    /** the allow reserved. */
+    /** The allow reserved. */
     private Boolean allowReserved;
-    /** the schema. */
+    /** The schema. */
     private Schema schema;
-    /** the example. */
+    /** The example. */
     private Object example;
-    /** the examples. */
+    /** The examples. */
     private Map<String, Example> examples;
-    /** the content. */
+    /** The content. */
     private Content content;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /** Parameter serialization style selector. */
@@ -62,7 +62,7 @@ public class Parameter {
         /** The deepObject value. */
         DEEPOBJECT("deepObject");
 
-        /** the value. */
+        /** The value. */
         private final String value;
 
         StyleEnum(String value) {
@@ -123,7 +123,7 @@ public class Parameter {
     }
 
     /**
-     * Sets the name, fluent style.
+     * Sets the name and returns this instance.
      *
      * @param name the name
      * @return this instance
@@ -152,7 +152,7 @@ public class Parameter {
     }
 
     /**
-     * Sets the location, fluent style.
+     * Sets the in and returns this instance.
      *
      * @param in the location
      * @return this instance
@@ -181,7 +181,7 @@ public class Parameter {
     }
 
     /**
-     * Sets the description, fluent style.
+     * Sets the description and returns this instance.
      *
      * @param description the description
      * @return this instance
@@ -210,7 +210,7 @@ public class Parameter {
     }
 
     /**
-     * Sets the required flag, fluent style.
+     * Sets the required and returns this instance.
      *
      * @param required the required flag
      * @return this instance
@@ -286,7 +286,7 @@ public class Parameter {
     }
 
     /**
-     * Sets the style, fluent style.
+     * Sets the style and returns this instance.
      *
      * @param style the style
      * @return this instance
@@ -351,7 +351,7 @@ public class Parameter {
     }
 
     /**
-     * Sets the schema, fluent style.
+     * Sets the schema and returns this instance.
      *
      * @param schema the schema
      * @return this instance

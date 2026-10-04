@@ -22,10 +22,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Registry and execution context for Java type to OpenAPI schema converters.
  */
 public final class ModelConverters {
-    /** the  i n s t a n c e. */
+    /** The  i n s t a n c e. */
     private static final ModelConverters INSTANCE = create(JsonMapper.builder().build());
 
-    /** the converters. */
+    /** The converters. */
     private final CopyOnWriteArrayList<ModelConverter> converters = new CopyOnWriteArrayList<>();
 
     private ModelConverters(ObjectMapper mapper) {
@@ -120,13 +120,13 @@ public final class ModelConverters {
     }
 
     private static final class ModelConverterContextImpl implements ModelConverterContext {
-        /** the converters. */
+        /** The converters. */
         private final List<ModelConverter> converters;
-        /** the model by name. */
+        /** The model by name. */
         private final Map<String, Schema> modelByName = new LinkedHashMap<>();
-        /** the model by type. */
+        /** The model by type. */
         private final Map<String, Schema> modelByType = new LinkedHashMap<>();
-        /** the resolving types. */
+        /** The resolving types. */
         private final Set<String> resolvingTypes = new LinkedHashSet<>();
 
         private ModelConverterContextImpl(List<ModelConverter> converters) {

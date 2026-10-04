@@ -24,49 +24,49 @@ public class ServerPredicates
     private ServerPredicates() {
     }
 
-    /** the json_regex. */
+    /** The json_regex. */
     public static final String JSON_REGEX = "^(application\\/(json|x-javascript)|text\\/(json|x-javascript|x-json))(;.*)?$";
-    /** the xml_regex. */
+    /** The xml_regex. */
     public static final String XML_REGEX = "^(application\\/(xml|xhtml\\+xml)|text\\/xml)(;.*)?$";
-    /** the html_regex. */
+    /** The html_regex. */
     public static final String HTML_REGEX = "^(text\\/html)(;.*)?$";
-    /** the text_plain_regex. */
+    /** The text_plain_regex. */
     public static final String TEXT_PLAIN_REGEX = "^(text\\/plain)(;.*)?$";
-    /** the text_regex. */
+    /** The text_regex. */
     public static final String TEXT_REGEX = "^(?!(text)$).*";
 
 
-    /** the json_predicate. */
+    /** The json_predicate. */
     public static final Predicate JSON_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), JSON_REGEX);
-    /** the xml_predicate. */
+    /** The xml_predicate. */
     public static final Predicate XML_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), XML_REGEX);
-    /** the html_predicate. */
+    /** The html_predicate. */
     public static final Predicate HTML_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), HTML_REGEX);
-    /** the binary_stream_predicate. */
+    /** The binary_stream_predicate. */
     public static final Predicate BINARY_STREAM_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE),
             MediaType.APPLICATION_OCTET_STREAM.contentType());
-    /** the wildcard_predicate. */
+    /** The wildcard_predicate. */
     public static final Predicate WILDCARD_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MediaType.ANY.contentType());
-    /** the no_wildcard_predicate. */
+    /** The no_wildcard_predicate. */
     public static final Predicate NO_WILDCARD_PREDICATE = Predicates.not(Predicates.contains(ExchangeAttributes.requestHeader(Headers.ACCEPT), MediaType.ANY.contentType()));
-    /** the accept_json_predicate. */
+    /** The accept_json_predicate. */
     public static final Predicate ACCEPT_JSON_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.ACCEPT), JSON_REGEX);
-    /** the accept_xml_predicate. */
+    /** The accept_xml_predicate. */
     public static final Predicate ACCEPT_XML_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.ACCEPT), XML_REGEX);
-    /** the accept_html_predicate. */
+    /** The accept_html_predicate. */
     public static final Predicate ACCEPT_HTML_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.ACCEPT), HTML_REGEX);
-    /** the accept_text_predicate. */
+    /** The accept_text_predicate. */
     public static final Predicate ACCEPT_TEXT_PREDICATE = Predicates.regex(ExchangeAttributes.requestHeader(Headers.ACCEPT), TEXT_PLAIN_REGEX);
-    /** the accept_xml_exclusive_predicate. */
+    /** The accept_xml_exclusive_predicate. */
     public static final Predicate ACCEPT_XML_EXCLUSIVE_PREDICATE = Predicates.and(ACCEPT_XML_PREDICATE, NO_WILDCARD_PREDICATE);
-    /** the max_content_size_predicate. */
+    /** The max_content_size_predicate. */
     public static final Predicate MAX_CONTENT_SIZE_PREDICATE = new MaxRequestContentLengthPredicate.Builder().build(Collections.singletonMap("value", 0L));
-    /** the string_body_predicate. */
+    /** The string_body_predicate. */
     public static final Predicate STRING_BODY_PREDICATE = Predicates.and(Predicates.or(JSON_PREDICATE, XML_PREDICATE), MAX_CONTENT_SIZE_PREDICATE);
-    /** the multipart_form_predicate. */
+    /** The multipart_form_predicate. */
     public static final Predicate MULTIPART_FORM_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE),
             MultiPartParserDefinition.MULTIPART_FORM_DATA);
-    /** the url_encoded_form_predicate. */
+    /** The url_encoded_form_predicate. */
     public static final Predicate URL_ENCODED_FORM_PREDICATE = Predicates.contains(ExchangeAttributes.requestHeader(Headers.CONTENT_TYPE), FormEncodedDataDefinition.APPLICATION_X_WWW_FORM_URLENCODED);
 }
 

@@ -13,9 +13,9 @@ public class ApiResponses extends LinkedHashMap<String, ApiResponse> {
 
     /** Creates the object. */
     public ApiResponses() {}
-    /** the  d e f a u l t. */
+    /** The  d e f a u l t. */
     private static final String DEFAULT = "default";
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -41,7 +41,7 @@ public class ApiResponses extends LinkedHashMap<String, ApiResponse> {
     }
 
     /**
-     * Sets the default response, fluent style.
+     * _default and returns this instance.
      *
      * @param defaultResponse the default response
      * @return this instance

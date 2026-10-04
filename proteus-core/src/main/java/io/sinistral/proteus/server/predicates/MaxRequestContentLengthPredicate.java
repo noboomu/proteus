@@ -19,7 +19,7 @@ import java.util.Set;
  */
 public class MaxRequestContentLengthPredicate implements Predicate
 {
-    /** the max size. */
+    /** The max size. */
     private final long maxSize;
 
     MaxRequestContentLengthPredicate(final long maxSize)
@@ -28,10 +28,10 @@ public class MaxRequestContentLengthPredicate implements Predicate
     }
 
     /**
-     * Sets the resolve, fluent style.
+     * Returns true when the request content length exceeds the configured max size.
      *
-     * @param value the resolve
-     * @return this instance
+     * @param value the server exchange
+     * @return true when the body is too large
      */
     @Override
     public boolean resolve(final HttpServerExchange value)
@@ -52,10 +52,10 @@ public class MaxRequestContentLengthPredicate implements Predicate
         public Builder() {}
 
         /**
-         * Sets the build, fluent style.
+         * Builds the predicate from a config map.
          *
-         * @param config the build
-         * @return this instance
+         * @param config the predicate config
+         * @return the built predicate
          */
         @Override
         public Predicate build(final Map<String, Object> config)

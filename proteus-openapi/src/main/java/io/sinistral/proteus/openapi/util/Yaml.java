@@ -7,7 +7,7 @@ import tools.jackson.dataformat.yaml.YAMLMapper;
  * YAML serialization for generated OpenAPI documents.
  */
 public final class Yaml {
-    /** the  m a p p e r. */
+    /** The  m a p p e r. */
     private static final YAMLMapper MAPPER = YAMLMapper.builder()
         .changeDefaultPropertyInclusion(ignored ->
             JsonInclude.Value.construct(

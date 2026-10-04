@@ -13,23 +13,23 @@ import java.util.Set;
  * Type wrapper with annotations for model resolution.
  */
 public class AnnotatedType {
-    /** the type. */
+    /** The type. */
     private Type type;
-    /** the ctx annotations. */
+    /** The ctx annotations. */
     private List<Annotation> ctxAnnotations;
-    /** the annotations. */
+    /** The annotations. */
     private Annotation[] annotations;
-    /** the name. */
+    /** The name. */
     private String name;
-    /** the resolve as ref. */
+    /** The resolve as ref. */
     private boolean resolveAsRef = false;
-    /** the schema from annotation. */
+    /** The schema from annotation. */
     private boolean schemaFromAnnotation = false;
-    /** the json view annotation. */
+    /** The json view annotation. */
     private JsonView jsonViewAnnotation;
-    /** the property name. */
+    /** The property name. */
     private String propertyName;
-    /** the skip override. */
+    /** The skip override. */
     private Set<String> skipOverride = new LinkedHashSet<>();
 
     /** Creates an empty annotated type. */
@@ -64,7 +64,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the wrapped type, fluent style.
+     * Sets the type and returns this instance.
      *
      * @param type the type to wrap
      * @return this instance
@@ -75,7 +75,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Returns the context annotations of the wrapped element.
+     * Returns the ctx annotations.
      *
      * @return the context annotations, or null when unset
      */
@@ -93,7 +93,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the context annotations, fluent style.
+     * Sets the ctx annotations and returns this instance.
      *
      * @param ctxAnnotations the context annotations
      * @return this instance
@@ -122,7 +122,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the type-use annotations, fluent style.
+     * Sets the annotations and returns this instance.
      *
      * @param annotations the annotations
      * @return this instance
@@ -151,7 +151,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the model name, fluent style.
+     * Sets the name and returns this instance.
      *
      * @param name the name
      * @return this instance
@@ -180,7 +180,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the resolve-as-ref flag, fluent style.
+     * Sets the resolve as ref and returns this instance.
      *
      * @param resolveAsRef the resolve-as-ref flag
      * @return this instance
@@ -209,7 +209,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the schema-from-annotation flag, fluent style.
+     * Sets the schema from annotation and returns this instance.
      *
      * @param schemaFromAnnotation the schema-from-annotation flag
      * @return this instance
@@ -238,7 +238,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the view annotation, fluent style.
+     * Sets the json view annotation and returns this instance.
      *
      * @param jsonViewAnnotation the view annotation
      * @return this instance
@@ -267,7 +267,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the property name, fluent style.
+     * Sets the property name and returns this instance.
      *
      * @param propertyName the property name
      * @return this instance
@@ -296,7 +296,7 @@ public class AnnotatedType {
     }
 
     /**
-     * Sets the skip override set, fluent style.
+     * Sets the skip override and returns this instance.
      *
      * @param skipOverride the skip override set
      * @return this instance

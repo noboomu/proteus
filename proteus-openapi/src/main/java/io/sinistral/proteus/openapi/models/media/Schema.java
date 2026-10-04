@@ -21,137 +21,137 @@ public class Schema<T> {
 
     /** Creates the object. */
     public Schema() {}
-    /** the type. */
+    /** The type. */
     private String type;
-    /** the types. */
+    /** The types. */
     private Set<String> types;
-    /** the format. */
+    /** The format. */
     private String format;
-    /** the title. */
+    /** The title. */
     private String title;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the default. */
+    /** The default. */
     private T _default;
-    /** the multiple of. */
+    /** The multiple of. */
     private BigDecimal multipleOf;
-    /** the maximum. */
+    /** The maximum. */
     private BigDecimal maximum;
-    /** the exclusive maximum. */
+    /** The exclusive maximum. */
     private Boolean exclusiveMaximum;
-    /** the minimum. */
+    /** The minimum. */
     private BigDecimal minimum;
-    /** the exclusive minimum. */
+    /** The exclusive minimum. */
     private Boolean exclusiveMinimum;
-    /** the max length. */
+    /** The max length. */
     private Integer maxLength;
-    /** the min length. */
+    /** The min length. */
     private Integer minLength;
-    /** the pattern. */
+    /** The pattern. */
     private String pattern;
-    /** the max items. */
+    /** The max items. */
     private Integer maxItems;
-    /** the min items. */
+    /** The min items. */
     private Integer minItems;
-    /** the unique items. */
+    /** The unique items. */
     private Boolean uniqueItems;
-    /** the max properties. */
+    /** The max properties. */
     private Integer maxProperties;
-    /** the min properties. */
+    /** The min properties. */
     private Integer minProperties;
-    /** the required. */
+    /** The required. */
     private List<String> required;
-    /** the enum. */
+    /** The enum. */
     private List<T> _enum;
-    /** the all of. */
+    /** The all of. */
     private List<Schema> allOf;
-    /** the any of. */
+    /** The any of. */
     private List<Schema> anyOf;
-    /** the one of. */
+    /** The one of. */
     private List<Schema> oneOf;
-    /** the prefix items. */
+    /** The prefix items. */
     private List<Schema> prefixItems;
-    /** the not. */
+    /** The not. */
     private Schema not;
-    /** the properties. */
+    /** The properties. */
     private Map<String, Schema> properties;
-    /** the pattern properties. */
+    /** The pattern properties. */
     private Map<String, Schema> patternProperties;
-    /** the additional properties. */
+    /** The additional properties. */
     private Object additionalProperties;
-    /** the items. */
+    /** The items. */
     private Schema items;
-    /** the contains. */
+    /** The contains. */
     private Schema contains;
-    /** the max contains. */
+    /** The max contains. */
     private Integer maxContains;
-    /** the min contains. */
+    /** The min contains. */
     private Integer minContains;
-    /** the additional items. */
+    /** The additional items. */
     private Schema additionalItems;
-    /** the unevaluated items. */
+    /** The unevaluated items. */
     private Schema unevaluatedItems;
-    /** the unevaluated properties. */
+    /** The unevaluated properties. */
     private Schema unevaluatedProperties;
-    /** the content schema. */
+    /** The content schema. */
     private Schema contentSchema;
-    /** the property names. */
+    /** The property names. */
     private Schema propertyNames;
-    /** the if. */
+    /** The if. */
     private Schema _if;
-    /** the else. */
+    /** The else. */
     private Schema _else;
-    /** the then. */
+    /** The then. */
     private Schema then;
-    /** the dependent schemas. */
+    /** The dependent schemas. */
     private Map<String, Schema> dependentSchemas;
-    /** the dependent required. */
+    /** The dependent required. */
     private Map<String, List<String>> dependentRequired;
-    /** the exclusive maximum value. */
+    /** The exclusive maximum value. */
     private BigDecimal exclusiveMaximumValue;
-    /** the exclusive minimum value. */
+    /** The exclusive minimum value. */
     private BigDecimal exclusiveMinimumValue;
-    /** the $id. */
+    /** The $id. */
     private String $id;
-    /** the $schema. */
+    /** The $schema. */
     private String $schema;
-    /** the $anchor. */
+    /** The $anchor. */
     private String $anchor;
-    /** the $vocabulary. */
+    /** The $vocabulary. */
     private String $vocabulary;
-    /** the $dynamic anchor. */
+    /** The $dynamic anchor. */
     private String $dynamicAnchor;
-    /** the $dynamic ref. */
+    /** The $dynamic ref. */
     private String $dynamicRef;
-    /** the $comment. */
+    /** The $comment. */
     private String $comment;
-    /** the content encoding. */
+    /** The content encoding. */
     private String contentEncoding;
-    /** the content media type. */
+    /** The content media type. */
     private String contentMediaType;
-    /** the const. */
+    /** The const. */
     private T _const;
-    /** the read only. */
+    /** The read only. */
     private Boolean readOnly;
-    /** the write only. */
+    /** The write only. */
     private Boolean writeOnly;
-    /** the deprecated. */
+    /** The deprecated. */
     private Boolean deprecated;
-    /** the external docs. */
+    /** The external docs. */
     private ExternalDocumentation externalDocs;
-    /** the example. */
+    /** The example. */
     private T example;
-    /** the examples. */
+    /** The examples. */
     private List<T> examples;
-    /** the nullable. */
+    /** The nullable. */
     private Boolean nullable;
-    /** the discriminator. */
+    /** The discriminator. */
     private Discriminator discriminator;
-    /** the xml. */
+    /** The xml. */
     private XML xml;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -176,7 +176,7 @@ public class Schema<T> {
     }
 
     /**
-     * Sets the type, fluent style.
+     * Sets the type and returns this instance.
      *
      * @param type the type
      * @return this instance
@@ -208,7 +208,7 @@ public class Schema<T> {
     }
 
     /**
-     * Sets the type set, fluent style.
+     * Sets the types and returns this instance.
      *
      * @param types the type set
      * @return this instance
@@ -276,7 +276,7 @@ public class Schema<T> {
     }
 
     /**
-     * Sets the format, fluent style.
+     * Sets the format and returns this instance.
      *
      * @param format the format
      * @return this instance
@@ -305,7 +305,7 @@ public class Schema<T> {
     }
 
     /**
-     * Sets the title, fluent style.
+     * Sets the title and returns this instance.
      *
      * @param title the title
      * @return this instance
@@ -334,7 +334,7 @@ public class Schema<T> {
     }
 
     /**
-     * Sets the description, fluent style.
+     * Sets the description and returns this instance.
      *
      * @param description the description
      * @return this instance
@@ -363,7 +363,7 @@ public class Schema<T> {
     }
 
     /**
-     * Sets the default value, fluent style.
+     * _default and returns this instance.
      *
      * @param _default the default value
      * @return this instance
@@ -374,7 +374,7 @@ public class Schema<T> {
     }
 
     /**
-     * Returns the multipleOf constraint.
+     * Returns the multiple of.
      *
      * @return the multipleOf constraint, or null when unset
      */
@@ -668,7 +668,7 @@ public class Schema<T> {
     }
 
     /**
-     * Returns the allOf schemas.
+     * Returns the all of.
      *
      * @return the allOf schemas, or null when unset
      */
@@ -686,7 +686,7 @@ public class Schema<T> {
     }
 
     /**
-     * Returns the anyOf schemas.
+     * Returns the any of.
      *
      * @return the anyOf schemas, or null when unset
      */
@@ -704,7 +704,7 @@ public class Schema<T> {
     }
 
     /**
-     * Returns the oneOf schemas.
+     * Returns the one of.
      *
      * @return the oneOf schemas, or null when unset
      */
@@ -771,7 +771,7 @@ public class Schema<T> {
     }
 
     /**
-     * Returns the additionalProperties flag or schema.
+     * Returns the additional properties.
      *
      * @return the additionalProperties flag or schema, or null when unset
      */
@@ -807,7 +807,7 @@ public class Schema<T> {
     }
 
     /**
-     * Sets the items schema, fluent style.
+     * Sets the items and returns this instance.
      *
      * @param items the items schema
      * @return this instance
@@ -908,7 +908,7 @@ public class Schema<T> {
     }
 
     /**
-     * Sets the example, fluent style.
+     * Sets the example and returns this instance.
      *
      * @param example the example
      * @return this instance

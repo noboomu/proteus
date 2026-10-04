@@ -26,7 +26,7 @@ import java.util.Optional;
 public class DefaultJwtService implements JwtService {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultJwtService.class);
-    /** the configuration. */
+    /** The configuration. */
     private final JwtConfiguration configuration;
 
     /**
@@ -40,10 +40,10 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the extract token from header, fluent style.
+     * Extracts the bearer token from an Authorization header value.
      *
-     * @param authorizationHeader the extract token from header
-     * @return this instance
+     * @param authorizationHeader the raw header value
+     * @return the token, or empty when the header is absent or malformed
      */
     @Override
     public Optional<String> extractTokenFromHeader(String authorizationHeader) {
@@ -65,10 +65,10 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the parse token, fluent style.
+     * Parses a compact JWT string into a token instance without verifying claims.
      *
-     * @param tokenString the parse token
-     * @return this instance
+     * @param tokenString the compact JWT string
+     * @return the parsed token
      */
     @Override
     public JsonWebToken parseToken(String tokenString) {
@@ -85,10 +85,10 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the validate token, fluent style.
+     * Validates token claims against the configured issuers, audiences, and expiry window.
      *
-     * @param token the validate token
-     * @return this instance
+     * @param token the token to validate
+     * @return true when the claims satisfy the configuration
      */
     @Override
     public boolean validateToken(JsonWebToken token) {
@@ -270,11 +270,11 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the validate token signature, fluent style.
+     * Verifies the RSA signature of the token.
      *
-     * @param token the validate token signature
-     * @param publicKey the validate token signature
-     * @return this instance
+     * @param token the token to verify
+     * @param publicKey the RSA public key
+     * @return true when the signature matches
      */
     @Override
     public boolean validateTokenSignature(JsonWebToken token, RSAPublicKey publicKey) {
@@ -291,11 +291,11 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the validate token signature, fluent style.
+     * Verifies the RSA signature of the token.
      *
-     * @param token the validate token signature
-     * @param publicKey the validate token signature
-     * @return this instance
+     * @param token the token to verify
+     * @param publicKey the RSA public key
+     * @return true when the signature matches
      */
     @Override
     public boolean validateTokenSignature(JsonWebToken token, ECPublicKey publicKey) {
@@ -312,11 +312,11 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the validate token signature, fluent style.
+     * Verifies the HMAC signature of the token.
      *
-     * @param token the validate token signature
-     * @param secret the validate token signature
-     * @return this instance
+     * @param token the token to verify
+     * @param secret the shared secret
+     * @return true when the signature matches
      */
     @Override
     public boolean validateTokenSignature(JsonWebToken token, byte[] secret) {
@@ -333,10 +333,10 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the create security context, fluent style.
+     * Builds a security context carrying the token claims and roles.
      *
-     * @param token the create security context
-     * @return this instance
+     * @param token the authenticated token
+     * @return the populated security context
      */
     @Override
     public SecurityContext createSecurityContext(JsonWebToken token) {
@@ -367,10 +367,10 @@ public class DefaultJwtService implements JwtService {
 
 
     /**
-     * Sets the process authorization header, fluent style.
+     * Processes an Authorization header into an optional authenticated security context.
      *
-     * @param authorizationHeader the process authorization header
-     * @return this instance
+     * @param authorizationHeader the raw header value
+     * @return the security context, or empty when the header does not authenticate
      */
     @Override
     public Optional<SecurityContext> processAuthorizationHeader(String authorizationHeader) {
@@ -393,11 +393,11 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the has any role, fluent style.
+     * Returns whether the token grants any of the required roles.
      *
-     * @param token the has any role
-     * @param requiredRoles the has any role
-     * @return this instance
+     * @param token the token to check
+     * @param requiredRoles the roles to check
+     * @return true when at least one role is granted
      */
     @Override
     public boolean hasAnyRole(JsonWebToken token, String... requiredRoles) {
@@ -405,11 +405,11 @@ public class DefaultJwtService implements JwtService {
     }
 
     /**
-     * Sets the has all roles, fluent style.
+     * Returns whether the token grants every required role.
      *
-     * @param token the has all roles
-     * @param requiredRoles the has all roles
-     * @return this instance
+     * @param token the token to check
+     * @param requiredRoles the roles to check
+     * @return true when all roles are granted
      */
     @Override
     public boolean hasAllRoles(JsonWebToken token, String... requiredRoles) {

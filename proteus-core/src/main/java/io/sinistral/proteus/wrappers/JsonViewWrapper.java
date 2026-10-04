@@ -24,26 +24,26 @@ public class JsonViewWrapper implements HandlerWrapper
 
     private static final Logger logger = LoggerFactory.getLogger(JsonViewWrapper.class.getName());
 
-    /** the view_class_name. */
+    /** The view_class_name. */
     @Named("jackson.jsonView.className")
     @Inject(optional = true)
     private static String VIEW_CLASS_NAME = null;
 
-    /** the default_view_class_name. */
+    /** The default_view_class_name. */
     @Named("jackson.jsonView.defaultViewClass")
     @Inject(optional = true)
     private static String DEFAULT_VIEW_CLASS_NAME = null;
 
-    /** the query_parameter_name. */
-    /** the class_map. */
+    /** The query_parameter_name. */
+    /** The class_map. */
     @Named("jackson.jsonView.queryParameterName")
     @Inject(optional = true)
     private static String QUERY_PARAMETER_NAME = "context";
 
-    /** the class_map. */
+    /** The class_map. */
     private Map<String, Class> CLASS_MAP = new ConcurrentHashMap<>();
 
-    /** the default view class. */
+    /** The default view class. */
     private Class defaultViewClass = null;
 
     /** Creates the wrapper and resolves the configured default view class. */
@@ -76,10 +76,10 @@ public class JsonViewWrapper implements HandlerWrapper
     }
 
     /**
-     * Sets the wrap, fluent style.
+     * Wraps a handler so responses serialize through the JSON view.
      *
-     * @param handler the wrap
-     * @return this instance
+     * @param handler the handler to wrap
+     * @return the wrapped handler
      */
     @Override
     public HttpHandler wrap(HttpHandler handler)

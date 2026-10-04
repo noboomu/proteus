@@ -14,33 +14,33 @@ public class PathItem {
 
     /** Creates the object. */
     public PathItem() {}
-    /** the summary. */
+    /** The summary. */
     private String summary;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the get. */
+    /** The get. */
     private Operation get;
-    /** the put. */
+    /** The put. */
     private Operation put;
-    /** the post. */
+    /** The post. */
     private Operation post;
-    /** the delete. */
+    /** The delete. */
     private Operation delete;
-    /** the options. */
+    /** The options. */
     private Operation options;
-    /** the head. */
+    /** The head. */
     private Operation head;
-    /** the patch. */
+    /** The patch. */
     private Operation patch;
-    /** the trace. */
+    /** The trace. */
     private Operation trace;
-    /** the servers. */
+    /** The servers. */
     private List<Server> servers;
-    /** the parameters. */
+    /** The parameters. */
     private List<Parameter> parameters;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -127,7 +127,7 @@ public class PathItem {
     }
 
     /**
-     * Sets the PUT operation, fluent style.
+     * Sets the put and returns this instance.
      *
      * @param put the PUT operation
      * @return this instance
@@ -138,7 +138,7 @@ public class PathItem {
     }
 
     /**
-     * Returns the POST operation.
+     * Returns the post.
      *
      * @return the POST operation, or null when unset
      */
@@ -156,7 +156,7 @@ public class PathItem {
     }
 
     /**
-     * Sets the POST operation, fluent style.
+     * Sets the post and returns this instance.
      *
      * @param post the POST operation
      * @return this instance
@@ -167,7 +167,7 @@ public class PathItem {
     }
 
     /**
-     * Returns the DELETE operation.
+     * Returns the delete.
      *
      * @return the DELETE operation, or null when unset
      */
@@ -185,7 +185,7 @@ public class PathItem {
     }
 
     /**
-     * Sets the DELETE operation, fluent style.
+     * Sets the delete and returns this instance.
      *
      * @param delete the DELETE operation
      * @return this instance
@@ -214,7 +214,7 @@ public class PathItem {
     }
 
     /**
-     * Sets the OPTIONS operation, fluent style.
+     * Sets the options and returns this instance.
      *
      * @param options the OPTIONS operation
      * @return this instance
@@ -243,7 +243,7 @@ public class PathItem {
     }
 
     /**
-     * Sets the HEAD operation, fluent style.
+     * Sets the head and returns this instance.
      *
      * @param head the HEAD operation
      * @return this instance
@@ -272,7 +272,7 @@ public class PathItem {
     }
 
     /**
-     * Sets the PATCH operation, fluent style.
+     * Sets the patch and returns this instance.
      *
      * @param patch the PATCH operation
      * @return this instance
@@ -301,7 +301,7 @@ public class PathItem {
     }
 
     /**
-     * Sets the TRACE operation, fluent style.
+     * Sets the trace and returns this instance.
      *
      * @param trace the TRACE operation
      * @return this instance

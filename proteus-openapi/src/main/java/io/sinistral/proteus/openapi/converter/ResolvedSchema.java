@@ -9,9 +9,9 @@ import java.util.Map;
  * Result of schema resolution containing the main schema and any referenced schemas
  */
 public class ResolvedSchema {
-    /** the schema. */
+    /** The schema. */
     public Schema schema;
-    /** the value. */
+    /** The value. */
     public Map<String, Schema> referencedSchemas = new LinkedHashMap<>();
 
     /** Creates an empty resolved schema. */

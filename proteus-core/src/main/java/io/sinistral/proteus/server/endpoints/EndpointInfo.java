@@ -15,17 +15,17 @@ import io.undertow.util.HttpString;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EndpointInfo implements Comparable<EndpointInfo> {
 
-    /** the consumes. */
+    /** The consumes. */
     private String consumes = "*/*";
-    /** the produces. */
+    /** The produces. */
     private String produces = "*/*";
-    /** the controller method. */
+    /** The controller method. */
     private String controllerMethod = "*";
-    /** the controller name. */
+    /** The controller name. */
     private String controllerName = "_";
-    /** the method. */
+    /** The method. */
     private HttpString method;
-    /** the path template. */
+    /** The path template. */
     private String pathTemplate;
 
     /** Default constructor for deserialization. */
@@ -114,10 +114,10 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
     }
 
     /**
-     * Sets the equals, fluent style.
+     * Compares endpoint info by method and path.
      *
-     * @param obj the equals
-     * @return this instance
+     * @param obj the object to compare
+     * @return true when both describe the same endpoint
      */
     @Override
     public boolean equals(Object obj) {
@@ -282,17 +282,17 @@ public class EndpointInfo implements Comparable<EndpointInfo> {
      */
     public static final class Builder {
 
-        /** the consumes. */
+        /** The consumes. */
         private String consumes = "*/*";
-        /** the produces. */
+        /** The produces. */
         private String produces = "*/*";
-        /** the controller method. */
+        /** The controller method. */
         private String controllerMethod = "_";
-        /** the controller name. */
+        /** The controller name. */
         private String controllerName = "_";
-        /** the method. */
+        /** The method. */
         private HttpString method;
-        /** the path template. */
+        /** The path template. */
         private String pathTemplate;
 
         private Builder() {}

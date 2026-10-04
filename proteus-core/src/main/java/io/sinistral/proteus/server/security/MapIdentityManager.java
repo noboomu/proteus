@@ -21,7 +21,7 @@ import java.util.Set;
  */
 public class MapIdentityManager implements IdentityManager
 {
-    /** the identities. */
+    /** The identities. */
     private final Map<String, char[]> identities;
 
     /**
@@ -35,10 +35,10 @@ public class MapIdentityManager implements IdentityManager
     }
 
     /**
-     * Sets the verify, fluent style.
+     * Accepts an existing account as still valid.
      *
-     * @param account the verify
-     * @return this instance
+     * @param account the account to verify
+     * @return the same account
      */
     @Override
     public Account verify(Account account)
@@ -48,10 +48,10 @@ public class MapIdentityManager implements IdentityManager
     }
 
     /**
-     * Sets the verify, fluent style.
+     * Rejects credentials that carry no identity id.
      *
-     * @param credential the verify
-     * @return this instance
+     * @param credential the credential to verify
+     * @return null, raw credentials cannot be verified
      */
     @Override
     public Account verify(Credential credential)
@@ -61,11 +61,11 @@ public class MapIdentityManager implements IdentityManager
     }
 
     /**
-     * Sets the verify, fluent style.
+     * Verifies a password credential for a named identity.
      *
-     * @param id the verify
-     * @param credential the verify
-     * @return this instance
+     * @param id the identity id
+     * @param credential the password credential
+     * @return the account on success, null otherwise
      */
     @Override
     public Account verify(String id, Credential credential)
@@ -102,9 +102,9 @@ public class MapIdentityManager implements IdentityManager
 
     private static class UserAccount implements Account
     {
-        /** the serial version uid. */
+        /** The serial version uid. */
         private static final long serialVersionUID = -8234851531206339721L;
-        /** the principal. */
+        /** The principal. */
         private final Principal principal;
 
         public UserAccount(String id)

@@ -19,24 +19,24 @@ import java.util.Optional;
 /** Handler wrapper extracting an API key header attachment. */
 public class HeaderApiKeyWrapper implements HandlerWrapper
 {
-    /** the logger. */
+    /** The logger. */
     private static final Logger logger = LoggerFactory.getLogger(HeaderApiKeyWrapper.class.getName());
 
-    /** throwable constant. */
+    /** Throwable constant. */
     public static final AttachmentKey<Throwable> THROWABLE = AttachmentKey.create(Throwable.class);
 
-    /** the value. */
+    /** The value. */
     @Inject
     @Named("openapi.securitySchemes.ApiKeyAuth.name")
     protected static String AUTH_KEY_NAME;
 
-    /** the value. */
-    /** the  a p i_ k e y_ h e a d e r. */
+    /** The value. */
+    /** The  a p i_ k e y_ h e a d e r. */
     @Inject(optional = true)
     @Named("security.apiKey")
     protected static String API_KEY;
 
-    /** the  a p i_ k e y_ h e a d e r. */
+    /** The  a p i_ k e y_ h e a d e r. */
     private final HttpString API_KEY_HEADER;
 
     /** Creates the wrapper with the configured API key header name. */

@@ -15,27 +15,27 @@ import java.util.Objects;
  * Root object for OpenAPI 3.1 specification
  */
 public class OpenAPI {
-    /** the openapi. */
+    /** The openapi. */
     private String openapi = "3.1.0";
-    /** the info. */
+    /** The info. */
     private Info info;
-    /** the json schema dialect. */
+    /** The json schema dialect. */
     private String jsonSchemaDialect;
-    /** the servers. */
+    /** The servers. */
     private List<Server> servers;
-    /** the paths. */
+    /** The paths. */
     private Paths paths;
-    /** the webhooks. */
+    /** The webhooks. */
     private Map<String, PathItem> webhooks;
-    /** the components. */
+    /** The components. */
     private Components components;
-    /** the security. */
+    /** The security. */
     private List<SecurityRequirement> security;
-    /** the tags. */
+    /** The tags. */
     private List<Tag> tags;
-    /** the external docs. */
+    /** The external docs. */
     private ExternalDocumentation externalDocs;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /** Creates an empty document with the default spec version. */
@@ -59,7 +59,7 @@ public class OpenAPI {
         /** The 3.1.0 version. */
         V31("3.1.0");
 
-        /** the version. */
+        /** The version. */
         private final String version;
 
         SpecVersion(String version) {
@@ -350,7 +350,7 @@ public class OpenAPI {
     }
 
     /**
-     * Sets the external documentation, fluent style.
+     * Sets the external docs and returns this instance.
      *
      * @param externalDocs the external documentation
      * @return this instance

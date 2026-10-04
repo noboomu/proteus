@@ -21,11 +21,11 @@ import java.util.regex.Pattern;
 public class ClassUtilities {
 
     private static final Logger logger = LoggerFactory.getLogger(ClassUtilities.class.getName());
-    /** the type_name_pattern. */
+    /** The type_name_pattern. */
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.[A-Za-z]+)<([^>]+)+", Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-    /** the concurrent_type_name_pattern. */
+    /** The concurrent_type_name_pattern. */
     private static final Pattern CONCURRENT_TYPE_NAME_PATTERN = Pattern.compile("(java\\.util\\.concurrent\\.[A-Za-z]+)<([^>]+)", Pattern.DOTALL | Pattern.UNIX_LINES);
-    /** the class_name_pattern. */
+    /** The class_name_pattern. */
     private static final Pattern CLASS_NAME_PATTERN = Pattern.compile("([^<>,\\s]+)+", Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
     static Map<TypeToken<?>, List<TypeToken<?>>> typeTokenMap = new LinkedHashMap<>();
 

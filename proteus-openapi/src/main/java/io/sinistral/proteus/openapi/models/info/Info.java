@@ -9,21 +9,21 @@ public class Info {
 
     /** Creates the object. */
     public Info() {}
-    /** the title. */
+    /** The title. */
     private String title;
-    /** the summary. */
+    /** The summary. */
     private String summary;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the terms of service. */
+    /** The terms of service. */
     private String termsOfService;
-    /** the contact. */
+    /** The contact. */
     private Contact contact;
-    /** the license. */
+    /** The license. */
     private License license;
-    /** the version. */
+    /** The version. */
     private String version;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -103,7 +103,7 @@ public class Info {
     }
 
     /**
-     * Returns the terms of service URL.
+     * Returns the terms of service.
      *
      * @return the terms of service URL, or null when unset
      */
@@ -227,10 +227,10 @@ public class Info {
     }
 
     /**
-     * Adds an entry to the value.
+     * Adds a vendor extension entry, ignoring names that are not {@code x-} prefixed.
      *
-     * @param name the entry
-     * @param value the entry
+     * @param name the extension name
+     * @param value the extension value
      */
     @com.fasterxml.jackson.annotation.JsonAnySetter
     public void addExtension(String name, Object value) {

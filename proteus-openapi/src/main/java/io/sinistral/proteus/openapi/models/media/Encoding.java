@@ -11,17 +11,17 @@ public class Encoding {
 
     /** Creates an empty encoding object. */
     public Encoding() {}
-    /** the content type. */
+    /** The content type. */
     private String contentType;
-    /** the headers. */
+    /** The headers. */
     private Map<String, Header> headers;
-    /** the style. */
+    /** The style. */
     private StyleEnum style;
-    /** the explode. */
+    /** The explode. */
     private Boolean explode;
-    /** the allow reserved. */
+    /** The allow reserved. */
     private Boolean allowReserved;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /** Encoding serialization style selector. */
@@ -35,7 +35,7 @@ public class Encoding {
         /** The deepObject value. */
         DEEPOBJECT("deepObject");
 
-        /** the value. */
+        /** The value. */
         private final String value;
 
         StyleEnum(String value) {
@@ -63,7 +63,7 @@ public class Encoding {
     }
 
     /**
-     * Returns the to string value.
+     * Returns the content type.
      *
      * @return the to string value, or null when unset
      */

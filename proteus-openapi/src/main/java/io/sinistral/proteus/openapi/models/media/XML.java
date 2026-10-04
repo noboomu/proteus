@@ -9,17 +9,17 @@ public class XML {
 
     /** Creates the object. */
     public XML() {}
-    /** the name. */
+    /** The name. */
     private String name;
-    /** the namespace. */
+    /** The namespace. */
     private String namespace;
-    /** the prefix. */
+    /** The prefix. */
     private String prefix;
-    /** the attribute. */
+    /** The attribute. */
     private Boolean attribute;
-    /** the wrapped. */
+    /** The wrapped. */
     private Boolean wrapped;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**

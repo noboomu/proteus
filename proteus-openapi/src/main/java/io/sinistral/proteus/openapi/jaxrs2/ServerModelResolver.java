@@ -17,7 +17,7 @@ import java.util.concurrent.CompletionStage;
  * introspection to the next converter.
  */
 public final class ServerModelResolver implements ModelConverter {
-    /** the mapper. */
+    /** The mapper. */
     private final ObjectMapper mapper;
 
     /** Creates the resolver with a mapper.

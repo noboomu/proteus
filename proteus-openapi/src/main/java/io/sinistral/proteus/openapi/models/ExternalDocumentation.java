@@ -9,11 +9,11 @@ public class ExternalDocumentation {
 
     /** Creates the object. */
     public ExternalDocumentation() {}
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the url. */
+    /** The url. */
     private String url;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -94,10 +94,10 @@ public class ExternalDocumentation {
     }
 
     /**
-     * Adds an entry to the value.
+     * Adds a vendor extension entry, ignoring names that are not {@code x-} prefixed.
      *
-     * @param name the entry
-     * @param value the entry
+     * @param name the extension name
+     * @param value the extension value
      */
     @com.fasterxml.jackson.annotation.JsonAnySetter
     public void addExtension(String name, Object value) {

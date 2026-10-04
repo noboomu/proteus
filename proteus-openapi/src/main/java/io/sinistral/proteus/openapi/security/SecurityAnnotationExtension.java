@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SecurityAnnotationExtension extends AbstractOpenAPIExtension {
 
-    /** the logger. */
+    /** The logger. */
     private static final Logger logger = LoggerFactory.getLogger(
         SecurityAnnotationExtension.class
     );

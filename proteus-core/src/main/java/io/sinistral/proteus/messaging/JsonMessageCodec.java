@@ -30,10 +30,10 @@ public class JsonMessageCodec implements MessageCodec<Object, Object> {
     }
 
     /**
-     * Sets the encode to wire, fluent style.
+     * Encodes an object to the wire as a type-name-prefixed JSON payload.
      *
-     * @param buffer the encode to wire
-     * @param object the encode to wire
+     * @param buffer the target buffer
+     * @param object the object to encode
      */
     @Override
     public void encodeToWire(Buffer buffer, Object object) {
@@ -43,11 +43,11 @@ public class JsonMessageCodec implements MessageCodec<Object, Object> {
     }
 
     /**
-     * Sets the decode from wire, fluent style.
+     * Decodes a JSON payload written by {@link #encodeToWire}.
      *
-     * @param pos the decode from wire
-     * @param buffer the decode from wire
-     * @return this instance
+     * @param pos the start position in the buffer
+     * @param buffer the source buffer
+     * @return the decoded object
      */
     @Override
     public Object decodeFromWire(int pos, Buffer buffer) {
@@ -64,10 +64,10 @@ public class JsonMessageCodec implements MessageCodec<Object, Object> {
     }
 
     /**
-     * Sets the transform, fluent style.
+     * Returns the payload unchanged for same-VM delivery.
      *
-     * @param object the transform
-     * @return this instance
+     * @param object the object to transform
+     * @return the same object
      */
     @Override
     public Object transform(Object object) {

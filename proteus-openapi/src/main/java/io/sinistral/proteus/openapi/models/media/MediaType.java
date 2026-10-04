@@ -11,15 +11,15 @@ public class MediaType {
 
     /** Creates the object. */
     public MediaType() {}
-    /** the schema. */
+    /** The schema. */
     private Schema schema;
-    /** the example. */
+    /** The example. */
     private Object example;
-    /** the examples. */
+    /** The examples. */
     private Map<String, Example> examples;
-    /** the encoding. */
+    /** The encoding. */
     private Map<String, Encoding> encoding;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -41,7 +41,7 @@ public class MediaType {
     }
 
     /**
-     * Sets the schema, fluent style.
+     * Sets the schema and returns this instance.
      *
      * @param schema the schema
      * @return this instance

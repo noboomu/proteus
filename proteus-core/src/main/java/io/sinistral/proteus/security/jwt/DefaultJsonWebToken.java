@@ -30,11 +30,11 @@ public class DefaultJsonWebToken implements JsonWebToken {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultJsonWebToken.class);
 
-    /** the raw token. */
+    /** The raw token. */
     private final String rawToken;
-    /** the signed jwt. */
+    /** The signed jwt. */
     private final SignedJWT signedJWT;
-    /** the claims set. */
+    /** The claims set. */
     private final JWTClaimsSet claimsSet;
 
     /**

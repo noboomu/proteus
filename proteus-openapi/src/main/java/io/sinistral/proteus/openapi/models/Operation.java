@@ -18,31 +18,31 @@ public class Operation {
 
     /** Creates the object. */
     public Operation() {}
-    /** the tags. */
+    /** The tags. */
     private List<String> tags;
-    /** the summary. */
+    /** The summary. */
     private String summary;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the external docs. */
+    /** The external docs. */
     private ExternalDocumentation externalDocs;
-    /** the operation id. */
+    /** The operation id. */
     private String operationId;
-    /** the parameters. */
+    /** The parameters. */
     private List<Parameter> parameters;
-    /** the request body. */
+    /** The request body. */
     private RequestBody requestBody;
-    /** the responses. */
+    /** The responses. */
     private ApiResponses responses;
-    /** the callbacks. */
+    /** The callbacks. */
     private Map<String, Callback> callbacks;
-    /** the deprecated. */
+    /** The deprecated. */
     private Boolean deprecated;
-    /** the security. */
+    /** The security. */
     private List<SecurityRequirement> security;
-    /** the servers. */
+    /** The servers. */
     private List<Server> servers;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -196,7 +196,7 @@ public class Operation {
     }
 
     /**
-     * Sets the request body, fluent style.
+     * Sets the request body and returns this instance.
      *
      * @param requestBody the request body
      * @return this instance
@@ -225,7 +225,7 @@ public class Operation {
     }
 
     /**
-     * Sets the response map, fluent style.
+     * Sets the responses and returns this instance.
      *
      * @param responses the response map
      * @return this instance

@@ -15,17 +15,17 @@ public class ApiResponse {
 
     /** Creates the object. */
     public ApiResponse() {}
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the headers. */
+    /** The headers. */
     private Map<String, Header> headers;
-    /** the content. */
+    /** The content. */
     private Content content;
-    /** the links. */
+    /** The links. */
     private Map<String, Link> links;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -47,7 +47,7 @@ public class ApiResponse {
     }
 
     /**
-     * Sets the description, fluent style.
+     * Sets the description and returns this instance.
      *
      * @param description the description
      * @return this instance
@@ -107,7 +107,7 @@ public class ApiResponse {
     }
 
     /**
-     * Sets the content, fluent style.
+     * Sets the content and returns this instance.
      *
      * @param content the content
      * @return this instance
@@ -149,7 +149,7 @@ public class ApiResponse {
     }
 
     /**
-     * Returns the reference target.
+     * Returns the $ref.
      *
      * @return the reference, or null when unset
      */

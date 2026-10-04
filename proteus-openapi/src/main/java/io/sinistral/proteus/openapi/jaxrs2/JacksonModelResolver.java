@@ -70,10 +70,10 @@ import java.util.UUID;
  * and Jakarta Validation annotations into Proteus' OpenAPI model.</p>
  */
 public final class JacksonModelResolver implements ModelConverter {
-    /** the  c o m p o n e n t_ p r e f i x. */
+    /** The  c o m p o n e n t_ p r e f i x. */
     private static final String COMPONENT_PREFIX = "#/components/schemas/";
 
-    /** the mapper. */
+    /** The mapper. */
     private final ObjectMapper mapper;
 
     /** Creates the resolver with a mapper.

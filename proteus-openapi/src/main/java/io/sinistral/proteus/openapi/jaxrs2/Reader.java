@@ -67,48 +67,48 @@ import tools.jackson.databind.type.TypeFactory;
 /** Scans JAX-RS annotated classes and builds the OpenAPI document. */
 public class Reader {
 
-    /** the  l o g g e r. */
+    /** The  l o g g e r. */
     private static final Logger LOGGER = LoggerFactory.getLogger(Reader.class);
 
-    /** default media type value constant. */
+    /** Default media type value constant. */
     public static final String DEFAULT_MEDIA_TYPE_VALUE = "*/*";
-    /** default description constant. */
+    /** Default description constant. */
     public static final String DEFAULT_DESCRIPTION = "default response";
 
-    /** the value. */
+    /** The value. */
     protected OpenAPIConfiguration config;
 
-    /** the application. */
+    /** The application. */
     private Application application;
-    /** the open a p i. */
+    /** The open a p i. */
     private OpenAPI openAPI;
-    /** the components. */
+    /** The components. */
     private Components components;
-    /** the paths. */
+    /** The paths. */
     private Paths paths;
-    /** the open api tags. */
+    /** The open api tags. */
     private Set<Tag> openApiTags;
 
-    /** the  g e t_ m e t h o d. */
+    /** The  g e t_ m e t h o d. */
     private static final String GET_METHOD = "get";
-    /** the  p o s t_ m e t h o d. */
+    /** The  p o s t_ m e t h o d. */
     private static final String POST_METHOD = "post";
-    /** the  p u t_ m e t h o d. */
+    /** The  p u t_ m e t h o d. */
     private static final String PUT_METHOD = "put";
-    /** the  d e l e t e_ m e t h o d. */
+    /** The  d e l e t e_ m e t h o d. */
     private static final String DELETE_METHOD = "delete";
-    /** the  p a t c h_ m e t h o d. */
+    /** The  p a t c h_ m e t h o d. */
     private static final String PATCH_METHOD = "patch";
-    /** the  t r a c e_ m e t h o d. */
+    /** The  t r a c e_ m e t h o d. */
     private static final String TRACE_METHOD = "trace";
-    /** the  h e a d_ m e t h o d. */
+    /** The  h e a d_ m e t h o d. */
     private static final String HEAD_METHOD = "head";
-    /** the  o p t i o n s_ m e t h o d. */
+    /** The  o p t i o n s_ m e t h o d. */
     private static final String OPTIONS_METHOD = "options";
 
-    /** the string schema. */
+    /** The string schema. */
     private Schema stringSchema;
-    /** the mapper. */
+    /** The mapper. */
     private final ObjectMapper mapper;
 
     /** Creates a reader with the default mapper and empty document. */

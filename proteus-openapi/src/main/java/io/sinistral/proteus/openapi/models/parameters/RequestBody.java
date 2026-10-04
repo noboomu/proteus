@@ -11,15 +11,15 @@ public class RequestBody {
 
     /** Creates the object. */
     public RequestBody() {}
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the content. */
+    /** The content. */
     private Content content;
-    /** the required. */
+    /** The required. */
     private Boolean required;
-    /** the reference. */
+    /** The reference. */
     private String $ref;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -41,7 +41,7 @@ public class RequestBody {
     }
 
     /**
-     * Sets the description, fluent style.
+     * Sets the description and returns this instance.
      *
      * @param description the description
      * @return this instance
@@ -70,7 +70,7 @@ public class RequestBody {
     }
 
     /**
-     * Sets the content, fluent style.
+     * Sets the content and returns this instance.
      *
      * @param content the content
      * @return this instance
@@ -99,7 +99,7 @@ public class RequestBody {
     }
 
     /**
-     * Sets the required flag, fluent style.
+     * Sets the required and returns this instance.
      *
      * @param required the required flag
      * @return this instance

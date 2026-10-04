@@ -9,7 +9,7 @@ import tools.jackson.databind.json.JsonMapper;
  * JSON utilities using Jackson 3.
  */
 public final class Json {
-    /** the mapper. */
+    /** The mapper. */
     private static ObjectMapper mapper = JsonMapper.builder()
         .enable(SerializationFeature.INDENT_OUTPUT)
         .changeDefaultPropertyInclusion(ignored ->

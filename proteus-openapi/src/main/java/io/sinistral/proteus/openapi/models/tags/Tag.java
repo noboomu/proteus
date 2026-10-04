@@ -11,13 +11,13 @@ public class Tag {
 
     /** Creates the object. */
     public Tag() {}
-    /** the name. */
+    /** The name. */
     private String name;
-    /** the description. */
+    /** The description. */
     private String description;
-    /** the external docs. */
+    /** The external docs. */
     private ExternalDocumentation externalDocs;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -39,7 +39,7 @@ public class Tag {
     }
 
     /**
-     * Sets the name, fluent style.
+     * Sets the name and returns this instance.
      *
      * @param name the name
      * @return this instance
@@ -68,7 +68,7 @@ public class Tag {
     }
 
     /**
-     * Sets the description, fluent style.
+     * Sets the description and returns this instance.
      *
      * @param description the description
      * @return this instance
@@ -97,7 +97,7 @@ public class Tag {
     }
 
     /**
-     * Sets the external documentation, fluent style.
+     * Sets the external docs and returns this instance.
      *
      * @param externalDocs the external documentation
      * @return this instance

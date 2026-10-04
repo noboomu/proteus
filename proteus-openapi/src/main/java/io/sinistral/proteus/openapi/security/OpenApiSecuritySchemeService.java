@@ -24,16 +24,16 @@ import java.util.Map;
  *
  * @since 0.9.5
  */
-    /** the logger. */
+    /** The logger. */
 @Singleton
 public class OpenApiSecuritySchemeService {
 
-    /** the logger. */
+    /** The logger. */
     private static final Logger logger = LoggerFactory.getLogger(OpenApiSecuritySchemeService.class);
 
     /** Component name used by generated Bearer security requirements. */
     public static final String JWT_BEARER_SCHEME = "bearerAuth";
-    /** the jwt configuration. */
+    /** The jwt configuration. */
     private final JwtConfiguration jwtConfiguration;
 
     /**

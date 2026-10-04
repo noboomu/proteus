@@ -9,13 +9,13 @@ public class License {
 
     /** Creates the object. */
     public License() {}
-    /** the name. */
+    /** The name. */
     private String name;
-    /** the identifier. */
+    /** The identifier. */
     private String identifier;
-    /** the url. */
+    /** The url. */
     private String url;
-    /** the extensions. */
+    /** The extensions. */
     private Map<String, Object> extensions;
 
     /**
@@ -92,10 +92,10 @@ public class License {
     }
 
     /**
-     * Adds an entry to the value.
+     * Adds a vendor extension entry, ignoring names that are not {@code x-} prefixed.
      *
-     * @param name the entry
-     * @param value the entry
+     * @param name the extension name
+     * @param value the extension value
      */
     @com.fasterxml.jackson.annotation.JsonAnySetter
     public void addExtension(String name, Object value) {

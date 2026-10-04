@@ -85,7 +85,7 @@ public final class HttpHeaders {
     public static final String COOKIE2 = "Cookie2";
     /** Cors request mode. */
     public static final String CORS = "cors";
-    /** crossdomain.xml policy file path. */
+    /** Crossdomain.xml policy file path. */
     public static final String CROSSDOMAIN_XML = "crossdomain.xml";
     /** Cross-Origin-Embedder-Policy header. */
     public static final String CROSS_ORIGIN_EMBEDDER_POLICY = "Cross-Origin-Embedder-Policy";
@@ -137,7 +137,7 @@ public final class HttpHeaders {
     public static final String FROM = "From";
     /** Host header, target host and port. */
     public static final String HOST = "Host";
-    /** http-equiv attribute token. */
+    /** Http-equiv attribute token. */
     public static final String HTTP_EQUIV = "http-equiv";
     /** If header, WebDAV conditional request token. */
     public static final String IF = "If";

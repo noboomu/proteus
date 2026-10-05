@@ -5108,9 +5108,9 @@ public class MediaType {
     }
 
     /**
-     * Returns the to string.
+     * Returns a human-readable rendering.
      *
-     * @return the to string, or null when unset
+     * @return the string form
      */
     @Override
     public String toString() {
@@ -5220,9 +5220,9 @@ public class MediaType {
     }
 
     /**
-     * Returns the hash code.
+     * Returns a hash consistent with {@link #equals(Object)}.
      *
-     * @return the hash code, or null when unset
+     * @return the hash code
      */
     @Override
     public int hashCode() {

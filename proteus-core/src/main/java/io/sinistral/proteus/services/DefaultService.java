@@ -9,7 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An abstract base class for a Proteus service.
+ * Convenience base for services: an idle service with the application {@code Config}
+ * injected and no-op {@link #configure(Binder)}, {@link #startUp()}, and
+ * {@link #shutDown()} defaults that log lifecycle transitions.
  *
  * @author jbauer
  */
@@ -27,10 +29,10 @@ public abstract class DefaultService extends AbstractIdleService implements Base
     {
     }
 
-    /*
-     *  (non-Javadoc)
-     * @see com.google.inject.Module#configure(com.google.inject.Binder)
-    *
+    /**
+     * Binds nothing by default; override to contribute bindings.
+     *
+     * @param binder the Guice binder
      */
     @Override
     public void configure(Binder binder)
@@ -38,10 +40,11 @@ public abstract class DefaultService extends AbstractIdleService implements Base
 
     }
 
-    /*
-    //* @see com.google.common.util.concurrent.AbstractIdleService#shutDown()
-    * @throws Exception when the operation fails
-    */
+    /**
+     * Logs the stop; override to release resources.
+     *
+     * @throws Exception when shutdown fails
+     */
     @Override
     protected void shutDown() throws Exception
     {
@@ -49,8 +52,10 @@ public abstract class DefaultService extends AbstractIdleService implements Base
 
     }
 
-    /*
-     * @see com.google.common.util.concurrent.AbstractIdleService#startUp()
+    /**
+     * Logs the start; override to acquire resources.
+     *
+     * @throws Exception when startup fails
      */
     @Override
     protected void startUp() throws Exception

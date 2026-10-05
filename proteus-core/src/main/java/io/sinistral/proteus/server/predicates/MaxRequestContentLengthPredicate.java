@@ -90,7 +90,7 @@ public class MaxRequestContentLengthPredicate implements Predicate
         /**
          * Returns the parameters.
          *
-         * @return the parameters, or null when unset
+         * @return the parameters, never null
          */
         @Override
         public Map<String, Class<?>> parameters()
@@ -101,7 +101,7 @@ public class MaxRequestContentLengthPredicate implements Predicate
         /**
          * Returns the required parameters.
          *
-         * @return the required parameters, or null when unset
+         * @return the required parameters, never null
          */
         @Override
         public Set<String> requiredParameters()

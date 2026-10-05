@@ -116,7 +116,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the issuer.
      *
-     * @return the issuer, or null when unset
+     * @return the issuer, or empty when absent
      */
     @Override
     public Optional<String> getIssuer() {
@@ -126,7 +126,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the subject.
      *
-     * @return the subject, or null when unset
+     * @return the subject, or empty when absent
      */
     @Override
     public Optional<String> getSubject() {
@@ -147,7 +147,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the expiration time.
      *
-     * @return the expiration time, or null when unset
+     * @return the expiration time, or empty when absent
      */
     @Override
     public Optional<Instant> getExpirationTime() {
@@ -158,7 +158,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the not before.
      *
-     * @return the not before, or null when unset
+     * @return the not before, or empty when absent
      */
     @Override
     public Optional<Instant> getNotBefore() {
@@ -169,7 +169,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the issued at.
      *
-     * @return the issued at, or null when unset
+     * @return the issued at, or empty when absent
      */
     @Override
     public Optional<Instant> getIssuedAt() {
@@ -180,7 +180,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the jwt id.
      *
-     * @return the jwt id, or null when unset
+     * @return the jwt id, or empty when absent
      */
     @Override
     public Optional<String> getJwtId() {
@@ -190,7 +190,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the claim as string.
      *
-     * @return the claim as string, or null when unset
+     * @return the claim as string, or empty when absent
     * @param claimName the value
      */
     @Override
@@ -206,7 +206,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the claim as long.
      *
-     * @return the claim as long, or null when unset
+     * @return the claim as long, or empty when absent
     * @param claimName the value
      */
     @Override
@@ -223,7 +223,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the claim as boolean.
      *
-     * @return the claim as boolean, or null when unset
+     * @return the claim as boolean, or empty when absent
     * @param claimName the value
      */
     @Override
@@ -257,7 +257,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the claim.
      *
-     * @return the claim, or null when unset
+     * @return the claim, or empty when absent
     * @param claimName the value
      */
     @Override
@@ -278,7 +278,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the valid.
      *
-     * @return the valid, or null when unset
+     * @return the valid
      */
     @Override
     public boolean isValid() {
@@ -302,7 +302,7 @@ public class DefaultJsonWebToken implements JsonWebToken {
     /**
      * Returns the expired.
      *
-     * @return the expired, or null when unset
+     * @return the expired
      */
     @Override
     public boolean isExpired() {
@@ -340,9 +340,9 @@ public class DefaultJsonWebToken implements JsonWebToken {
     }
 
     /**
-     * Returns the to string.
+     * Returns a human-readable rendering.
      *
-     * @return the to string, or null when unset
+     * @return the string form
      */
     @Override
     public String toString() {

@@ -692,7 +692,7 @@ public enum TypeHandler {
     /**
      * Returns the blocking.
      *
-     * @return the blocking, or null when unset
+     * @return the blocking
      */
     public boolean isBlocking() {
         return this.isBlocking;

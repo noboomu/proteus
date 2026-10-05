@@ -138,7 +138,7 @@ public class MapIdentityManager implements IdentityManager
         /**
          * Returns the roles.
          *
-         * @return the roles, or null when unset
+         * @return the roles, never null
          */
         @Override
         public Set<String> getRoles()

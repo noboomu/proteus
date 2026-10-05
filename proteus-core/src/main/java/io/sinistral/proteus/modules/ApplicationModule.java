@@ -119,10 +119,7 @@ public class ApplicationModule extends AbstractModule {
         this.requestStaticInjection(JsonViewWrapper.class);
     }
 
-    /**
-     * Returns the configure.
-     *
-     */
+    /** Binds mappers, the router, response listener, fallback handler, and root handler from config. */
     @SuppressWarnings("unchecked")
     @Override
     protected void configure() {

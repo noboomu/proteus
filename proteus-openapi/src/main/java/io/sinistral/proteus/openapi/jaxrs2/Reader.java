@@ -1133,7 +1133,7 @@ public class Reader {
     /**
      * Returns the optional type value.
      *
-     * @return the optional type value, or null when unset
+     * @return the optional type value
     * @param propType the value
      */
     public boolean isOptionalType(JavaType propType) {
@@ -2214,7 +2214,7 @@ public class Reader {
     /**
      * Returns the exist operation id value.
      *
-     * @return the exist operation id value, or null when unset
+     * @return the exist operation id value, or empty when absent
     * @param parameters the value
     * @param classConsumes the value
     * @param methodConsumes the value
@@ -2405,7 +2405,7 @@ public class Reader {
     /**
      * Returns the operation hidden value.
      *
-     * @return the operation hidden value, or null when unset
+     * @return the operation hidden value
     * @param method the value
      */
     protected boolean isOperationHidden(Method method) {

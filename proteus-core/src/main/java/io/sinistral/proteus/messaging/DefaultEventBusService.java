@@ -144,10 +144,7 @@ public class DefaultEventBusService extends AbstractIdleService
         // no additional bindings; this module only participates in service lifecycle
     }
 
-    /**
-     * Returns the start up.
-     *
-     */
+    /** Boots Vert.x with the JSON codec and a virtual-thread blocking pool, unless disabled. */
     @Override
     protected void startUp() {
         if (!enabled) {
@@ -166,10 +163,7 @@ public class DefaultEventBusService extends AbstractIdleService
         log.info("Event bus started with blocking pool size {}", blockingPoolSize);
     }
 
-    /**
-     * Returns the shut down.
-     *
-     */
+    /** Unregisters consumers, closes Vert.x, and shuts down the blocking pool. */
     @Override
     protected void shutDown() {
         registrations.values().forEach(MessageConsumer::unregister);
@@ -189,7 +183,7 @@ public class DefaultEventBusService extends AbstractIdleService
     /**
      * Returns the available.
      *
-     * @return the available, or null when unset
+     * @return the available
      */
     @Override
     public boolean isAvailable() {
@@ -549,10 +543,7 @@ public class DefaultEventBusService extends AbstractIdleService
             this.address = address;
         }
 
-        /**
-         * Returns the unregister.
-         *
-         */
+        /** Removes the consumer once; later calls are no-ops. */
         @Override
         public void unregister() {
             if (active.compareAndSet(true, false)) {
@@ -573,7 +564,7 @@ public class DefaultEventBusService extends AbstractIdleService
         /**
          * Returns the active.
          *
-         * @return the active, or null when unset
+         * @return the active
          */
         @Override
         public boolean isActive() {

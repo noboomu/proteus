@@ -57,7 +57,7 @@ public class DefaultSecurityContext implements SecurityContext {
     /**
      * Returns the principal.
      *
-     * @return the principal, or null when unset
+     * @return the principal, or empty when absent
      */
     @Override
     public Optional<Principal> getPrincipal() {
@@ -67,7 +67,7 @@ public class DefaultSecurityContext implements SecurityContext {
     /**
      * Returns the user id.
      *
-     * @return the user id, or null when unset
+     * @return the user id, or empty when absent
      */
     @Override
     public Optional<String> getUserId() {
@@ -77,7 +77,7 @@ public class DefaultSecurityContext implements SecurityContext {
     /**
      * Returns the username.
      *
-     * @return the username, or null when unset
+     * @return the username, or empty when absent
      */
     @Override
     public Optional<String> getUsername() {
@@ -107,7 +107,7 @@ public class DefaultSecurityContext implements SecurityContext {
     /**
      * Returns the authenticated.
      *
-     * @return the authenticated, or null when unset
+     * @return the authenticated
      */
     @Override
     public boolean isAuthenticated() {
@@ -171,7 +171,7 @@ public class DefaultSecurityContext implements SecurityContext {
     /**
      * Returns the attribute.
      *
-     * @return the attribute, or null when unset
+     * @return the attribute, or empty when absent
     * @param name the value
      */
     @Override
@@ -193,7 +193,7 @@ public class DefaultSecurityContext implements SecurityContext {
     /**
      * Returns the authentication scheme.
      *
-     * @return the authentication scheme, or null when unset
+     * @return the authentication scheme, or empty when absent
      */
     @Override
     public Optional<String> getAuthenticationScheme() {
@@ -203,7 +203,7 @@ public class DefaultSecurityContext implements SecurityContext {
     /**
      * Returns the raw token.
      *
-     * @return the raw token, or null when unset
+     * @return the raw token, or empty when absent
      */
     @Override
     public Optional<String> getRawToken() {
@@ -354,9 +354,9 @@ public class DefaultSecurityContext implements SecurityContext {
     }
 
     /**
-     * Returns the to string.
+     * Returns a human-readable rendering.
      *
-     * @return the to string, or null when unset
+     * @return the string form
      */
     @Override
     public String toString() {

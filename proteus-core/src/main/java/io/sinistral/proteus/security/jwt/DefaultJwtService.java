@@ -439,7 +439,7 @@ public class DefaultJwtService implements JwtService {
     /**
      * Returns the clock skew tolerance seconds.
      *
-     * @return the clock skew tolerance seconds, or null when unset
+     * @return the clock skew tolerance seconds
      */
     @Override
     public long getClockSkewToleranceSeconds() {

@@ -418,7 +418,7 @@ public class ServerParameterExtension extends AbstractOpenAPIExtension {
     /**
      * Returns the should ignore class value.
      *
-     * @return the should ignore class value, or null when unset
+     * @return the should ignore class value
     * @param propType the value
      */
     public boolean isOptionalType(JavaType propType) {

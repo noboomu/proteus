@@ -99,7 +99,7 @@ public class ProteusXnioThread extends XnioIoThread {
         /**
          * Returns whether this ProteusXnioThread remove.
          *
-         * @return the remove, or null when unset
+         * @return the remove
          */
         public boolean remove() {
             final Key removed = current.getAndSet(this);
@@ -112,10 +112,7 @@ public class ProteusXnioThread extends XnioIoThread {
             current.compareAndSet(null, key);
         }
 
-        /**
-         * Returns the run.
-         *
-         */
+        /** Runs the command and reschedules itself unless removed. */
         public void run() {
             try {
                 command.run();

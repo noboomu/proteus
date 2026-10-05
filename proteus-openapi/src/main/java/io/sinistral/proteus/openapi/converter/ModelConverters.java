@@ -86,7 +86,7 @@ public final class ModelConverters {
     /**
      * Returns the converters value.
      *
-     * @return the converters value, or null when unset
+     * @return the converters value, never null
      */
     public List<ModelConverter> getConverters() {
         return Collections.unmodifiableList(converters);
@@ -205,7 +205,7 @@ public final class ModelConverters {
         /**
          * Returns the define model value.
          *
-         * @return the define model value, or null when unset
+         * @return the define model value, never null
          */
         public Map<String, Schema> getDefinedModels() {
             return Collections.unmodifiableMap(new LinkedHashMap<>(modelByName));

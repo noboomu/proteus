@@ -320,7 +320,7 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
     /**
      * Returns the hmac secrets.
      *
-     * @return the hmac secrets, or null when unset
+     * @return the hmac secrets, never null
      */
     @Override
     public List<byte[]> getHmacSecrets() {
@@ -360,7 +360,7 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
     /**
      * Returns the clock skew tolerance seconds.
      *
-     * @return the clock skew tolerance seconds, or null when unset
+     * @return the clock skew tolerance seconds
      */
     @Override
     public long getClockSkewToleranceSeconds() {
@@ -370,7 +370,7 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
     /**
      * Returns the expiration required.
      *
-     * @return the expiration required, or null when unset
+     * @return the expiration required
      */
     @Override
     public boolean isExpirationRequired() {
@@ -380,7 +380,7 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
     /**
      * Returns the issuer required.
      *
-     * @return the issuer required, or null when unset
+     * @return the issuer required
      */
     @Override
     public boolean isIssuerRequired() {
@@ -390,7 +390,7 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
     /**
      * Returns the audience required.
      *
-     * @return the audience required, or null when unset
+     * @return the audience required
      */
     @Override
     public boolean isAudienceRequired() {
@@ -400,7 +400,7 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
     /**
      * Returns the max token age seconds.
      *
-     * @return the max token age seconds, or null when unset
+     * @return the max token age seconds
      */
     @Override
     public long getMaxTokenAgeSeconds() {
@@ -410,7 +410,7 @@ public class DefaultJwtConfiguration implements JwtConfiguration {
     /**
      * Returns the signature verification required.
      *
-     * @return the signature verification required, or null when unset
+     * @return the signature verification required
      */
     @Override
     public boolean isSignatureVerificationRequired() {

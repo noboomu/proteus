@@ -11,7 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An abstract base class for a Proteus service.
+ * Contract for application-managed services: a Guice {@link Module} that is also a Guava
+ * {@link Service}, so a registered service can bind dependencies and run under the
+ * application's {@code ServiceManager}.
  *
  * @author jbauer
  */

@@ -41,9 +41,9 @@ public class TablePrinter
     }
 
     /**
-     * Returns the to string.
+     * Returns a human-readable rendering.
      *
-     * @return the to string, or null when unset
+     * @return the string form
      */
     public String toString()
     {

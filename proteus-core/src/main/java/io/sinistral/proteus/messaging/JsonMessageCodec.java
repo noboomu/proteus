@@ -88,7 +88,7 @@ public class JsonMessageCodec implements MessageCodec<Object, Object> {
     /**
      * Returns the system codec id.
      *
-     * @return the system codec id, or null when unset
+     * @return the system codec id
      */
     @Override
     public byte systemCodecID() {

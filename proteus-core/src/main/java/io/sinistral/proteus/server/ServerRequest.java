@@ -426,7 +426,7 @@ public class ServerRequest {
     /**
      * Returns the http09.
      *
-     * @return the http09, or null when unset
+     * @return the http09
      */
     public boolean isHttp09() {
 
@@ -436,7 +436,7 @@ public class ServerRequest {
     /**
      * Returns the http10.
      *
-     * @return the http10, or null when unset
+     * @return the http10
      */
     public boolean isHttp10() {
 
@@ -446,7 +446,7 @@ public class ServerRequest {
     /**
      * Returns the http11.
      *
-     * @return the http11, or null when unset
+     * @return the http11
      */
     public boolean isHttp11() {
 
@@ -531,7 +531,7 @@ public class ServerRequest {
     /**
      * Returns the host included in request uri.
      *
-     * @return the host included in request uri, or null when unset
+     * @return the host included in request uri
      */
     public boolean isHostIncludedInRequestURI() {
 
@@ -675,7 +675,7 @@ public class ServerRequest {
     /**
      * Returns the host port.
      *
-     * @return the host port, or null when unset
+     * @return the host port
      */
     public int getHostPort() {
 
@@ -695,7 +695,7 @@ public class ServerRequest {
     /**
      * Returns the persistent.
      *
-     * @return the persistent, or null when unset
+     * @return the persistent
      */
     public boolean isPersistent() {
 
@@ -705,7 +705,7 @@ public class ServerRequest {
     /**
      * Returns the in io thread.
      *
-     * @return the in io thread, or null when unset
+     * @return the in io thread
      */
     public boolean isInIoThread() {
 
@@ -715,7 +715,7 @@ public class ServerRequest {
     /**
      * Returns the response bytes sent.
      *
-     * @return the response bytes sent, or null when unset
+     * @return the response bytes sent
      */
     public long getResponseBytesSent() {
 
@@ -736,7 +736,7 @@ public class ServerRequest {
     /**
      * Returns whether this ServerRequest dispatched.
      *
-     * @return the dispatched, or null when unset
+     * @return the dispatched
      */
     public boolean isDispatched() {
 
@@ -942,7 +942,7 @@ public class ServerRequest {
     /**
      * Returns the request content length.
      *
-     * @return the request content length, or null when unset
+     * @return the request content length
      */
     public long getRequestContentLength() {
 
@@ -962,7 +962,7 @@ public class ServerRequest {
     /**
      * Returns the response content length.
      *
-     * @return the response content length, or null when unset
+     * @return the response content length
      */
     public long getResponseContentLength() {
 
@@ -1038,7 +1038,7 @@ public class ServerRequest {
     /**
      * Returns the response started.
      *
-     * @return the response started, or null when unset
+     * @return the response started
      */
     public boolean isResponseStarted() {
 
@@ -1058,7 +1058,7 @@ public class ServerRequest {
     /**
      * Returns the request channel available.
      *
-     * @return the request channel available, or null when unset
+     * @return the request channel available
      */
     public boolean isRequestChannelAvailable() {
 
@@ -1068,7 +1068,7 @@ public class ServerRequest {
     /**
      * Returns the complete.
      *
-     * @return the complete, or null when unset
+     * @return the complete
      */
     public boolean isComplete() {
 
@@ -1078,7 +1078,7 @@ public class ServerRequest {
     /**
      * Returns the request complete.
      *
-     * @return the request complete, or null when unset
+     * @return the request complete
      */
     public boolean isRequestComplete() {
 
@@ -1088,7 +1088,7 @@ public class ServerRequest {
     /**
      * Returns the response complete.
      *
-     * @return the response complete, or null when unset
+     * @return the response complete
      */
     public boolean isResponseComplete() {
 
@@ -1128,7 +1128,7 @@ public class ServerRequest {
     /**
      * Returns the response channel available.
      *
-     * @return the response channel available, or null when unset
+     * @return the response channel available
      */
     public boolean isResponseChannelAvailable() {
 
@@ -1138,7 +1138,7 @@ public class ServerRequest {
     /**
      * Returns the response code.
      *
-     * @return the response code, or null when unset
+     * @return the response code
      */
     @Deprecated
     public int getResponseCode() {
@@ -1161,7 +1161,7 @@ public class ServerRequest {
     /**
      * Returns the status code.
      *
-     * @return the status code, or null when unset
+     * @return the status code
      */
     public int getStatusCode() {
 
@@ -1246,7 +1246,7 @@ public class ServerRequest {
     /**
      * Returns the blocking.
      *
-     * @return the blocking, or null when unset
+     * @return the blocking
      */
     public boolean isBlocking() {
 
@@ -1276,7 +1276,7 @@ public class ServerRequest {
     /**
      * Returns the request start time.
      *
-     * @return the request start time, or null when unset
+     * @return the request start time
      */
     public long getRequestStartTime() {
 
@@ -1306,7 +1306,7 @@ public class ServerRequest {
     /**
      * Returns the max entity size.
      *
-     * @return the max entity size, or null when unset
+     * @return the max entity size
      */
     public long getMaxEntitySize() {
 

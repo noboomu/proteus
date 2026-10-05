@@ -29,7 +29,7 @@ public final class OperationParser {
     /**
      * Returns the request body.
      *
-     * @return the request body, or null when unset
+     * @return the request body, or empty when absent
     * @param annotation the value
     * @param classConsumes the value
     * @param methodConsumes the value
@@ -89,7 +89,7 @@ public final class OperationParser {
     /**
      * Returns the api responses value.
      *
-     * @return the api responses value, or null when unset
+     * @return the api responses value, or empty when absent
     * @param annotations the value
     * @param classProduces the value
     * @param methodProduces the value

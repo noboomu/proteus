@@ -129,10 +129,7 @@ public class ConfigModule extends AbstractModule {
         this.binder().bind(Config.class).toInstance(config);
     }
 
-    /**
-     * Returns the configure.
-     *
-     */
+    /** Loads application config over reference defaults and binds every path as a named constant. */
     @Override
     protected void configure() {
         Config config = ConfigFactory.defaultApplication();

@@ -172,8 +172,9 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     }
 
     /**
-     * Returns the start.
+     * Connects to NATS, subscribes the send, publish, and request dispatchers, and installs the bridge hook.
      *
+     * @throws IllegalStateException when the connection or subscriptions fail
      */
     @Override
     public void start() {
@@ -213,10 +214,7 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
         }
     }
 
-    /**
-     * Returns the stop.
-     *
-     */
+    /** Removes the bridge hook, drains dispatchers, and closes the NATS connection. */
     @Override
     public void stop() {
         eventBusService.setBridgeHook(null);
@@ -257,7 +255,7 @@ public class DefaultNatsBridgeService implements NatsBridgeService {
     /**
      * Returns the running.
      *
-     * @return the running, or null when unset
+     * @return the running
      */
     @Override
     public boolean isRunning() {

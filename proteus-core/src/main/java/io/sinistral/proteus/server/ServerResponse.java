@@ -28,7 +28,13 @@ import tools.jackson.databind.ObjectWriter;
 import tools.jackson.dataformat.xml.XmlMapper;
 
 /**
- * Base server response. Friendlier interface to underlying exchange.
+ * Fluent response builder returned from controller methods.
+ *
+ * <p>Carries status, headers, cookies, and either a raw {@link java.nio.ByteBuffer} body or a
+ * typed entity. When the generated handler sends the response it serializes the entity with the
+ * JSON or XML mapper chosen by {@link #applicationJson()}, {@link #applicationXml()}, or the
+ * request's {@code Accept} header. Static factories such as {@link #response(Object)} start a
+ * chain; terminal calls like {@link #ok()} set the status.
  *
  * @param <T> the response body type
  * @author jbauer
@@ -112,7 +118,7 @@ public class ServerResponse<T> {
     /**
      * Returns the status.
      *
-     * @return the status, or null when unset
+     * @return the status
      */
     public int getStatus() {
         return this.status;

@@ -19,7 +19,13 @@ import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Core generated-handler base wrapping a controller invocation with wrapper chain support.
+ * Method-and-template router with an optional LRU path cache.
+ *
+ * <p>Routes are registered per HTTP method with {@link #add(String, String, HttpHandler)} or
+ * the verb shortcuts such as {@link #get(String, HttpHandler)}, optionally guarded by a
+ * {@link Predicate}. A request whose path matches another method's template is sent to the
+ * invalid-method handler (405 by default); a path matching nothing goes to the fallback
+ * handler (404 by default).
  *
  * @author jbauer
  */

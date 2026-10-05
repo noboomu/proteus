@@ -20,7 +20,10 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * A service for serving static assets from a directory.
+ * Serves static files from a directory under a configured path prefix.
+ *
+ * <p>Reads {@code assets.path}, {@code assets.dir}, and {@code assets.cache.time} from the
+ * application config and registers a resource handler on the router at startup.
  *
  * @author jbauer
  */
@@ -48,9 +51,9 @@ public class AssetsService extends DefaultService implements Supplier<RoutingHan
     }
 
     /**
-     * Returns the start up.
+     * Registers the asset routes on the application router.
      *
-    * @throws Exception when the operation fails
+     * @throws Exception when the asset directory cannot be resolved
      */
     @Override
     protected void startUp() throws Exception

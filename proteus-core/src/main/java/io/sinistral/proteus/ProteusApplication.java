@@ -69,7 +69,22 @@ import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 
 /**
- * The base class for proteus applications.
+ * Entry point that assembles and runs a Proteus server.
+ *
+ * <p>Typical use registers modules, services, and controllers, then calls {@link #start()}:
+ * <pre>{@code
+ * ProteusApplication app = new ProteusApplication();
+ * app.addModule(MyModule.class);
+ * app.addService(MyService.class);
+ * app.addController(MyController.class);
+ * app.start();
+ * }</pre>
+ *
+ * <p>{@code start()} installs modules into a child injector, generates and compiles a routing
+ * supplier for every registered controller, starts managed services under Guava's
+ * {@code ServiceManager}, and opens the configured Undertow listeners. {@link #shutdown()}
+ * reverses that order. Startup failure releases acquired listeners, services, the XNIO
+ * worker, and the shutdown hook before throwing.
  *
  * @author jbauer
  */
@@ -250,18 +265,12 @@ public class ProteusApplication {
 
             serviceManager.addListener(
                 new Listener() {
-                    /**
-                     * Returns the stopped.
-                     *
-                     */
+                    /** Logs when every managed service has stopped. */
                     public void stopped() {
                         log.warn("Services are stopped");
                     }
 
-                    /**
-                     * Returns the healthy.
-                     *
-                     */
+                    /** Records startup duration and logs once all services are healthy. */
                     public void healthy() {
                         log.info("Services are healthy");
 
@@ -462,7 +471,7 @@ public class ProteusApplication {
     /**
      * Returns the running.
      *
-     * @return the running, or null when unset
+     * @return the running
      */
     public boolean isRunning() {
         return this.running.get();
@@ -1021,10 +1030,7 @@ public class ProteusApplication {
         return undertow;
     }
 
-    /**
-     * Returns the print status.
-     *
-     */
+    /** Logs the configured global headers and registered endpoints as tables. */
     public void printStatus() {
         Config globalHeaders = config.getConfig("globalHeaders");
 

@@ -18,6 +18,7 @@ Proteus uses Jackson 3 for databind, core, XML, and related modules under the
 - `proteus-core`: Undertow integration, generated handlers, Guice, configuration, services, Jackson 3, JWT security, and the messaging services: an embedded Vert.x event bus with an optional NATS bridge.
 - `proteus-openapi`: OpenAPI 3.1 generation and Swagger UI/ReDoc serving.
 - `proteus-websocket`: annotation-driven WebSocket endpoints on Undertow with a connection registry and server-initiated broadcast.
+- `proteus-benchmark`: plaintext and JSON throughput runner; not published.
 
 Messaging is a shipped surface. `proteus-core` embeds Vert.x core for the in-process event bus; the NATS bridge is disabled until `proteus.messaging.nats.enabled` is set.
 
@@ -194,6 +195,12 @@ proteus.websocket {
 ```
 
 Handler exceptions close the connection with 1011.
+
+## Benchmark
+
+`proteus-benchmark/run.sh` builds a shaded server, drives six routes with [oha](https://github.com/hatoo/oha) (15s, 256 connections, HTTP/1.1 keep-alive), and writes `proteus-benchmark/results/<timestamp>/summary.md`. Routes cover plaintext and JSON in three styles: controller completing the raw `HttpServerExchange`, controller returning `ServerResponse<T>`, and a hand-written Undertow `HttpHandler` as the floor.
+
+Latest run: [2026-10-07, JDK 27, Threadripper PRO 9965WX](proteus-benchmark/results/20261007T050956Z/summary.md). The summary records host load at run time; that run was on a shared host at roughly 27% idle, so treat it as a regression baseline, not a ceiling.
 
 ## Dependencies
 

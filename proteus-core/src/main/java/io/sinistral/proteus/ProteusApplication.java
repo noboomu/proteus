@@ -162,6 +162,9 @@ public class ProteusApplication {
     /** The worker. */
     private volatile XnioWorker worker;
 
+    /** Virtual-thread task executor supplied to the worker when {@code undertow.workerExecutor=virtual}. */
+    private volatile ExecutorService workerTaskExecutor;
+
     /** The shutdown hook. */
     private volatile Thread shutdownHook;
 
@@ -451,6 +454,13 @@ public class ProteusApplication {
             currentWorker.shutdownNow();
             log.warn("XNIO worker shutdown was interrupted", e);
         }
+
+        // XNIO does not own an external executor; close the virtual-thread pool ourselves.
+        ExecutorService taskExecutor = workerTaskExecutor;
+        if (taskExecutor != null) {
+            taskExecutor.shutdownNow();
+            workerTaskExecutor = null;
+        }
     }
 
     private void removeShutdownHook() {
@@ -577,10 +587,43 @@ public class ProteusApplication {
         }
 
         final int processorCount = Runtime.getRuntime().availableProcessors();
+        final int ioThreads = Math.max(
+            1,
+            (int) Math.round(processorCount * config.getDouble("undertow.ioThreadsMultiplier"))
+        );
+        final int workerThreads = Math.max(
+            1,
+            (int) Math.round(processorCount * config.getDouble("undertow.workerThreadsMultiplier"))
+        );
+        final String workerExecutor = config.getString("undertow.workerExecutor");
 
         Xnio xnio = Xnio.getInstance();
 
-        worker = xnio.createWorkerBuilder().build();
+        // Undertow ignores setIoThreads/setWorkerThreads for an external worker, so size the XNIO builder directly.
+        XnioWorker.Builder workerBuilder = xnio
+            .createWorkerBuilder()
+            .setWorkerName("proteus")
+            .setWorkerIoThreads(ioThreads)
+            .setCoreWorkerPoolSize(workerThreads)
+            .setMaxWorkerPoolSize(workerThreads);
+
+        if ("virtual".equalsIgnoreCase(workerExecutor)) {
+            workerTaskExecutor = Executors.newVirtualThreadPerTaskExecutor();
+            workerBuilder.setExternalExecutorService(workerTaskExecutor);
+        } else if (!"platform".equalsIgnoreCase(workerExecutor)) {
+            throw new IllegalStateException(
+                "undertow.workerExecutor must be 'platform' or 'virtual', got '" + workerExecutor + "'"
+            );
+        }
+
+        worker = workerBuilder.build();
+
+        log.info(
+            "XNIO worker: {} I/O threads, {} task executor{}",
+            ioThreads,
+            workerExecutor,
+            "virtual".equalsIgnoreCase(workerExecutor) ? "" : " with " + workerThreads + " threads"
+        );
 
         Undertow.Builder undertowBuilder = Undertow.builder()
             .addHttpListener(httpPort, config.getString("application.host"))
@@ -589,14 +632,7 @@ public class ProteusApplication {
                     config.getMemorySize("undertow.bufferSize").toBytes()
                 ).intValue()
             )
-            .setIoThreads(
-                processorCount * config.getInt("undertow.ioThreadsMultiplier")
-            )
             .setWorker(worker)
-            .setWorkerThreads(
-                processorCount *
-                    config.getInt("undertow.workerThreadsMultiplier")
-            )
             .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
             .setSocketOption(
                 org.xnio.Options.BACKLOG,

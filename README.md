@@ -198,9 +198,11 @@ Handler exceptions close the connection with 1011.
 
 ## Benchmark
 
-`proteus-benchmark/run.sh` builds a shaded server, drives six routes with [oha](https://github.com/hatoo/oha) (15s, 256 connections, HTTP/1.1 keep-alive), and writes `proteus-benchmark/results/<timestamp>/summary.md`. Routes cover plaintext and JSON in three styles: controller completing the raw `HttpServerExchange`, controller returning `ServerResponse<T>`, and a hand-written Undertow `HttpHandler` as the floor.
+`proteus-benchmark/run.sh` drives ten routes with [oha](https://github.com/hatoo/oha) (15s, 256 connections, HTTP/1.1 keep-alive) against one server configuration, records a JFR CPU profile, and writes `summary.md` plus `profile.md`. `sweep.sh` repeats that across `undertow.ioThreadsMultiplier`, `undertow.workerExecutor` (platform vs virtual), worker pool size, and buffer settings, collating into `sweep.md`.
 
-Latest run: [2026-10-07, JDK 27, Threadripper PRO 9965WX](proteus-benchmark/results/20261007T050956Z/summary.md). The summary records host load at run time; that run was on a shared host at roughly 27% idle, so treat it as a regression baseline, not a ceiling.
+Routes cover plaintext and JSON in five execution styles: completed on the I/O thread via raw `HttpServerExchange` or `ServerResponse<T>`, moved to a per-request virtual thread via `@Blocking`, dispatched to the XNIO worker pool, and a hand-written Undertow `HttpHandler` as the floor.
+
+Results live under `proteus-benchmark/results/`; each summary records host, load, and idle CPU at run time.
 
 ## Dependencies
 

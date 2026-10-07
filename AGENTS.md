@@ -326,11 +326,19 @@ When using `proteus-openapi` module:
 - `@Claim` parameters are omitted from the public HTTP parameter list
 - The generated document is OpenAPI 3.1; no runtime `openapi.openapi` version switch exists
 
-## Virtual Threads
+## Worker Threads
 
-Proteus does not replace Undertow's XNIO worker with a virtual-thread worker. Normal handlers remain on Undertow's configured execution model.
+Proteus builds its own XNIO worker and hands it to Undertow via `setWorker`. Because the worker is external, Undertow's `setIoThreads`/`setWorkerThreads` are ignored; Proteus sizes the XNIO builder directly:
 
-Generated handlers dispatch routes marked `@Blocking` to a virtual thread when Undertow invokes them on an I/O thread. A handler already running on a worker remains on that thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
+- `undertow.ioThreadsMultiplier` × `availableProcessors()` I/O threads (rounded, min 1). Default 2.
+- `undertow.workerThreadsMultiplier` × `availableProcessors()` task-pool threads. Default 10.
+- `undertow.workerExecutor`: `platform` (default, XNIO bounded pool) or `virtual` (`Executors.newVirtualThreadPerTaskExecutor()` as the external executor; every `exchange.dispatch(...)` then runs on a fresh virtual thread and the worker-thread multiplier is unused).
+
+Startup logs the effective configuration at INFO: `XNIO worker: N I/O threads, <type> task executor [with M threads]`.
+
+Independently of `workerExecutor`, generated handlers dispatch routes marked `@Blocking` with `Thread::startVirtualThread` when invoked on an I/O thread. A handler already running on a worker remains on that thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
+
+Tune with the sweep in `proteus-benchmark/sweep.sh`; on hosts with many logical CPUs the default multipliers oversubscribe.
 
 ## Performance Characteristics
 

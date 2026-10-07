@@ -51,6 +51,8 @@ public class MediaType {
         "yml",
         "yaml"
     );
+    /** The {@code text/yaml} media type; extensions resolve to {@link #APPLICATION_YAML}. */
+    public static final MediaType TEXT_YAML = create("text/yaml");
     /** The {@code multipart/form-data} media type. */
     public static final MediaType MULTIPART_FORM_DATA = create(
         "multipart/form-data"
@@ -243,6 +245,11 @@ public class MediaType {
     public static final MediaType APPLICATION_JAVASCRIPT_UTF8 = createUTF8(
         "application/javascript",
         "js"
+    );
+    /** The {@code text/javascript with UTF-8 charset} media type (RFC 9239 preferred form). */
+    public static final MediaType TEXT_JAVASCRIPT_UTF8 = create(
+        "text/javascript",
+        UTF8_ATTR
     );
     /** The {@code application/java-serialized-object} media type. */
     public static final MediaType APPLICATION_JAVA_SERIALIZED_OBJECT = create(
@@ -3603,6 +3610,8 @@ public class MediaType {
     public static final MediaType AUDIO_WEBM = create("audio/webm", "weba");
     /** The {@code audio/x-aac} media type. */
     public static final MediaType AUDIO_X_AAC = create("audio/x-aac", "aac");
+    /** The {@code audio/aac} media type; the {@code aac} extension resolves to {@link #AUDIO_X_AAC}. */
+    public static final MediaType AUDIO_AAC = create("audio/aac");
     /** The {@code audio/x-aiff} media type. */
     public static final MediaType AUDIO_X_AIFF = create(
         "audio/x-aiff",
@@ -3621,6 +3630,8 @@ public class MediaType {
         "audio/x-matroska",
         "mka"
     );
+    /** The {@code audio/matroska} media type; the {@code mka} extension resolves to {@link #AUDIO_X_MATROSKA}. */
+    public static final MediaType AUDIO_MATROSKA = create("audio/matroska");
     /** The {@code audio/x-mpegurl} media type. */
     public static final MediaType AUDIO_X_MPEGURL = create(
         "audio/x-mpegurl",
@@ -3984,7 +3995,8 @@ public class MediaType {
         "image/jpeg",
         "jpg",
         "jpeg",
-        "jpe"
+        "jpe",
+        "jfif"
     );
     /** The {@code image/jxl} media type. */
     public static final MediaType IMAGE_JXL = create("image/jxl", "jxl");

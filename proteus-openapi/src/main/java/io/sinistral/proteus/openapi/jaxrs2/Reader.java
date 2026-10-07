@@ -1069,6 +1069,8 @@ public class Reader {
                         extension.decorateOperation(operation, method, chain);
                     }
 
+                    applyPathParamsPatterns(operation, regexMap);
+
                     PathItem pathItemObject;
 
                     if (
@@ -2479,6 +2481,40 @@ public class Reader {
     * @param parentPath the value
     * @return the result
      */
+    /**
+     * Copies {@code @Path} template regexes such as {@code {id:[0-9]+}} onto the matching
+     * string-typed path parameter schema as its {@code pattern}, when none is set.
+     *
+     * @param operation the operation whose parameters receive patterns
+     * @param patternsMap parameter name to regex from {@link PathUtils#parsePath}
+     */
+    protected void applyPathParamsPatterns(
+        Operation operation,
+        Map<String, String> patternsMap
+    ) {
+        if (operation.getParameters() == null || patternsMap.isEmpty()) {
+            return;
+        }
+        for (Parameter p : operation.getParameters()) {
+            if (
+                !"path".equals(p.getIn()) ||
+                !patternsMap.containsKey(p.getName()) ||
+                p.getSchema() == null ||
+                StringUtils.isNotBlank(p.getSchema().getPattern()) ||
+                Parameter.StyleEnum.MATRIX.equals(p.getStyle())
+            ) {
+                continue;
+            }
+            Schema<?> schema = p.getSchema();
+            boolean isString =
+                "string".equals(schema.getType()) ||
+                (schema.getTypes() != null && schema.getTypes().contains("string"));
+            if (isString) {
+                schema.setPattern(patternsMap.get(p.getName()));
+            }
+        }
+    }
+
     protected boolean ignoreOperationPath(String path, String parentPath) {
         if (StringUtils.isBlank(path) && StringUtils.isBlank(parentPath)) {
             return true;

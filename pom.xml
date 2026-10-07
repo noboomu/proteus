@@ -21,6 +21,7 @@
         <module>proteus-core</module>
         <module>proteus-openapi</module>
         <module>proteus-websocket</module>
+        <module>proteus-benchmark</module>
     </modules>
 
     <licenses>

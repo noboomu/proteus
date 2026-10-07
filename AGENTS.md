@@ -236,10 +236,12 @@ application {
 
 undertow {
   gracefulShutdown = true
-  ioThreadsMultiplier = 2        # x availableProcessors
-  workerThreadsMultiplier = 12   # x availableProcessors
+  ioThreadsMultiplier = 0.25     # x availableProcessors, rounded, min 1
+  workerThreadsMultiplier = 10   # x availableProcessors
+  workerExecutor = platform      # or virtual
   bufferSize = 16K
-  directBuffers = true
+  directBuffers = false
+  bufferPool.threadLocalCacheSize = 0
 
   server {
     enableHttp2 = false
@@ -330,15 +332,17 @@ When using `proteus-openapi` module:
 
 Proteus builds its own XNIO worker and hands it to Undertow via `setWorker`. Because the worker is external, Undertow's `setIoThreads`/`setWorkerThreads` are ignored; Proteus sizes the XNIO builder directly:
 
-- `undertow.ioThreadsMultiplier` × `availableProcessors()` I/O threads (rounded, min 1). Default 2.
+- `undertow.ioThreadsMultiplier` × `availableProcessors()` I/O threads (rounded, min 1). Default 0.25; sweeps on 48- and 256-logical-CPU hosts lost throughput and latency above a small fraction of the CPU count.
 - `undertow.workerThreadsMultiplier` × `availableProcessors()` task-pool threads. Default 10.
 - `undertow.workerExecutor`: `platform` (default, XNIO bounded pool) or `virtual` (`Executors.newVirtualThreadPerTaskExecutor()` as the external executor; every `exchange.dispatch(...)` then runs on a fresh virtual thread and the worker-thread multiplier is unused).
+
+- `undertow.directBuffers=false` and `undertow.bufferPool.threadLocalCacheSize=0` by default. Undertow's `DefaultByteBufferPool` consults a synchronized `WeakHashMap<Thread, …>` on every allocate and free when the per-thread cache is enabled; disabling it with heap buffers roughly doubled throughput in `proteus-benchmark/results/2026-10-07-worker-and-buffer-sweep.md`. Do not set `threadLocalCacheSize=0` with direct buffers.
 
 Startup logs the effective configuration at INFO: `XNIO worker: N I/O threads, <type> task executor [with M threads]`.
 
 Independently of `workerExecutor`, generated handlers dispatch routes marked `@Blocking` with `Thread::startVirtualThread` when invoked on an I/O thread. A handler already running on a worker remains on that thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
 
-Tune with the sweep in `proteus-benchmark/sweep.sh`; on hosts with many logical CPUs the default multipliers oversubscribe.
+Tune with `proteus-benchmark/sweep.sh`. Findings and the reasoning behind the defaults: `proteus-benchmark/results/2026-10-07-worker-and-buffer-sweep.md`.
 
 ## Performance Characteristics
 

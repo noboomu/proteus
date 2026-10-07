@@ -202,7 +202,7 @@ Handler exceptions close the connection with 1011.
 
 Routes cover plaintext and JSON in five execution styles: completed on the I/O thread via raw `HttpServerExchange` or `ServerResponse<T>`, moved to a per-request virtual thread via `@Blocking`, dispatched to the XNIO worker pool, and a hand-written Undertow `HttpHandler` as the floor.
 
-Results live under `proteus-benchmark/results/`; each summary records host, load, and idle CPU at run time.
+Results live under `proteus-benchmark/results/`; each summary records host, load, and idle CPU at run time. The 2026-10-07 sweep on an idle EPYC 9755 ([findings](proteus-benchmark/results/2026-10-07-worker-and-buffer-sweep.md)) set the current `reference.conf` defaults: 0.25× CPUs I/O threads, heap buffers, no per-thread buffer cache. At 13 I/O threads that configuration served 930k to 1,030k plaintext and 905k to 977k JSON requests/s through `ServerResponse<T>` with p99 near 1.3 ms, double the Undertow-default buffer pool.
 
 ## Dependencies
 

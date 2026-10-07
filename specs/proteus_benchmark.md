@@ -11,10 +11,23 @@
 - Workloads mirror the TechEmpower `plaintext` and `json` tests:
   - `GET /plaintext` returns `Hello, World!` as `text/plain`.
   - `GET /json` returns `{"message":"Hello, World!"}` as `application/json` serialized by the application `ObjectMapper`.
-- Three handler styles are measured for each workload so the cost of each abstraction layer is visible:
-  - `exchange`: controller method takes `HttpServerExchange` and completes it directly.
-  - `response`: controller method returns `ServerResponse<T>`.
+- Handler styles measured for each workload so the cost of each abstraction layer is visible:
+  - `exchange`: controller method takes `HttpServerExchange` and completes it on the I/O thread.
+  - `response`: controller method returns `ServerResponse<T>`, completed on the I/O thread.
+  - `blocking`: `@Blocking` controller method returning `ServerResponse<T>`; the generated handler dispatches it off the I/O thread to a new virtual thread per request.
+  - `worker`: controller method that calls `exchange.dispatch(handler)` so the request runs on the XNIO worker task pool, whose thread type is governed by `undertow.workerExecutor`.
   - `undertow`: a hand-written `HttpHandler` registered on the same router, as the floor.
+
+## Worker Threading Contract
+
+- `ProteusApplication.buildServer()` creates the XNIO worker with `Xnio.createWorkerBuilder()` and passes it to `Undertow.Builder.setWorker`. Because the worker is external, Undertow ignores `setIoThreads` and `setWorkerThreads`; thread counts must be applied to the XNIO builder directly.
+- `undertow.ioThreadsMultiplier` × available processors is applied via `XnioWorker.Builder.setWorkerIoThreads`.
+- `undertow.workerThreadsMultiplier` × available processors is applied via `setCoreWorkerPoolSize` and `setMaxWorkerPoolSize`.
+- `undertow.workerExecutor` selects the task pool thread type:
+  - `platform` (default): XNIO's own bounded pool of platform threads sized by the multiplier above.
+  - `virtual`: `Executors.newVirtualThreadPerTaskExecutor()` supplied through `setExternalExecutorService`; the worker-thread multiplier is then unused and XNIO does not shut the executor down, so `ProteusApplication.shutdown()` closes it.
+- `@Blocking` routes continue to dispatch with `Thread::startVirtualThread` regardless of `workerExecutor`.
+- Startup logs the effective I/O thread count, worker pool size, and executor type at `INFO`.
 
 ## Server
 
@@ -28,12 +41,19 @@
 
 - `oha` (Rust) over HTTP/1.1 with keep-alive.
 - Fixed duration per run: `15s`. Concurrency: `256`. Warm-up: one `5s` run discarded before each measured run.
+- A JFR recording (`settings=profile`) is captured for the full server lifetime of each configuration; `jfr print --events jdk.ExecutionSample` is summarized to the top 25 leaf frames and top 25 frames by inclusive sample count in `profile.md`.
 - Command shape: `oha -z 15s -c 256 --no-tui --output-format json -o OUT.json http://HOST:21080/PATH`.
+
+## Parameter Sweep
+
+- `sweep.sh` runs `run.sh` once per configuration and collates all `summary.md` tables into `results/sweep-<timestamp>/sweep.md`, ordered by plaintext/undertow req/s.
+- Each configuration is expressed as `-D` system properties overriding `undertow.*` config paths; the server reads them through Typesafe Config's system-property override.
+- Default grid: `ioThreadsMultiplier` ∈ {1 I/O thread total, 0.25×, 0.5×, 1×, 2×} of available processors, `workerExecutor` ∈ {platform, virtual}, `workerThreadsMultiplier` ∈ {1, 10} (platform only), `directBuffers` ∈ {true, false}, `bufferSize` ∈ {16k, 64k}. Non-product subsets are chosen by the operator via environment variables documented at the top of `sweep.sh`.
 
 ## Runner
 
 - `proteus-benchmark/run.sh` builds the module, starts the server, waits for `/plaintext` to answer, runs the warm-up and measured passes for every route, stops the server, and writes results.
-- Routes: `/plaintext/exchange`, `/plaintext/response`, `/plaintext/undertow`, `/json/exchange`, `/json/response`, `/json/undertow`.
+- Routes: `/plaintext/{exchange,response,blocking,worker,undertow}` and `/json/{exchange,response,blocking,worker,undertow}`.
 - Output: `proteus-benchmark/results/<ISO-8601 UTC timestamp>/` containing one `oha` JSON file per route plus `summary.md` with a table of requests/s, p50, p99, and p99.9 latency, and `env.txt` with JDK version, CPU model, core count, Undertow version, git commit.
 
 ## Reporting

@@ -18,8 +18,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import org.junit.jupiter.api.Test;
 
-/** Verifies class-level {@code @Webhooks} become OpenAPI 3.1 webhook path items. */
-public class OpenApiWebhooksTest {
+/** OpenAPI 3.1 reader behaviors ported from archive/openapi31: webhooks and path template patterns. */
+public class OpenApi31ReaderTest {
 
     @Path("/orders")
     @Produces("application/json")
@@ -47,6 +47,19 @@ public class OpenApiWebhooksTest {
         @Path("/{id}")
         public String get() {
             return "{}";
+        }
+    }
+
+    @Path("/items")
+    public static class PatternController {
+
+        @GET
+        @Path("/{id:[0-9]+}/{slug}")
+        public String get(
+            @jakarta.ws.rs.PathParam("id") String id,
+            @jakarta.ws.rs.PathParam("slug") String slug
+        ) {
+            return id + slug;
         }
     }
 
@@ -91,6 +104,18 @@ public class OpenApiWebhooksTest {
         assertTrue(json.contains("\"webhooks\""), json);
         assertTrue(json.contains("\"orderShipped\""), json);
         assertTrue(json.contains("\"orderShippedHook\""), json);
+    }
+
+    @Test
+    public void pathTemplateRegexBecomesParameterPattern() {
+        OpenAPI openAPI = new Reader().read(PatternController.class);
+        PathItem item = openAPI.getPaths().get("/items/{id}/{slug}");
+        assertNotNull(item, String.valueOf(openAPI.getPaths().keySet()));
+        var params = item.getGet().getParameters();
+        var id = params.stream().filter(p -> "id".equals(p.getName())).findFirst().orElseThrow();
+        var slug = params.stream().filter(p -> "slug".equals(p.getName())).findFirst().orElseThrow();
+        assertEquals("[0-9]+", id.getSchema().getPattern());
+        assertNull(slug.getSchema().getPattern());
     }
 
     @Test

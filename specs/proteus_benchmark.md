@@ -23,6 +23,7 @@
 - `ProteusApplication.buildServer()` creates the XNIO worker with `Xnio.createWorkerBuilder()` and passes it to `Undertow.Builder.setWorker`. Because the worker is external, Undertow ignores `setIoThreads` and `setWorkerThreads`; thread counts must be applied to the XNIO builder directly.
 - `undertow.ioThreadsMultiplier` × available processors is applied via `XnioWorker.Builder.setWorkerIoThreads`.
 - `undertow.workerThreadsMultiplier` × available processors is applied via `setCoreWorkerPoolSize` and `setMaxWorkerPoolSize`.
+- `undertow.bufferPool.threadLocalCacheSize` is passed to `DefaultByteBufferPool`; Undertow's own default is 4. `0` disables the per-thread cache and with it the synchronized `WeakHashMap<Thread, …>` lookup on every buffer allocate and free.
 - `undertow.workerExecutor` selects the task pool thread type:
   - `platform` (default): XNIO's own bounded pool of platform threads sized by the multiplier above.
   - `virtual`: `Executors.newVirtualThreadPerTaskExecutor()` supplied through `setExternalExecutorService`; the worker-thread multiplier is then unused and XNIO does not shut the executor down, so `ProteusApplication.shutdown()` closes it.
@@ -48,7 +49,7 @@
 
 - `sweep.sh` runs `run.sh` once per configuration and collates all `summary.md` tables into `results/sweep-<timestamp>/sweep.md`, ordered by plaintext/undertow req/s.
 - Each configuration is expressed as `-D` system properties overriding `undertow.*` config paths; the server reads them through Typesafe Config's system-property override.
-- Default grid: `ioThreadsMultiplier` ∈ {1 I/O thread total, 0.25×, 0.5×, 1×, 2×} of available processors, `workerExecutor` ∈ {platform, virtual}, `workerThreadsMultiplier` ∈ {1, 10} (platform only), `directBuffers` ∈ {true, false}, `bufferSize` ∈ {16k, 64k}. Non-product subsets are chosen by the operator via environment variables documented at the top of `sweep.sh`.
+- Default grid: `ioThreadsMultiplier` ∈ {1 I/O thread total, 0.25×, 0.5×, 1×, 2×} of available processors, `workerExecutor` ∈ {platform, virtual}, `workerThreadsMultiplier` ∈ {1, 10} (platform only), `directBuffers` ∈ {true, false}, `bufferSize` ∈ {16k, 64k}, `bufferPool.threadLocalCacheSize` ∈ {4, 0}. Non-product subsets are chosen by the operator via environment variables documented at the top of `sweep.sh`.
 
 ## Runner
 

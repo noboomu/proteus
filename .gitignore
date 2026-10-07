@@ -32,4 +32,5 @@ release.properties
 *.sh
 tty.sh
 .okhttpcache/*
-.okhttpcache
+!proteus-benchmark/run.sh
+

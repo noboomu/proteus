@@ -38,6 +38,8 @@ import io.sinistral.proteus.openapi.models.tags.Tag;
 import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Webhook;
+import io.swagger.v3.oas.annotations.Webhooks;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpServerExchange;
@@ -487,6 +489,11 @@ public class Reader {
         OpenAPIDefinition openAPIDefinition = ReflectionUtils.getAnnotation(
             cls,
             OpenAPIDefinition.class
+        );
+
+        Webhooks webhooksAnnotation = ReflectionUtils.getAnnotation(
+            cls,
+            Webhooks.class
         );
 
         if (openAPIDefinition != null) {
@@ -1089,6 +1096,31 @@ public class Reader {
                     LOGGER.debug("Completed paths");
                 }
             }
+        }
+
+        // class-level @Webhooks become POST path items keyed by webhook name
+        if (
+            webhooksAnnotation != null && webhooksAnnotation.value().length > 0
+        ) {
+            Map<String, PathItem> webhooks = openAPI.getWebhooks() != null
+                ? new LinkedHashMap<>(openAPI.getWebhooks())
+                : new LinkedHashMap<>();
+            for (Webhook webhookAnnotation : webhooksAnnotation.value()) {
+                Operation operation = new Operation();
+                setOperationObjectFromApiOperationAnnotation(
+                    operation,
+                    webhookAnnotation.operation(),
+                    null,
+                    classProduces,
+                    null,
+                    classConsumes,
+                    null
+                );
+                PathItem pathItemObject = new PathItem();
+                pathItemObject.post(operation);
+                webhooks.put(webhookAnnotation.name(), pathItemObject);
+            }
+            openAPI.setWebhooks(webhooks);
         }
 
         // if no components object is defined in openApi instance passed by

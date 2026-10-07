@@ -25,6 +25,7 @@ import io.sinistral.proteus.utilities.TablePrinter;
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
+import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
@@ -634,6 +635,16 @@ public class ProteusApplication {
             )
             .setWorker(worker)
             .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
+            // Undertow's default pool keys a synchronized WeakHashMap by Thread on every allocate/free;
+            // threadLocalCacheSize=0 bypasses that and uses the lock-free shared queue only.
+            .setByteBufferPool(
+                new DefaultByteBufferPool(
+                    config.getBoolean("undertow.directBuffers"),
+                    Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue(),
+                    -1,
+                    config.getInt("undertow.bufferPool.threadLocalCacheSize")
+                )
+            )
             .setSocketOption(
                 org.xnio.Options.BACKLOG,
                 config.getInt("undertow.socket.backlog")

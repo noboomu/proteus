@@ -59,6 +59,7 @@ mvn deploy -P central
 - **proteus-core**: Core framework including Undertow integration, handler generation, DI (Guice), service management, JWT security, and messaging (embedded Vert.x event bus + optional NATS bridge via `MessagingModule`)
 - **proteus-openapi**: OpenAPI v3 support with auto-generated specs and Swagger UI
 - **proteus-websocket**: Annotation-driven Undertow WebSocket endpoints (`@WebSocket` + `@OnOpen`/`@OnMessage`/`@OnClose`/`@OnError`), connection registry, and path-scoped broadcast (`WebSocketModule`)
+- **proteus-benchmark**: Shaded benchmark server plus `run.sh` driving `oha`; not deployed
 
 Messaging is shipped (see `specs/proteus_messaging.md`). The NATS bridge and websocket tuning live under `proteus.messaging.nats.*` and `proteus.websocket.*`. Note: `specs/proteus_development_finalization_spec.md` defers Event Bus and WebSocket, but `specs/proteus_messaging.md` supersedes those exclusions.
 
@@ -337,7 +338,7 @@ Generated handlers dispatch routes marked `@Blocking` to a virtual thread when U
 - Zero reflection overhead during request processing
 - Undertow's direct buffer pool with configurable buffer sizes
 - Explicitly blocking routes are isolated from Undertow I/O threads through virtual-thread dispatch
-- Regularly ranks top in Techempower benchmarks for Java frameworks
+- Reproducible local benchmark: `proteus-benchmark/run.sh` (see `specs/proteus_benchmark.md`); results under `proteus-benchmark/results/`
 
 ## Important Notes
 

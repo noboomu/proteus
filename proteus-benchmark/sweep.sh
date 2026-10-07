@@ -8,6 +8,7 @@
 #   SWEEP_DIRECT    directBuffers values            (default "true")
 #   SWEEP_BUFFER    bufferSize values               (default "16k")
 #   SWEEP_TLC       bufferPool.threadLocalCacheSize (default "4")
+#   SWEEP_RTO       socket.readTimeout ms           (default "90000"; 0 disables the timeout conduit)
 #   SWEEP_ROUTES    passed to run.sh as BENCH_ROUTES
 #   BENCH_DURATION / BENCH_WARMUP / BENCH_CONCURRENCY passed through
 set -euo pipefail
@@ -24,6 +25,7 @@ read -r -a WORKERS <<< "${SWEEP_WORKERS:-1 10}"
 read -r -a DIRECTS <<< "${SWEEP_DIRECT:-true}"
 read -r -a BUFFERS <<< "${SWEEP_BUFFER:-16k}"
 read -r -a TLCS    <<< "${SWEEP_TLC:-4}"
+read -r -a RTOS    <<< "${SWEEP_RTO:-90000}"
 
 if [ -f "$HERE/pom.xml" ] && [ "${BENCH_SKIP_BUILD:-0}" != "1" ]; then
   echo "building once"
@@ -38,14 +40,16 @@ for io in "${IOS[@]}"; do
       for d in "${DIRECTS[@]}"; do
         for b in "${BUFFERS[@]}"; do
          for tlc in "${TLCS[@]}"; do
-          label="io${io}_${exec}_w${w}_direct${d}_buf${b}_tlc${tlc}"
-          opts="-Dundertow.ioThreadsMultiplier=$io -Dundertow.workerExecutor=$exec -Dundertow.directBuffers=$d -Dundertow.bufferSize=$b -Dundertow.bufferPool.threadLocalCacheSize=$tlc"
+         for rto in "${RTOS[@]}"; do
+          label="io${io}_${exec}_w${w}_direct${d}_buf${b}_tlc${tlc}_rto${rto}"
+          opts="-Dundertow.ioThreadsMultiplier=$io -Dundertow.workerExecutor=$exec -Dundertow.directBuffers=$d -Dundertow.bufferSize=$b -Dundertow.bufferPool.threadLocalCacheSize=$tlc -Dundertow.socket.readTimeout=$rto"
           [ "$w" != "na" ] && opts="$opts -Dundertow.workerThreadsMultiplier=$w"
           echo "=== $label"
           if [ -n "${SWEEP_ROUTES:-}" ]; then export BENCH_ROUTES="$SWEEP_ROUTES"; fi
           BENCH_LABEL="$SWEEP/$label" BENCH_JVM_OPTS="$opts" BENCH_SKIP_BUILD=1 \
             "$HERE/run.sh" > "$OUT/$label.log" 2>&1 || echo "FAILED $label (see $OUT/$label.log)"
           labels+=("$label")
+         done
          done
         done
       done

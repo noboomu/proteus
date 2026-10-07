@@ -49,7 +49,7 @@
 
 - `sweep.sh` runs `run.sh` once per configuration and collates all `summary.md` tables into `results/sweep-<timestamp>/sweep.md`, ordered by plaintext/undertow req/s.
 - Each configuration is expressed as `-D` system properties overriding `undertow.*` config paths; the server reads them through Typesafe Config's system-property override.
-- Default grid: `ioThreadsMultiplier` ∈ {1 I/O thread total, 0.25×, 0.5×, 1×, 2×} of available processors, `workerExecutor` ∈ {platform, virtual}, `workerThreadsMultiplier` ∈ {1, 10} (platform only), `directBuffers` ∈ {true, false}, `bufferSize` ∈ {16k, 64k}, `bufferPool.threadLocalCacheSize` ∈ {4, 0}. Non-product subsets are chosen by the operator via environment variables documented at the top of `sweep.sh`.
+- Default grid: `ioThreadsMultiplier` ∈ {0.02, 0.25, 0.5, 1, 2} × available processors (rounded, min 1), `workerExecutor` ∈ {platform, virtual}, `workerThreadsMultiplier` ∈ {1, 10} (platform only), `directBuffers` ∈ {true, false}, `bufferSize` ∈ {16k, 64k}, `bufferPool.threadLocalCacheSize` ∈ {4, 0}, `socket.readTimeout` ∈ {90000, 0}. Non-product subsets are chosen by the operator via environment variables documented at the top of `sweep.sh`.
 
 ## Runner
 

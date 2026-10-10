@@ -42,6 +42,50 @@ public class BenchmarkController {
     /** JSON body shape shared by all variants. */
     public record Message(String message) {}
 
+    /** Simulated I/O wait for the sleep routes, in milliseconds; set with -Dbench.sleepMs. */
+    private static final long SLEEP_MS = Long.getLong("bench.sleepMs", 10L);
+
+    /** Parks the current thread for {@link #SLEEP_MS}, standing in for a DB or outbound HTTP call. */
+    private static void simulateBlockingIo() {
+        try {
+            Thread.sleep(SLEEP_MS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Blocks {@code bench.sleepMs} on the XNIO worker pool, then responds. Thread type follows
+     * {@code undertow.workerExecutor}; a bounded platform pool saturates at pool-size / sleep.
+     *
+     * @param exchange the server exchange
+     */
+    @GET
+    @Path("/sleep/worker")
+    @Produces(MediaType.TEXT_PLAIN)
+    public void sleepWorker(HttpServerExchange exchange) {
+        exchange.dispatch(ex -> {
+            simulateBlockingIo();
+            ex.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+            ex.getResponseSender().send(HELLO.duplicate());
+        });
+    }
+
+    /**
+     * Blocks {@code bench.sleepMs} on a per-request virtual thread via {@code @Blocking}.
+     *
+     * @param request the server request
+     * @return the plaintext response
+     */
+    @GET
+    @Path("/sleep/blocking")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Blocking
+    public ServerResponse<ByteBuffer> sleepBlocking(ServerRequest request) {
+        simulateBlockingIo();
+        return response(HELLO.duplicate()).textPlain();
+    }
+
     /**
      * Plaintext, exchange completed by the controller.
      *

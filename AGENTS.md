@@ -236,7 +236,7 @@ application {
 
 undertow {
   gracefulShutdown = true
-  ioThreadsMultiplier = 0.25     # x availableProcessors, rounded, min 1
+  ioThreadsMultiplier = 1        # x availableProcessors, rounded, min 1
   workerThreadsMultiplier = 10   # x availableProcessors
   workerExecutor = platform      # or virtual
   bufferSize = 16K
@@ -332,7 +332,7 @@ When using `proteus-openapi` module:
 
 Proteus builds its own XNIO worker and hands it to Undertow via `setWorker`. Because the worker is external, Undertow's `setIoThreads`/`setWorkerThreads` are ignored; Proteus sizes the XNIO builder directly:
 
-- `undertow.ioThreadsMultiplier` × `availableProcessors()` I/O threads (rounded, min 1). Default 0.25; sweeps on 48- and 256-logical-CPU hosts lost throughput and latency above a small fraction of the CPU count.
+- `undertow.ioThreadsMultiplier` × `availableProcessors()` I/O threads (rounded, min 1). Default 1. Each I/O thread serves roughly 110k non-blocking req/s and throughput scales linearly to one thread per CPU on 4- and 8-CPU hosts. Hosts above ~64 logical CPUs measured best at 0.05 to 0.25, and `@Blocking` routes prefer fewer I/O threads so virtual-thread carriers get cores.
 - `undertow.workerThreadsMultiplier` × `availableProcessors()` task-pool threads. Default 10.
 - `undertow.workerExecutor`: `platform` (default, XNIO bounded pool) or `virtual` (`Executors.newVirtualThreadPerTaskExecutor()` as the external executor; every `exchange.dispatch(...)` then runs on a fresh virtual thread and the worker-thread multiplier is unused).
 

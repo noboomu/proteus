@@ -15,6 +15,9 @@
 #   BENCH_JAR          jar path (default target/proteus-benchmark.jar, or ./proteus-benchmark.jar when target/ is absent)
 #   BENCH_CONF         application.conf path (default src/main/resources/application.conf, or ./application.conf)
 #   BENCH_COMMIT       git commit label when not running inside the repository
+#   BENCH_SERVER_CPUS  taskset CPU list for the server JVM (e.g. "0-7"); availableProcessors follows it
+#   BENCH_LOAD_CPUS    taskset CPU list for oha
+#   BENCH_SLEEP_MS     bench.sleepMs for the /sleep routes (default 10)
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -50,9 +53,12 @@ if [ "${BENCH_SKIP_BUILD:-0}" != "1" ] && [ -f "$ROOT/pom.xml" ]; then
   (cd "$ROOT" && JAVA_HOME="$JAVA_HOME" PATH="$JAVA_HOME/bin:$PATH" mvn -q -pl proteus-benchmark -am install -DskipTests -Dgpg.skip=true)
 fi
 
-echo "starting server on $HOST:$PORT ($JVM_OPTS)"
+SERVER_PIN=(); [ -n "${BENCH_SERVER_CPUS:-}" ] && SERVER_PIN=(taskset -c "$BENCH_SERVER_CPUS")
+LOAD_PIN=();   [ -n "${BENCH_LOAD_CPUS:-}" ]   && LOAD_PIN=(taskset -c "$BENCH_LOAD_CPUS")
+
+echo "starting server on $HOST:$PORT ($JVM_OPTS) cpus=${BENCH_SERVER_CPUS:-all}"
 # shellcheck disable=SC2086
-"$JAVA" $JVM_OPTS \
+"${SERVER_PIN[@]}" "$JAVA" $JVM_OPTS -Dbench.sleepMs="${BENCH_SLEEP_MS:-10}" \
   -XX:StartFlightRecording=filename="$OUT/server.jfr",settings=profile,dumponexit=true \
   -Dconfig.file="$CONF" \
   -Dapplication.ports.http="$PORT" \
@@ -78,6 +84,9 @@ curl -sf "http://$HOST:$PORT/plaintext/undertow" >/dev/null || { echo "server di
   echo "oha=$(oha --version)"
   echo "duration=$DURATION warmup=$WARMUP concurrency=$CONCURRENCY"
   echo "jvm_opts=$JVM_OPTS"
+  echo "server_cpus=${BENCH_SERVER_CPUS:-all}"
+  echo "load_cpus=${BENCH_LOAD_CPUS:-all}"
+  echo "sleep_ms=${BENCH_SLEEP_MS:-10}"
   echo "load_avg_before=$(cut -d' ' -f1-3 /proc/loadavg)"
   echo "cpu_idle_before=$(top -bn1 | sed -n '3p' | sed 's/.*, *\([0-9.]*\) id.*/\1/')%"
 } > "$OUT/env.txt"
@@ -86,9 +95,9 @@ for route in "${ROUTES[@]}"; do
   name="${route//\//-}"
   url="http://$HOST:$PORT/$route"
   echo "warmup $route"
-  oha -z "$WARMUP" -c "$CONCURRENCY" --no-tui "$url" >/dev/null
+  "${LOAD_PIN[@]}" oha -z "$WARMUP" -c "$CONCURRENCY" --no-tui "$url" >/dev/null
   echo "measure $route"
-  oha -z "$DURATION" -c "$CONCURRENCY" --no-tui --output-format json -o "$OUT/$name.json" "$url"
+  "${LOAD_PIN[@]}" oha -z "$DURATION" -c "$CONCURRENCY" --no-tui --output-format json -o "$OUT/$name.json" "$url"
 done
 
 # SIGTERM triggers dumponexit so the JFR file is complete before we read it.

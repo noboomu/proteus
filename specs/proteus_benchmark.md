@@ -17,6 +17,7 @@
   - `blocking`: `@Blocking` controller method returning `ServerResponse<T>`; the generated handler dispatches it off the I/O thread to a new virtual thread per request.
   - `worker`: controller method that calls `exchange.dispatch(handler)` so the request runs on the XNIO worker task pool, whose thread type is governed by `undertow.workerExecutor`.
   - `undertow`: a hand-written `HttpHandler` registered on the same router, as the floor.
+- Blocking workload: `GET /sleep/worker` and `GET /sleep/blocking` park the handling thread for `bench.sleepMs` (default 10) before responding, as a stand-in for a database or outbound HTTP wait. `/sleep/worker` dispatches to the XNIO task pool; `/sleep/blocking` uses `@Blocking`.
 
 ## Worker Threading Contract
 
@@ -41,7 +42,8 @@
 ## Load Generator
 
 - `oha` (Rust) over HTTP/1.1 with keep-alive.
-- Fixed duration per run: `15s`. Concurrency: `256`. Warm-up: one `5s` run discarded before each measured run.
+- Fixed duration per run: `15s`. Concurrency: `256` by default, swept via `SWEEP_CONC`. Warm-up: one `5s` run discarded before each measured run.
+- `BENCH_SERVER_CPUS` and `BENCH_LOAD_CPUS` pin the server JVM and `oha` with `taskset` so `availableProcessors()` reflects a smaller machine and the load generator does not share those cores.
 - A JFR recording (`settings=profile`) is captured for the full server lifetime of each configuration; `jfr print --events jdk.ExecutionSample` is summarized to the top 25 leaf frames and top 25 frames by inclusive sample count in `profile.md`.
 - Command shape: `oha -z 15s -c 256 --no-tui --output-format json -o OUT.json http://HOST:21080/PATH`.
 

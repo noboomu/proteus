@@ -342,7 +342,9 @@ Startup logs the effective configuration at INFO: `XNIO worker: N I/O threads, <
 
 Independently of `workerExecutor`, generated handlers dispatch routes marked `@Blocking` with `Thread::startVirtualThread` when invoked on an I/O thread. A handler already running on a worker remains on that thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
 
-Tune with `proteus-benchmark/sweep.sh`. Findings and the reasoning behind the defaults: `proteus-benchmark/results/2026-10-07-worker-and-buffer-sweep.md`.
+Set `undertow.workerExecutor=virtual` when dispatched handlers block (JDBC, synchronous HTTP, file I/O). A platform pool caps blocking throughput at pool-size / wait-time and queues beyond it (16 threads × 10 ms wait → 1.6k req/s, p99 in seconds at 4k connections); virtual threads track open connections instead (394k req/s, p99 15 ms at the same load). For CPU-bound dispatched work the two are equal to ~1k connections and platform is slightly ahead beyond. Routes that complete on the I/O thread never dispatch and are unaffected.
+
+Tune with `proteus-benchmark/sweep.sh`. Findings and the reasoning behind the defaults: `proteus-benchmark/results/2026-10-07-worker-and-buffer-sweep.md` and `proteus-benchmark/results/2026-10-10-blocking-and-small-hosts.md`.
 
 ## Performance Characteristics
 

@@ -67,6 +67,22 @@ public class ApplicationModule extends AbstractModule {
     }
 
     /**
+     * Instantiates a mapper module, preferring a {@code (Config)} constructor so the module can
+     * read its own settings, else the no-arg constructor.
+     *
+     * @param clazz the module class
+     * @return the module instance
+     * @throws Exception when neither constructor is usable
+     */
+    private AbstractModule instantiateModule(Class<? extends AbstractModule> clazz) throws Exception {
+        try {
+            return clazz.getDeclaredConstructor(Config.class).newInstance(config);
+        } catch (NoSuchMethodException e) {
+            return clazz.getDeclaredConstructor().newInstance();
+        }
+    }
+
+    /**
      * Installs the configured Jackson and XML mapper modules, falling back to framework
      * defaults when a configured class cannot be created, then requests static injection for
      * framework holders.
@@ -79,17 +95,13 @@ public class ApplicationModule extends AbstractModule {
                 ? extends AbstractModule
             >) Class.forName(className);
 
-            AbstractModule module = clazz
-                .getDeclaredConstructor()
-                .newInstance();
-
-            install(module);
+            install(instantiateModule(clazz));
         } catch (Exception e) {
             this.binder().addError(e);
 
             log.error(e.getMessage(), e);
 
-            install(new JacksonModule());
+            install(new JacksonModule(config));
         }
 
         try {

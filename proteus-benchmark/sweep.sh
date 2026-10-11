@@ -10,6 +10,8 @@
 #   SWEEP_TLC       bufferPool.threadLocalCacheSize (default "4")
 #   SWEEP_RTO       socket.readTimeout ms           (default "90000"; 0 disables the timeout conduit)
 #   SWEEP_CONC      oha connection counts           (default "256")
+#   SWEEP_GRACEFUL  undertow.gracefulShutdown       (default "true")
+#   SWEEP_EXTRA     extra -D flags appended to every config (optional)
 #   SWEEP_ROUTES    passed to run.sh as BENCH_ROUTES
 #   BENCH_DURATION / BENCH_WARMUP / BENCH_CONCURRENCY passed through
 set -euo pipefail
@@ -28,6 +30,7 @@ read -r -a BUFFERS <<< "${SWEEP_BUFFER:-16k}"
 read -r -a TLCS    <<< "${SWEEP_TLC:-4}"
 read -r -a RTOS    <<< "${SWEEP_RTO:-90000}"
 read -r -a CONCS   <<< "${SWEEP_CONC:-256}"
+read -r -a GRACES  <<< "${SWEEP_GRACEFUL:-true}"
 
 if [ -f "$HERE/pom.xml" ] && [ "${BENCH_SKIP_BUILD:-0}" != "1" ]; then
   echo "building once"
@@ -44,14 +47,16 @@ for io in "${IOS[@]}"; do
          for tlc in "${TLCS[@]}"; do
          for rto in "${RTOS[@]}"; do
          for conc in "${CONCS[@]}"; do
-          label="io${io}_${exec}_w${w}_direct${d}_buf${b}_tlc${tlc}_rto${rto}_c${conc}"
-          opts="-Dundertow.ioThreadsMultiplier=$io -Dundertow.workerExecutor=$exec -Dundertow.directBuffers=$d -Dundertow.bufferSize=$b -Dundertow.bufferPool.threadLocalCacheSize=$tlc -Dundertow.socket.readTimeout=$rto"
+         for gr in "${GRACES[@]}"; do
+          label="io${io}_${exec}_w${w}_direct${d}_buf${b}_tlc${tlc}_rto${rto}_c${conc}_gr${gr}"
+          opts="-Dundertow.ioThreadsMultiplier=$io -Dundertow.workerExecutor=$exec -Dundertow.directBuffers=$d -Dundertow.bufferSize=$b -Dundertow.bufferPool.threadLocalCacheSize=$tlc -Dundertow.socket.readTimeout=$rto -Dundertow.gracefulShutdown=$gr ${SWEEP_EXTRA:-}"
           [ "$w" != "na" ] && opts="$opts -Dundertow.workerThreadsMultiplier=$w"
           echo "=== $label"
           if [ -n "${SWEEP_ROUTES:-}" ]; then export BENCH_ROUTES="$SWEEP_ROUTES"; fi
           BENCH_LABEL="$SWEEP/$label" BENCH_JVM_OPTS="$opts" BENCH_SKIP_BUILD=1 BENCH_CONCURRENCY="$conc" \
             "$HERE/run.sh" > "$OUT/$label.log" 2>&1 || echo "FAILED $label (see $OUT/$label.log)"
           labels+=("$label")
+         done
          done
          done
          done
@@ -70,16 +75,16 @@ for label in labels:
     if not os.path.exists(os.path.join(d, 'summary.md')):
         continue
     env = dict(l.strip().split('=', 1) for l in open(os.path.join(d, 'env.txt')) if '=' in l)
+    import re, statistics
     files = sorted(f for f in os.listdir(d) if f.endswith('.json'))
-    if routes is None:
-        routes = [f[:-5].replace('-', '/') for f in files]
-    rps = {}
-    p99 = {}
+    by_route = {}
     for f in files:
-        j = json.load(open(os.path.join(d, f)))
-        r = f[:-5].replace('-', '/')
-        rps[r] = j['summary']['requestsPerSec']
-        p99[r] = j['latencyPercentiles']['p99'] * 1000
+        r = re.sub(r'(\.\d+)?\.json$', '', f).replace('-', '/')
+        by_route.setdefault(r, []).append(json.load(open(os.path.join(d, f))))
+    if routes is None:
+        routes = sorted(by_route)
+    rps = {r: statistics.median(j['summary']['requestsPerSec'] for j in js) for r, js in by_route.items()}
+    p99 = {r: statistics.median(j['latencyPercentiles']['p99'] * 1000 for j in js) for r, js in by_route.items()}
     rows.append((label, env.get('worker', '') + (f", {env['server_cpus']} cpus" if env.get('server_cpus', 'all') != 'all' else ''), env.get('cpu_idle_before', ''), rps, p99))
 anchor = next((r for r in routes if r == 'plaintext/undertow'), routes[0])
 rows.sort(key=lambda x: -x[3].get(anchor, 0))

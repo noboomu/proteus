@@ -18,6 +18,8 @@
 #   BENCH_SERVER_CPUS  taskset CPU list for the server JVM (e.g. "0-7"); availableProcessors follows it
 #   BENCH_LOAD_CPUS    taskset CPU list for oha
 #   BENCH_SLEEP_MS     bench.sleepMs for the /sleep routes (default 10)
+#   BENCH_MIN_IDLE     refuse to run unless host CPU idle percent is at least this (default 90; 0 disables)
+#   BENCH_REPEAT       measured passes per route; summary reports median/min/max req/s (default 1)
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,6 +46,13 @@ fi
 command -v oha >/dev/null || { echo "oha not found on PATH (cargo install oha)"; exit 1; }
 [ -x "$JAVA" ] || { echo "java not found at $JAVA"; exit 1; }
 
+MIN_IDLE="${BENCH_MIN_IDLE:-90}"
+REPEAT="${BENCH_REPEAT:-1}"
+IDLE_NOW="$(top -bn2 -d1 | grep '^%Cpu' | tail -1 | sed 's/.*, *\([0-9.]*\) id.*/\1/')"
+if [ "$MIN_IDLE" != "0" ] && [ "${IDLE_NOW%.*}" -lt "$MIN_IDLE" ]; then
+  echo "host cpu idle ${IDLE_NOW}% < ${MIN_IDLE}%; refusing to measure on a contended host (BENCH_MIN_IDLE=0 to override)"
+  exit 2
+fi
 LABEL="${BENCH_LABEL:-$(date -u +%Y%m%dT%H%M%SZ)}"
 OUT="$HERE/results/$LABEL"
 mkdir -p "$OUT"
@@ -82,7 +91,7 @@ curl -sf "http://$HOST:$PORT/plaintext/undertow" >/dev/null || { echo "server di
   echo "cores=$(nproc) logical, $(lscpu -p=CORE | grep -v '^#' | sort -u | wc -l) physical"
   echo "undertow=$(unzip -p "$JAR" META-INF/maven/io.undertow/undertow-core/pom.properties 2>/dev/null | grep '^version=' | cut -d= -f2)"
   echo "oha=$(oha --version)"
-  echo "duration=$DURATION warmup=$WARMUP concurrency=$CONCURRENCY"
+  echo "duration=$DURATION warmup=$WARMUP concurrency=$CONCURRENCY repeat=$REPEAT"
   echo "jvm_opts=$JVM_OPTS"
   echo "server_cpus=${BENCH_SERVER_CPUS:-all}"
   echo "load_cpus=${BENCH_LOAD_CPUS:-all}"
@@ -96,8 +105,11 @@ for route in "${ROUTES[@]}"; do
   url="http://$HOST:$PORT/$route"
   echo "warmup $route"
   "${LOAD_PIN[@]}" oha -z "$WARMUP" -c "$CONCURRENCY" --no-tui "$url" >/dev/null
-  echo "measure $route"
-  "${LOAD_PIN[@]}" oha -z "$DURATION" -c "$CONCURRENCY" --no-tui --output-format json -o "$OUT/$name.json" "$url"
+  for i in $(seq 1 "$REPEAT"); do
+    echo "measure $route ($i/$REPEAT)"
+    suffix=""; [ "$REPEAT" -gt 1 ] && suffix=".$i"
+    "${LOAD_PIN[@]}" oha -z "$DURATION" -c "$CONCURRENCY" --no-tui --output-format json -o "$OUT/$name$suffix.json" "$url"
+  done
 done
 
 # SIGTERM triggers dumponexit so the JFR file is complete before we read it.
@@ -117,24 +129,35 @@ python3 - "$OUT" "${ROUTES[@]}" <<'PYEOF'
 import json, sys, os
 out = sys.argv[1]; routes = sys.argv[2:]
 env = dict(l.strip().split('=', 1) for l in open(os.path.join(out, 'env.txt')) if '=' in l)
+import glob, statistics
 rows = []; bad = 0
 for r in routes:
-    d = json.load(open(os.path.join(out, r.replace('/', '-') + '.json')))
-    s = d['summary']; lat = d['latencyPercentiles']; codes = d['statusCodeDistribution']
-    non200 = sum(v for k, v in codes.items() if k != '200')
-    # in-flight requests cut by the -z deadline are not failures
-    errs = sum(v for k, v in d.get('errorDistribution', {}).items() if 'deadline' not in k) + non200
+    base = os.path.join(out, r.replace('/', '-'))
+    files = sorted(glob.glob(base + '.json') + glob.glob(base + '.[0-9]*.json'))
+    rps = []; p50 = []; p99 = []; p999 = []; errs = 0
+    for f in files:
+        d = json.load(open(f))
+        s = d['summary']; lat = d['latencyPercentiles']; codes = d['statusCodeDistribution']
+        non200 = sum(v for k, v in codes.items() if k != '200')
+        # in-flight requests cut by the -z deadline are not failures
+        errs += sum(v for k, v in d.get('errorDistribution', {}).items() if 'deadline' not in k) + non200
+        rps.append(s['requestsPerSec']); p50.append(lat['p50'] * 1000); p99.append(lat['p99'] * 1000); p999.append(lat['p99.9'] * 1000)
     bad += errs
-    rows.append((r, s['requestsPerSec'], lat['p50'] * 1000, lat['p99'] * 1000, lat['p99.9'] * 1000, errs))
+    rows.append((r, statistics.median(rps), min(rps), max(rps), statistics.median(p50), statistics.median(p99), statistics.median(p999), errs, len(files)))
 with open(os.path.join(out, 'summary.md'), 'w') as f:
     f.write(f"# Proteus benchmark {env['label']}\n\n")
     f.write(f"- host `{env['host']}`, commit `{env['git_commit']}`\n- {env['java']}\n- {env['cpu']} ({env['cores']} cores)\n")
     f.write(f"- Undertow {env['undertow']}, worker: {env['worker']}\n- jvm opts: `{env['jvm_opts'] or 'defaults'}`\n")
     f.write(f"- {env['oha']}, {env['duration']}\n")
     f.write(f"- host load before run: {env['load_avg_before']}, cpu idle {env['cpu_idle_before']}\n\n")
-    f.write("| route | req/s | p50 ms | p99 ms | p99.9 ms | errors |\n|---|---:|---:|---:|---:|---:|\n")
-    for r, rps, p50, p99, p999, e in rows:
-        f.write(f"| `/{r}` | {rps:,.0f} | {p50:.2f} | {p99:.2f} | {p999:.2f} | {e} |\n")
+    if any(n > 1 for *_, n in rows):
+        f.write("| route | req/s median | min | max | p50 ms | p99 ms | p99.9 ms | errors |\n|---|---:|---:|---:|---:|---:|---:|---:|\n")
+        for r, med, lo, hi, p50, p99, p999, e, n in rows:
+            f.write(f"| `/{r}` | {med:,.0f} | {lo:,.0f} | {hi:,.0f} | {p50:.2f} | {p99:.2f} | {p999:.2f} | {e} |\n")
+    else:
+        f.write("| route | req/s | p50 ms | p99 ms | p99.9 ms | errors |\n|---|---:|---:|---:|---:|---:|\n")
+        for r, med, lo, hi, p50, p99, p999, e, n in rows:
+            f.write(f"| `/{r}` | {med:,.0f} | {p50:.2f} | {p99:.2f} | {p999:.2f} | {e} |\n")
     if os.path.exists(os.path.join(out, 'profile.md')):
         f.write("\nCPU profile: [profile.md](profile.md)\n")
 print(open(os.path.join(out, 'summary.md')).read())

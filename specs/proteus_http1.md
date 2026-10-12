@@ -8,7 +8,7 @@ Serve HTTP/1.1 over plain TCP with a Proteus-owned connection, request parser, a
 
 - Module `proteus-core`, package `io.sinistral.proteus.server.http1`.
 - HTTP/1.1 and HTTP/1.0 over `StreamConnection` from an XNIO `AcceptingChannel`. No TLS, no HTTP/2, no AJP, no proxy protocol. Deployments needing those keep `undertow.frontEnd=undertow`.
-- Request bodies: `Content-Length` and `Transfer-Encoding: chunked`. `Expect: 100-continue` is honored.
+- Request bodies: `Content-Length` and `Transfer-Encoding: chunked`. `Expect: 100-continue` is handled the same as Undertow: the interim response is sent only when the application installs `HttpContinueReadHandler`; otherwise the request proceeds once the body arrives.
 - Keep-alive and pipelining per RFC 9112. `Connection: close` from either side ends the connection after the current response.
 - Upgrade (`Connection: Upgrade`) hands the raw `StreamConnection` to the exchange's upgrade listener; WebSocket works unchanged.
 
@@ -75,7 +75,7 @@ Every item below is verified by the existing `proteus-core`, `proteus-openapi`, 
 - A request with a body larger than `MAX_ENTITY_SIZE` receives 413 and the connection closes.
 - Malformed request lines, header lines with bare CR or LF, and folded headers receive 400 and the connection closes.
 - A client that half-closes after its request still receives the full response.
-- `Expect: 100-continue` receives `100 Continue` before the body is read when the handler reads the body, and the final status without it when the handler responds without reading.
+- `Expect: 100-continue` without an interim-sending handler: the final response is produced once the body arrives, identically on both front ends.
 - Keep-alive connections survive `undertow.socket.readTimeout` idle rearm; an idle connection past the timeout is closed.
 
 ## Performance gate

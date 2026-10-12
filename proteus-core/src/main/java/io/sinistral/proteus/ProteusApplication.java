@@ -29,7 +29,14 @@ import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.OpenListener;
 import io.undertow.server.handlers.GracefulShutdownHandler;
+import io.sinistral.proteus.server.http1.Http1OpenListener;
+import org.xnio.ChannelListener;
+import org.xnio.ChannelListeners;
+import org.xnio.OptionMap;
+import org.xnio.channels.AcceptingChannel;
+import org.xnio.StreamConnection;
 import io.undertow.server.session.SessionAttachmentHandler;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
@@ -166,6 +173,15 @@ public class ProteusApplication {
     /** Virtual-thread task executor supplied to the worker when {@code undertow.workerExecutor=virtual}. */
     private volatile ExecutorService workerTaskExecutor;
 
+    /** Accepting channel owned by this application when {@code undertow.frontEnd=proteus}. */
+    private volatile AcceptingChannel<? extends StreamConnection> http1Channel;
+
+    /** Proteus front-end listener when {@code undertow.frontEnd=proteus}. */
+    private volatile Http1OpenListener http1Listener;
+
+    /** Listener info for the owned channel, mirroring {@link Undertow#getListenerInfo()}. */
+    private final List<ListenerInfo> http1ListenerInfo = new ArrayList<>();
+
     /** The shutdown hook. */
     private volatile Thread shutdownHook;
 
@@ -283,7 +299,7 @@ public class ProteusApplication {
                             Instant.now()
                         );
 
-                        for (ListenerInfo info : undertow.getListenerInfo()) {
+                        for (ListenerInfo info : getListenerInfo()) {
                             log.debug("listener info: {}", info);
                             SocketAddress address = info.getAddress();
 
@@ -310,7 +326,7 @@ public class ProteusApplication {
                             Instant.now()
                         );
 
-                        for (ListenerInfo info : undertow.getListenerInfo()) {
+                        for (ListenerInfo info : getListenerInfo()) {
                             log.debug("listener info: {}", info);
                             SocketAddress address = info.getAddress();
 
@@ -350,7 +366,11 @@ public class ProteusApplication {
 
             buildServer();
             undertowStarted.set(true);
-            undertow.start();
+            if (undertow != null) {
+                undertow.start();
+            } else {
+                startHttp1Listener();
+            }
             serviceManager.startAsync().awaitHealthy(timeout);
         } catch (TimeoutException e) {
             cleanupAfterFailedStart();
@@ -430,12 +450,25 @@ public class ProteusApplication {
 
 
     private void stopUndertow() {
-        if (undertow != null && undertowStarted.compareAndSet(true, false)) {
+        if (!undertowStarted.compareAndSet(true, false)) {
+            return;
+        }
+        if (undertow != null) {
             try {
                 undertow.stop();
             } catch (Exception e) {
                 log.warn("Undertow shutdown did not complete cleanly", e);
             }
+        }
+        AcceptingChannel<? extends StreamConnection> channel = http1Channel;
+        if (channel != null) {
+            http1Channel = null;
+            org.xnio.IoUtils.safeClose(channel);
+            Http1OpenListener listener = http1Listener;
+            if (listener != null) {
+                listener.closeConnections();
+            }
+            http1ListenerInfo.clear();
         }
     }
 
@@ -626,6 +659,16 @@ public class ProteusApplication {
             "virtual".equalsIgnoreCase(workerExecutor) ? "" : " with " + workerThreads + " threads"
         );
 
+        final String frontEnd = config.getString("undertow.frontEnd");
+        if ("proteus".equalsIgnoreCase(frontEnd)) {
+            buildHttp1Server(handler, httpPort);
+            return;
+        } else if (!"undertow".equalsIgnoreCase(frontEnd)) {
+            throw new IllegalStateException(
+                "undertow.frontEnd must be 'undertow' or 'proteus', got '" + frontEnd + "'"
+            );
+        }
+
         Undertow.Builder undertowBuilder = Undertow.builder()
             .addHttpListener(httpPort, config.getString("application.host"))
             .setBufferSize(
@@ -727,6 +770,68 @@ public class ProteusApplication {
         }
 
         this.undertow = undertowBuilder.build();
+    }
+
+    /**
+     * Prepares the Proteus HTTP/1.1 front end: buffer pool, server options, and open listener.
+     * The accepting channel is opened in {@link #startHttp1Listener()}.
+     */
+    private void buildHttp1Server(HttpHandler handler, int httpPort) {
+        if (config.getBoolean("undertow.ssl.enabled")) {
+            log.warn("undertow.ssl.enabled is ignored by the proteus front end; terminate TLS upstream or use frontEnd=undertow");
+        }
+        if (config.getBoolean("undertow.server.enableHttp2")) {
+            log.warn("undertow.server.enableHttp2 is ignored by the proteus front end");
+        }
+        if (serverConfigurationFunction != null) {
+            log.warn("serverConfigurationFunction is not applied by the proteus front end");
+        }
+        int bufferSize = Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue();
+        DefaultByteBufferPool pool = new DefaultByteBufferPool(
+            config.getBoolean("undertow.directBuffers"),
+            bufferSize,
+            -1,
+            config.getInt("undertow.bufferPool.threadLocalCacheSize")
+        );
+        OptionMap serverOptions = OptionMap.builder()
+            .set(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
+            .set(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
+            .set(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
+            .set(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
+            .set(UndertowOptions.MAX_BUFFERED_REQUEST_SIZE, config.getInt("undertow.server.maxBufferedRequestSize"))
+            .getMap();
+        Http1OpenListener listener = new Http1OpenListener(pool, serverOptions);
+        listener.setRootHandler(handler);
+        this.http1Listener = listener;
+        this.http1Port = httpPort;
+    }
+
+    /** Port captured by {@link #buildHttp1Server} for {@link #startHttp1Listener}. */
+    private int http1Port;
+
+    /** Binds the accepting channel for the Proteus front end on the application worker. */
+    private void startHttp1Listener() throws java.io.IOException {
+        Http1OpenListener listener = http1Listener;
+        OptionMap socketOptions = OptionMap.builder()
+            .set(org.xnio.Options.WORKER_IO_THREADS, worker.getIoThreadCount())
+            .set(org.xnio.Options.TCP_NODELAY, true)
+            .set(org.xnio.Options.REUSE_ADDRESSES, config.getBoolean("undertow.socket.reuseAddresses"))
+            .set(org.xnio.Options.BALANCING_TOKENS, 1)
+            .set(org.xnio.Options.BALANCING_CONNECTIONS, 2)
+            .set(org.xnio.Options.BACKLOG, config.getInt("undertow.socket.backlog"))
+            .set(org.xnio.Options.READ_TIMEOUT, config.getInt("undertow.socket.readTimeout"))
+            .set(org.xnio.Options.WRITE_TIMEOUT, config.getInt("undertow.socket.writeTimeout"))
+            .getMap();
+        ChannelListener<AcceptingChannel<StreamConnection>> acceptListener = ChannelListeners.openListenerAdapter(listener);
+        AcceptingChannel<? extends StreamConnection> channel = worker.createStreamConnectionServer(
+            new java.net.InetSocketAddress(java.net.InetAddress.getByName(config.getString("application.host")), http1Port),
+            acceptListener,
+            socketOptions
+        );
+        channel.resumeAccepts();
+        this.http1Channel = channel;
+        http1ListenerInfo.add(new ListenerInfo("http", channel.getLocalAddress(), listener, null, channel));
+        log.info("Proteus HTTP/1.1 front end listening on {}", channel.getLocalAddress());
     }
 
     /** Generates all controller sources concurrently with isolated endpoint metadata. */
@@ -1038,7 +1143,11 @@ public class ProteusApplication {
      * consumers must use {@link #shutdown()}.
      */
     public void stop() {
-        undertow.stop();
+        if (undertow != null) {
+            undertow.stop();
+        } else {
+            stopUndertow();
+        }
     }
 
     /**
@@ -1047,7 +1156,7 @@ public class ProteusApplication {
      * @return the xnio, or null when unset
      */
     public Xnio getXnio() {
-        return undertow.getXnio();
+        return undertow != null ? undertow.getXnio() : worker.getXnio();
     }
 
     /**
@@ -1065,7 +1174,7 @@ public class ProteusApplication {
      * @return a list of listener info entries
      */
     public List<ListenerInfo> getListenerInfo() {
-        return undertow.getListenerInfo();
+        return undertow != null ? undertow.getListenerInfo() : http1ListenerInfo;
     }
 
     /**

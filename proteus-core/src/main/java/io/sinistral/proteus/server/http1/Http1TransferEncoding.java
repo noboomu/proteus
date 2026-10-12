@@ -1,6 +1,8 @@
 package io.sinistral.proteus.server.http1;
 
 import io.undertow.UndertowLogger;
+import io.undertow.connector.PooledByteBuffer;
+import java.io.IOException;
 import io.undertow.UndertowOptions;
 import io.undertow.conduits.ChunkedStreamSinkConduit;
 import io.undertow.conduits.ChunkedStreamSourceConduit;
@@ -17,8 +19,8 @@ import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 import io.undertow.util.StatusCodes;
 import org.xnio.conduits.ConduitStreamSourceChannel;
+import org.xnio.conduits.PushBackStreamSourceConduit;
 import org.xnio.conduits.StreamSinkConduit;
-import org.xnio.conduits.StreamSourceConduit;
 
 /**
  * Wires request-body source conduits and response sink conduits for the Proteus front end,
@@ -44,7 +46,12 @@ final class Http1TransferEncoding {
         if (transferEncoding == null && contentLength == null) {
             Connectors.terminateRequest(exchange);
         } else if (transferEncoding != null && !Headers.IDENTITY.equalToString(transferEncoding)) {
-            source.setConduit(new ChunkedStreamSourceConduit(source.getConduit(), exchange, chunkedDrainListener(exchange)));
+            // The exchange-based ctor casts the connection to Undertow's HttpServerConnection.
+            // The pool-based ctor pushes over-read bytes back onto a PushBack conduit instead, and
+            // the drain listener below moves them to the connection for the next request.
+            PushBackStreamSourceConduit pushBack = new PushBackStreamSourceConduit(source.getConduit());
+            source.setConduit(new ChunkedStreamSourceConduit(
+                pushBack, pushBack, connection.getByteBufferPool(), chunkedDrainListener(exchange, pushBack, connection), exchange, connection));
         } else if (contentLength != null) {
             long len = parsePositiveLong(contentLength);
             if (len == 0L) {
@@ -163,11 +170,30 @@ final class Http1TransferEncoding {
         };
     }
 
-    private static ConduitListener<ChunkedStreamSourceConduit> chunkedDrainListener(HttpServerExchange exchange) {
+    private static ConduitListener<ChunkedStreamSourceConduit> chunkedDrainListener(
+        HttpServerExchange exchange, PushBackStreamSourceConduit pushBack, Http1ServerConnection connection
+    ) {
         return c -> {
             if (!c.isFinished()) {
                 UndertowLogger.REQUEST_LOGGER.requestWasNotFullyConsumed();
                 exchange.setPersistent(false);
+            } else {
+                // Bytes after the terminating chunk belong to the next pipelined request.
+                PooledByteBuffer rest = connection.getByteBufferPool().allocate();
+                try {
+                    int n = pushBack.read(rest.getBuffer());
+                    rest.getBuffer().flip();
+                    if (n > 0) {
+                        connection.ungetRequestBytes(rest);
+                        rest = null;
+                    }
+                } catch (IOException ignored) {
+                    // nothing buffered
+                } finally {
+                    if (rest != null) {
+                        rest.close();
+                    }
+                }
             }
             Connectors.terminateRequest(exchange);
         };

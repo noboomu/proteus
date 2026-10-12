@@ -28,10 +28,14 @@ public class ProteusApplicationLifecycleTest {
 
         assertFalse(application.isRunning());
         assertTrue(application.getPorts().isEmpty());
-        assertThrows(
-            IllegalStateException.class,
-            () -> application.undertow.getListenerInfo()
-        );
+        if (application.undertow != null) {
+            assertThrows(
+                IllegalStateException.class,
+                () -> application.undertow.getListenerInfo()
+            );
+        } else {
+            assertTrue(application.getListenerInfo().isEmpty());
+        }
         assertTrue(application.getWorker().isShutdown());
     }
 

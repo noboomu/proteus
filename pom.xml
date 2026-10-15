@@ -79,7 +79,7 @@
         <slf4j.version>2.0.17</slf4j.version>
         <snakeyaml.version>2.4</snakeyaml.version>
         <typesafe-config.version>1.4.2</typesafe-config.version>
-        <undertow.version>2.3.17.Final</undertow.version>
+        <undertow.version>2.4.4.Final</undertow.version>
         <woodstox.version>7.1.0</woodstox.version>
         <jakarta-validation-api.version>3.1.1</jakarta-validation-api.version>
         <annotations.version>26.0.2</annotations.version>

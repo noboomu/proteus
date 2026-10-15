@@ -54,8 +54,10 @@ final class Http1Parser {
         }
     }
 
-    /** Interned headers bucketed by name length then first byte (case-insensitive). */
-    private static final HttpString[][] HEADERS_BY_LENGTH = new HttpString[40][];
+    /** Interned headers bucketed by [length][lower-cased first byte]; each bucket is tiny. */
+    private static final HttpString[][][] HEADERS_BY_LENGTH_FIRST = new HttpString[40][128][];
+    /** Lower-cased bytes of each interned header, parallel to the buckets, for comparison without byteAt(). */
+    private static final byte[][][][] HEADER_BYTES = new byte[40][128][][];
 
     static {
         HttpString[] all = {
@@ -75,14 +77,20 @@ final class Http1Parser {
         };
         for (HttpString h : all) {
             int len = h.length();
-            if (len >= HEADERS_BY_LENGTH.length) {
+            if (len >= HEADERS_BY_LENGTH_FIRST.length) {
                 continue;
             }
-            HttpString[] bucket = HEADERS_BY_LENGTH[len];
-            HEADERS_BY_LENGTH[len] = bucket == null
-                ? new HttpString[] { h }
-                : Arrays.copyOf(bucket, bucket.length + 1);
-            HEADERS_BY_LENGTH[len][HEADERS_BY_LENGTH[len].length - 1] = h;
+            byte[] lower = new byte[len];
+            for (int i = 0; i < len; i++) {
+                lower[i] = (byte) Character.toLowerCase((char) h.byteAt(i));
+            }
+            int first = lower[0] & 0x7F;
+            HttpString[] bucket = HEADERS_BY_LENGTH_FIRST[len][first];
+            byte[][] bytes = HEADER_BYTES[len][first];
+            HEADERS_BY_LENGTH_FIRST[len][first] = bucket == null ? new HttpString[] { h } : Arrays.copyOf(bucket, bucket.length + 1);
+            HEADER_BYTES[len][first] = bytes == null ? new byte[][] { lower } : Arrays.copyOf(bytes, bytes.length + 1);
+            HEADERS_BY_LENGTH_FIRST[len][first][HEADERS_BY_LENGTH_FIRST[len][first].length - 1] = h;
+            HEADER_BYTES[len][first][HEADER_BYTES[len][first].length - 1] = lower;
         }
     }
 
@@ -90,6 +98,14 @@ final class Http1Parser {
         Methods.GET, Methods.POST, Methods.PUT, Methods.DELETE, Methods.HEAD, Methods.OPTIONS,
         Methods.PATCH, Methods.TRACE, Methods.CONNECT,
     };
+    /** Raw bytes of {@link #METHODS}, parallel, so interning compares arrays rather than calling byteAt. */
+    private static final byte[][] METHOD_BYTES = new byte[METHODS.length][];
+
+    static {
+        for (int i = 0; i < METHODS.length; i++) {
+            METHOD_BYTES[i] = METHODS[i].toString().getBytes(StandardCharsets.US_ASCII);
+        }
+    }
 
     private final int maxHeaderSize;
     private final int maxHeaders;
@@ -277,15 +293,25 @@ final class Http1Parser {
     }
 
     private HttpString internMethod() throws BadRequestException {
-        if (scratchLen == 0) {
+        final int len = scratchLen;
+        if (len == 0) {
             throw bad("empty method");
         }
-        for (HttpString m : METHODS) {
-            if (matches(m, false)) {
-                return m;
+        final byte[] scratch = this.scratch;
+        outer:
+        for (int m = 0; m < METHOD_BYTES.length; m++) {
+            byte[] cand = METHOD_BYTES[m];
+            if (cand.length != len) {
+                continue;
             }
+            for (int i = 0; i < len; i++) {
+                if (scratch[i] != cand[i]) {
+                    continue outer;
+                }
+            }
+            return METHODS[m];
         }
-        return new HttpString(scratch, 0, scratchLen);
+        return new HttpString(scratch, 0, len);
     }
 
     private HttpString internProtocol() throws BadRequestException {
@@ -301,39 +327,31 @@ final class Http1Parser {
         throw bad("unsupported HTTP version");
     }
 
-    private HttpString internHeader() throws BadRequestException {
-        if (scratchLen < HEADERS_BY_LENGTH.length) {
-            HttpString[] bucket = HEADERS_BY_LENGTH[scratchLen];
-            if (bucket != null) {
-                for (HttpString h : bucket) {
-                    if (matches(h, true)) {
-                        return h;
+    private HttpString internHeader() {
+        final int len = scratchLen;
+        if (len < HEADERS_BY_LENGTH_FIRST.length) {
+            final byte[] scratch = this.scratch;
+            int first = lower(scratch[0]) & 0x7F;
+            byte[][] candidates = HEADER_BYTES[len][first];
+            if (candidates != null) {
+                outer:
+                for (int c = 0; c < candidates.length; c++) {
+                    byte[] cand = candidates[c];
+                    for (int i = 1; i < len; i++) {
+                        if (lower(scratch[i]) != cand[i]) {
+                            continue outer;
+                        }
                     }
+                    return HEADERS_BY_LENGTH_FIRST[len][first][c];
                 }
             }
         }
-        return new HttpString(scratch, 0, scratchLen);
+        return new HttpString(scratch, 0, len);
     }
 
-    /** Compares scratch against an interned name; header names compare case-insensitively. */
-    private boolean matches(HttpString h, boolean caseInsensitive) {
-        if (h.length() != scratchLen) {
-            return false;
-        }
-        for (int i = 0; i < scratchLen; i++) {
-            byte a = scratch[i];
-            byte b = h.byteAt(i);
-            if (a == b) {
-                continue;
-            }
-            if (!caseInsensitive) {
-                return false;
-            }
-            if ((a | 0x20) != (b | 0x20) || (a | 0x20) < 'a' || (a | 0x20) > 'z') {
-                return false;
-            }
-        }
-        return true;
+    /** ASCII lower-case for header-name comparison. */
+    private static byte lower(byte b) {
+        return (b >= 'A' && b <= 'Z') ? (byte) (b | 0x20) : b;
     }
 
     private String valueString() {

@@ -16,7 +16,7 @@ Serve HTTP/1.1 over plain TCP with a Proteus-owned connection, request parser, a
 
 ```hocon
 undertow {
-  frontEnd = undertow   # or proteus
+  frontEnd = proteus   # or undertow
 }
 ```
 
@@ -78,9 +78,9 @@ Every item below is verified by the existing `proteus-core`, `proteus-openapi`, 
 - `Expect: 100-continue` without an interim-sending handler: the final response is produced once the body arrives, identically on both front ends.
 - Keep-alive connections survive `undertow.socket.readTimeout` idle rearm; an idle connection past the timeout is closed.
 
-## Performance gate
+## Performance
 
-`proteus-benchmark` runs the ten standard routes under both front ends on the same host, pinned, three repeats. The Proteus front end ships as a supported option only when its median on every I/O-thread route is at or above Undertow's with no route more than 2% below, and p99 is not worse. The reference default remains `undertow` until a sweep on at least two hosts shows the Proteus front end ahead on all of them.
+Measured on nautilus (pinned 4 cores, four alternating rounds per cell, `proteus-benchmark/results/nautilus/ab-undertow-x-frontend/`): on Undertow 2.3.17 the two front ends are within ±1% of each other; on Undertow 2.4.4 the Proteus front end is 14% ahead on I/O-thread routes because it does not pass through Undertow's per-request `HostHeaderHandler` wrap. The reference default is `proteus`. Re-run the 2×2 on a second host before changing the default again.
 
 ## Not in scope
 

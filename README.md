@@ -64,6 +64,10 @@ public final class Application {
 
 `ServerResponse<T>` is the preferred controller return type. A controller that accepts a raw `HttpServerExchange` owns completing that exchange and should not return a response value.
 
+## HTTP front end
+
+`undertow.frontEnd = proteus` (default) serves HTTP/1.1 with Proteus's own codec, producing the same `HttpServerExchange` Undertow would. Set `undertow.frontEnd = undertow` for TLS, HTTP/2, AJP, or proxy protocol. On Undertow 2.4 the Proteus codec is measurably faster because it skips Undertow's per-request Host-header regex validation; behind a load balancer that validation is redundant.
+
 ## Request execution
 
 Controllers use Jakarta REST annotations such as `@Path`, `@GET`, `@POST`, `@Produces`, `@Consumes`, `@PathParam`, `@QueryParam`, `@HeaderParam`, `@CookieParam`, `@FormParam`, and `@BeanParam`.

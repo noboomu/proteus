@@ -328,6 +328,10 @@ When using `proteus-openapi` module:
 - `@Claim` parameters are omitted from the public HTTP parameter list
 - The generated document is OpenAPI 3.1; no runtime `openapi.openapi` version switch exists
 
+## HTTP Front End
+
+`undertow.frontEnd` selects who speaks HTTP/1.1 on the socket. `proteus` (default) is Proteus's own codec in `io.sinistral.proteus.server.http1`: parser, read listener, and response conduit producing the standard `HttpServerExchange`, so handlers, wrappers, forms, cookies, and WebSocket upgrade are unchanged. `undertow` uses Undertow's listener and is required for TLS, HTTP/2, AJP, or proxy protocol. Undertow 2.4 wraps every request in `HostHeaderHandler` (regex validation); the Proteus front end does not, which is why it is 14% ahead on 2.4.x. Spec: `specs/proteus_http1.md`.
+
 ## Worker Threads
 
 Proteus builds its own XNIO worker and hands it to Undertow via `setWorker`. Because the worker is external, Undertow's `setIoThreads`/`setWorkerThreads` are ignored; Proteus sizes the XNIO builder directly:

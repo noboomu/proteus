@@ -226,7 +226,7 @@ public class Http1ConformanceTest {
         int port = start(frontEnd);
         List<String> r = exchange(port, "GET /v1/c/hello HTTP/1.1\r\n\r\n", 1, false);
         assertFalse(r.isEmpty());
-        assertEquals("HTTP/1.1 400 Bad Request", status(r.get(0)));
+        assertTrue(status(r.get(0)).startsWith("HTTP/1.1 400 "), status(r.get(0)));
     }
 
     @ParameterizedTest
@@ -235,7 +235,8 @@ public class Http1ConformanceTest {
         int port = start(frontEnd);
         List<String> r = exchange(port, "GET /v1/c/hello HTTP/1.0\r\n\r\n", 1, false);
         assertEquals(1, r.size(), r.toString());
-        assertEquals("HTTP/1.1 200 OK", status(r.get(0)));
+        // Undertow 2.4 echoes HTTP/1.0 in the status line; 2.3 and the Proteus front end answer HTTP/1.1.
+        assertTrue(status(r.get(0)).matches("HTTP/1\\.[01] 200 OK"), status(r.get(0)));
         assertEquals("hello", body(r.get(0)));
     }
 

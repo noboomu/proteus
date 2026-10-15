@@ -34,11 +34,28 @@ A two-hour spike stubbing the response head to a constant byte array would have 
 - It bypasses Undertow 2.4's per-request `HostHeaderHandler` wrap, so it would let Proteus take 2.4.x security releases without the measured 10% regression. Not yet verified; see below.
 - It is the seam for anything that changes per-connection behavior Undertow hard-codes.
 
-Not merged. `frontEnd=undertow` remains the default. The branch stays as an experiment with an opt-in config switch.
+On Undertow 2.3.17 the front end is at parity and would not earn a merge alone. See the 2.4.4 section below for what changed that.
+
+## Undertow 2.4.4 × front end, 2026-10-15
+
+Same host and method, 2×2, four alternating rounds per cell:
+
+| config | plaintext/response | json/response | json/worker |
+|---|---:|---:|---:|
+| 2.3.17 + undertow (previous shipped) | 325,994 | 335,803 | 190,327 |
+| 2.3.17 + proteus | 329,338 (+1.0%) | 339,369 (+1.1%) | 197,226 (+3.6%) |
+| 2.4.4 + undertow | 280,628 (**-13.9%**) | 290,012 (**-13.6%**) | 193,314 (+1.6%) |
+| **2.4.4 + proteus** | **337,580 (+3.6%)** | **338,192 (+0.7%)** | **211,243 (+11.0%)** |
+
+Undertow 2.4's codec wraps the root handler in `HostHeaderHandler` per request (two regex matches) and does an attachment lookup for the reason phrase; that is the 14%. The Proteus front end does not go through Undertow's read listener, so it takes none of that cost and keeps 2.4's improvements elsewhere (`json/worker` +11% is 2.4's dispatch path, present under both front ends relative to 2.3.17).
+
+Decision: ship Undertow 2.4.4 with `undertow.frontEnd=proteus` as the reference default. `frontEnd=undertow` remains available for TLS, HTTP/2, or any behavior that depends on Undertow's own listener.
 
 ## Open
 
-- Measure Undertow 2.4.4 with `frontEnd=proteus` on nautilus. If parity holds there too, the branch has a concrete payoff.
 - `BUFFER_PIPELINED_DATA`: Undertow's pipelining write batching, untested.
+- A second host for the 2×2 before calling the default final; nautilus is the only controlled box so far.
+
+Directories: `nautilus/ab-frontend/`, `nautilus/ab-undertow-x-frontend/`.
 
 Directories: `nautilus/ab-frontend/`.

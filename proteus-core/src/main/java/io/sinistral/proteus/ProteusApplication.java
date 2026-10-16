@@ -680,14 +680,7 @@ public class ProteusApplication {
             .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
             // Undertow's default pool keys a synchronized WeakHashMap by Thread on every allocate/free;
             // threadLocalCacheSize=0 bypasses that and uses the lock-free shared queue only.
-            .setByteBufferPool(
-                new DefaultByteBufferPool(
-                    config.getBoolean("undertow.directBuffers"),
-                    Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue(),
-                    -1,
-                    config.getInt("undertow.bufferPool.threadLocalCacheSize")
-                )
-            )
+            .setByteBufferPool(createByteBufferPool())
             .setSocketOption(
                 org.xnio.Options.BACKLOG,
                 config.getInt("undertow.socket.backlog")
@@ -786,13 +779,7 @@ public class ProteusApplication {
         if (serverConfigurationFunction != null) {
             log.warn("serverConfigurationFunction is not applied by the proteus front end");
         }
-        int bufferSize = Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue();
-        DefaultByteBufferPool pool = new DefaultByteBufferPool(
-            config.getBoolean("undertow.directBuffers"),
-            bufferSize,
-            -1,
-            config.getInt("undertow.bufferPool.threadLocalCacheSize")
-        );
+        DefaultByteBufferPool pool = createByteBufferPool();
         OptionMap serverOptions = OptionMap.builder()
             .set(UndertowOptions.ALWAYS_SET_DATE, config.getBoolean("undertow.server.alwaysSetDate"))
             .set(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, config.getBoolean("undertow.server.alwaysSetKeepAlive"))
@@ -804,6 +791,27 @@ public class ProteusApplication {
         listener.setRootHandler(handler);
         this.http1Listener = listener;
         this.http1Port = httpPort;
+    }
+
+    /**
+     * Builds the shared buffer pool. {@code DefaultByteBufferPool} discards every freed buffer when
+     * {@code maximumPoolSize} is -1 (Undertow's own default relies on the per-thread cache to catch
+     * them), so with the per-thread cache disabled a real shared-queue cap is required or every
+     * request allocates and zeroes a fresh buffer.
+     */
+    private DefaultByteBufferPool createByteBufferPool() {
+        int bufferSize = Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue();
+        int maxPoolSize = config.getInt("undertow.bufferPool.maximumPoolSize");
+        if (maxPoolSize <= 0) {
+            long bytes = config.getMemorySize("undertow.bufferPool.maximumPoolBytes").toBytes();
+            maxPoolSize = (int) Math.max(64, bytes / bufferSize);
+        }
+        return new DefaultByteBufferPool(
+            config.getBoolean("undertow.directBuffers"),
+            bufferSize,
+            maxPoolSize,
+            config.getInt("undertow.bufferPool.threadLocalCacheSize")
+        );
     }
 
     /** Port captured by {@link #buildHttp1Server} for {@link #startHttp1Listener}. */

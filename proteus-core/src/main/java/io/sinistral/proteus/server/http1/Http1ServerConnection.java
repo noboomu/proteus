@@ -9,10 +9,16 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.HttpUpgradeListener;
 import io.undertow.server.SSLSessionInfo;
+import io.undertow.server.protocol.http.PipeliningBufferingStreamSinkConduit;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
+import java.io.IOException;
+import org.xnio.ChannelListener;
+import org.xnio.IoUtils;
 import org.xnio.OptionMap;
 import org.xnio.StreamConnection;
+import org.xnio.channels.StreamSinkChannel;
+import org.xnio.conduits.AbstractStreamSinkConduit;
 import org.xnio.conduits.StreamSinkConduit;
 
 /**
@@ -21,11 +27,18 @@ import org.xnio.conduits.StreamSinkConduit;
  * <p>One {@link Http1ReadListener} parses requests; one {@link Http1ResponseConduit} is reused
  * across keep-alive responses. Request and response bodies use Undertow's fixed-length and
  * chunked conduits so handlers see the standard {@link HttpServerExchange} contract.
+ *
+ * <p>When a request arrives with further pipelined requests already buffered, and
+ * {@code UndertowOptions.BUFFER_PIPELINED_DATA} is set, responses are written through Undertow's
+ * {@link PipeliningBufferingStreamSinkConduit} so a pipelined batch leaves in one write. The
+ * buffer is flushed whenever the connection would otherwise wait for input.
  */
 public final class Http1ServerConnection extends AbstractServerConnection {
 
-    private final Http1ResponseConduit responseConduit;
-    private final Http1FixedLengthSinkConduit fixedLengthSinkConduit;
+    private Http1ResponseConduit responseConduit;
+    private Http1FixedLengthSinkConduit fixedLengthSinkConduit;
+    private PipeliningBufferingStreamSinkConduit pipelineBuffer;
+    private final boolean bufferPipelinedData;
     private final ReadDataStreamSourceConduit readDataSourceConduit;
     private Http1ReadListener readListener;
     private HttpUpgradeListener upgradeListener;
@@ -51,7 +64,65 @@ public final class Http1ServerConnection extends AbstractServerConnection {
         this.responseConduit = new Http1ResponseConduit(channel.getSinkChannel().getConduit(), bufferPool, this);
         this.fixedLengthSinkConduit = new Http1FixedLengthSinkConduit(responseConduit);
         this.readDataSourceConduit = new ReadDataStreamSourceConduit(channel.getSourceChannel().getConduit(), this);
-        addCloseListener(c -> responseConduit.freeBuffers());
+        this.bufferPipelinedData = undertowOptions.get(io.undertow.UndertowOptions.BUFFER_PIPELINED_DATA, false);
+        addCloseListener(c -> {
+            responseConduit.freeBuffers();
+            if (pipelineBuffer != null) {
+                try {
+                    pipelineBuffer.truncateWrites();
+                } catch (IOException ignored) {
+                    // connection is closed; truncateWrites only returns the pooled buffer
+                }
+            }
+        });
+    }
+
+    /**
+     * Routes responses through a pipelining buffer from now on. Called before the response of a
+     * request that has further pipelined requests behind it; no response is in flight.
+     */
+    void enablePipelineBuffer() {
+        if (pipelineBuffer != null || !bufferPipelinedData) {
+            return;
+        }
+        pipelineBuffer = new PipeliningBufferingStreamSinkConduit(getOriginalSinkConduit(), getByteBufferPool());
+        responseConduit.freeBuffers();
+        responseConduit = new Http1ResponseConduit(pipelineBuffer, getByteBufferPool(), this);
+        fixedLengthSinkConduit = new Http1FixedLengthSinkConduit(responseConduit);
+    }
+
+    PipeliningBufferingStreamSinkConduit getPipelineBuffer() {
+        return pipelineBuffer;
+    }
+
+    /**
+     * Flushes buffered pipelined responses, then runs {@code then}. When the socket cannot take
+     * everything, a write listener finishes the flush before {@code then} runs.
+     */
+    void flushPipelineBuffer(Runnable then) {
+        try {
+            if (pipelineBuffer.flushPipelinedData()) {
+                then.run();
+                return;
+            }
+            final StreamSinkChannel sink = channel.getSinkChannel();
+            sink.getWriteSetter().set((ChannelListener<StreamSinkChannel>) c -> {
+                try {
+                    if (pipelineBuffer.flushPipelinedData()) {
+                        c.getWriteSetter().set(null);
+                        c.suspendWrites();
+                        then.run();
+                    }
+                } catch (IOException e) {
+                    io.undertow.UndertowLogger.REQUEST_IO_LOGGER.ioException(e);
+                    IoUtils.safeClose(this);
+                }
+            });
+            sink.resumeWrites();
+        } catch (IOException e) {
+            io.undertow.UndertowLogger.REQUEST_IO_LOGGER.ioException(e);
+            IoUtils.safeClose(this);
+        }
     }
 
     void setReadListener(Http1ReadListener readListener) {
@@ -111,8 +182,22 @@ public final class Http1ServerConnection extends AbstractServerConnection {
         newExchange.getRequestHeaders().put(Headers.CONTENT_LENGTH, 0);
         newExchange.setPersistent(true);
         io.undertow.server.Connectors.terminateRequest(newExchange);
+        // Behind buffered pipelined responses the interim response must queue after them and then
+        // be flushed, since the client may hold the body until it sees 100 Continue.
+        final PipeliningBufferingStreamSinkConduit pb = pipelineBuffer;
+        final StreamSinkConduit continueSink = pb == null ? getSinkChannel().getConduit() : new AbstractStreamSinkConduit<>(pb) {
+            @Override
+            public boolean flush() throws IOException {
+                return pb.flushPipelinedData();
+            }
+
+            @Override
+            public void terminateWrites() {
+                // the pipeline buffer outlives the interim response; only the connection shuts it down
+            }
+        };
         newExchange.addResponseWrapper((factory, ex) -> {
-            Http1ResponseConduit continueConduit = new Http1ResponseConduit(getSinkChannel().getConduit(), getByteBufferPool(), this);
+            Http1ResponseConduit continueConduit = new Http1ResponseConduit(continueSink, getByteBufferPool(), this);
             continueConduit.reset(ex);
             ex.addExchangeCompleteListener((e, next) -> {
                 continueConduit.freeBuffers();
@@ -181,7 +266,13 @@ public final class Http1ServerConnection extends AbstractServerConnection {
 
     @Override
     protected void exchangeComplete(HttpServerExchange exchange) {
-        readListener.exchangeComplete(exchange);
+        // Flush once no further pipelined request is buffered: reads resume next and may wait.
+        if (pipelineBuffer != null && (getExtraBytes() == null || exchange.isUpgrade() || !exchange.isPersistent())) {
+            clearChannel();
+            flushPipelineBuffer(() -> readListener.exchangeComplete(exchange));
+        } else {
+            readListener.exchangeComplete(exchange);
+        }
     }
 
     HttpUpgradeListener getUpgradeListener() {

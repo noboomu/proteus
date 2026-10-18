@@ -44,6 +44,10 @@ final class Http1TransferEncoding {
         boolean persistent = persistentConnection(exchange, connectionHeader);
 
         if (transferEncoding == null && contentLength == null) {
+            // Bodiless request with more pipelined requests already buffered: batch the responses.
+            if (persistent && connection.getExtraBytes() != null) {
+                connection.enablePipelineBuffer();
+            }
             Connectors.terminateRequest(exchange);
         } else if (transferEncoding != null && !Headers.IDENTITY.equalToString(transferEncoding)) {
             // The exchange-based ctor casts the connection to Undertow's HttpServerConnection.

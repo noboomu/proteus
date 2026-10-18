@@ -1,0 +1,8 @@
+Running 14s test @ http://127.0.0.1:21080/plaintext/exchange
+  32 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.71ms    2.63ms  41.38ms   63.83%
+    Req/Sec    61.79k     8.23k  390.95k    97.24%
+  27635888 requests in 14.10s, 3.40GB read
+Requests/sec: 1960100.07
+Transfer/sec:    246.75MB

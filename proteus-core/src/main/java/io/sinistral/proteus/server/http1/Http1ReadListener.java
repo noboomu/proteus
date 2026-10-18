@@ -176,6 +176,15 @@ final class Http1ReadListener implements ChannelListener<ConduitStreamSourceChan
 
     private void handleFailedRead(ConduitStreamSourceChannel channel, int res) {
         if (res == 0) {
+            // About to wait for input: buffered pipelined responses must reach the client first,
+            // or a client that withholds the rest of a partial request until it sees them stalls.
+            if (connection.getPipelineBuffer() != null) {
+                connection.flushPipelineBuffer(() -> {
+                    channel.setReadListener(this);
+                    channel.resumeReads();
+                });
+                return;
+            }
             channel.setReadListener(this);
             channel.resumeReads();
         } else if (res == -1) {

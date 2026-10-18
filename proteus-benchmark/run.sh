@@ -18,7 +18,9 @@
 #   BENCH_SERVER_CPUS  taskset CPU list for the server JVM (e.g. "0-7"); availableProcessors follows it
 #   BENCH_LOAD_CPUS    taskset CPU list for oha
 #   BENCH_SLEEP_MS     bench.sleepMs for the /sleep routes (default 10)
-#   BENCH_MIN_IDLE     refuse to run unless host CPU idle percent is at least this (default 90; 0 disables)
+#   BENCH_MIN_IDLE     refuse to run unless CPU idle percent is at least this (default 90; 0 disables).
+#                      Measured over the pinned server+load CPUs when BENCH_SERVER_CPUS/BENCH_LOAD_CPUS are
+#                      set, else host-wide. On a large shared host only the pinned cores matter.
 #   BENCH_REPEAT       measured passes per route; summary reports median/min/max req/s (default 1)
 set -euo pipefail
 
@@ -48,9 +50,39 @@ command -v oha >/dev/null || { echo "oha not found on PATH (cargo install oha)";
 
 MIN_IDLE="${BENCH_MIN_IDLE:-90}"
 REPEAT="${BENCH_REPEAT:-1}"
-IDLE_NOW="$(top -bn2 -d1 | grep '^%Cpu' | tail -1 | sed 's/.*, *\([0-9.]*\) id.*/\1/')"
+# Idle percent over a CPU list ("0-7,128-135"), sampled from /proc/stat across one second.
+cpu_idle() {
+  local list="$1" s1 s2
+  s1="$(grep -E '^cpu[0-9]+ ' /proc/stat)"; sleep 1; s2="$(grep -E '^cpu[0-9]+ ' /proc/stat)"
+  python3 - "$list" "$s1" "$s2" <<'PYEOF'
+import sys
+want = set()
+for part in sys.argv[1].split(','):
+    if part:
+        a, _, b = part.partition('-')
+        want.update(range(int(a), int(b or a) + 1))
+def parse(txt):
+    out = {}
+    for line in txt.splitlines():
+        f = line.split()
+        n = [int(x) for x in f[1:]]
+        out[int(f[0][3:])] = (n[3] + n[4], sum(n[:8]))
+    return out
+a, b = parse(sys.argv[2]), parse(sys.argv[3])
+idle = tot = 0
+for c in want & a.keys() & b.keys():
+    idle += b[c][0] - a[c][0]; tot += b[c][1] - a[c][1]
+print(int(100 * idle / tot) if tot else 100)
+PYEOF
+}
+GATE_CPUS="${BENCH_SERVER_CPUS:-}${BENCH_SERVER_CPUS:+${BENCH_LOAD_CPUS:+,}}${BENCH_LOAD_CPUS:-}"
+if [ -n "$GATE_CPUS" ]; then
+  IDLE_NOW="$(cpu_idle "$GATE_CPUS")"; IDLE_SCOPE="cpus $GATE_CPUS"
+else
+  IDLE_NOW="$(top -bn2 -d1 | grep '^%Cpu' | tail -1 | sed 's/.*, *\([0-9.]*\) id.*/\1/')"; IDLE_SCOPE="host"
+fi
 if [ "$MIN_IDLE" != "0" ] && [ "${IDLE_NOW%.*}" -lt "$MIN_IDLE" ]; then
-  echo "host cpu idle ${IDLE_NOW}% < ${MIN_IDLE}%; refusing to measure on a contended host (BENCH_MIN_IDLE=0 to override)"
+  echo "$IDLE_SCOPE idle ${IDLE_NOW}% < ${MIN_IDLE}%; refusing to measure on a contended host (BENCH_MIN_IDLE=0 to override)"
   exit 2
 fi
 LABEL="${BENCH_LABEL:-$(date -u +%Y%m%dT%H%M%SZ)}"
@@ -97,7 +129,7 @@ curl -sf "http://$HOST:$PORT/plaintext/undertow" >/dev/null || { echo "server di
   echo "load_cpus=${BENCH_LOAD_CPUS:-all}"
   echo "sleep_ms=${BENCH_SLEEP_MS:-10}"
   echo "load_avg_before=$(cut -d' ' -f1-3 /proc/loadavg)"
-  echo "cpu_idle_before=$(top -bn1 | sed -n '3p' | sed 's/.*, *\([0-9.]*\) id.*/\1/')%"
+  echo "cpu_idle_before=${IDLE_NOW}% (${IDLE_SCOPE})"
 } > "$OUT/env.txt"
 
 for route in "${ROUTES[@]}"; do

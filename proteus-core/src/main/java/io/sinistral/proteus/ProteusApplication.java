@@ -721,6 +721,10 @@ public class ProteusApplication {
                 UndertowOptions.MAX_BUFFERED_REQUEST_SIZE,
                 config.getInt("undertow.server.maxBufferedRequestSize")
             )
+            .setServerOption(
+                UndertowOptions.BUFFER_PIPELINED_DATA,
+                config.getBoolean("undertow.server.bufferPipelinedData")
+            )
             .setHandler(handler);
 
         if (config.getBoolean("undertow.ssl.enabled")) {
@@ -786,6 +790,7 @@ public class ProteusApplication {
             .set(UndertowOptions.RECORD_REQUEST_START_TIME, config.getBoolean("undertow.server.recordRequestStartTime"))
             .set(UndertowOptions.MAX_ENTITY_SIZE, config.getBytes("undertow.server.maxEntitySize"))
             .set(UndertowOptions.MAX_BUFFERED_REQUEST_SIZE, config.getInt("undertow.server.maxBufferedRequestSize"))
+            .set(UndertowOptions.BUFFER_PIPELINED_DATA, config.getBoolean("undertow.server.bufferPipelinedData"))
             .getMap();
         Http1OpenListener listener = new Http1OpenListener(pool, serverOptions);
         listener.setRootHandler(handler);

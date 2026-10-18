@@ -282,4 +282,76 @@ public class Http1ConformanceTest {
             assertTrue(waited < 5000, "closed after " + waited + " ms");
         }
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "proteus" })
+    public void bufferedPipelinedResponsesFlushBeforeWaitingOnPartialRequest(String frontEnd) throws Exception {
+        // Two complete requests plus the first half of a third. The server must deliver both
+        // responses while it waits for the rest; a client that withholds the tail until it sees
+        // them would otherwise deadlock against the pipelining buffer.
+        // Undertow 2.4.4's own listener fails this with BUFFER_PIPELINED_DATA on (its builder
+        // default): HttpReadListener resumes reads without flushing, so nothing is sent until the
+        // read timeout closes the connection.
+        int port = start(frontEnd);
+        try (Socket s = new Socket("localhost", port)) {
+            s.setSoTimeout(3000);
+            OutputStream out = s.getOutputStream();
+            out.write(("GET /v1/c/hello HTTP/1.1\r\nHost: x\r\n\r\n"
+                + "GET /v1/c/hello HTTP/1.1\r\nHost: x\r\n\r\n"
+                + "GET /v1/c/hel").getBytes(StandardCharsets.ISO_8859_1));
+            out.flush();
+            InputStream in = s.getInputStream();
+            ByteArrayOutputStream acc = new ByteArrayOutputStream();
+            byte[] buf = new byte[4096];
+            while (countResponses(acc.toString(StandardCharsets.ISO_8859_1)) < 2) {
+                int n = in.read(buf);
+                assertTrue(n > 0, "connection closed early: " + acc);
+                acc.write(buf, 0, n);
+            }
+            out.write("lo HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n".getBytes(StandardCharsets.ISO_8859_1));
+            out.flush();
+            int n;
+            while ((n = in.read(buf)) != -1) {
+                acc.write(buf, 0, n);
+            }
+            List<String> r = splitResponses(acc.toString(StandardCharsets.ISO_8859_1));
+            assertEquals(3, r.size(), r.toString());
+            for (String one : r) {
+                assertEquals("hello", body(one));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "undertow", "proteus" })
+    public void bodyRequestAfterBufferedPipelinedResponsesIsAnsweredInOrder(String frontEnd) throws Exception {
+        int port = start(frontEnd);
+        String raw = "GET /v1/c/hello HTTP/1.1\r\nHost: x\r\n\r\n"
+            + "GET /v1/c/empty HTTP/1.1\r\nHost: x\r\n\r\n"
+            + "POST /v1/c/echo HTTP/1.1\r\nHost: x\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nworld"
+            + "GET /v1/c/hello HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n";
+        List<String> r = exchange(port, raw, 4, false);
+        assertEquals(4, r.size(), r.toString());
+        assertEquals("hello", body(r.get(0)));
+        assertEquals("HTTP/1.1 204 No Content", status(r.get(1)));
+        assertEquals("world", body(r.get(2)));
+        assertEquals("hello", body(r.get(3)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "undertow", "proteus" })
+    public void largePipelinedBatchSpanningBuffersIsAnsweredCompletely(String frontEnd) throws Exception {
+        // 400 requests overflow both the 16k read buffer and the pipelining write buffer.
+        int port = start(frontEnd);
+        StringBuilder raw = new StringBuilder();
+        for (int i = 0; i < 399; i++) {
+            raw.append("GET /v1/c/hello HTTP/1.1\r\nHost: x\r\n\r\n");
+        }
+        raw.append("GET /v1/c/hello HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n");
+        List<String> r = exchange(port, raw.toString(), 400, false);
+        assertEquals(400, r.size());
+        for (String one : r) {
+            assertEquals("hello", body(one));
+        }
+    }
 }

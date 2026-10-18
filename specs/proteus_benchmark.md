@@ -46,6 +46,7 @@
 - `BENCH_SERVER_CPUS` and `BENCH_LOAD_CPUS` pin the server JVM and `oha` with `taskset` so `availableProcessors()` reflects a smaller machine and the load generator does not share those cores.
 - A JFR recording (`settings=profile`) is captured for the full server lifetime of each configuration; `jfr print --events jdk.ExecutionSample` is summarized to the top 25 leaf frames and top 25 frames by inclusive sample count in `profile.md`.
 - Command shape: `oha -z 15s -c 256 --no-tui --output-format json -o OUT.json http://HOST:21080/PATH`.
+- Pipelined plaintext uses `wrk` with a `pipeline.lua` script that concatenates N copies of the request into one write (depth 16 matches TechEmpower's plaintext test), `-t 32` threads, 5 s warm-up then 10 s measured per connection count, front ends alternating per round. `oha` does not pipeline. `pipelined-summary.py <dir>` reduces the `wrk` logs to median/min/max req/s, p99, and the sum of non-2xx and socket errors.
 
 ## Parameter Sweep
 

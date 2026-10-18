@@ -1,0 +1,85 @@
+fe=undertow round=1 XNIO worker: 16 I/O threads, platform task executor with 160 threads
+=== plaintext/exchange c=256 depth=16
+Running 10s test @ http://127.0.0.1:21080/plaintext/exchange
+  32 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.69ms    1.10ms  35.29ms   74.16%
+    Req/Sec    45.01k     7.65k  410.34k    92.63%
+  Latency Distribution
+     50%    1.57ms
+     75%    2.29ms
+     90%    2.86ms
+     99%    4.63ms
+  14462144 requests in 10.10s, 1.78GB read
+Requests/sec: 1431896.30
+Transfer/sec:    180.25MB
+=== plaintext/exchange c=1024 depth=16
+Running 10s test @ http://127.0.0.1:21080/plaintext/exchange
+  32 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     6.31ms    3.33ms  30.33ms   60.17%
+    Req/Sec    45.57k     4.72k  147.23k    98.79%
+  Latency Distribution
+     50%    6.20ms
+     75%    8.97ms
+     90%   10.91ms
+     99%   12.94ms
+  14587584 requests in 10.10s, 1.79GB read
+Requests/sec: 1444414.35
+Transfer/sec:    181.83MB
+=== plaintext/exchange c=4096 depth=16
+Running 10s test @ http://127.0.0.1:21080/plaintext/exchange
+  32 threads and 4096 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    25.45ms   13.33ms 150.00ms   59.26%
+    Req/Sec    44.55k     5.61k  154.51k    97.79%
+  Latency Distribution
+     50%   25.22ms
+     75%   36.47ms
+     90%   43.53ms
+     99%   50.21ms
+  14245472 requests in 10.10s, 1.75GB read
+Requests/sec: 1410476.85
+Transfer/sec:    177.56MB
+=== plaintext/response c=256 depth=16
+Running 10s test @ http://127.0.0.1:21080/plaintext/response
+  32 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.81ms    1.03ms  10.65ms   62.55%
+    Req/Sec    41.22k     7.30k  389.82k    96.41%
+  Latency Distribution
+     50%    1.74ms
+     75%    2.54ms
+     90%    3.24ms
+     99%    4.29ms
+  13239120 requests in 10.10s, 1.81GB read
+Requests/sec: 1310926.62
+Transfer/sec:    183.78MB
+=== plaintext/response c=1024 depth=16
+Running 10s test @ http://127.0.0.1:21080/plaintext/response
+  32 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     6.96ms    3.68ms  35.71ms   59.66%
+    Req/Sec    41.35k     4.43k  113.62k    98.82%
+  Latency Distribution
+     50%    6.88ms
+     75%    9.95ms
+     90%   11.81ms
+     99%   14.74ms
+  13251184 requests in 10.10s, 1.81GB read
+Requests/sec: 1311997.77
+Transfer/sec:    183.93MB
+=== plaintext/response c=4096 depth=16
+Running 10s test @ http://127.0.0.1:21080/plaintext/response
+  32 threads and 4096 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    28.30ms   14.74ms 113.81ms   58.86%
+    Req/Sec    40.07k     4.16k  120.80k    96.27%
+  Latency Distribution
+     50%   28.20ms
+     75%   40.58ms
+     90%   48.60ms
+     99%   56.08ms
+  12812416 requests in 10.10s, 1.75GB read
+Requests/sec: 1268581.03
+Transfer/sec:    177.84MB

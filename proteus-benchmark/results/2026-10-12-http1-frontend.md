@@ -53,9 +53,7 @@ Decision: ship Undertow 2.4.4 with `undertow.frontEnd=proteus` as the reference 
 
 ## Open
 
-- `BUFFER_PIPELINED_DATA`: Undertow's pipelining write batching, untested.
-- A second host for the 2×2 before calling the default final; nautilus is the only controlled box so far.
+- `BUFFER_PIPELINED_DATA`: measured and implemented for the Proteus front end 2026-10-18; see `2026-10-18-pipelining-and-gc.md`.
+- Second host: attenborough 8-core A/B 2026-10-18, Proteus front end +22 to 27%; see `2026-10-18-pipelining-and-gc.md`.
 
 Directories: `nautilus/ab-frontend/`, `nautilus/ab-undertow-x-frontend/`.
-
-Directories: `nautilus/ab-frontend/`.

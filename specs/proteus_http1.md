@@ -17,12 +17,14 @@ Serve HTTP/1.1 over plain TCP with a Proteus-owned connection, request parser, a
 ```hocon
 undertow {
   frontEnd = proteus   # or undertow
+  server.bufferPipelinedData = true
 }
 ```
 
 - `undertow`: `ProteusApplication.buildServer()` uses `Undertow.Builder` as today.
 - `proteus`: `buildServer()` opens the HTTP listener itself on the application's XNIO worker with `Http1OpenListener`, applies the same `undertow.socket.*` options, and wraps the root handler identically (graceful shutdown, default handler). Every other `undertow.*` key keeps its meaning; `undertow.server.enableHttp2` is ignored with a WARN.
 - `ProteusApplication.getUndertow()` returns `null` under `proteus`; `getListenerInfo()` and `getPorts()` are populated from the owned channel.
+- `undertow.server.bufferPipelinedData` sets `UndertowOptions.BUFFER_PIPELINED_DATA` on both front ends. Undertow's builder enables it for its own listener unless this key overrides it.
 
 ## Connection
 
@@ -34,6 +36,15 @@ undertow {
 - `upgradeChannel()` clears conduits and returns the channel with any over-read bytes re-fed through `ReadDataStreamSourceConduit`.
 - `isContinueResponseSupported()` is true; `sendOutOfBandResponse` writes `100 Continue` directly.
 - `exchangeComplete` re-arms reads for the next pipelined or keep-alive request, or closes when the exchange is not persistent.
+
+### Pipelined response buffering
+
+With `BUFFER_PIPELINED_DATA` set:
+
+- When a persistent request without a body is parsed and further request bytes are already buffered, the connection switches, for its remaining lifetime, to a response conduit and fixed-length conduit layered over Undertow's `PipeliningBufferingStreamSinkConduit`. Responses then accumulate in one pooled buffer and leave in one write when it fills.
+- The buffer is flushed before the connection waits for input: in `exchangeComplete` when no further request bytes are buffered, when the exchange is an upgrade or not persistent, and in the read listener when a read returns no bytes. A write listener completes a flush the socket cannot accept at once, and reads resume only after it.
+- An interim `100 Continue` response queues behind buffered responses and flushes them, so the client sees it.
+- On close, the buffer is returned to the pool.
 
 ## Request parsing
 
@@ -71,7 +82,8 @@ undertow {
 Every item below is verified by the existing `proteus-core`, `proteus-openapi`, and `proteus-websocket` test suites running under both `frontEnd` values, plus `Http1ConformanceTest`:
 
 - Identical status, headers, and body for every route in `StandardEndpointsTest`, `SecurityEndpointsTest`, `UploadEndpointsTest`, `BlockingEndpointTest`, OpenAPI document and UI routes, and WebSocket handshake and echo.
-- Pipelined requests on one connection are answered in order.
+- Pipelined requests on one connection are answered in order, including a request with a body after buffered responses and a batch larger than one read buffer.
+- With pipelined responses buffered and a partial request behind them, the buffered responses reach the client before the server waits for the rest of the request. This holds for `frontEnd=proteus` only: Undertow 2.4.4's listener with `BUFFER_PIPELINED_DATA` resumes reads without flushing and sends nothing until the read timeout closes the connection.
 - A request with a body larger than `MAX_ENTITY_SIZE` receives 413 and the connection closes.
 - Malformed request lines, header lines with bare CR or LF, and folded headers receive 400 and the connection closes.
 - A client that half-closes after its request still receives the full response.
@@ -80,7 +92,9 @@ Every item below is verified by the existing `proteus-core`, `proteus-openapi`, 
 
 ## Performance
 
-Measured on nautilus (pinned 4 cores, four alternating rounds per cell, `proteus-benchmark/results/nautilus/ab-undertow-x-frontend/`): on Undertow 2.3.17 the two front ends are within ±1% of each other; on Undertow 2.4.4 the Proteus front end is 14% ahead on I/O-thread routes because it does not pass through Undertow's per-request `HostHeaderHandler` wrap. The reference default is `proteus`. Re-run the 2×2 on a second host before changing the default again.
+Measured on nautilus (pinned 4 cores, four alternating rounds per cell, `proteus-benchmark/results/nautilus/ab-undertow-x-frontend/`): on Undertow 2.3.17 the two front ends are within ±1% of each other; on Undertow 2.4.4 the Proteus front end is 14% ahead on I/O-thread routes because it does not pass through Undertow's per-request `HostHeaderHandler` wrap. The reference default is `proteus`.
+
+On attenborough (8 cores pinned, Undertow 2.4.4, retaining buffer pool) the Proteus front end is 22 to 27% ahead without pipelining and 60 to 70% ahead under `wrk` depth-16 pipelining with response buffering (`proteus-benchmark/results/2026-10-18-pipelining-and-gc.md`).
 
 ## Not in scope
 

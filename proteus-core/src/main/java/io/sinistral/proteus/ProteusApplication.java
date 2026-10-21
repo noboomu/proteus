@@ -65,6 +65,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.LoggerFactory;
+import org.xnio.OptionMap;
+import org.xnio.Options;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 
@@ -577,10 +579,27 @@ public class ProteusApplication {
         }
 
         final int processorCount = Runtime.getRuntime().availableProcessors();
+        final int ioThreads = processorCount * config.getInt("undertow.ioThreadsMultiplier");
+        final int workerThreads = processorCount * config.getInt("undertow.workerThreadsMultiplier");
 
         Xnio xnio = Xnio.getInstance();
 
-        worker = xnio.createWorkerBuilder().build();
+        // Undertow ignores setIoThreads/setWorkerThreads when given an external worker, so the
+        // application-owned worker carries the same options Undertow applies to its internal one.
+        try {
+            worker = xnio.createWorker(OptionMap.builder()
+                .set(Options.WORKER_IO_THREADS, ioThreads)
+                .set(Options.CONNECTION_HIGH_WATER, 1000000)
+                .set(Options.CONNECTION_LOW_WATER, 1000000)
+                .set(Options.WORKER_TASK_CORE_THREADS, workerThreads)
+                .set(Options.WORKER_TASK_MAX_THREADS, workerThreads)
+                .set(Options.TCP_NODELAY, true)
+                .set(Options.CORK, true)
+                .getMap());
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Failed to create XNIO worker", e);
+        }
+        log.info("XNIO worker: {} I/O threads, {} task threads", worker.getIoThreadCount(), workerThreads);
 
         Undertow.Builder undertowBuilder = Undertow.builder()
             .addHttpListener(httpPort, config.getString("application.host"))
@@ -589,14 +608,7 @@ public class ProteusApplication {
                     config.getMemorySize("undertow.bufferSize").toBytes()
                 ).intValue()
             )
-            .setIoThreads(
-                processorCount * config.getInt("undertow.ioThreadsMultiplier")
-            )
             .setWorker(worker)
-            .setWorkerThreads(
-                processorCount *
-                    config.getInt("undertow.workerThreadsMultiplier")
-            )
             .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
             .setSocketOption(
                 org.xnio.Options.BACKLOG,

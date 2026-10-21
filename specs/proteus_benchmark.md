@@ -21,15 +21,22 @@
 
 ## Worker Threading Contract
 
-- `ProteusApplication.buildServer()` creates the XNIO worker with `Xnio.createWorkerBuilder()` and passes it to `Undertow.Builder.setWorker`. Because the worker is external, Undertow ignores `setIoThreads` and `setWorkerThreads`; thread counts must be applied to the XNIO builder directly.
-- `undertow.ioThreadsMultiplier` × available processors is applied via `XnioWorker.Builder.setWorkerIoThreads`.
-- `undertow.workerThreadsMultiplier` × available processors is applied via `setCoreWorkerPoolSize` and `setMaxWorkerPoolSize`.
-- `undertow.bufferPool.threadLocalCacheSize` is passed to `DefaultByteBufferPool`; Undertow's own default is 4. `0` disables the per-thread cache and with it the synchronized `WeakHashMap<Thread, …>` lookup on every buffer allocate and free.
-- `undertow.workerExecutor` selects the task pool thread type:
-  - `platform` (default): XNIO's own bounded pool of platform threads sized by the multiplier above.
-  - `virtual`: `Executors.newVirtualThreadPerTaskExecutor()` supplied through `setExternalExecutorService`; the worker-thread multiplier is then unused and XNIO does not shut the executor down, so `ProteusApplication.shutdown()` closes it.
-- `@Blocking` routes continue to dispatch with `Thread::startVirtualThread` regardless of `workerExecutor`.
-- Startup logs the effective I/O thread count, worker pool size, and executor type at `INFO`.
+- `ProteusApplication.buildServer()` creates the XNIO worker with `Xnio.createWorker(OptionMap)` and passes it to `Undertow.Builder.setWorker`. Because the worker is external, Undertow ignores `setIoThreads` and `setWorkerThreads`; the option map carries the values Undertow would apply to its own worker.
+- `undertow.ioThreadsMultiplier` × available processors is `Options.WORKER_IO_THREADS`.
+- `undertow.workerThreadsMultiplier` × available processors is `Options.WORKER_TASK_CORE_THREADS` and `Options.WORKER_TASK_MAX_THREADS`.
+- `CONNECTION_HIGH_WATER` and `CONNECTION_LOW_WATER` are 1000000, `TCP_NODELAY` and `CORK` are true.
+- `@Blocking` routes dispatch with `Thread::startVirtualThread`.
+- Startup logs the effective I/O thread count and task thread count at `INFO`.
+
+## Buffer Pool Contract
+
+- `ProteusApplication.buildServer()` passes one `ThreadRoutedByteBufferPool` to `Undertow.Builder.setByteBufferPool`; it holds two `DefaultByteBufferPool` instances with `undertow.directBuffers` and `undertow.bufferSize`.
+- An allocation on a platform thread (I/O and worker threads) uses the platform pool: Undertow's own default parameters, per-thread cache of 4 buffers and no shared-queue cap.
+- An allocation on a virtual thread uses the virtual pool: per-thread cache of 0, shared lock-free queue capped by `undertow.bufferPool.virtualMaximumPoolSize`.
+- A buffer returns to the pool it was allocated from, whichever thread frees it.
+- A buffer freed by one virtual thread is reused by the next virtual-thread allocation; a buffer freed while the virtual pool's queue already holds more than the cap is released.
+- `undertow.bufferPool.virtualMaximumPoolSize` default is 4096 buffers.
+- `getArrayBackedPool()` is the platform pool's array-backed pool; `close()` closes both pools.
 
 ## Server
 

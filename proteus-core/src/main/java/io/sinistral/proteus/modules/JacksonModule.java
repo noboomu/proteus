@@ -24,7 +24,7 @@ public class JacksonModule extends AbstractModule {
     @Override
     protected void configure() {
         JsonFactory factory = JsonFactory.builder()
-            .recyclerPool(JsonRecyclerPools.sharedConcurrentDequePool())
+            .recyclerPool(JsonRecyclerPools.threadLocalPool())
             .build();
 
         ObjectMapper objectMapper = JsonMapper.builder(factory)

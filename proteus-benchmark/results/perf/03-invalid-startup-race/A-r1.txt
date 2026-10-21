@@ -1,0 +1,87 @@
+side=A name=worker-fix round=1 opts=''
+threads=19
+11.94 18.76 22.10
+=== plaintext c=256 depth=16
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     3.36ms    1.72ms  15.54ms   58.88%
+    Req/Sec    13.36k   585.50    17.44k    72.63%
+  Latency Distribution
+     50%    3.67ms
+     75%    5.12ms
+     90%    6.13ms
+     99%    0.00us
+  9625760 requests in 15.10s, 1.32GB read
+Requests/sec: 637508.76
+Transfer/sec:     89.37MB
+=== plaintext c=1024 depth=16
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    17.64ms   12.19ms 142.66ms   72.72%
+    Req/Sec    11.76k     1.55k   20.29k    72.10%
+  Latency Distribution
+     50%   16.61ms
+     75%   23.68ms
+     90%   39.23ms
+     99%    0.00us
+  8458683 requests in 15.10s, 1.16GB read
+Requests/sec: 560209.44
+Transfer/sec:     78.54MB
+=== plaintext c=4096 depth=16
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 4096 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    78.31ms   63.66ms 615.19ms   77.02%
+    Req/Sec    10.57k     1.94k   17.62k    78.44%
+  Latency Distribution
+     50%   94.51ms
+     75%  134.77ms
+     90%    0.00us
+     99%    0.00us
+  7355762 requests in 15.10s, 1.01GB read
+Requests/sec: 487110.88
+Transfer/sec:     68.29MB
+=== plaintext c=256 depth=1
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     3.20ms    4.23ms  39.01ms   93.36%
+    Req/Sec     2.15k   334.79     2.54k    72.93%
+  Latency Distribution
+     50%    2.07ms
+     75%    2.11ms
+     90%    3.33ms
+     99%   25.25ms
+  1549778 requests in 15.10s, 217.26MB read
+Requests/sec: 102633.73
+Transfer/sec:     14.39MB
+=== plaintext c=1024 depth=1
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    11.99ms    8.59ms 124.21ms   91.72%
+    Req/Sec     1.96k   414.20     3.43k    72.65%
+  Latency Distribution
+     50%    9.65ms
+     75%   10.19ms
+     90%   14.85ms
+     99%   46.40ms
+  1410551 requests in 15.10s, 197.75MB read
+Requests/sec:  93423.31
+Transfer/sec:     13.10MB
+=== plaintext/exchange c=256 depth=1
+unable to connect to 192.168.1.209:8080 Connection refused
+=== plaintext/exchange c=1024 depth=1
+unable to connect to 192.168.1.209:8080 Connection refused
+=== json c=64 depth=1
+unable to connect to 192.168.1.209:8080 Connection refused
+=== json c=256 depth=1
+unable to connect to 192.168.1.209:8080 Connection refused
+=== json c=512 depth=1
+unable to connect to 192.168.1.209:8080 Connection refused
+=== json/blocking c=256 depth=1
+unable to connect to 192.168.1.209:8080 Connection refused
+=== json/blocking c=1024 depth=1
+unable to connect to 192.168.1.209:8080 Connection refused

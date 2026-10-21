@@ -25,7 +25,6 @@ import io.sinistral.proteus.utilities.TablePrinter;
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
-import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
@@ -162,9 +161,6 @@ public class ProteusApplication {
 
     /** The worker. */
     private volatile XnioWorker worker;
-
-    /** Virtual-thread task executor supplied to the worker when {@code undertow.workerExecutor=virtual}. */
-    private volatile ExecutorService workerTaskExecutor;
 
     /** The shutdown hook. */
     private volatile Thread shutdownHook;
@@ -455,13 +451,6 @@ public class ProteusApplication {
             currentWorker.shutdownNow();
             log.warn("XNIO worker shutdown was interrupted", e);
         }
-
-        // XNIO does not own an external executor; close the virtual-thread pool ourselves.
-        ExecutorService taskExecutor = workerTaskExecutor;
-        if (taskExecutor != null) {
-            taskExecutor.shutdownNow();
-            workerTaskExecutor = null;
-        }
     }
 
     private void removeShutdownHook() {
@@ -588,43 +577,10 @@ public class ProteusApplication {
         }
 
         final int processorCount = Runtime.getRuntime().availableProcessors();
-        final int ioThreads = Math.max(
-            1,
-            (int) Math.round(processorCount * config.getDouble("undertow.ioThreadsMultiplier"))
-        );
-        final int workerThreads = Math.max(
-            1,
-            (int) Math.round(processorCount * config.getDouble("undertow.workerThreadsMultiplier"))
-        );
-        final String workerExecutor = config.getString("undertow.workerExecutor");
 
         Xnio xnio = Xnio.getInstance();
 
-        // Undertow ignores setIoThreads/setWorkerThreads for an external worker, so size the XNIO builder directly.
-        XnioWorker.Builder workerBuilder = xnio
-            .createWorkerBuilder()
-            .setWorkerName("proteus")
-            .setWorkerIoThreads(ioThreads)
-            .setCoreWorkerPoolSize(workerThreads)
-            .setMaxWorkerPoolSize(workerThreads);
-
-        if ("virtual".equalsIgnoreCase(workerExecutor)) {
-            workerTaskExecutor = Executors.newVirtualThreadPerTaskExecutor();
-            workerBuilder.setExternalExecutorService(workerTaskExecutor);
-        } else if (!"platform".equalsIgnoreCase(workerExecutor)) {
-            throw new IllegalStateException(
-                "undertow.workerExecutor must be 'platform' or 'virtual', got '" + workerExecutor + "'"
-            );
-        }
-
-        worker = workerBuilder.build();
-
-        log.info(
-            "XNIO worker: {} I/O threads, {} task executor{}",
-            ioThreads,
-            workerExecutor,
-            "virtual".equalsIgnoreCase(workerExecutor) ? "" : " with " + workerThreads + " threads"
-        );
+        worker = xnio.createWorkerBuilder().build();
 
         Undertow.Builder undertowBuilder = Undertow.builder()
             .addHttpListener(httpPort, config.getString("application.host"))
@@ -633,11 +589,15 @@ public class ProteusApplication {
                     config.getMemorySize("undertow.bufferSize").toBytes()
                 ).intValue()
             )
+            .setIoThreads(
+                processorCount * config.getInt("undertow.ioThreadsMultiplier")
+            )
             .setWorker(worker)
+            .setWorkerThreads(
+                processorCount *
+                    config.getInt("undertow.workerThreadsMultiplier")
+            )
             .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
-            // Undertow's default pool keys a synchronized WeakHashMap by Thread on every allocate/free;
-            // threadLocalCacheSize=0 bypasses that and uses the lock-free shared queue only.
-            .setByteBufferPool(createByteBufferPool())
             .setSocketOption(
                 org.xnio.Options.BACKLOG,
                 config.getInt("undertow.socket.backlog")
@@ -720,27 +680,6 @@ public class ProteusApplication {
         }
 
         this.undertow = undertowBuilder.build();
-    }
-
-    /**
-     * Builds the shared buffer pool. {@code DefaultByteBufferPool} discards every freed buffer when
-     * {@code maximumPoolSize} is -1 (Undertow's own default relies on the per-thread cache to catch
-     * them), so with the per-thread cache disabled a real shared-queue cap is required or every
-     * request allocates and zeroes a fresh buffer.
-     */
-    private DefaultByteBufferPool createByteBufferPool() {
-        int bufferSize = Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue();
-        int maxPoolSize = config.getInt("undertow.bufferPool.maximumPoolSize");
-        if (maxPoolSize <= 0) {
-            long bytes = config.getMemorySize("undertow.bufferPool.maximumPoolBytes").toBytes();
-            maxPoolSize = (int) Math.max(64, bytes / bufferSize);
-        }
-        return new DefaultByteBufferPool(
-            config.getBoolean("undertow.directBuffers"),
-            bufferSize,
-            maxPoolSize,
-            config.getInt("undertow.bufferPool.threadLocalCacheSize")
-        );
     }
 
     /** Generates all controller sources concurrently with isolated endpoint metadata. */

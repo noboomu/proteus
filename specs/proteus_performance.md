@@ -51,12 +51,14 @@ The rules a runtime change to Proteus must satisfy before it is merged to the de
 
 ## Acceptance
 
-- A cell improves when the candidate minimum exceeds the baseline maximum.
-- A cell regresses when the candidate maximum is below the baseline minimum.
+- Each change is measured against its parent: the development line without the change.
+- A cell improves when the change's minimum exceeds the parent's maximum.
+- A cell regresses when the change's maximum is below the parent's minimum.
 - A change is accepted when it regresses no cell and improves at least one.
 - A change that regresses any cell is reverted.
-- Any non-2xx response or socket error other than end-of-run timeouts on the candidate rejects the change.
-- The full reactor test suite passes on the candidate.
+- Any non-2xx response or socket error other than end-of-run timeouts on the change rejects it.
+- The full reactor test suite passes with the change.
+- The development line after all accepted changes is measured against the baseline with the same rules, and the result is reported per cell.
 
 ## Change discipline
 
@@ -69,4 +71,4 @@ The rules a runtime change to Proteus must satisfy before it is merged to the de
 - `mvn clean verify` on the candidate: all tests pass, zero failures.
 - Server startup log on the candidate at 16 available processors reports the XNIO I/O thread count and worker pool size implied by its configuration.
 - The result table for every accepted change shows each cell's baseline and candidate median, minimum, maximum, p99, and error totals.
-- A final measurement of the development line after all accepted changes, against the baseline, satisfies the Acceptance rules.
+- A final measurement of the development line after all accepted changes against the baseline, reported per cell.

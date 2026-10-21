@@ -33,4 +33,5 @@ release.properties
 tty.sh
 .okhttpcache/*
 !proteus-benchmark/*.sh
+!proteus-benchmark/perf-harness/*.sh
 

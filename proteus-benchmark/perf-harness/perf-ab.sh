@@ -22,8 +22,18 @@ AP='Accept: text/plain,text/html;q=0.9,application/xhtml+xml;q=0.9,application/x
 AJ='Accept: application/json,text/html;q=0.9,application/xhtml+xml;q=0.9,application/xml;q=0.8,*/*;q=0.7'
 
 start() { local name=$1 opts=$2
+  # A stray server on the port would silently take the traffic; refuse to measure.
+  if ssh "$SERVER" "ss -ltn | grep -q ':$PORT '"; then echo "port $PORT busy before starting $name"; ssh "$SERVER" "ss -ltnp | grep ':$PORT '"; return 1; fi
   ssh "$SERVER" "bash -c 'ulimit -n 1048576; cd /tmp/proteus-perf; nohup taskset -c 0-7,128-135 $JAVA -Xms2g -Xmx2g -XX:+UseParallelGC $opts -jar $name.jar > $name.log 2>&1 & echo \$! > $name.pid'"
-  for _ in $(seq 1 120); do curl -sf "http://$IP:$PORT/plaintext" >/dev/null 2>&1 && return 0; sleep 0.5; done
+  for _ in $(seq 1 120); do curl -sf "http://$IP:$PORT/plaintext" >/dev/null 2>&1 && break; sleep 0.5; done
+  if ! ssh "$SERVER" "ss -ltnp | grep ':$PORT ' | grep -q \"pid=\$(cat /tmp/proteus-perf/$name.pid),\""; then echo "listener on $PORT is not $name"; return 1; fi
+  # The listener answers before every I/O thread exists; wait until the thread count stops changing.
+  local prev=0 cur=0
+  for _ in $(seq 1 60); do
+    cur=$(ssh "$SERVER" "ls /proc/\$(cat /tmp/proteus-perf/$name.pid)/task 2>/dev/null | wc -l")
+    [ "$cur" -gt 30 ] && [ "$cur" = "$prev" ] && return 0
+    prev=$cur; sleep 1
+  done
   echo "$name did not start"; ssh "$SERVER" "tail -20 /tmp/proteus-perf/$name.log"; return 1; }
 stop() { local name=$1
   ssh "$SERVER" "bash -c 'p=\$(cat /tmp/proteus-perf/$name.pid); kill \$p; for i in \$(seq 1 40); do kill -0 \$p 2>/dev/null || break; sleep 0.25; done'"; sleep 2; }

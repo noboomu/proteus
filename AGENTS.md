@@ -105,7 +105,7 @@ Uses Typesafe Config (`application.conf`) with HOCON format:
 - `ProteusApplication.java`: Main application bootstrap and server builder
 - `HandlerGenerator.java`: Runtime code generation for endpoint handlers
 - `ServerRequest.java` / `ServerResponse.java`: Request/response abstractions
-- `JacksonModule.java`: Jackson 3 `ObjectMapper` configured with Blackbird and a shared concurrent recycler pool
+- `JacksonModule.java`: Jackson 3 `ObjectMapper` configured with Blackbird and a thread-local recycler pool
 
 ## Development Guidelines
 
@@ -180,7 +180,7 @@ protected ObjectMapper objectMapper;
 
 // The ObjectMapper is pre-configured in JacksonModule with:
 // - Jackson 3 and Blackbird
-// - A shared concurrent recycler pool
+// - A thread-local recycler pool
 // - Tolerant request deserialization settings
 ```
 

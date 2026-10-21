@@ -14,6 +14,7 @@ import com.google.inject.Module;
 import com.google.inject.name.Named;
 import com.typesafe.config.Config;
 import io.sinistral.proteus.modules.ConfigModule;
+import io.sinistral.proteus.server.ThreadRoutedByteBufferPool;
 import io.sinistral.proteus.server.endpoints.EndpointInfo;
 import io.sinistral.proteus.server.compilation.ControllerCompiler;
 import io.sinistral.proteus.server.handlers.HandlerGenerator;
@@ -25,6 +26,7 @@ import io.sinistral.proteus.utilities.TablePrinter;
 import io.undertow.Undertow;
 import io.undertow.Undertow.ListenerInfo;
 import io.undertow.UndertowOptions;
+import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
@@ -163,6 +165,9 @@ public class ProteusApplication {
 
     /** The worker. */
     private volatile XnioWorker worker;
+
+    /** The buffer pool shared by every listener. */
+    private volatile ByteBufferPool byteBufferPool;
 
     /** The shutdown hook. */
     private volatile Thread shutdownHook;
@@ -601,15 +606,16 @@ public class ProteusApplication {
         }
         log.info("XNIO worker: {} I/O threads, {} task threads", worker.getIoThreadCount(), workerThreads);
 
+        this.byteBufferPool = new ThreadRoutedByteBufferPool(
+            config.getBoolean("undertow.directBuffers"),
+            Long.valueOf(config.getMemorySize("undertow.bufferSize").toBytes()).intValue(),
+            config.getInt("undertow.bufferPool.virtualMaximumPoolSize")
+        );
+
         Undertow.Builder undertowBuilder = Undertow.builder()
             .addHttpListener(httpPort, config.getString("application.host"))
-            .setBufferSize(
-                Long.valueOf(
-                    config.getMemorySize("undertow.bufferSize").toBytes()
-                ).intValue()
-            )
+            .setByteBufferPool(byteBufferPool)
             .setWorker(worker)
-            .setDirectBuffers(config.getBoolean("undertow.directBuffers"))
             .setSocketOption(
                 org.xnio.Options.BACKLOG,
                 config.getInt("undertow.socket.backlog")
@@ -1022,6 +1028,15 @@ public class ProteusApplication {
      */
     public XnioWorker getWorker() {
         return worker;
+    }
+
+    /**
+     * Returns the buffer pool shared by every listener.
+     *
+     * @return the pool, or {@code null} before the server has been built
+     */
+    public ByteBufferPool getByteBufferPool() {
+        return byteBufferPool;
     }
 
     /**

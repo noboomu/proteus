@@ -2,8 +2,8 @@ package io.sinistral.proteus.modules;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import io.sinistral.proteus.server.ThreadRoutedRecyclerPool;
 import tools.jackson.core.json.JsonFactory;
-import tools.jackson.core.util.JsonRecyclerPools;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -24,7 +24,7 @@ public class JacksonModule extends AbstractModule {
     @Override
     protected void configure() {
         JsonFactory factory = JsonFactory.builder()
-            .recyclerPool(JsonRecyclerPools.threadLocalPool())
+            .recyclerPool(ThreadRoutedRecyclerPool.INSTANCE)
             .build();
 
         ObjectMapper objectMapper = JsonMapper.builder(factory)

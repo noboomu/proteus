@@ -38,6 +38,13 @@
 - `undertow.bufferPool.virtualMaximumPoolSize` default is 4096 buffers.
 - `getArrayBackedPool()` is the platform pool's array-backed pool; `close()` closes both pools.
 
+## JSON Recycler Pool Contract
+
+- `JacksonModule` builds the `JsonFactory` with `ThreadRoutedRecyclerPool`, a Jackson `RecyclerPool<BufferRecycler>`.
+- On a platform thread it delegates to `JsonRecyclerPools.threadLocalPool()`: one recycler per thread, no shared state.
+- On a virtual thread it delegates to a lock-free `JsonRecyclerPools.ConcurrentDequePool`: a recycler released by one virtual thread is acquired by the next.
+- A recycler acquired on a virtual thread is linked to the deque pool and returns to it when released, whichever thread releases it.
+
 ## Server
 
 - `BenchmarkApplication` is a `ProteusApplication` with one controller and no services beyond the defaults.

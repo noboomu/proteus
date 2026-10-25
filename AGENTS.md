@@ -341,7 +341,7 @@ Generated handlers dispatch routes marked `@Blocking` with `Thread::startVirtual
 
 Buffer and recycler pools are routed by thread kind, because a virtual thread lives for one request and per-thread caches never hit on it:
 
-- `ThreadRoutedByteBufferPool`: platform threads use Undertow's default `DefaultByteBufferPool` (per-thread cache 4); virtual threads use a shared lock-free queue capped by `undertow.bufferPool.virtualMaximumPoolSize`.
+- `ThreadRoutedByteBufferPool`: platform threads use XNIO's `ByteBufferSlicePool` (real `ThreadLocal` cache of 4, as Undertow 2.2 did); Undertow 2.3's `DefaultByteBufferPool` per-thread cache is a synchronized map contended by every I/O thread. Virtual threads use a `DefaultByteBufferPool` with no per-thread cache and a shared lock-free queue capped by `undertow.bufferPool.virtualMaximumPoolSize`.
 - `ThreadRoutedRecyclerPool` (Jackson): platform threads use `JsonRecyclerPools.threadLocalPool()`; virtual threads share a lock-free deque.
 
 Performance changes follow `specs/proteus_performance.md`: each change measured against its parent on attenborough (8 cores pinned) with wrk from godzilla, via `proteus-benchmark/perf-harness/`. Results: `proteus-benchmark/results/perf/`.

@@ -1,29 +1,30 @@
 package io.sinistral.proteus.test.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.typesafe.config.ConfigFactory;
 import io.sinistral.proteus.ProteusApplication;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.connector.PooledByteBuffer;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * The listener buffer pool keeps a per-thread cache for platform threads and a shared, capped
- * queue for virtual threads, so a buffer freed by one virtual thread is reused by the next.
+ * queue for virtual threads. Buffers are identified by a tag written into their memory, because a
+ * pool may hand out a new {@code ByteBuffer} view of the same memory on each allocation.
  */
 public class BufferPoolTest {
+
+    private static final AtomicLong TAGS = new AtomicLong(System.nanoTime());
 
     private ProteusApplication application;
 
@@ -44,26 +45,31 @@ public class BufferPoolTest {
         return application.getByteBufferPool();
     }
 
-    /** Allocates and frees one buffer on a new thread of the given kind and returns it. */
-    private static ByteBuffer allocateAndFreeOn(Thread.Builder builder, ByteBufferPool pool) throws InterruptedException {
-        AtomicReference<ByteBuffer> freed = new AtomicReference<>();
-        Thread thread = builder.start(() -> {
-            PooledByteBuffer pooled = pool.allocate();
-            freed.set(pooled.getBuffer());
-            pooled.close();
-        });
-        thread.join(10_000);
-        return freed.get();
+    /** Allocates a buffer, returns the tag it already held, writes a fresh tag, frees it, returns the fresh tag. */
+    private static long[] allocateTagAndFree(ByteBufferPool pool) {
+        try (PooledByteBuffer pooled = pool.allocate()) {
+            long previous = pooled.getBuffer().getLong(0);
+            long tag = TAGS.incrementAndGet();
+            pooled.getBuffer().putLong(0, tag);
+            return new long[] {previous, tag};
+        }
+    }
+
+    /** Runs {@link #allocateTagAndFree} on a new thread of the given kind. */
+    private static long[] allocateTagAndFreeOn(Thread.Builder builder, ByteBufferPool pool) throws InterruptedException {
+        AtomicReference<long[]> result = new AtomicReference<>();
+        builder.start(() -> result.set(allocateTagAndFree(pool))).join(10_000);
+        return result.get();
     }
 
     @Test
     public void bufferFreedByOneVirtualThreadIsReusedByTheNext() throws Exception {
         ByteBufferPool pool = start(64);
 
-        ByteBuffer first = allocateAndFreeOn(Thread.ofVirtual(), pool);
-        ByteBuffer second = allocateAndFreeOn(Thread.ofVirtual(), pool);
+        long freedTag = allocateTagAndFreeOn(Thread.ofVirtual(), pool)[1];
+        long seenByNext = allocateTagAndFreeOn(Thread.ofVirtual(), pool)[0];
 
-        assertSame(first, second);
+        assertEquals(freedTag, seenByNext);
     }
 
     @Test
@@ -71,22 +77,18 @@ public class BufferPoolTest {
         ByteBufferPool pool = start(64);
 
         // The freeing platform thread gets its buffer back from its own cache.
-        AtomicReference<Boolean> sameOnOwner = new AtomicReference<>();
-        AtomicReference<ByteBuffer> platform = new AtomicReference<>();
-        Thread owner = Thread.ofPlatform().start(() -> {
-            PooledByteBuffer pooled = pool.allocate();
-            platform.set(pooled.getBuffer());
-            pooled.close();
-            try (PooledByteBuffer reused = pool.allocate()) {
-                sameOnOwner.set(reused.getBuffer() == platform.get());
-            }
-        });
-        owner.join(10_000);
-        assertEquals(Boolean.TRUE, sameOnOwner.get());
+        AtomicReference<long[]> owner = new AtomicReference<>();
+        Thread.ofPlatform().start(() -> {
+            long freedTag = allocateTagAndFree(pool)[1];
+            long seenAgain = allocateTagAndFree(pool)[0];
+            owner.set(new long[] {freedTag, seenAgain});
+        }).join(10_000);
+        assertEquals(owner.get()[0], owner.get()[1]);
 
-        // Neither another platform thread nor a virtual thread receives it.
-        assertNotSame(platform.get(), allocateAndFreeOn(Thread.ofPlatform(), pool));
-        assertNotSame(platform.get(), allocateAndFreeOn(Thread.ofVirtual(), pool));
+        // The owner's cached buffer holds its second tag; no other thread receives it.
+        long cachedTag = TAGS.get();
+        assertNotEquals(cachedTag, allocateTagAndFreeOn(Thread.ofPlatform(), pool)[0]);
+        assertNotEquals(cachedTag, allocateTagAndFreeOn(Thread.ofVirtual(), pool)[0]);
     }
 
     @Test
@@ -95,28 +97,29 @@ public class BufferPoolTest {
         int allocated = 16;
         ByteBufferPool pool = start(cap);
 
-        Set<ByteBuffer> firstBuffers = Collections.newSetFromMap(new IdentityHashMap<>());
         AtomicInteger reused = new AtomicInteger();
-        Thread thread = Thread.ofVirtual().start(() -> {
+        Thread.ofVirtual().start(() -> {
+            Set<Long> firstTags = new HashSet<>();
             List<PooledByteBuffer> first = new ArrayList<>();
             for (int i = 0; i < allocated; i++) {
                 PooledByteBuffer pooled = pool.allocate();
+                long tag = TAGS.incrementAndGet();
+                pooled.getBuffer().putLong(0, tag);
+                firstTags.add(tag);
                 first.add(pooled);
-                firstBuffers.add(pooled.getBuffer());
             }
             first.forEach(PooledByteBuffer::close);
 
             List<PooledByteBuffer> second = new ArrayList<>();
             for (int i = 0; i < allocated; i++) {
                 PooledByteBuffer pooled = pool.allocate();
-                second.add(pooled);
-                if (firstBuffers.contains(pooled.getBuffer())) {
+                if (firstTags.contains(pooled.getBuffer().getLong(0))) {
                     reused.incrementAndGet();
                 }
+                second.add(pooled);
             }
             second.forEach(PooledByteBuffer::close);
-        });
-        thread.join(10_000);
+        }).join(10_000);
 
         // DefaultByteBufferPool admits a freed buffer while the queue holds no more than the cap.
         assertEquals(cap + 1, reused.get(), "reused of " + allocated + " with cap " + cap);

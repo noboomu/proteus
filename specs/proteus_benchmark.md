@@ -30,9 +30,9 @@
 
 ## Buffer Pool Contract
 
-- `ProteusApplication.buildServer()` passes one `ThreadRoutedByteBufferPool` to `Undertow.Builder.setByteBufferPool`; it holds two `DefaultByteBufferPool` instances with `undertow.directBuffers` and `undertow.bufferSize`.
-- An allocation on a platform thread (I/O and worker threads) uses the platform pool: Undertow's own default parameters, per-thread cache of 4 buffers and no shared-queue cap.
-- An allocation on a virtual thread uses the virtual pool: per-thread cache of 0, shared lock-free queue capped by `undertow.bufferPool.virtualMaximumPoolSize`.
+- `ProteusApplication.buildServer()` passes one `ThreadRoutedByteBufferPool` to `Undertow.Builder.setByteBufferPool`; both of its pools hand out buffers of `undertow.bufferSize`, direct when `undertow.directBuffers` is true.
+- An allocation on a platform thread (I/O and worker threads) uses the platform pool: XNIO `ByteBufferSlicePool` behind Undertow's `XnioByteBufferPool`, regions of 64 buffers, a `java.lang.ThreadLocal` cache of 4 buffers per thread, and an unbounded lock-free shared queue. A buffer freed beyond the freeing thread's cache goes to the shared queue.
+- An allocation on a virtual thread uses the virtual pool: `DefaultByteBufferPool` with per-thread cache of 0 and a shared lock-free queue capped by `undertow.bufferPool.virtualMaximumPoolSize`.
 - A buffer returns to the pool it was allocated from, whichever thread frees it.
 - A buffer freed by one virtual thread is reused by the next virtual-thread allocation; a buffer freed while the virtual pool's queue already holds more than the cap is released.
 - `undertow.bufferPool.virtualMaximumPoolSize` default is 4096 buffers.

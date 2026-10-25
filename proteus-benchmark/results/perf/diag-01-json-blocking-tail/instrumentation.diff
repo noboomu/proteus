@@ -1,0 +1,47 @@
+--- app/src/main/java/io/sinistral/perf/PerfApplication.java	2026-10-21 08:54:24.784105082 -0700
++++ app-diag/src/main/java/io/sinistral/perf/PerfApplication.java	2026-10-25 09:37:47.169894960 -0700
+@@ -59,7 +59,44 @@
+         @Produces(MediaType.APPLICATION_JSON)
+         @Blocking
+         public ServerResponse<Message> jsonBlocking(ServerRequest request) {
++            HttpServerExchange exchange = request.getExchange();
++            long running = System.nanoTime();
++            long parsed = exchange.getRequestStartTime();
++            Diag.QUEUE.recordValue(Math.max(0, running - parsed) / 1000);
++            exchange.addExchangeCompleteListener((ex, next) -> {
++                long done = System.nanoTime();
++                Diag.COMPLETE.recordValue(Math.max(0, done - running) / 1000);
++                Diag.TOTAL.recordValue(Math.max(0, done - parsed) / 1000);
++                next.proceed();
++            });
+             return response(new Message("Hello, World!")).applicationJson();
+         }
++
++        /** Prints and resets stage histograms (microseconds). */
++        @GET
++        @Path("/diag")
++        @Produces(MediaType.TEXT_PLAIN)
++        public void diag(HttpServerExchange exchange) {
++            exchange.getResponseSender().send(Diag.report());
++        }
++    }
++
++    /** Per-stage latency histograms for /json/blocking, recorded server-side. */
++    static final class Diag {
++        static final org.HdrHistogram.ConcurrentHistogram QUEUE = new org.HdrHistogram.ConcurrentHistogram(3);
++        static final org.HdrHistogram.ConcurrentHistogram COMPLETE = new org.HdrHistogram.ConcurrentHistogram(3);
++        static final org.HdrHistogram.ConcurrentHistogram TOTAL = new org.HdrHistogram.ConcurrentHistogram(3);
++
++        /** Formats p50/p90/p99/p999/max per stage, then resets. */
++        static String report() {
++            StringBuilder sb = new StringBuilder();
++            for (var e : java.util.Map.of("queue", QUEUE, "complete", COMPLETE, "total", TOTAL).entrySet()) {
++                var h = e.getValue();
++                sb.append(String.format("%-8s n=%d p50=%d p90=%d p99=%d p999=%d max=%d us%n", e.getKey(), h.getTotalCount(),
++                    h.getValueAtPercentile(50), h.getValueAtPercentile(90), h.getValueAtPercentile(99), h.getValueAtPercentile(99.9), h.getMaxValue()));
++                h.reset();
++            }
++            return sb.toString();
++        }
+     }
+ }

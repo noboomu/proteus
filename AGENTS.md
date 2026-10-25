@@ -105,7 +105,7 @@ Uses Typesafe Config (`application.conf`) with HOCON format:
 - `ProteusApplication.java`: Main application bootstrap and server builder
 - `HandlerGenerator.java`: Runtime code generation for endpoint handlers
 - `ServerRequest.java` / `ServerResponse.java`: Request/response abstractions
-- `JacksonModule.java`: Jackson 3 `ObjectMapper` configured with Blackbird and a thread-local recycler pool
+- `JacksonModule.java`: Jackson 3 `ObjectMapper` configured with Blackbird and a thread-routed recycler pool
 
 ## Development Guidelines
 
@@ -180,7 +180,7 @@ protected ObjectMapper objectMapper;
 
 // The ObjectMapper is pre-configured in JacksonModule with:
 // - Jackson 3 and Blackbird
-// - A thread-local recycler pool
+// - A recycler pool: thread-local on platform threads, shared deque on virtual threads
 // - Tolerant request deserialization settings
 ```
 
@@ -236,12 +236,11 @@ application {
 
 undertow {
   gracefulShutdown = true
-  ioThreadsMultiplier = 1        # x availableProcessors, rounded, min 1
+  ioThreadsMultiplier = 2        # x availableProcessors
   workerThreadsMultiplier = 10   # x availableProcessors
-  workerExecutor = platform      # or virtual
-  bufferSize = 16K
-  directBuffers = false
-  bufferPool.threadLocalCacheSize = 0
+  bufferSize = 16k
+  directBuffers = true
+  bufferPool.virtualMaximumPoolSize = 4096
 
   server {
     enableHttp2 = false
@@ -330,21 +329,22 @@ When using `proteus-openapi` module:
 
 ## Worker Threads
 
-Proteus builds its own XNIO worker and hands it to Undertow via `setWorker`. Because the worker is external, Undertow's `setIoThreads`/`setWorkerThreads` are ignored; Proteus sizes the XNIO builder directly:
+Proteus builds its own XNIO worker with `Xnio.createWorker(OptionMap)` and hands it to Undertow via `setWorker`. Because the worker is external, Undertow's `setIoThreads`/`setWorkerThreads` are ignored; the option map carries the values Undertow would apply to its own worker:
 
-- `undertow.ioThreadsMultiplier` × `availableProcessors()` I/O threads (rounded, min 1). Default 1. Each I/O thread serves roughly 110k non-blocking req/s and throughput scales linearly to one thread per CPU on 4- and 8-CPU hosts. Hosts above ~64 logical CPUs measured best at 0.05 to 0.25, and `@Blocking` routes prefer fewer I/O threads so virtual-thread carriers get cores.
+- `undertow.ioThreadsMultiplier` × `availableProcessors()` I/O threads. Default 2.
 - `undertow.workerThreadsMultiplier` × `availableProcessors()` task-pool threads. Default 10.
-- `undertow.workerExecutor`: `platform` (default, XNIO bounded pool) or `virtual` (`Executors.newVirtualThreadPerTaskExecutor()` as the external executor; every `exchange.dispatch(...)` then runs on a fresh virtual thread and the worker-thread multiplier is unused).
+- Connection water marks 1000000, `TCP_NODELAY` and `CORK` on.
 
-- `undertow.directBuffers=false` and `undertow.bufferPool.threadLocalCacheSize=0` by default. Undertow's `DefaultByteBufferPool` consults a synchronized `WeakHashMap<Thread, …>` on every allocate and free when the per-thread cache is enabled; disabling it with heap buffers roughly doubled throughput in `proteus-benchmark/results/2026-10-07-worker-and-buffer-sweep.md`. Do not set `threadLocalCacheSize=0` with direct buffers.
+Startup logs at INFO: `XNIO worker: N I/O threads, M task threads`.
 
-Startup logs the effective configuration at INFO: `XNIO worker: N I/O threads, <type> task executor [with M threads]`.
+Generated handlers dispatch routes marked `@Blocking` with `Thread::startVirtualThread` when invoked on an I/O thread. A handler already running on a worker remains on that thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
 
-Independently of `workerExecutor`, generated handlers dispatch routes marked `@Blocking` with `Thread::startVirtualThread` when invoked on an I/O thread. A handler already running on a worker remains on that thread. A method-level `@Blocking(false)` overrides a class-level `@Blocking`, and parameter types that require blocking processing also trigger dispatch.
+Buffer and recycler pools are routed by thread kind, because a virtual thread lives for one request and per-thread caches never hit on it:
 
-Set `undertow.workerExecutor=virtual` when dispatched handlers block (JDBC, synchronous HTTP, file I/O). A platform pool caps blocking throughput at pool-size / wait-time and queues beyond it (16 threads × 10 ms wait → 1.6k req/s, p99 in seconds at 4k connections); virtual threads track open connections instead (394k req/s, p99 15 ms at the same load). For CPU-bound dispatched work the two are equal to ~1k connections and platform is slightly ahead beyond. Routes that complete on the I/O thread never dispatch and are unaffected.
+- `ThreadRoutedByteBufferPool`: platform threads use Undertow's default `DefaultByteBufferPool` (per-thread cache 4); virtual threads use a shared lock-free queue capped by `undertow.bufferPool.virtualMaximumPoolSize`.
+- `ThreadRoutedRecyclerPool` (Jackson): platform threads use `JsonRecyclerPools.threadLocalPool()`; virtual threads share a lock-free deque.
 
-Tune with `proteus-benchmark/sweep.sh`. Findings and the reasoning behind the defaults: `proteus-benchmark/results/2026-10-07-worker-and-buffer-sweep.md` and `proteus-benchmark/results/2026-10-10-blocking-and-small-hosts.md`.
+Performance changes follow `specs/proteus_performance.md`: each change measured against its parent on attenborough (8 cores pinned) with wrk from godzilla, via `proteus-benchmark/perf-harness/`. Results: `proteus-benchmark/results/perf/`.
 
 ## Performance Characteristics
 
@@ -352,7 +352,7 @@ Tune with `proteus-benchmark/sweep.sh`. Findings and the reasoning behind the de
 - Zero reflection overhead during request processing
 - Undertow's direct buffer pool with configurable buffer sizes
 - Explicitly blocking routes are isolated from Undertow I/O threads through virtual-thread dispatch
-- Reproducible local benchmark: `proteus-benchmark/run.sh` (see `specs/proteus_benchmark.md`); results under `proteus-benchmark/results/`
+- Performance contract: `specs/proteus_performance.md`; harness `proteus-benchmark/perf-harness/`
 
 ## Important Notes
 

@@ -1,0 +1,172 @@
+side=A name=baseline round=3 opts=''
+Creating worker:null, pool size:160, max pool size:160, keep alive:60000, io threads:32, stack size:0
+threads=67
+41.32 41.45 38.57
+=== plaintext c=256 depth=16
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.43ms    1.68ms  27.31ms   89.56%
+    Req/Sec    57.92k     9.53k   94.71k    71.82%
+  Latency Distribution
+     50%    0.86ms
+     75%    1.80ms
+     90%    3.18ms
+     99%    8.50ms
+  41754777 requests in 15.10s, 5.72GB read
+Requests/sec: 2765283.13
+Transfer/sec:    387.67MB
+=== plaintext c=1024 depth=16
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.75ms    4.33ms  87.09ms   86.91%
+    Req/Sec    56.89k     5.67k   82.17k    77.59%
+  Latency Distribution
+     50%    3.54ms
+     75%    6.23ms
+     90%    9.95ms
+     99%   20.42ms
+  40990660 requests in 15.10s, 5.61GB read
+Requests/sec: 2714667.00
+Transfer/sec:    380.57MB
+=== plaintext c=4096 depth=16
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 4096 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    15.78ms   10.62ms 134.77ms   70.80%
+    Req/Sec    54.41k     4.45k  141.41k    92.95%
+  Latency Distribution
+     50%   13.97ms
+     75%   21.60ms
+     90%   29.42ms
+     99%   48.72ms
+  39166284 requests in 15.10s, 5.36GB read
+Requests/sec: 2593794.33
+Transfer/sec:    363.62MB
+=== plaintext c=256 depth=1
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   367.89us  601.43us  13.99ms   89.70%
+    Req/Sec    24.74k     3.05k   37.61k    67.59%
+  Latency Distribution
+     50%  153.00us
+     75%  289.00us
+     90%    0.99ms
+     99%    3.02ms
+  17841976 requests in 15.10s, 2.44GB read
+Requests/sec: 1181611.37
+Transfer/sec:    165.65MB
+=== plaintext c=1024 depth=1
+Running 15s test @ http://192.168.1.209:8080/plaintext
+  48 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.00ms    1.02ms  22.07ms   84.70%
+    Req/Sec    26.61k     1.74k   42.80k    70.15%
+  Latency Distribution
+     50%  474.00us
+     75%    1.46ms
+     90%    2.30ms
+     99%    4.41ms
+  19181943 requests in 15.10s, 2.63GB read
+Requests/sec: 1270332.74
+Transfer/sec:    178.09MB
+=== plaintext/exchange c=256 depth=1
+Running 15s test @ http://192.168.1.209:8080/plaintext/exchange
+  48 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   340.29us  552.98us  16.75ms   89.64%
+    Req/Sec    26.74k     3.59k   39.53k    67.17%
+  Latency Distribution
+     50%  138.00us
+     75%  276.00us
+     90%    0.92ms
+     99%    2.73ms
+  19283543 requests in 15.10s, 2.37GB read
+Requests/sec: 1277081.45
+Transfer/sec:    160.77MB
+=== plaintext/exchange c=1024 depth=1
+Running 15s test @ http://192.168.1.209:8080/plaintext/exchange
+  48 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     0.92ms    0.93ms  22.36ms   83.79%
+    Req/Sec    29.18k     1.92k   48.82k    73.25%
+  Latency Distribution
+     50%  428.00us
+     75%    1.37ms
+     90%    2.19ms
+     99%    4.13ms
+  21031306 requests in 15.10s, 2.59GB read
+Requests/sec: 1392817.22
+Transfer/sec:    175.33MB
+=== json c=64 depth=1
+Running 15s test @ http://192.168.1.209:8080/json
+  48 threads and 64 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    83.84us  119.11us   3.00ms   96.64%
+    Req/Sec    14.25k     1.62k   19.02k    66.92%
+  Latency Distribution
+     50%   58.00us
+     75%   73.00us
+     90%  123.00us
+     99%  718.00us
+  10275179 requests in 15.10s, 1.45GB read
+Requests/sec: 680469.57
+Transfer/sec:     98.64MB
+=== json c=256 depth=1
+Running 15s test @ http://192.168.1.209:8080/json
+  48 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   383.48us  645.87us  17.11ms   89.68%
+    Req/Sec    24.90k     3.26k   40.02k    67.11%
+  Latency Distribution
+     50%  145.00us
+     75%  307.00us
+     90%    1.06ms
+     99%    3.19ms
+  17953835 requests in 15.10s, 2.54GB read
+Requests/sec: 1189015.70
+Transfer/sec:    172.36MB
+=== json c=512 depth=1
+Running 15s test @ http://192.168.1.209:8080/json
+  48 threads and 512 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   635.66us    0.86ms  23.86ms   86.80%
+    Req/Sec    26.67k     2.31k   36.49k    67.65%
+  Latency Distribution
+     50%  238.00us
+     75%  796.00us
+     90%    1.77ms
+     99%    3.96ms
+  19228500 requests in 15.10s, 2.72GB read
+Requests/sec: 1273424.26
+Transfer/sec:    184.59MB
+=== json/blocking c=256 depth=1
+Running 15s test @ http://192.168.1.209:8080/json/blocking
+  48 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   548.22us    1.13ms 210.28ms   93.64%
+    Req/Sec    14.30k     2.06k   22.50k    68.09%
+  Latency Distribution
+     50%  255.00us
+     75%  618.00us
+     90%    1.27ms
+     99%    4.07ms
+  10311139 requests in 15.10s, 1.46GB read
+Requests/sec: 682864.67
+Transfer/sec:     98.99MB
+=== json/blocking c=1024 depth=1
+Running 15s test @ http://192.168.1.209:8080/json/blocking
+  48 threads and 1024 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.95ms    2.29ms  33.32ms   87.30%
+    Req/Sec    15.31k     1.31k   24.82k    70.96%
+  Latency Distribution
+     50%    1.19ms
+     75%    2.71ms
+     90%    4.79ms
+     99%   10.61ms
+  11033181 requests in 15.10s, 1.56GB read
+Requests/sec: 730696.74
+Transfer/sec:    105.92MB

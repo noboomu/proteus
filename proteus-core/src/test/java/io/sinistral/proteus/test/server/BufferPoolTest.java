@@ -2,6 +2,7 @@ package io.sinistral.proteus.test.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typesafe.config.ConfigFactory;
 import io.sinistral.proteus.ProteusApplication;
@@ -89,6 +90,34 @@ public class BufferPoolTest {
         long cachedTag = TAGS.get();
         assertNotEquals(cachedTag, allocateTagAndFreeOn(Thread.ofPlatform(), pool)[0]);
         assertNotEquals(cachedTag, allocateTagAndFreeOn(Thread.ofVirtual(), pool)[0]);
+    }
+
+    @Test
+    public void platformBuffersFreedOnVirtualThreadsAreReused() throws Exception {
+        ByteBufferPool pool = start(64);
+        int cycles = 2_000;
+
+        // An I/O thread allocates and a @Blocking handler's virtual thread frees. Freed buffers must
+        // reach the shared queue, not a cache that dies with the virtual thread, so after the first
+        // regions are carved nearly every allocation reuses memory that already held a tag.
+        AtomicInteger reused = new AtomicInteger();
+        Thread.ofPlatform().start(() -> {
+            for (int i = 0; i < cycles; i++) {
+                PooledByteBuffer pooled = pool.allocate();
+                if (pooled.getBuffer().getLong(0) != 0) {
+                    reused.incrementAndGet();
+                }
+                pooled.getBuffer().putLong(0, TAGS.incrementAndGet());
+                try {
+                    Thread.ofVirtual().start(pooled::close).join();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }).join(30_000);
+
+        assertTrue(reused.get() >= cycles - 128, "reused " + reused.get() + " of " + cycles);
     }
 
     @Test

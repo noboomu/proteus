@@ -12,6 +12,7 @@ JAVA_HOME_LOCAL=/usr/lib/jvm/java-27-openjdk
 DAY=$(TZ=America/Los_Angeles date +%F)
 OUT="$REPO/proteus-benchmark/results/perf/nightly/$DAY"
 PUSH=1; [ "${1:-}" = "--no-push" ] && PUSH=0
+DEFER_SECONDS=${PROTEUS_NIGHTLY_DEFER_SECONDS:-1800}
 LOCK=/tmp/proteus-nightly.lock
 
 exec 9>"$LOCK"; flock -n 9 || { echo "another nightly run holds $LOCK"; exit 0; }
@@ -50,7 +51,7 @@ idle() {
 for attempt in 0 1 2 3 4; do
   idle && break
   [ "$attempt" = 4 ] && finish SKIPPED "hosts busy after four deferrals: $BUSY"
-  echo "busy ($BUSY); deferring 30 min"; sleep 1800
+  echo "busy ($BUSY); deferring ${DEFER_SECONDS}s"; sleep "$DEFER_SECONDS"
 done
 
 git fetch -q origin

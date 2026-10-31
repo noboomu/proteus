@@ -71,6 +71,9 @@ done
   echo "xnio $(ls ~/.m2/repository/org/jboss/xnio/xnio-api/ | sort -V | tail -1)"
   echo "load $SERVER $(rsh "$SERVER" cat /proc/loadavg)"
   echo "load $LOAD $(rsh "$LOAD" cat /proc/loadavg)"
+  for h in "$SERVER" "$LOAD"; do
+    echo "host $h kernel $(rsh "$h" 'uname -r') up_since $(rsh "$h" 'uptime -s') governor $(rsh "$h" 'cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor') epp $(rsh "$h" 'cat /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference 2>/dev/null')"
+  done
 } > "$OUT/env.txt"
 
 # Step 1-2: full reactor verify.
@@ -116,7 +119,9 @@ TAIL="complete p99.9 $(echo "$C" | grep -o 'p999=[0-9]*' | cut -d= -f2) us, max 
 # Step 7: versus previous nightly, same range rule as the performance contract.
 PREV=$(ls -d "$REPO"/proteus-benchmark/results/perf/nightly/*/ 2>/dev/null | grep -v "/$DAY/" | while read -r d; do [ -f "$d/B-r1.txt" ] && echo "$d"; done | sort | tail -1)
 REGRESSED=0
-if [ -n "$PREV" ]; then
+if [ -n "$PREV" ] && [ "$(grep '^host ' "$PREV/env.txt" 2>/dev/null | sed 's/ governor.*//')" != "$(grep '^host ' "$OUT/env.txt" | sed 's/ governor.*//')" ]; then
+  PREVIOUS="$(basename "$PREV"): not comparable (host kernel or boot changed)"
+elif [ -n "$PREV" ]; then
   mkdir -p "$OUT/vs-previous"
   for r in 1 2 3; do
     sed "1s/name=[^ ]*/name=previous/" "$PREV/B-r$r.txt" > "$OUT/vs-previous/A-r$r.txt"

@@ -1,0 +1,13 @@
+Running 15s test @ http://192.168.1.209:8080/json/blocking
+  48 threads and 256 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.52ms   13.01ms 210.23ms   98.81%
+    Req/Sec    23.53k     2.14k   42.25k    88.00%
+  Latency Distribution
+     50%  176.00us
+     75%  294.00us
+     90%  485.00us
+     99%   38.74ms
+  16957317 requests in 15.10s, 2.40GB read
+Requests/sec: 1123015.93
+Transfer/sec:    162.79MB

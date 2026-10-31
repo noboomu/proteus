@@ -1,0 +1,882 @@
+jdk.ThreadPark {
+  startTime = 18:46:41.494 (2026-10-30)
+  duration = 1.93 s
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = 18:47:11.494 (2026-10-30)
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-1" (javaThreadId = 38)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-13" (javaThreadId = 112)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-2" (javaThreadId = 101)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-9" (javaThreadId = 103)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-15" (javaThreadId = 119)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-7" (javaThreadId = 106)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = 18:47:18.538 (2026-10-30)
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-16" (javaThreadId = 122)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-4" (javaThreadId = 104)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-8" (javaThreadId = 105)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-3" (javaThreadId = 109)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-10" (javaThreadId = 108)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-14" (javaThreadId = 117)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.538 (2026-10-30)
+  duration = 291 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-11" (javaThreadId = 110)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.537 (2026-10-30)
+  duration = 291 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-1" (javaThreadId = 38)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.537 (2026-10-30)
+  duration = 291 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-12" (javaThreadId = 111)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.537 (2026-10-30)
+  duration = 292 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-6" (javaThreadId = 107)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:46:48.537 (2026-10-30)
+  duration = 292 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-5" (javaThreadId = 102)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 288 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-15" (javaThreadId = 119)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 288 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-12" (javaThreadId = 111)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 288 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-5" (javaThreadId = 102)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 288 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-13" (javaThreadId = 112)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 288 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-2" (javaThreadId = 101)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 288 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-8" (javaThreadId = 105)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 288 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = 18:47:33.942 (2026-10-30)
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-7" (javaThreadId = 106)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 289 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-9" (javaThreadId = 103)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 289 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-10" (javaThreadId = 108)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 289 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-1" (javaThreadId = 38)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 288 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-4" (javaThreadId = 104)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.942 (2026-10-30)
+  duration = 289 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-6" (javaThreadId = 107)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.941 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-3" (javaThreadId = 109)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.941 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-16" (javaThreadId = 122)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.941 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-14" (javaThreadId = 117)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:03.941 (2026-10-30)
+  duration = 290 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-11" (javaThreadId = 110)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.353 (2026-10-30)
+  duration = 309 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = 18:47:39.353 (2026-10-30)
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-3" (javaThreadId = 109)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.353 (2026-10-30)
+  duration = 309 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-5" (javaThreadId = 102)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.353 (2026-10-30)
+  duration = 309 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-10" (javaThreadId = 108)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.353 (2026-10-30)
+  duration = 309 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-8" (javaThreadId = 105)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.353 (2026-10-30)
+  duration = 309 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-11" (javaThreadId = 110)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.352 (2026-10-30)
+  duration = 310 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-13" (javaThreadId = 112)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.353 (2026-10-30)
+  duration = 309 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-16" (javaThreadId = 122)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.352 (2026-10-30)
+  duration = 310 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-2" (javaThreadId = 101)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.353 (2026-10-30)
+  duration = 309 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-1" (javaThreadId = 38)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.351 (2026-10-30)
+  duration = 311 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-7" (javaThreadId = 106)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.351 (2026-10-30)
+  duration = 311 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-4" (javaThreadId = 104)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.352 (2026-10-30)
+  duration = 310 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-15" (javaThreadId = 119)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.352 (2026-10-30)
+  duration = 310 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-9" (javaThreadId = 103)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.351 (2026-10-30)
+  duration = 311 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-12" (javaThreadId = 111)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.351 (2026-10-30)
+  duration = 311 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-14" (javaThreadId = 117)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+
+jdk.ThreadPark {
+  startTime = 18:47:09.351 (2026-10-30)
+  duration = 311 ms
+  parkedClass = java.util.concurrent.ForkJoinPool (classLoader = bootstrap)
+  timeout = N/A
+  until = N/A
+  address = 0x8083E5A8
+  eventThread = "ForkJoinPool-1-worker-6" (javaThreadId = 107)
+  stackTrace = [
+    jdk.internal.misc.Unsafe.park(boolean, long)
+    java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool$WorkQueue, int) line: 2109
+    java.util.concurrent.ForkJoinPool.deactivate(ForkJoinPool$WorkQueue, int) line: 2063
+    java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool$WorkQueue) line: 2027
+    java.util.concurrent.ForkJoinWorkerThread.run() line: 187
+    ...
+  ]
+}
+

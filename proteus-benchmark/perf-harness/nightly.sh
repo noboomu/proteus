@@ -42,7 +42,7 @@ finish() { local status=$1 notes=$2
 # Returns 0 when both hosts are idle per the spec.
 idle() {
   rsh "$SERVER" "ss -ltn | grep -q ':$PORT '" && { BUSY="port $PORT held on $SERVER"; return 1; }
-  rsh "$LOAD" "pgrep -x wrk >/dev/null || pgrep -f '^bash (\./|/tmp/proteus-load/)?(perf-ab|probe|diag-blocking)\.sh' >/dev/null" && { BUSY="load tool running on $LOAD"; return 1; }
+  rsh "$LOAD" "pgrep -x wrk >/dev/null || pgrep -f '^bash (\./|/data/cache/proteus-perf/load/)?(perf-ab|probe|diag-blocking)\.sh' >/dev/null" && { BUSY="load tool running on $LOAD"; return 1; }
   local busy
   busy=$(rsh "$SERVER" 'snap() { awk "/^cpu[0-9]/{n=substr(\$1,4); if (n<=7 || (n>=128 && n<=135)) {t+=\$2+\$3+\$4+\$5+\$6+\$7+\$8; i+=\$5+\$6}} END{print t, i}" /proc/stat; }; set -- $(snap); sleep 5; set -- $1 $2 $(snap); echo $(( 100 - 100 * ($4 - $2) / ($3 - $1) ))')
   [ "${busy:-100}" -gt 20 ] && { BUSY="pinned CPUs ${busy}% busy with no Proteus server running"; return 1; }
@@ -60,7 +60,7 @@ if [ -n "$(git status --porcelain --untracked-files=no)" ] || [ "$(git rev-parse
 fi
 git merge -q --ff-only origin/development || finish SKIPPED "development diverged from origin/development"
 
-for a in "$SERVER:/tmp/proteus-bench/jdk27/bin/java" "$SERVER:/tmp/proteus-perf/baseline.jar" "$LOAD:/tmp/proteus-load/wrk-src/wrk"; do
+for a in "$SERVER:/data/cache/proteus-perf/jdk27/bin/java" "$SERVER:/data/cache/proteus-perf/run/baseline.jar" "$LOAD:/data/cache/proteus-perf/load/wrk-src/wrk"; do
   rsh "${a%%:*}" "test -e ${a#*:}" || finish FAILED "missing artifact ${a}"
 done
 
@@ -90,26 +90,26 @@ V=$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' pom.xml | head -1)
 for app in app diag-app; do
   (cd "$HARNESS/$app" && JAVA_HOME=$JAVA_HOME_LOCAL mvn -q -o package -Dproteus.version="$V" > /dev/null 2>&1) || finish FAILED "build of perf-harness/$app failed"
 done
-scp -q "$HARNESS/app/target/proteus-perf.jar" "$SERVER:/tmp/proteus-perf/nightly.jar" || finish FAILED "staging nightly.jar failed"
-scp -q "$HARNESS/diag-app/target/proteus-perf-diag.jar" "$SERVER:/tmp/proteus-perf/diag.jar" || finish FAILED "staging diag.jar failed"
-scp -q "$HARNESS/perf-ab.sh" "$HARNESS/diag-blocking.sh" "$LOAD:/tmp/proteus-load/" || finish FAILED "staging drivers failed"
+scp -q "$HARNESS/app/target/proteus-perf.jar" "$SERVER:/data/cache/proteus-perf/run/nightly.jar" || finish FAILED "staging nightly.jar failed"
+scp -q "$HARNESS/diag-app/target/proteus-perf-diag.jar" "$SERVER:/data/cache/proteus-perf/run/diag.jar" || finish FAILED "staging diag.jar failed"
+scp -q "$HARNESS/perf-ab.sh" "$HARNESS/diag-blocking.sh" "$LOAD:/data/cache/proteus-perf/load/" || finish FAILED "staging drivers failed"
 
 # Step 4 + 6: measurement, with RSS sampling of the nightly server process.
-rsh "$SERVER" 'echo $$ > /tmp/proteus-perf/rss-sampler.pid; while :; do p=$(cat /tmp/proteus-perf/nightly.pid 2>/dev/null); [ -n "$p" ] && grep -q nightly.jar /proc/$p/cmdline 2>/dev/null && awk -v t="$(date +%s)" "/VmRSS/{print t, \$2}" /proc/$p/status; sleep 5; done' > "$OUT/rss.txt" &
+rsh "$SERVER" 'echo $$ > /data/cache/proteus-perf/run/rss-sampler.pid; while :; do p=$(cat /data/cache/proteus-perf/run/nightly.pid 2>/dev/null); [ -n "$p" ] && grep -q nightly.jar /proc/$p/cmdline 2>/dev/null && awk -v t="$(date +%s)" "/VmRSS/{print t, \$2}" /proc/$p/status; sleep 5; done' > "$OUT/rss.txt" &
 RSS_SAMPLER=$!
-rsh "$LOAD" "bash /tmp/proteus-load/perf-ab.sh /tmp/proteus-load/results/perf/nightly-$DAY baseline nightly > /tmp/proteus-load/nightly-$DAY.log 2>&1"
-rsh "$SERVER" 'kill $(cat /tmp/proteus-perf/rss-sampler.pid) 2>/dev/null; true'
+rsh "$LOAD" "bash /data/cache/proteus-perf/load/perf-ab.sh /data/cache/proteus-perf/load/results/perf/nightly-$DAY baseline nightly > /data/cache/proteus-perf/load/nightly-$DAY.log 2>&1"
+rsh "$SERVER" 'kill $(cat /data/cache/proteus-perf/run/rss-sampler.pid) 2>/dev/null; true'
 kill "$RSS_SAMPLER" 2>/dev/null; wait "$RSS_SAMPLER" 2>/dev/null
-rsh "$LOAD" "tail -1 /tmp/proteus-load/nightly-$DAY.log" | grep -q PERF_DONE || finish FAILED "measurement did not complete: $(rsh "$LOAD" "tail -3 /tmp/proteus-load/nightly-$DAY.log" | tr '\n' ' ')"
-rsync -aq "$LOAD:/tmp/proteus-load/results/perf/nightly-$DAY/" "$OUT/"
+rsh "$LOAD" "tail -1 /data/cache/proteus-perf/load/nightly-$DAY.log" | grep -q PERF_DONE || finish FAILED "measurement did not complete: $(rsh "$LOAD" "tail -3 /data/cache/proteus-perf/load/nightly-$DAY.log" | tr '\n' ' ')"
+rsync -aq "$LOAD:/data/cache/proteus-perf/load/results/perf/nightly-$DAY/" "$OUT/"
 python3 "$HARNESS/perf-table.py" "$OUT" > "$OUT/table.md"
 BASELINE=$(awk -F'|' '/^\| \//{v=$12; gsub(/ /,"",v); if (v=="better") b++; else if (v=="WORSE") w++; else o++} END{printf "%d better, %d worse, %d overlap", b, w, o}' "$OUT/table.md")
 ERRS=$(awk -F'|' '/^\| \//{gsub(/ /,"",$10); s+=$10} END{print s+0}' "$OUT/table.md")
 RSS=$(awk '$2>m{m=$2} END{printf "%d", m/1024}' "$OUT/rss.txt")
 
 # Step 5: blocking tail diagnostic.
-rsh "$LOAD" "bash /tmp/proteus-load/diag-blocking.sh /tmp/proteus-load/diag/nightly-$DAY > /dev/null 2>&1"
-rsync -aq "$LOAD:/tmp/proteus-load/diag/nightly-$DAY/" "$OUT/diag/"
+rsh "$LOAD" "bash /data/cache/proteus-perf/load/diag-blocking.sh /data/cache/proteus-perf/load/diag/nightly-$DAY > /dev/null 2>&1"
+rsync -aq "$LOAD:/data/cache/proteus-perf/load/diag/nightly-$DAY/" "$OUT/diag/"
 C=$(grep '^complete' "$OUT/diag/stages-1024.txt" 2>/dev/null)
 TAIL="complete p99.9 $(echo "$C" | grep -o 'p999=[0-9]*' | cut -d= -f2) us, max $(echo "$C" | grep -o 'max=[0-9]*' | cut -d= -f2) us; wrk p99 $(grep ' 99%' "$OUT/diag/wrk-1024.txt" 2>/dev/null | awk '{print $2}')"
 

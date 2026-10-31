@@ -52,7 +52,7 @@ A scheduled, unattended run that verifies the development line, measures it agai
   - `A-r1.txt` … `B-r3.txt` and `table.md` from the measurement
   - `diag/`: `wrk-<conns>.txt`, `stages-<conns>.txt`, `diag-gc.log`
   - `rss.txt`: one `epoch_seconds rss_kib` line per sample
-  - `env.txt`: head commit, JDK version, Undertow and XNIO versions, both hosts' load averages at start
+  - `env.txt`: head commit, JDK version, Undertow and XNIO versions, both hosts' load averages at start, and per host the kernel release, boot time, CPU frequency governor, and energy-performance preference
 - `SUMMARY.md` fields, in order:
   - `status`: `OK`, `REGRESSED`, `FAILED`, or `SKIPPED`
   - `head`: abbreviated commit
@@ -67,6 +67,7 @@ A scheduled, unattended run that verifies the development line, measures it agai
 
 - `FAILED`: any test failure or error, build failure, missing artifact, or non-2xx/socket errors in the measurement.
 - `REGRESSED`: no failure, and at least one cell whose range lies wholly below the previous nightly range.
+- The previous-nightly comparison is recorded as `not comparable` and cannot produce `REGRESSED` when either host's kernel release or boot time differs from the previous nightly `env.txt`.
 - `OK`: neither of the above.
 - `SKIPPED`: preconditions unmet after four deferrals.
 

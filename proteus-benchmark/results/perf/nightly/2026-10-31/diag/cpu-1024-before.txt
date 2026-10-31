@@ -1,0 +1,16 @@
+C 5 0
+Common-Cleaner 1 0
+Finalizer 1 0
+ForkJoi..ker 7 7131
+ForkJoi..rker 9 9258
+GC 13 0
+Innocuo..read 1 0
+java 2 73
+Monitor..Thread 1 0
+Notific..Thread 1 0
+Referen..andler 1 0
+Service 1 0
+Signal 1 0
+Virtual..locker 1 15
+VM 2 0
+XNIO 33 0

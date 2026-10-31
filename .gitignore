@@ -35,3 +35,6 @@ tty.sh
 !proteus-benchmark/*.sh
 !proteus-benchmark/perf-harness/*.sh
 
+
+# maven-shade byproduct
+dependency-reduced-pom.xml

@@ -21,17 +21,18 @@ A scheduled, unattended run that verifies the development line, measures it agai
   - a running `wrk`, `perf-ab.sh`, `probe.sh`, or `nightly.sh` process on godzilla;
   - attenborough CPUs 0-7 and 128-135 more than 20% busy on average over a 5 s `/proc/stat` sample while no Proteus server is running.
 - Working tree clean on `development` after `git fetch` and fast-forward to `origin/development`; a dirty or diverged tree records `SKIPPED` with the `git status` output.
-- Staged artifacts on attenborough:
-  - JDK 27 at `/tmp/proteus-bench/jdk27`
-  - pre-agent baseline jar at `/tmp/proteus-perf/baseline.jar`
-- Staged on godzilla: `wrk` at `/tmp/proteus-load/wrk-src/wrk`.
+- Staged artifacts on attenborough, under `/data/cache/proteus-perf/` (persistent disk; `/tmp` is tmpfs and is cleared on reboot):
+  - JDK 27 at `jdk27/`
+  - pre-agent baseline jar at `run/baseline.jar`, SHA-256 `ce5eb693d6e067dd0911f1cf08e7a9ead1e390ba6463e65128cfbc3545a39e59`
+  - run directory `run/` for staged jars, pid files, and server logs
+- Staged on godzilla, under `/data/cache/proteus-perf/load/`: `wrk` at `wrk-src/wrk`, drivers, and raw run output.
 - A missing artifact records `FAILED` naming the artifact.
 
 ## Steps
 
 1. `mvn -o clean install -Dgpg.skip` on JDK 27 for the full reactor.
 2. Record total, failed, and errored test counts per module from surefire reports.
-3. Build the performance-contract application against the freshly installed `proteus-core` and stage it on attenborough as `/tmp/proteus-perf/nightly.jar`.
+3. Build the performance-contract application against the freshly installed `proteus-core` and stage it on attenborough as `/data/cache/proteus-perf/run/nightly.jar`.
 4. Run the performance-contract measurement, baseline as side A and `nightly` as side B, three alternating rounds, all cells.
 5. Run the blocking tail diagnostic once against a diagnostic build of the same head:
    - `/json/blocking` at 256 and 1024 connections, 5 s warmup, 15 s measured;

@@ -1,10 +1,10 @@
 # Nightly 2026-11-03
 
-- status: SKIPPED
-- head: cfb4b58
-- tests: n/a
-- baseline: n/a
-- previous: n/a
-- blocking_tail: n/a
-- rss_peak_mib: n/a
-- notes: working tree not clean on development: ## development...origin/development  D .githooks/pre-commit 
+- status: OK
+- head: 16e6a5e
+- tests: 215 total, 0 failed, 0 errored
+- baseline: 1 better, 7 worse, 4 overlap
+- previous: 2026-11-01: not comparable (host kernel or boot changed)
+- blocking_tail: complete p99.9 114879 us, max 321535 us; wrk p99 168.85ms
+- rss_peak_mib: 1304
+- notes: complete

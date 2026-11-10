@@ -1,0 +1,115 @@
+## control-a
+plaintext              c=1024  1886k  p99=5.55ms
+plaintext/exchange     c=1024  2047k  p99=4.32ms
+json                   c=512   1900k  p99=6.55ms
+json/blocking          c=256   1164k  p99=2.87ms
+json/blocking          c=1024  655k  p99=159.80ms
+## readto-off
+plaintext              c=1024  2029k  p99=5.05ms
+plaintext/exchange     c=1024  2176k  p99=5.01ms
+json                   c=512   2023k  p99=4.39ms
+json/blocking          c=256   1228k  p99=2.23ms
+json/blocking          c=1024  702k  p99=147.59ms
+## io-8
+plaintext              c=1024  1430k  p99=1.37ms
+plaintext/exchange     c=1024  1507k  p99=1.29ms
+json                   c=512   1459k  p99=692.00us
+json/blocking          c=256   998k  p99=2.04ms
+json/blocking          c=1024  1096k  p99=9.05ms
+## buf-4k
+plaintext              c=1024  1884k  p99=4.63ms
+plaintext/exchange     c=1024  2048k  p99=4.49ms
+json                   c=512   1917k  p99=4.26ms
+json/blocking          c=256   1175k  p99=2.60ms
+json/blocking          c=1024  663k  p99=181.71ms
+## vtpar-8
+plaintext              c=1024  1887k  p99=4.91ms
+plaintext/exchange     c=1024  2033k  p99=4.72ms
+json                   c=512   1887k  p99=4.33ms
+json/blocking          c=256   1067k  p99=5.73ms
+json/blocking          c=1024  1050k  p99=68.60ms
+## io-24
+plaintext              c=1024  1839k  p99=3.55ms
+plaintext/exchange     c=1024  2031k  p99=3.97ms
+json                   c=512   1905k  p99=2.89ms
+json/blocking          c=256   1174k  p99=1.52ms
+json/blocking          c=1024  503k  p99=15.38ms
+## control-b
+plaintext              c=1024  1914k  p99=5.05ms
+plaintext/exchange     c=1024  2052k  p99=4.29ms
+json                   c=512   1907k  p99=4.22ms
+json/blocking          c=256   1169k  p99=2.71ms
+json/blocking          c=1024  646k  p99=148.43ms
+## writeto-off
+plaintext              c=1024  1908k  p99=7.50ms
+plaintext/exchange     c=1024  2054k  p99=4.36ms
+json                   c=512   1932k  p99=4.20ms
+json/blocking          c=256   1195k  p99=2.37ms
+json/blocking          c=1024  624k  p99=135.24ms
+## buf-8k
+plaintext              c=1024  1877k  p99=5.26ms
+plaintext/exchange     c=1024  2034k  p99=4.20ms
+json                   c=512   1906k  p99=4.44ms
+json/blocking          c=256   1175k  p99=2.77ms
+json/blocking          c=1024  648k  p99=143.10ms
+## io-16
+plaintext              c=1024  1899k  p99=1.15ms
+plaintext/exchange     c=1024  2053k  p99=1.02ms
+json                   c=512   1954k  p99=560.00us
+json/blocking          c=256   1110k  p99=2.77ms
+json/blocking          c=1024  382k  p99=21.69ms
+## http2-off
+plaintext              c=1024  1913k  p99=5.48ms
+plaintext/exchange     c=1024  2037k  p99=4.28ms
+json                   c=512   1923k  p99=4.29ms
+json/blocking          c=256   1172k  p99=2.74ms
+json/blocking          c=1024  646k  p99=180.34ms
+## buf-64k
+plaintext              c=1024  1889k  p99=4.91ms
+plaintext/exchange     c=1024  2037k  p99=4.66ms
+json                   c=512   1909k  p99=4.16ms
+json/blocking          c=256   1197k  p99=2.50ms
+json/blocking          c=1024  620k  p99=118.72ms
+## control-c
+plaintext              c=1024  1892k  p99=4.57ms
+plaintext/exchange     c=1024  2043k  p99=4.37ms
+json                   c=512   1907k  p99=4.39ms
+json/blocking          c=256   1171k  p99=2.71ms
+json/blocking          c=1024  660k  p99=160.05ms
+## bothto-off
+plaintext              c=1024  2059k  p99=4.83ms
+plaintext/exchange     c=1024  2210k  p99=4.36ms
+json                   c=512   2035k  p99=4.45ms
+json/blocking          c=256   1247k  p99=1.89ms
+json/blocking          c=1024  648k  p99=113.02ms
+## io-48
+plaintext              c=1024  1903k  p99=19.16ms
+plaintext/exchange     c=1024  2044k  p99=9.24ms
+json                   c=512   1876k  p99=6.37ms
+json/blocking          c=256   1135k  p99=2.59ms
+json/blocking          c=1024  1098k  p99=169.12ms
+## vtpar-24
+plaintext              c=1024  1862k  p99=5.31ms
+plaintext/exchange     c=1024  2042k  p99=4.46ms
+json                   c=512   1903k  p99=4.45ms
+json/blocking          c=256   1150k  p99=1.61ms
+json/blocking          c=1024  628k  p99=12.96ms
+## io-12
+plaintext              c=1024  1734k  p99=1.25ms
+plaintext/exchange     c=1024  1826k  p99=1.18ms
+json                   c=512   1746k  p99=630.00us
+json/blocking          c=256   1034k  p99=3.98ms
+json/blocking          c=1024  684k  p99=12.39ms
+## buf-32k
+plaintext              c=1024  1886k  p99=5.19ms
+plaintext/exchange     c=1024  2035k  p99=17.84ms
+json                   c=512   1900k  p99=4.59ms
+json/blocking          c=256   1173k  p99=2.67ms
+json/blocking          c=1024  643k  p99=142.46ms
+## control-d
+plaintext              c=1024  1900k  p99=4.99ms
+plaintext/exchange     c=1024  2054k  p99=4.29ms
+json                   c=512   1876k  p99=4.49ms
+json/blocking          c=256   1189k  p99=2.62ms
+json/blocking          c=1024  646k  p99=151.08ms
+KNOBS_DONE

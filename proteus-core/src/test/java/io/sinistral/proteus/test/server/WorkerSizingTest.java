@@ -30,9 +30,9 @@ public class WorkerSizingTest {
         ConfigFactory.invalidateCaches();
     }
 
-    private void start(int ioMultiplier, int workerMultiplier) {
-        System.setProperty("undertow.ioThreadsMultiplier", Integer.toString(ioMultiplier));
-        System.setProperty("undertow.workerThreadsMultiplier", Integer.toString(workerMultiplier));
+    private void start(double ioMultiplier, double workerMultiplier) {
+        System.setProperty("undertow.ioThreadsMultiplier", Double.toString(ioMultiplier));
+        System.setProperty("undertow.workerThreadsMultiplier", Double.toString(workerMultiplier));
         ConfigFactory.invalidateCaches();
         application = new ProteusApplication();
         application.start();
@@ -44,6 +44,19 @@ public class WorkerSizingTest {
         int processors = Runtime.getRuntime().availableProcessors();
         assertEquals(processors * 2, application.getWorker().getIoThreadCount());
         assertEquals(processors * 2, application.getWorker().getOption(Options.WORKER_IO_THREADS));
+    }
+
+    @Test
+    public void fractionalMultiplierRoundsWithMinimumOneThread() throws Exception {
+        int processors = Runtime.getRuntime().availableProcessors();
+        start(0.25, 0.5);
+        assertEquals(Math.max(1, Math.round(processors * 0.25)), application.getWorker().getIoThreadCount());
+        assertEquals((int) Math.max(1, Math.round(processors * 0.5)), application.getWorker().getOption(Options.WORKER_TASK_MAX_THREADS));
+        application.shutdown();
+
+        start(0.0001, 0.0001);
+        assertEquals(1, application.getWorker().getIoThreadCount());
+        assertEquals(1, application.getWorker().getOption(Options.WORKER_TASK_MAX_THREADS));
     }
 
     @Test

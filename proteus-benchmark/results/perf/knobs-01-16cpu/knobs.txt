@@ -1,0 +1,49 @@
+## control
+plaintext              c=1024  1899k  p99=5.35ms
+plaintext/exchange     c=1024  2039k  p99=4.52ms
+json                   c=512   1889k  p99=4.46ms
+json/blocking          c=256   1185k  p99=2.65ms
+json/blocking          c=1024  637k  p99=156.32ms
+## buf-32k
+plaintext              c=1024  1902k  p99=4.71ms
+plaintext/exchange     c=1024  2048k  p99=4.21ms
+json                   c=512   1898k  p99=4.41ms
+json/blocking          c=256   1180k  p99=2.47ms
+json/blocking          c=1024  639k  p99=144.93ms
+## heapbuf
+plaintext              c=1024  1878k  p99=4.64ms
+plaintext/exchange     c=1024  2012k  p99=4.11ms
+json                   c=512   1878k  p99=4.24ms
+json/blocking          c=256   1181k  p99=2.52ms
+json/blocking          c=1024  628k  p99=157.91ms
+## notimeout
+plaintext              c=1024  2052k  p99=4.75ms
+plaintext/exchange     c=1024  2238k  p99=4.40ms
+json                   c=512   2054k  p99=4.59ms
+json/blocking          c=256   1237k  p99=2.25ms
+json/blocking          c=1024  685k  p99=153.32ms
+## vtpar-12
+plaintext              c=1024  1886k  p99=4.86ms
+plaintext/exchange     c=1024  2043k  p99=4.30ms
+json                   c=512   1900k  p99=4.21ms
+json/blocking          c=256   1181k  p99=2.03ms
+json/blocking          c=1024  657k  p99=196.32ms
+## g1
+plaintext              c=1024  1866k  p99=7.28ms
+plaintext/exchange     c=1024  2027k  p99=5.50ms
+json                   c=512   1901k  p99=5.16ms
+json/blocking          c=256   1175k  p99=3.22ms
+json/blocking          c=1024  629k  p99=158.64ms
+## zgc
+plaintext              c=1024  1698k  p99=5.16ms
+plaintext/exchange     c=1024  1843k  p99=4.32ms
+json                   c=512   1712k  p99=4.18ms
+json/blocking          c=256   1091k  p99=3.22ms
+json/blocking          c=1024  599k  p99=188.41ms
+## control2
+plaintext              c=1024  1888k  p99=4.97ms
+plaintext/exchange     c=1024  2048k  p99=4.20ms
+json                   c=512   1913k  p99=4.24ms
+json/blocking          c=256   1185k  p99=2.27ms
+json/blocking          c=1024  628k  p99=145.34ms
+KNOBS_DONE

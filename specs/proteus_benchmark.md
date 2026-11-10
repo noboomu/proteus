@@ -22,8 +22,8 @@
 ## Worker Threading Contract
 
 - `ProteusApplication.buildServer()` creates the XNIO worker with `Xnio.createWorker(OptionMap)` and passes it to `Undertow.Builder.setWorker`. Because the worker is external, Undertow ignores `setIoThreads` and `setWorkerThreads`; the option map carries the values Undertow would apply to its own worker.
-- `undertow.ioThreadsMultiplier` × available processors is `Options.WORKER_IO_THREADS`.
-- `undertow.workerThreadsMultiplier` × available processors is `Options.WORKER_TASK_CORE_THREADS` and `Options.WORKER_TASK_MAX_THREADS`.
+- `undertow.ioThreadsMultiplier` × available processors, rounded to the nearest integer with a minimum of 1, is `Options.WORKER_IO_THREADS`; the multiplier may be fractional.
+- `undertow.workerThreadsMultiplier` × available processors, rounded to the nearest integer with a minimum of 1, is `Options.WORKER_TASK_CORE_THREADS` and `Options.WORKER_TASK_MAX_THREADS`; the multiplier may be fractional.
 - `CONNECTION_HIGH_WATER` and `CONNECTION_LOW_WATER` are 1000000, `TCP_NODELAY` and `CORK` are true.
 - `@Blocking` routes dispatch with `Thread::startVirtualThread`.
 - Startup logs the effective I/O thread count and task thread count at `INFO`.

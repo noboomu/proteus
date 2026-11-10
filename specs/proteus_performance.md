@@ -60,32 +60,6 @@ The rules a runtime change to Proteus must satisfy before it is merged to the de
 - The full reactor test suite passes with the change.
 - The development line after all accepted changes is measured against the baseline with the same rules, and the result is reported per cell.
 
-## Configuration Sweep
-
-- Purpose: choose `proteus-core` reference configuration defaults on the 16-CPU envelope defined under Hosts.
-- Server, load generator, pinning, JVM heap, request headers, and application are those of the Measurement section.
-- Every variant differs from the control in exactly one factor; the control is the current reference configuration with `-XX:+UseParallelGC`.
-- Factors and levels:
-  - `undertow.ioThreadsMultiplier`: 0.25, 0.5, 0.75, 1, 1.5 (control 2), giving 4, 8, 12, 16, 24 (control 32) I/O threads.
-  - `undertow.bufferSize`: 8k, 32k, 64k (control 16k).
-  - `undertow.directBuffers`: false (control true).
-  - `undertow.socket.readTimeout` and `undertow.socket.writeTimeout` together: 0 (control 90000).
-  - `undertow.gracefulShutdown`: false (control true).
-  - JVM `jdk.virtualThreadScheduler.parallelism`: 8, 12 (control unset, which is 16).
-  - JVM collector: G1, ZGC (control Parallel).
-- Screen cells, each 5 s warmup and 10 s measured:
-  - `/plaintext` with 16-request pipelining, 1024 connections;
-  - `/plaintext`, 256 connections;
-  - `/plaintext/exchange`, 1024 connections;
-  - `/json`, 256 and 512 connections;
-  - `/json/blocking`, 256 and 1024 connections.
-- Rounds: two. Variant order is shuffled independently per round. The control runs first, after every fifth variant, and last in each round.
-- Normalization: a variant's cell value is its requests per second divided by the mean of the nearest control runs before and after it in the same round.
-- A level wins its factor when, in both rounds, its ratio is at least 1.03 on one or more cells and at least 0.98 on every cell. Where several levels win, the winner is the one with the highest geometric mean ratio across cells and rounds.
-- Winning levels of Proteus configuration keys are combined into one candidate configuration. That candidate is measured against the current reference configuration under the Acceptance rules, and an accepted candidate becomes the reference configuration.
-- JVM factors are reported as deployment guidance with the same ratios. They do not change reference configuration.
-- Output per sweep: raw wrk logs per run, a ratio table per factor level and cell for both rounds, and the winner per factor.
-
 ## Change discipline
 
 - One change per measurement; a change is a single default value or a single code path.

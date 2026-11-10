@@ -584,8 +584,8 @@ public class ProteusApplication {
         }
 
         final int processorCount = Runtime.getRuntime().availableProcessors();
-        final int ioThreads = processorCount * config.getInt("undertow.ioThreadsMultiplier");
-        final int workerThreads = processorCount * config.getInt("undertow.workerThreadsMultiplier");
+        final int ioThreads = (int) Math.max(1, Math.round(processorCount * config.getDouble("undertow.ioThreadsMultiplier")));
+        final int workerThreads = (int) Math.max(1, Math.round(processorCount * config.getDouble("undertow.workerThreadsMultiplier")));
 
         Xnio xnio = Xnio.getInstance();
 

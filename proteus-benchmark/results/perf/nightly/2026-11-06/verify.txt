@@ -1,4 +1,0 @@
-proteus-core 139 0 0
-proteus-openapi 67 0 0
-proteus-websocket 9 0 0
-reactor_exit 0

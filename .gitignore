@@ -38,3 +38,6 @@ tty.sh
 
 # maven-shade byproduct
 dependency-reduced-pom.xml
+
+# benchmark output never lives in the repository
+proteus-benchmark/results/
